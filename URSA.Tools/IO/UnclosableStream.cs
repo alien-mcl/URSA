@@ -46,8 +46,9 @@ namespace System.IO
         public override int WriteTimeout { get { return _stream.WriteTimeout; } set { _stream.WriteTimeout = value; } }
 
         /// <inheritdoc />
-        void IDisposable.Dispose()
+        public new void Dispose()
         {
+            Dispose(true);
         }
 
         /// <inheritdoc />
@@ -173,6 +174,21 @@ namespace System.IO
         public override void WriteByte(byte value)
         {
             _stream.WriteByte(value);
+        }
+
+        /// <inheritdoc />
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                if (_stream != null)
+                {
+                    _stream.Dispose();
+                    _stream = null;
+                }
+            }
+
+            base.Dispose(disposing);
         }
     }
 }

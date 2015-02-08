@@ -55,12 +55,22 @@ namespace URSA.Web.Http
         public T Value { get; private set; }
 
         /// <inheritdoc />
-        public override Stream Body { get; protected set; }
+        public sealed override Stream Body { get; protected set; }
 
         /// <inheritdoc />
-        public override void Dispose()
+        public sealed override void Dispose()
         {
-            _body.Dispose();
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                _body.Dispose();
+                _body = null;
+            }
         }
 
         private void Initialize(T value, IConverterProvider converterProvider)

@@ -14,7 +14,7 @@ using URSA.ComponentModel;
 namespace URSA.ComponentModel
 {
     /// <summary>Provides a Castle Windsor based implementation of the <see cref="IServiceProvider"/> interface.</summary>
-    public class WindsorComponentProvider : IComponentProvider
+    public sealed class WindsorComponentProvider : IComponentProvider, IDisposable
     {
         private IWindsorContainer _container;
         private IGenericImplementationMatchingStrategy _genericImplementationMatchingStrategy;
@@ -193,6 +193,15 @@ namespace URSA.ComponentModel
             return _container.Kernel.GetAssignableHandlers(typeof(T))
                 .Where(handler => handler.CurrentState == HandlerState.Valid)
                 .Select(handler => handler.ComponentModel.Implementation);
+        }
+
+        /// <inheritdoc />
+        public void Dispose()
+        {
+            if (_container != null)
+            {
+                _container.Dispose();
+            }
         }
     }
 }

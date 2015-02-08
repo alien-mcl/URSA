@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace URSA.Web.Http
 {
     /// <summary>Represents a collection of <see cref="HeaderParameter" />.</summary>
-    public class HeaderParameterCollection : ICollection<HeaderParameter>
+    public sealed class HeaderParameterCollection : ICollection<HeaderParameter>
     {
         private static readonly IEqualityComparer<string> Comparer = StringComparer.OrdinalIgnoreCase;
         private IDictionary<string, HeaderParameter> _parameters = new Dictionary<string, HeaderParameter>(Comparer);

@@ -8,7 +8,7 @@ using System.Text.RegularExpressions;
 namespace URSA.Web.Http
 {
     /// <summary>Describes an HTTP request.</summary>
-    public class RequestInfo : IRequestInfo, IDisposable
+    public sealed class RequestInfo : IRequestInfo, IDisposable
     {
         private Stream _stream;
 

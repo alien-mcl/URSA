@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -91,6 +92,7 @@ namespace URSA.Web.Http
         public abstract Stream Body { get; protected set; }
 
         /// <inheritdoc />
+        [SuppressMessage("Microsoft.Design", "CA1063:ImplementIDisposableCorrectly", Justification = "Implemented in inheriting classes.")]
         public abstract void Dispose();
     }
 }

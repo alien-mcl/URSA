@@ -6,7 +6,7 @@ using System.Text.RegularExpressions;
 namespace URSA.Web.Http
 {
     /// <summary>Represents an HTTP header collection.</summary>
-    public class HeaderCollection : IDictionary<string, string>, IEnumerable<Header>
+    public sealed class HeaderCollection : IDictionary<string, string>, IEnumerable<Header>
     {
         internal static readonly string Token = "[^\x00-\x20'()<>@,;:\\\"/\\[\\]?={}]+";
         internal static readonly Regex Header = new Regex(String.Format("(?<Name>{0}):(?<Value>(.|(?<=\r)\n(?=[ \t]))*)", Token));
