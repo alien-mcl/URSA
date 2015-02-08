@@ -12,7 +12,7 @@ namespace URSA.Web.Tests
 
         IResponseInfo IController.Response { get { return Response; } set { Response = (ResponseInfo)value; } }
 
-        public int Add(int operandA, int operandB)
+        public int Add(int operandA = 0, int operandB = 0)
         {
             return operandA + operandB;
         }

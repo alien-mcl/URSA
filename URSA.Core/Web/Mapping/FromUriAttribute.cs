@@ -5,7 +5,7 @@ namespace URSA.Web.Mapping
 {
     /// <summary>Marks the parameter to be bound to the uri.</summary>
     [AttributeUsage(AttributeTargets.Parameter)]
-    public class FromUriAttribute : ParameterSourceAttribute
+    public sealed class FromUriAttribute : ParameterSourceAttribute
     {
         /// <summary>Defines a part of the uri responsible for mapping the actual value of the parameter in the uri.</summary>
         public const string Value = "{?value}";

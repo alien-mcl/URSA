@@ -10,6 +10,8 @@ namespace URSA.Web.Http
     /// <summary>Describes an HTTP header.</summary>
     public class Header
     {
+        private static readonly string[] UnparsableHeaders = new string[] { "User-Agent" };
+
         internal static readonly IEqualityComparer<string> Comparer = StringComparer.OrdinalIgnoreCase;
 
         /// <summary>Defines the 'Warning' header name.</summary>
@@ -120,7 +122,15 @@ namespace URSA.Web.Http
             IList<HeaderValue> values = new List<HeaderValue>();
             if ((match.Groups["Value"] != null) && (match.Groups["Value"].Value.Length > 0))
             {
-                ParseValues(match.Groups["Name"].Value, values, match.Groups["Value"].Value.Trim());
+                string value = match.Groups["Value"].Value.Trim();
+                if (UnparsableHeaders.Contains(match.Groups["Name"].Value))
+                {
+                    values.Add(new HeaderValue(value));
+                }
+                else
+                {
+                    ParseValues(match.Groups["Name"].Value, values, value);
+                }
             }
 
             return CreateInstance(match.Groups["Name"].Value, values);

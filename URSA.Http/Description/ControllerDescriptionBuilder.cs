@@ -195,8 +195,12 @@ namespace URSA.Web.Description.Http
             uriTemplate = templateRegex;
             StringBuilder queryString = new StringBuilder(512);
             StringBuilder iriQueryString = new StringBuilder(512);
-            foreach (var parameter in method.GetParameters().Where(parameter => !parameter.IsOut))
+            int optionalParameters = 0;
+            int totalParameters = 0;
+            var parameters = method.GetParameters().Where(parameter => !parameter.IsOut);
+            foreach (var parameter in parameters)
             {
+                totalParameters++;
                 bool isBodyParameter;
                 string parameterUriTemplate;
                 string parameterTemplateRegex;
@@ -225,11 +229,17 @@ namespace URSA.Web.Description.Http
                         (isBodyParameter ? null : (parameterTemplateRegex[0] == '&' ? parameterUriTemplate : uriTemplate)),
                         variableName));
                 }
+
+                if (parameter.HasDefaultValue)
+                {
+                    optionalParameters++;
+                }
             }
 
             if (queryString.Length > 0)
             {
-                templateRegex = templateRegex + "[?&](" + queryString.ToString().Substring(1) + ")=[^&]+";
+                templateRegex = templateRegex + (optionalParameters == totalParameters ? "(" : String.Empty) + "[?&](" + queryString.ToString().Substring(1) + ")=[^&]+" +
+                    (optionalParameters == totalParameters ? "){0,}" : String.Empty);
                 uriTemplate = uriTemplate + "?" + iriQueryString.ToString().Substring(1);
             }
 

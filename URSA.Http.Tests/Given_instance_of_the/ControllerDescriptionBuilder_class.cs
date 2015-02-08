@@ -24,7 +24,7 @@ namespace Given_instance_of_the
             details.Should().NotBeNull();
             details.Verb.Should().Be(Verb.GET);
             details.UriTemplate.Should().Be("/api/test/add?operandA={?operandA}&operandB={?operandB}");
-            details.TemplateRegex.ToString().Should().Be("^/api/test/add[?&](operandA|operandB)=[^&]+$");
+            details.TemplateRegex.ToString().Should().Be("^/api/test/add([?&](operandA|operandB)=[^&]+){0,}$");
             details.Uri.ToString().Should().Be("/api/test/add");
             details.Arguments.Should().HaveCount(method.GetParameters().Length);
             details.Arguments.First().Parameter.Should().Be(method.GetParameters().First());

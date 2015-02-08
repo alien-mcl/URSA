@@ -5,7 +5,7 @@ namespace URSA.Web.Mapping
 {
     /// <summary>Marks the parameter to be bound to the body of the request.</summary>
     [AttributeUsage(AttributeTargets.Parameter)]
-    public class FromBodyAttribute : ParameterSourceAttribute
+    public sealed class FromBodyAttribute : ParameterSourceAttribute
     {
         /// <summary>Initializes a new instance of the <see cref="FromBodyAttribute" /> class.</summary>
         public FromBodyAttribute()
