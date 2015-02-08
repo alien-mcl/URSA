@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -12,6 +13,8 @@ namespace URSA.Web.Http
     /// <summary>Serves as the main entry point for the URSA.</summary>
     public class RequestHandler : RequestHandlerBase<RequestInfo, ResponseInfo>
     {
+        private static readonly IDictionary<Type, IDictionary<string, MethodInfo>> ControllerCRUDMethodsCache = new ConcurrentDictionary<Type, IDictionary<string, MethodInfo>>();
+
         /// <inheritdoc />
         protected override ResponseInfo HandleRequest(RequestInfo request, IRequestMapping requestMapping)
         {
@@ -33,6 +36,47 @@ namespace URSA.Web.Http
         /// <inheritdoc />
         protected override void Initialize()
         {
+        }
+
+        private static IDictionary<string, MethodInfo> GetCRUDMethods(Type controllerType)
+        {
+            IDictionary<string, MethodInfo> result;
+            if (!ControllerCRUDMethodsCache.TryGetValue(controllerType, out result))
+            {
+                Type all = null;
+                Type read = null;
+                Type write = null;
+                foreach (var @interface in controllerType.GetInterfaces())
+                {
+                    if (@interface.IsGenericType)
+                    {
+                        var definition = @interface.GetGenericTypeDefinition();
+                        if (typeof(IController<>).IsAssignableFrom(definition))
+                        {
+                            all = @interface;
+                        }
+                        else if (typeof(IReadController<,>).IsAssignableFrom(definition))
+                        {
+                            read = @interface;
+                        }
+                        else if (typeof(IWriteController<,>).IsAssignableFrom(definition))
+                        {
+                            write = @interface;
+                        }
+                    }
+                }
+
+                ControllerCRUDMethodsCache[controllerType] = result = new Dictionary<string, MethodInfo>()
+                {
+                    { String.Empty, controllerType.GetInterfaceMap(all).TargetMethods.First() },
+                    { Verb.GET.ToString(), controllerType.GetInterfaceMap(read).TargetMethods.First() },
+                    { Verb.POST.ToString(), controllerType.GetInterfaceMap(write).TargetMethods.First(method => method.Name == "Create") },
+                    { Verb.PUT.ToString(), controllerType.GetInterfaceMap(write).TargetMethods.First(method => method.Name == "Update") },
+                    { Verb.DELETE.ToString(), controllerType.GetInterfaceMap(write).TargetMethods.First(method => method.Name == "Delete") }
+                };
+            }
+
+            return result;
         }
 
         private void ValidateArguments(ParameterInfo[] parameters, object[] arguments)
@@ -86,7 +130,7 @@ namespace URSA.Web.Http
         {
             success = true;
             var type = requestMapping.Operation.UnderlyingMethod.ReturnType;
-            var methods = GetCRUDMethods(requestMapping);
+            var methods = GetCRUDMethods(requestMapping.Target.GetType());
             var method = methods.FirstOrDefault(entry => entry.Value == requestMapping.Operation.UnderlyingMethod);
             if (!Object.Equals(method, default(KeyValuePair<string, MethodInfo>)))
             {
@@ -95,7 +139,7 @@ namespace URSA.Web.Http
                     case "":
                         return MakeObjectResponse(type, response, output ?? (object)Array.CreateInstance(type.GetItemType(), 0));
                     case "GET":
-                        return MakeResponse(type, response, output);
+                        return MakeResponseFromValue(type, response, output);
                     case "POST":
                         return MakeResponse(response, requestMapping, arguments, (bool?)output);
                     case "PUT":
@@ -108,43 +152,7 @@ namespace URSA.Web.Http
             return null;
         }
 
-        private IDictionary<string, MethodInfo> GetCRUDMethods(IRequestMapping requestMapping)
-        {
-            var type = requestMapping.Target.GetType();
-            Type all = null;
-            Type read = null;
-            Type write = null;
-            foreach (var @interface in type.GetInterfaces())
-            {
-                if (@interface.IsGenericType)
-                {
-                    var definition = @interface.GetGenericTypeDefinition();
-                    if (typeof(IController<>).IsAssignableFrom(definition))
-                    {
-                        all = @interface;
-                    }
-                    else if (typeof(IReadController<,>).IsAssignableFrom(definition))
-                    {
-                        read = @interface;
-                    }
-                    else if (typeof(IWriteController<,>).IsAssignableFrom(definition))
-                    {
-                        write = @interface;
-                    }
-                }
-            }
-
-            return new Dictionary<string, MethodInfo>()
-            {
-                { String.Empty, type.GetInterfaceMap(all).TargetMethods.First() },
-                { Verb.GET.ToString(), type.GetInterfaceMap(read).TargetMethods.First() },
-                { Verb.POST.ToString(), type.GetInterfaceMap(write).TargetMethods.First(method => method.Name == "Create") },
-                { Verb.PUT.ToString(), type.GetInterfaceMap(write).TargetMethods.First(method => method.Name == "Update") },
-                { Verb.DELETE.ToString(), type.GetInterfaceMap(write).TargetMethods.First(method => method.Name == "Delete") }
-            };
-        }
-
-        private ResponseInfo MakeObjectResponse(ResponseInfo response, IRequestMapping requestMapping, object[] arguments)
+        private ResponseInfo MakeObjectResponseWithOutParameter(ResponseInfo response, IRequestMapping requestMapping, object[] arguments)
         {
             var parameters = requestMapping.Operation.UnderlyingMethod.GetParameters();
             int outIndex = parameters.Length - 1;
@@ -169,16 +177,16 @@ namespace URSA.Web.Http
                 {
                     if (arguments != null)
                     {
-                        return MakeObjectResponse(response, requestMapping, arguments);
+                        return MakeObjectResponseWithOutParameter(response, requestMapping, arguments);
                     }
                     else
                     {
-                        return MakeResponse(null, response, null, HttpStatusCode.NoContent);
+                        return MakeResponseFromValue(null, response, null, HttpStatusCode.NoContent);
                     }
                 }
                 else
                 {
-                    return MakeResponse(null, response, null, HttpStatusCode.Found);
+                    return MakeResponseFromValue(null, response, null, HttpStatusCode.Found);
                 }
             }
             else
@@ -189,7 +197,7 @@ namespace URSA.Web.Http
             return response;
         }
 
-        private ResponseInfo MakeResponse(Type type, ResponseInfo response, object output, HttpStatusCode status = HttpStatusCode.NotFound)
+        private ResponseInfo MakeResponseFromValue(Type type, ResponseInfo response, object output, HttpStatusCode status = HttpStatusCode.NotFound)
         {
             if (output != null)
             {

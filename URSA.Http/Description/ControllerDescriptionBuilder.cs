@@ -188,6 +188,7 @@ namespace URSA.Web.Description.Http
             }
         }
 
+        //// TODO: Add support for optional uri parameters
         private ArgumentInfo[] BuildParameterDescriptors(MethodInfo method, Verb verb, ref string templateRegex, out string uriTemplate)
         {
             bool restUriTemplate = true;

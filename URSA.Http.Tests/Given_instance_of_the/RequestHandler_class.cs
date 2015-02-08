@@ -84,7 +84,7 @@ namespace Given_instance_of_the
 
         private OperationInfo CreateOperation()
         {
-            var method = typeof(TestController).GetMethod("Add");
+            var method = typeof(TestController).GetMethod("Substract");
             var arguments = method.GetParameters().Select(parameter => new ArgumentInfo(parameter, FromQueryStringAttribute.For(parameter), "test", "test")).ToArray();
             return new URSA.Web.Description.Http.OperationInfo(method, Verb.GET, new Uri("/", UriKind.Relative), new Regex(".*"), "test", arguments);
         }
