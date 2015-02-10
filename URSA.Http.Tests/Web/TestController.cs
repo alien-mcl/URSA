@@ -43,7 +43,7 @@ namespace URSA.Web.Tests
             return operandA % operandB;
         }
 
-        public double Power([FromUri] double operandA, [FromUri] double operandB)
+        public double Power([FromUri] double operandA = 0.0, [FromUri] double operandB = 0.0)
         {
             return Math.Pow(operandA, operandB);
         }

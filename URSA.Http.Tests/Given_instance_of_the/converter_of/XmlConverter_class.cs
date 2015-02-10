@@ -2,6 +2,7 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.IO;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Text;
 using System.Xml.Serialization;
 using URSA.Web.Http.Converters;
@@ -75,9 +76,9 @@ namespace Given_instance_of_the.converter_of
 
         private string SerializeObject<T>(T obj)
         {
-            var serializer = new XmlSerializer(typeof(T));
+            var serializer = new DataContractSerializer(typeof(T));
             var buffer = new MemoryStream();
-            serializer.Serialize(buffer, obj);
+            serializer.WriteObject(buffer, obj);
             return Encoding.UTF8.GetString(buffer.ToArray());
         }
     }

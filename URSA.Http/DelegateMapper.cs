@@ -58,18 +58,18 @@ namespace URSA.Web.Http
         }
 
         /// <inheritdoc />
-		public Verb GetMethodVerb(MethodInfo methodInfo)
-		{
+        public Verb GetMethodVerb(MethodInfo methodInfo)
+        {
             return (from controller in _controllerDescriptors.Value
                     from operation in controller.Operations.Cast<Description.Http.OperationInfo>()
                     where operation.UnderlyingMethod == methodInfo
                     select operation.Verb)
                    .FirstOrDefault() ?? Verb.GET;
-		}
+        }
 
         /// <inheritdoc />
-		public string GetMethodUriTemplate(MethodInfo methodInfo, out IEnumerable<ArgumentInfo> parameterMapping)
-		{
+        public string GetMethodUriTemplate(MethodInfo methodInfo, out IEnumerable<ArgumentInfo> parameterMapping)
+        {
             parameterMapping = new ArgumentInfo[0];
             var result = (from controller in _controllerDescriptors.Value
                           from operation in controller.Operations.Cast<Description.Http.OperationInfo>()

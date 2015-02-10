@@ -49,7 +49,7 @@ namespace URSA.Web
             where P : IRequestInfo
             where T : IController
         {
-            var builder = container.Resolve<IControllerDescriptionBuilder<T>>(typeof(IControllerDescriptionBuilder).FullName + "<" + typeof(P).FullName + ">");
+            var builder = container.Resolve<IControllerDescriptionBuilder<T>>();
             var description = builder.BuildDescriptor();
             var handler = new UrsaHandler<T>(description);
             IDictionary<string, Route> routes = new Dictionary<string, Route>();

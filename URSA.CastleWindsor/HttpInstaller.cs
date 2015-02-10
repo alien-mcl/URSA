@@ -44,9 +44,9 @@ namespace URSA.CastleWindsor
             container.Register(Component.For<IEntityContext>().UsingFactoryMethod(CreateEntityContext).LifestylePerWebRequest());
             container.Register(Component.For<IEntityContextFactory>().Instance(_entityContextFactory.Value).LifestyleSingleton());
             container.Register(Component.For<IDefaultParameterSourceSelector>().ImplementedBy(sourceSelectorType).LifestyleSingleton());
-            container.Register(Component.For<IControllerDescriptionBuilder>().Forward<IHttpControllerDescriptionBuilder>()
-                .ImplementedBy(typeof(ControllerDescriptionBuilder<>), componentProvider.GenericImplementationMatchingStrategy)
-                .Named(typeof(IControllerDescriptionBuilder) + "<" + typeof(RequestInfo).FullName + ">").LifestyleTransient());
+            container.Register(Component.For(typeof(IControllerDescriptionBuilder<>)).Forward(typeof(IHttpControllerDescriptionBuilder<>))
+                .Forward<IControllerDescriptionBuilder>().Forward<IHttpControllerDescriptionBuilder>()
+                .ImplementedBy(typeof(ControllerDescriptionBuilder<>), componentProvider.GenericImplementationMatchingStrategy).LifestyleTransient());
             container.Register(Component.For<DescriptionController<IController>>().ImplementedBy<DescriptionController<IController>>().LifestyleTransient());
             container.Register(Component.For<IParameterSourceArgumentBinder>().ImplementedBy<FromQueryStringArgumentBinder>().Activator<NonPublicComponentActivator>().LifestyleSingleton());
             container.Register(Component.For<IParameterSourceArgumentBinder>().ImplementedBy<FromUriArgumentBinder>().Activator<NonPublicComponentActivator>().LifestyleSingleton());

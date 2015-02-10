@@ -188,7 +188,6 @@ namespace URSA.Web.Description.Http
             }
         }
 
-        //// TODO: Add support for optional uri parameters
         private ArgumentInfo[] BuildParameterDescriptors(MethodInfo method, Verb verb, ref string templateRegex, out string uriTemplate)
         {
             bool restUriTemplate = true;
@@ -196,16 +195,19 @@ namespace URSA.Web.Description.Http
             uriTemplate = templateRegex;
             StringBuilder queryString = new StringBuilder(512);
             StringBuilder iriQueryString = new StringBuilder(512);
-            int optionalParameters = 0;
-            int totalParameters = 0;
+            int optionalQueryStringParameters = 0;
+            int totalQueryStringParameters = 0;
+            int optionalUriParameters = 0;
+            int totalUriParameters = 0;
             var parameters = method.GetParameters().Where(parameter => !parameter.IsOut);
             foreach (var parameter in parameters)
             {
-                totalParameters++;
                 bool isBodyParameter;
                 string parameterUriTemplate;
                 string parameterTemplateRegex;
                 var source = CreateParameterTemplateRegex(method, parameter, verb, out parameterUriTemplate, out parameterTemplateRegex, out isBodyParameter);
+                Increment<FromQueryStringAttribute>(source, parameter, ref totalQueryStringParameters, ref optionalQueryStringParameters);
+                Increment<FromUriAttribute>(source, parameter, ref totalUriParameters, ref optionalUriParameters);
                 if ((parameterTemplateRegex != null) || (isBodyParameter))
                 {
                     string variableName = (isBodyParameter ? null : parameter.Name.ToLowerCamelCase());
@@ -224,23 +226,14 @@ namespace URSA.Web.Description.Http
                         }
                     }
 
-                    result.Add(new ArgumentInfo(
-                        parameter,
-                        source,
-                        (isBodyParameter ? null : (parameterTemplateRegex[0] == '&' ? parameterUriTemplate : uriTemplate)),
-                        variableName));
-                }
-
-                if (parameter.HasDefaultValue)
-                {
-                    optionalParameters++;
+                    result.Add(new ArgumentInfo(parameter, source, (isBodyParameter ? null : (parameterTemplateRegex[0] == '&' ? parameterUriTemplate : uriTemplate)), variableName));
                 }
             }
 
             if (queryString.Length > 0)
             {
-                templateRegex = templateRegex + (optionalParameters == totalParameters ? "(" : String.Empty) + "[?&](" + queryString.ToString().Substring(1) + ")=[^&]+" +
-                    (optionalParameters == totalParameters ? "){0,}" : String.Empty);
+                templateRegex = templateRegex + (optionalQueryStringParameters == totalQueryStringParameters ? "(" : String.Empty) + "[?&](" + queryString.ToString().Substring(1) + ")=[^&]+" +
+                    (optionalQueryStringParameters == totalQueryStringParameters ? "){0,}" : String.Empty);
                 uriTemplate = uriTemplate + "?" + iriQueryString.ToString().Substring(1);
             }
 
@@ -252,34 +245,34 @@ namespace URSA.Web.Description.Http
             return result.ToArray();
         }
 
+        private void Increment<S>(ParameterSourceAttribute parameterSource, ParameterInfo parameter, ref int total, ref int optional)
+        {
+            if (typeof(S).IsAssignableFrom(parameterSource.GetType()))
+            {
+                total++;
+                if (parameter.HasDefaultValue)
+                {
+                    optional++;
+                }
+            }
+        }
+
         private ParameterSourceAttribute CreateParameterTemplateRegex(MethodInfo method, ParameterInfo parameter, Verb verb, out string parameterUriTemplate, out string parameterTemplateRegex, out bool isBodyParameter)
         {
             isBodyParameter = false;
             parameterUriTemplate = null;
             parameterTemplateRegex = null;
-            var parameterSource = parameter.GetCustomAttribute<ParameterSourceAttribute>(true);
-            if (parameterSource == null)
+            var parameterSource = parameter.GetCustomAttribute<ParameterSourceAttribute>(true) ?? _defaultParameterSourceSelector.ProvideDefault(parameter, verb);
+            var methodInfo = GetType().GetMethods(BindingFlags.Instance | BindingFlags.NonPublic)
+                .Where(item => (item.Name == "CreateParameterTemplateRegex") && (item.GetParameters().Length > 0) && (item.GetParameters()[0].ParameterType == parameterSource.GetType()))
+                .FirstOrDefault();
+            if (methodInfo != null)
             {
-                parameterSource = _defaultParameterSourceSelector.ProvideDefault(parameter, verb);
-            }
+                var arguments = new object[] { parameterSource, method, parameter, verb, parameterUriTemplate, parameterTemplateRegex };
+                methodInfo.Invoke(this, arguments);
+                parameterUriTemplate = (string)arguments[4];
+                parameterTemplateRegex = (string)arguments[5];
 
-            if (parameterSource is FromQueryStringAttribute)
-            {
-                FromQueryStringAttribute fromQueryString = (FromQueryStringAttribute)parameterSource;
-                string result = (fromQueryString.UriTemplate == FromQueryStringAttribute.Default ?
-                    FromQueryStringAttribute.For(parameter).UriTemplate :
-                    fromQueryString.UriTemplate);
-                parameterUriTemplate = result.Replace(FromUriAttribute.Value, "{?" + parameter.Name + "}");
-                parameterTemplateRegex = result.Replace(FromUriAttribute.Value, "[^&]+");
-            }
-            else if (parameterSource is FromUriAttribute)
-            {
-                FromUriAttribute fromUri = (FromUriAttribute)parameterSource;
-                string result = (fromUri.UriTemplate == FromUriAttribute.Default ?
-                    FromUriAttribute.For(parameter).UriTemplate.ToString() :
-                    fromUri.UriTemplate.ToString());
-                parameterUriTemplate = result.Replace(FromUriAttribute.Value, "{?" + parameter.Name + "}");
-                parameterTemplateRegex = result.Replace(FromUriAttribute.Value, "[^/?]+");
             }
             else if (parameterSource is FromBodyAttribute)
             {
@@ -287,6 +280,20 @@ namespace URSA.Web.Description.Http
             }
 
             return parameterSource;
+        }
+
+        private void CreateParameterTemplateRegex(FromQueryStringAttribute fromQueryString, MethodInfo method, ParameterInfo parameter, Verb verb, out string parameterUriTemplate, out string parameterTemplateRegex)
+        {
+            string result = (fromQueryString.UriTemplate == FromQueryStringAttribute.Default ? FromQueryStringAttribute.For(parameter).UriTemplate : fromQueryString.UriTemplate);
+            parameterUriTemplate = result.Replace(FromUriAttribute.Value, "{?" + parameter.Name + "}");
+            parameterTemplateRegex = result.Replace(FromUriAttribute.Value, "[^&]+");
+        }
+
+        private void CreateParameterTemplateRegex(FromUriAttribute fromUri, MethodInfo method, ParameterInfo parameter, Verb verb, out string parameterUriTemplate, out string parameterTemplateRegex)
+        {
+            string result = (fromUri.UriTemplate == FromUriAttribute.Default ? FromUriAttribute.For(parameter).UriTemplate.ToString() : fromUri.UriTemplate.ToString());
+            parameterUriTemplate = result.Replace(FromUriAttribute.Value, "{?" + parameter.Name + "}");
+            parameterTemplateRegex = (parameter.HasDefaultValue ? "(" : String.Empty) + result.Replace(FromUriAttribute.Value, String.Format("[^/?]+{0}", (parameter.HasDefaultValue ? ")?" : String.Empty)));
         }
     }
 }

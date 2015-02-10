@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Text;
 using System.Xml.Serialization;
 using URSA.Web.Converters;
@@ -66,8 +67,7 @@ namespace URSA.Web.Http.Converters
                 throw new ArgumentNullException("request");
             }
 
-            XmlSerializer serializer = new XmlSerializer(expectedType);
-            return serializer.Deserialize(request.Body);
+            return ConvertTo(expectedType, request.Body);
         }
 
         /// <inheritdoc />
@@ -89,8 +89,7 @@ namespace URSA.Web.Http.Converters
                 return null;
             }
 
-            XmlSerializer serializer = new XmlSerializer(expectedType);
-            return serializer.Deserialize(new MemoryStream(Encoding.UTF8.GetBytes(body)));
+            return ConvertTo(expectedType, new MemoryStream(Encoding.UTF8.GetBytes(body)));
         }
 
         /// <inheritdoc />
@@ -147,8 +146,34 @@ namespace URSA.Web.Http.Converters
                     throw new InvalidOperationException(String.Format("Instance type '{0}' mismatch from the given '{1}'.", instance.GetType(), givenType));
                 }
 
-                var serializer = new XmlSerializer(givenType);
-                serializer.Serialize(responseInfo.Body, instance);
+                var serializer = CreateSerializer(givenType, instance);
+                serializer.WriteObject(responseInfo.Body, instance);
+            }
+        }
+
+        private object ConvertTo(Type expectedType, Stream body)
+        {
+            var serializer = CreateSerializer(expectedType);
+            return serializer.ReadObject(body);
+        }
+
+        private DataContractSerializer CreateSerializer(Type type, object instance = null)
+        {
+            if (instance == null)
+            {
+                return new DataContractSerializer(type);
+            }
+            else
+            {
+                var additionalTypes = type.GetProperties()
+                    .Where(property => (property.PropertyType.IsInterface))
+                    .Select(property =>
+                        {
+                            var value = property.GetValue(type);
+                            return (value != null ? value.GetType() : null);
+                        })
+                    .Where(valueType => valueType != null);
+                return new DataContractSerializer(type, additionalTypes.ToArray());
             }
         }
     }

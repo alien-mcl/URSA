@@ -119,6 +119,7 @@ namespace Given_instance_of_the
             details.Should().NotBeNull();
             details.Verb.Should().Be(Verb.GET);
             details.UriTemplate.Should().Be("/api/test/power/operandA/{?operandA}/operandB/{?operandB}");
+            details.TemplateRegex.ToString().Should().Be("^/api/test/power(/operandA/[^/?]+)?(/operandB/[^/?]+)?$");
             details.Uri.ToString().Should().Be("/api/test/power");
             details.Arguments.Should().HaveCount(method.GetParameters().Length);
             details.Arguments.First().Parameter.Should().Be(method.GetParameters().First());
