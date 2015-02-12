@@ -8,6 +8,7 @@ using System.Text;
 using URSA.Web.Converters;
 using URSA.Web.Description.Http;
 using URSA.Web.Http.Mapping;
+using URSA.Web.Mapping;
 
 namespace URSA.Web.Http
 {
@@ -44,8 +45,8 @@ namespace URSA.Web.Http
                 builders.Add((IHttpControllerDescriptionBuilder)Container.Resolve(typeof(IHttpControllerDescriptionBuilder<>).MakeGenericType(controllerType)));
             }
 
-            Container.Register<IDelegateMapper<RequestInfo>>((IDelegateMapper<RequestInfo>)(HandlerMapper = new DelegateMapper(builders, Container.Resolve<IControllerActivator>())));
-            ArgumentBinder = new ArgumentBinder(Container.ResolveAll<IParameterSourceArgumentBinder>());
+            Container.Register<IDelegateMapper<RequestInfo>>(new DelegateMapper(builders, Container.Resolve<IControllerActivator>()));
+            Container.Register<IArgumentBinder<RequestInfo>>(new ArgumentBinder(Container.ResolveAll<IParameterSourceArgumentBinder>()));
         }
 
         private static IDictionary<string, MethodInfo> GetCRUDMethods(Type controllerType)
