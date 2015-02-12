@@ -15,8 +15,6 @@ namespace URSA.Web
         where T : IRequestInfo
         where R : IResponseInfo
     {
-        private IDelegateMapper _handlerMapper;
-
         /// <summary>Initializes a new instance of the <see cref="RequestHandlerBase{T,R}"/> class.</summary>
         public RequestHandlerBase()
         {
@@ -32,11 +30,14 @@ namespace URSA.Web
                 configuration.GetProvider<IControllerActivator>(configuration.ControllerActivatorType ?? typeof(DefaultControllerActivator), typeof(IComponentProvider)));
         }
 
+        /// <summary>Gets or sets the argument binding facility.</summary>
+        protected IArgumentBinder ArgumentBinder { get; set; }
+
+        /// <summary>Gets or sets the handler mapper.</summary>
+        protected IDelegateMapper HandlerMapper { get; set; }
+
         /// <summary>Gets the converters provider.</summary>
         protected IConverterProvider ConverterProvider { get; private set; }
-
-        /// <summary>Gets the argument binding facility.</summary>
-        protected IArgumentBinder ArgumentBinder { get; private set; }
 
         /// <summary>Gets the dependency injection container.</summary>
         protected IComponentProvider Container { get; private set; }
@@ -44,7 +45,7 @@ namespace URSA.Web
         /// <inheritdoc />
         public R HandleRequest(T request)
         {
-            var action = _handlerMapper.MapRequest(request);
+            var action = HandlerMapper.MapRequest(request);
             return HandleRequest(request, action);
         }
 
@@ -66,8 +67,15 @@ namespace URSA.Web
             Container.Register<IControllerActivator>(controllerActivator);
             Initialize();
             ConverterProvider.Initialize(container.ResolveAll<IConverter>());
-            _handlerMapper = Container.Resolve<IDelegateMapper<T>>();
-            ArgumentBinder = Container.Resolve<IArgumentBinder<T>>();
+            if (HandlerMapper == null)
+            {
+                HandlerMapper = Container.Resolve<IDelegateMapper<T>>();
+            }
+
+            if (ArgumentBinder == null)
+            {
+                ArgumentBinder = Container.Resolve<IArgumentBinder<T>>();
+            }
         }
     }
 }

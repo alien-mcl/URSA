@@ -1,4 +1,5 @@
 ﻿using Castle.MicroKernel;
+using Castle.MicroKernel.Context;
 using Castle.MicroKernel.Handlers;
 using Castle.MicroKernel.Registration;
 using Castle.MicroKernel.Resolvers.SpecializedResolvers;
@@ -132,6 +133,18 @@ namespace URSA.ComponentModel
         }
 
         /// <inheritdoc />
+        public bool CanResolve<T>()
+        {
+            return CanResolve(typeof(T));
+        }
+
+        /// <inheritdoc />
+        public bool CanResolve(Type type)
+        {
+            return ResolveAllTypes(type).Any();
+        }
+
+        /// <inheritdoc />
         public T Resolve<T>(params object[] arguments)
         {
             return _container.Resolve<T>(new Arguments(arguments));
@@ -176,9 +189,26 @@ namespace URSA.ComponentModel
         /// <inheritdoc />
         public IEnumerable<Type> ResolveAllTypes(Type serviceType)
         {
-            return _container.Kernel.GetAssignableHandlers(serviceType)
-                .Where(handler => handler.CurrentState == HandlerState.Valid)
-                .Select(handler => handler.ComponentModel.Implementation);
+            IList<Type> result = new List<Type>();
+            foreach (var handler in _container.Kernel.GetAssignableHandlers(serviceType))
+            {
+                if (handler.CurrentState == HandlerState.Valid)
+                {
+                    result.Add(handler.ComponentModel.Implementation);
+                }
+                else if (handler.ComponentModel.Implementation.IsGenericTypeDefinition)
+                {
+                    var candidates = handler.ComponentModel.Implementation.GetGenericArguments().First()
+                        .GetGenericParameterConstraints().SelectMany(constrain => 
+                            _container.Kernel.GetAssignableHandlers(constrain).Where(item => item.CurrentState == HandlerState.Valid).Select(item => item.ComponentModel.Implementation));
+                    foreach (var type in candidates)
+                    {
+                        result.Add(handler.ComponentModel.Implementation.MakeGenericType(type));
+                    }
+                }
+            }
+
+            return result;
         }
 
         /// <inheritdoc />
@@ -190,9 +220,7 @@ namespace URSA.ComponentModel
         /// <inheritdoc />
         public IEnumerable<Type> ResolveAllTypes<T>()
         {
-            return _container.Kernel.GetAssignableHandlers(typeof(T))
-                .Where(handler => handler.CurrentState == HandlerState.Valid)
-                .Select(handler => handler.ComponentModel.Implementation);
+            return ResolveAllTypes(typeof(T));
         }
 
         /// <inheritdoc />

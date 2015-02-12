@@ -97,9 +97,7 @@ namespace URSA.Web.Description.Http
         {
             if (_description == null)
             {
-                var route = typeof(T).GetCustomAttribute<RouteAttribute>(true) ??
-                    typeof(T).GetInterfaces().Select(@interface => @interface.GetCustomAttribute<RouteAttribute>(true)).FirstOrDefault();
-                Uri uri = (route != null ? route.Uri : new Uri("/" + BuildControllerName(), UriKind.Relative));
+                Uri uri = GetControllerRoute(typeof(T));
                 IList<OperationInfo> operations = new List<OperationInfo>();
                 var methods = typeof(T).GetMethods(BindingFlags.Public | BindingFlags.Instance)
                     .Except(typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance)
@@ -116,9 +114,23 @@ namespace URSA.Web.Description.Http
             return _description;
         }
 
-        private string BuildControllerName()
+        private Uri GetControllerRoute(Type type)
         {
-            return Regex.Replace(typeof(T).Name, "Controller", String.Empty, RegexOptions.IgnoreCase).ToLower();
+            var route = type.GetCustomAttribute<RouteAttribute>(true) ??
+                type.GetInterfaces().Select(@interface => @interface.GetCustomAttribute<RouteAttribute>(true)).FirstOrDefault();
+            Type genericType = null;
+            if ((route is DependentRouteAttribute) && (type.IsGenericType) && 
+                (type.GetGenericArguments().Any(argument => (typeof(IController).IsAssignableFrom(argument)) && ((genericType = argument) != null))))
+            {
+                return GetControllerRoute(genericType);
+            }
+
+            return (route != null ? route.Uri : new Uri("/" + BuildControllerName(type), UriKind.Relative));
+        }
+
+        private string BuildControllerName(Type type)
+        {
+            return Regex.Replace(type.Name, "Controller", String.Empty, RegexOptions.IgnoreCase).ToLower();
         }
 
         private OperationInfo BuildMethodDescriptor(MethodInfo method, Uri prefix)

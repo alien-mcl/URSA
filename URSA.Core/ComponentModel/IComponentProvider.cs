@@ -85,6 +85,16 @@ namespace URSA.ComponentModel
         /// <param name="lifestyle">Lifestyle of the registration.</param>
         void RegisterAll(Type serviceType, IEnumerable<Assembly> assemblies, Lifestyles lifestyle = Lifestyles.Transient);
 
+        /// <summary>Determines whether it is possible to resolve the instance of type <typeparamref name="T" />.</summary>
+        /// <typeparam name="T">Type of instance to resolve.</typeparam>
+        /// <returns><b>true</b> if it is possible to resolve the instance; otherwise <b>false</b>.</returns>
+        bool CanResolve<T>();
+
+        /// <summary>Determines whether it is possible to resolve the instance of type <paramref name="T" />.</summary>
+        /// <param name="type">Type of instance to resolve.</param>
+        /// <returns><b>true</b> if it is possible to resolve the instance; otherwise <b>false</b>.</returns>
+        bool CanResolve(Type type);
+
         /// <summary>Resolves the component.</summary>
         /// <typeparam name="T">Type of the component to be resolved.</typeparam>
         /// <param name="arguments">Optional arguments to be passed for the resolved instance.</param>

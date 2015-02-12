@@ -66,7 +66,7 @@ namespace URSA.Web.Http.Description
                     resource.Id,
                     Node.ForUri(template.Id.Uri),
                     () => new Node[] { Node.ForUri(operation.Id.Uri) },
-                    null);
+                    resource.Id.Uri);
             }
             else
             {

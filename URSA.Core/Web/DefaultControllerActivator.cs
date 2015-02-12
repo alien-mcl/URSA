@@ -24,15 +24,23 @@ namespace URSA.Web
         /// <inheritdoc />
         public IController CreateInstance(Type type)
         {
-            if (!type.IsInterface)
+            Type candidate = type;
+            if (_container.CanResolve(candidate))
             {
-                type = type.GetInterfaces()
+                return (IController)_container.Resolve(candidate);
+            }
+            else if ((type.IsGenericType) && (_container.CanResolve(candidate = type.GetGenericTypeDefinition())))
+            {
+                return (IController)_container.Resolve(type);
+            }
+            else
+            {
+                candidate = type.GetInterfaces()
                     .Where(@interface => typeof(IController).IsAssignableFrom(@interface))
                     .OrderByDescending(@interface => @interface.GetGenericArguments().Length)
                     .First();
+                return (IController)_container.Resolve(candidate);
             }
-
-            return (IController)_container.Resolve(type);
         }
     }
 }

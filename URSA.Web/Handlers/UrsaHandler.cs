@@ -4,6 +4,7 @@ using System.Web;
 using System.Web.Routing;
 using URSA.Web.Description;
 using URSA.Web.Http;
+using URSA.Web.Http.Description;
 
 namespace URSA.Web.Handlers
 {
@@ -11,19 +12,11 @@ namespace URSA.Web.Handlers
     /// <typeparam name="T">Type of controller exposed.</typeparam>
     public class UrsaHandler<T> : IHttpHandler, IRouteHandler where T : IController
     {
-        private ControllerInfo<T> _controllerInfo;
         private RequestHandler _requestHandler;
 
         /// <summary>Initializes a new instance of the <see cref="UrsaHandler{T}" /> class.</summary>
-        /// <param name="controllerInfo">Controller description.</param>
-        public UrsaHandler(ControllerInfo<T> controllerInfo)
+        public UrsaHandler()
         {
-            if (controllerInfo == null)
-            {
-                throw new ArgumentNullException("controllerInfo");
-            }
-
-            _controllerInfo = controllerInfo;
             _requestHandler = new RequestHandler();
         }
 

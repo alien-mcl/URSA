@@ -19,10 +19,10 @@ namespace URSA.Web.Description
 
     /// <summary>Builds description for given controller.</summary>
     /// <typeparam name="T">Type of the controller described.</typeparam>
-    public interface IControllerDescriptionBuilder<T> where T : IController
+    public interface IControllerDescriptionBuilder<T> : IControllerDescriptionBuilder where T : IController
     {
         /// <summary>Builds the controller descriptor.</summary>
         /// <returns>Controller description info.</returns>
-        ControllerInfo<T> BuildDescriptor();
+        new ControllerInfo<T> BuildDescriptor();
     }
 }

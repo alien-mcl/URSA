@@ -78,10 +78,12 @@
     <Compile Include="Mapping\ArgumentBinder.cs" />
     <Compile Include="Mapping\ArgumentBindingContext.cs" />
     <Compile Include="Mapping\AsMediaTypeAttribute.cs" />
+    <Compile Include="Mapping\DependentRouteAttribute.cs" />
     <Compile Include="Mapping\FromBodyArgumentBinder.cs" />
     <Compile Include="Mapping\FromQueryStringArgumentBinder.cs" />
     <Compile Include="Mapping\FromUriArgumentBinder.cs" />
     <Compile Include="Mapping\IParameterSourceArgumentBinder.cs" />
+    <Compile Include="Mapping\OnOptionsAttribute.cs" />
     <Compile Include="Mapping\OnGetAttribute.cs" />
     <Compile Include="Mapping\OnPostAttribute.cs" />
     <Compile Include="Mapping\OnVerbAttribute.cs" />

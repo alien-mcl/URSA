@@ -6,6 +6,7 @@ using System.Net;
 using System.Reflection;
 using System.Text;
 using URSA.Web.Converters;
+using URSA.Web.Description.Http;
 using URSA.Web.Http.Mapping;
 
 namespace URSA.Web.Http
@@ -36,6 +37,15 @@ namespace URSA.Web.Http
         /// <inheritdoc />
         protected override void Initialize()
         {
+            IList<IHttpControllerDescriptionBuilder> builders = new List<IHttpControllerDescriptionBuilder>();
+            var controllerTypes = Container.ResolveAllTypes<IController>();
+            foreach (var controllerType in controllerTypes)
+            {
+                builders.Add((IHttpControllerDescriptionBuilder)Container.Resolve(typeof(IHttpControllerDescriptionBuilder<>).MakeGenericType(controllerType)));
+            }
+
+            Container.Register<IDelegateMapper<RequestInfo>>((IDelegateMapper<RequestInfo>)(HandlerMapper = new DelegateMapper(builders, Container.Resolve<IControllerActivator>())));
+            ArgumentBinder = new ArgumentBinder(Container.ResolveAll<IParameterSourceArgumentBinder>());
         }
 
         private static IDictionary<string, MethodInfo> GetCRUDMethods(Type controllerType)

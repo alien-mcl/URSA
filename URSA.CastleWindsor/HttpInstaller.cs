@@ -8,6 +8,7 @@ using RomanticWeb.DotNetRDF;
 using System;
 using System.Configuration;
 using System.Linq;
+using System.Web;
 using URSA.CastleWindsor.ComponentModel;
 using URSA.ComponentModel;
 using URSA.Configuration;
@@ -18,6 +19,7 @@ using URSA.Web.Http;
 using URSA.Web.Http.Description;
 using URSA.Web.Http.Mapping;
 using URSA.Web.Mapping;
+using VDS.RDF;
 
 namespace URSA.CastleWindsor
 {
@@ -25,6 +27,7 @@ namespace URSA.CastleWindsor
     public class HttpInstaller : IWindsorInstaller
     {
         private Lazy<EntityContextFactory> _entityContextFactory;
+        private object _lock = new object();
 
         /// <summary>Initializes a new instance of the <see cref="HttpInstaller" /> class.</summary>
         public HttpInstaller()
@@ -47,17 +50,24 @@ namespace URSA.CastleWindsor
             container.Register(Component.For(typeof(IControllerDescriptionBuilder<>)).Forward(typeof(IHttpControllerDescriptionBuilder<>))
                 .Forward<IControllerDescriptionBuilder>().Forward<IHttpControllerDescriptionBuilder>()
                 .ImplementedBy(typeof(ControllerDescriptionBuilder<>), componentProvider.GenericImplementationMatchingStrategy).LifestyleTransient());
-            container.Register(Component.For<DescriptionController<IController>>().ImplementedBy<DescriptionController<IController>>().LifestyleTransient());
+            container.Register(Component.For(typeof(DescriptionController<>)).Forward<IController>()
+                .ImplementedBy(typeof(DescriptionController<>), componentProvider.GenericImplementationMatchingStrategy).LifestyleTransient());
             container.Register(Component.For<IParameterSourceArgumentBinder>().ImplementedBy<FromQueryStringArgumentBinder>().Activator<NonPublicComponentActivator>().LifestyleSingleton());
             container.Register(Component.For<IParameterSourceArgumentBinder>().ImplementedBy<FromUriArgumentBinder>().Activator<NonPublicComponentActivator>().LifestyleSingleton());
             container.Register(Component.For<IParameterSourceArgumentBinder>().ImplementedBy<FromBodyArgumentBinder>().Activator<NonPublicComponentActivator>().LifestyleSingleton());
-            container.Register(Component.For<IDelegateMapper<RequestInfo>>().ImplementedBy<DelegateMapper>().LifestyleSingleton());
-            container.Register(Component.For<IArgumentBinder<RequestInfo>>().ImplementedBy<ArgumentBinder>().LifestyleSingleton());
         }
 
         private IEntityContext CreateEntityContext(IKernel kernel, CreationContext context)
         {
-            return _entityContextFactory.Value.WithDotNetRDF("http").CreateContext();
+            IEntityContext result = null;
+            lock (_lock)
+            {
+                result = _entityContextFactory.Value.WithDotNetRDF(new TripleStore())
+                    .WithBaseUri(policy => policy.Default.Is(new Uri(String.Format("{0}://{1}/", HttpContext.Current.Request.Url.Scheme, HttpContext.Current.Request.Url.Host))))
+                    .CreateContext();
+            }
+
+            return result;
         }
 
         private EntityContextFactory CreateEntityContextFactory()

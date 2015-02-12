@@ -7,7 +7,9 @@ using System.Web.Routing;
 using URSA.ComponentModel;
 using URSA.Configuration;
 using URSA.Web.Description;
+using URSA.Web.Description.Http;
 using URSA.Web.Handlers;
+using URSA.Web.Http.Description;
 
 namespace URSA.Web
 {
@@ -26,11 +28,14 @@ namespace URSA.Web
             var controllers = container.ResolveAllTypes<IController>();
             foreach (var controller in controllers)
             {
-                typeof(HttpApplicationExtesions).GetMethods(BindingFlags.NonPublic | BindingFlags.Static)
-                    .Where(method => (method.Name == "RegisterApi") && (method.IsGenericMethodDefinition))
-                    .Select(method => method.MakeGenericMethod(typeof(P), controller))
-                    .First()
-                    .Invoke(null, new object[] { container });
+                if ((!controller.IsGenericType) || ((controller.IsGenericType) && (!typeof(DescriptionController<>).IsAssignableFrom(controller.GetGenericTypeDefinition()))))
+                {
+                    typeof(HttpApplicationExtesions).GetMethods(BindingFlags.NonPublic | BindingFlags.Static)
+                        .Where(method => (method.Name == "RegisterApi") && (method.IsGenericMethodDefinition))
+                        .Select(method => method.MakeGenericMethod(typeof(P), controller))
+                        .First()
+                        .Invoke(null, new object[] { container });
+                }
             }
         }
 
@@ -49,11 +54,11 @@ namespace URSA.Web
             where P : IRequestInfo
             where T : IController
         {
-            var builder = container.Resolve<IControllerDescriptionBuilder<T>>();
+            var handler = new UrsaHandler<T>();
+            var builder = container.Resolve<IHttpControllerDescriptionBuilder<T>>();
             var description = builder.BuildDescriptor();
-            var handler = new UrsaHandler<T>(description);
             IDictionary<string, Route> routes = new Dictionary<string, Route>();
-            routes[typeof(T).FullName] = new Route(description.Uri.ToString().Substring(1) + "/help", handler);
+            routes[typeof(T).FullName] = new Route(description.Uri.ToString().Substring(1), handler);
             foreach (var operation in description.Operations.Cast<URSA.Web.Description.Http.OperationInfo>())
             {
                 string routeTemplate = (operation.UriTemplate != null ? operation.UriTemplate : operation.Uri.ToString()).Substring(1).Replace("{?", "{");
