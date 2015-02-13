@@ -8,7 +8,7 @@ using URSA.Web.Description.Http;
 namespace URSA.Web.Http
 {
     /// <summary>Provides a default implementation of the <see cref="IDelegateMapper{RequestInfo}"/> interface.</summary>
-    public class DelegateMapper : IDelegateMapper<RequestInfo>, IHttpDelegateMapper
+    public class DelegateMapper : IDelegateMapper<RequestInfo>
     {
         private IEnumerable<IHttpControllerDescriptionBuilder> _httpControllerDescriptionBuilders;
         private Lazy<IEnumerable<ControllerInfo>> _controllerDescriptors;
@@ -55,34 +55,6 @@ namespace URSA.Web.Http
                     let controllerType = controller.GetType().GetGenericArguments()[0]
                     select new RequestMapping(_controllerActivator.CreateInstance(controllerType), operation, operation.Uri))
                    .FirstOrDefault();
-        }
-
-        /// <inheritdoc />
-        public Verb GetMethodVerb(MethodInfo methodInfo)
-        {
-            return (from controller in _controllerDescriptors.Value
-                    from operation in controller.Operations.Cast<Description.Http.OperationInfo>()
-                    where operation.UnderlyingMethod == methodInfo
-                    select operation.Verb)
-                   .FirstOrDefault() ?? Verb.GET;
-        }
-
-        /// <inheritdoc />
-        public string GetMethodUriTemplate(MethodInfo methodInfo, out IEnumerable<ArgumentInfo> parameterMapping)
-        {
-            parameterMapping = new ArgumentInfo[0];
-            var result = (from controller in _controllerDescriptors.Value
-                          from operation in controller.Operations.Cast<Description.Http.OperationInfo>()
-                          where operation.UnderlyingMethod == methodInfo
-                          select operation)
-                         .FirstOrDefault();
-            if (result != null)
-            {
-                parameterMapping = result.Arguments;
-                return result.UriTemplate;
-            }
-
-            return null;
         }
 
         private IEnumerable<ControllerInfo> BuildControllerDescriptors()

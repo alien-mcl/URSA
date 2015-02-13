@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace URSA.Http.Description.Tests.Data
+namespace URSA.Web.Http.Description.Tests.Data
 {
     public class Person
     {

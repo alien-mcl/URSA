@@ -8,10 +8,10 @@ using URSA.Web.Http;
 using URSA.Web.Mapping;
 using URSA.Web.Tests;
 
-namespace Given_instance_of_the
+namespace Given_instance_of_the.ControllerDescriptionBuilder_class
 {
     [TestClass]
-    public class ControllerDescriptionBuilder_class
+    public class when_having_standard_controller
     {
         private ControllerDescriptionBuilder<TestController> _builder;
 

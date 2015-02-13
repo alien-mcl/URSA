@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using URSA.Web.Description;
+using URSA.Web.Description.Http;
 using URSA.Web.Http.Description.Hydra;
 
 namespace URSA.Web.Http.Description
@@ -13,37 +14,38 @@ namespace URSA.Web.Http.Description
     /// <typeparam name="T">Type of the API to describe</typeparam>
     public class ApiDescriptionBuilder<T> where T : IController
     {
-        private IHttpDelegateMapper _handlerMapper;
+        private IHttpControllerDescriptionBuilder<T> _descriptionBuilder;
 
         /// <summary>Initializes a new instance of the <see cref="ApiDescriptionBuilder{T}" /> class.</summary>
-        /// <param name="handlerMapper">Handler mapper instance.</param>
-        public ApiDescriptionBuilder(IHttpDelegateMapper handlerMapper)
+        /// <param name="descriptionBuilder">Description builder.</param>
+        public ApiDescriptionBuilder(IHttpControllerDescriptionBuilder<T> descriptionBuilder)
         {
-            if (handlerMapper == null)
+            if (descriptionBuilder == null)
             {
-                throw new ArgumentNullException("handlerMapper");
+                throw new ArgumentNullException("descriptionBuilder");
             }
 
-            _handlerMapper = handlerMapper;
+            _descriptionBuilder = descriptionBuilder;
         }
 
         /// <summary>Builds an API description.</summary>
         /// <param name="apiDocumentation">API documentation.</param>
         public void BuildDescription(IApiDocumentation apiDocumentation)
         {
+            if (apiDocumentation == null)
+            {
+                throw new ArgumentNullException("apiDocumentation");
+            }
+
             Uri baseUri = apiDocumentation.Context.BaseUriSelector.SelectBaseUri(new EntityId(new Uri("/", UriKind.Relative)));
             IDictionary<Type, IEntity> typeDefinitions = new Dictionary<Type, IEntity>();
-            var methods = typeof(T).GetMethods(BindingFlags.Public | BindingFlags.Instance)
-                .Where(method => method.DeclaringType != typeof(object)).Except(
-                typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance)
-                .SelectMany(property => new MethodInfo[] { property.GetGetMethod(), property.GetSetMethod() })
-                .Where(method => method != null));
-            foreach (var method in methods)
+            var description = _descriptionBuilder.BuildDescriptor();
+            foreach (URSA.Web.Description.Http.OperationInfo operation in description.Operations)
             {
-                var methodId = new EntityId(baseUri.AddFragment(method.Name.ToLowerCamelCase()));
+                var methodId = new EntityId(operation.Uri.Combine(description.Uri).Combine(baseUri));
                 IResource resource = apiDocumentation.Context.Create<IResource>(methodId);
                 apiDocumentation.EntryPoints.Add(resource);
-                BuildOperation(apiDocumentation, resource, method, typeDefinitions);
+                BuildOperation(apiDocumentation, resource, operation, typeDefinitions);
             }
 
             foreach (var typeDefinition in typeDefinitions)
@@ -55,30 +57,30 @@ namespace URSA.Web.Http.Description
             }
         }
 
-        private void BuildOperation(IApiDocumentation apiDocumentation, IResource resource, MethodInfo method, IDictionary<Type, IEntity> typeDefinitions)
+        private void BuildOperation(IApiDocumentation apiDocumentation, IResource resource, URSA.Web.Description.Http.OperationInfo operation, IDictionary<Type, IEntity> typeDefinitions)
         {
-            IOperation operation = apiDocumentation.Context.Create<IOperation>(GenerateIdentifier());
-            operation.Method.Add(_handlerMapper.GetMethodVerb(method).ToString());
-            IIriTemplate template = BuildTemplate(apiDocumentation, method, typeDefinitions);
+            IOperation operationDocumentation = apiDocumentation.Context.Create<IOperation>(GenerateIdentifier());
+            operationDocumentation.Method.Add(_descriptionBuilder.GetMethodVerb(operation.UnderlyingMethod).ToString());
+            IIriTemplate template = BuildTemplate(apiDocumentation, operation, typeDefinitions);
             if (template != null)
             {
                 apiDocumentation.Context.Store.ReplacePredicateValues(
                     resource.Id,
                     Node.ForUri(template.Id.Uri),
-                    () => new Node[] { Node.ForUri(operation.Id.Uri) },
+                    () => new Node[] { Node.ForUri(operationDocumentation.Id.Uri) },
                     resource.Id.Uri);
             }
             else
             {
-                resource.Operations.Add(operation);
+                resource.Operations.Add(operationDocumentation);
             }
         }
 
-        private IIriTemplate BuildTemplate(IApiDocumentation apiDocumentation, MethodInfo method, IDictionary<Type, IEntity> typeDefinitions)
+        private IIriTemplate BuildTemplate(IApiDocumentation apiDocumentation, URSA.Web.Description.Http.OperationInfo operation, IDictionary<Type, IEntity> typeDefinitions)
         {
             IIriTemplate template = null;
             IEnumerable<ArgumentInfo> parameterMapping;
-            var uriTemplate = _handlerMapper.GetMethodUriTemplate(method, out parameterMapping);
+            var uriTemplate = _descriptionBuilder.GetOperationUriTemplate(operation.UnderlyingMethod, out parameterMapping);
             if ((!String.IsNullOrEmpty(uriTemplate)) && (parameterMapping.Any()))
             {
                 template = apiDocumentation.Context.Create<IIriTemplate>(GenerateIdentifier());
@@ -88,7 +90,7 @@ namespace URSA.Web.Http.Description
                     IIriTemplateMapping templateMapping = apiDocumentation.Context.Create<IIriTemplateMapping>(GenerateIdentifier());
                     templateMapping.Variable = mapping.VariableName;
                     templateMapping.Required = mapping.Parameter.ParameterType.IsValueType;
-                    var type = GetSpecializationType(method);
+                    var type = GetSpecializationType(operation.UnderlyingMethod);
                     if (type != null)
                     {
                         templateMapping.Property = GetMappingProperty(apiDocumentation, mapping.Parameter, type, typeDefinitions);

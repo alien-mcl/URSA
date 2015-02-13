@@ -1,6 +1,7 @@
 ﻿using RomanticWeb;
 using RomanticWeb.Entities;
 using System;
+using URSA.Web.Description.Http;
 using URSA.Web.Http.Description.Hydra;
 using URSA.Web.Http.Mapping;
 using URSA.Web.Mapping;
@@ -18,28 +19,23 @@ namespace URSA.Web.Http.Description
 
         /// <summary>Initializes a new instance of the <see cref="DescriptionController{T}" /> class.</summary>
         /// <param name="entityContext">Entity context.</param>
-        /// <param name="handlerMapper">Handler mapper instance.</param>
-        public DescriptionController(IEntityContext entityContext, IDelegateMapper<RequestInfo> handlerMapper)
+        /// <param name="descriptionBuilder">Controller description builder.</param>
+        public DescriptionController(IEntityContext entityContext, IHttpControllerDescriptionBuilder<T> descriptionBuilder)
         {
             if (entityContext == null)
             {
                 throw new ArgumentNullException("entityContext");
             }
 
-            if ((apiDescriptionBuilder == null) && (handlerMapper == null))
+            if ((apiDescriptionBuilder == null) && (descriptionBuilder == null))
             {
-                throw new ArgumentNullException("handlerMapper");
-            }
-
-            if ((apiDescriptionBuilder == null) && (!(handlerMapper is DelegateMapper)))
-            {
-                throw new ArgumentOutOfRangeException("handlerMapper");
+                throw new ArgumentNullException("descriptionBuilder");
             }
 
             _entityContext = entityContext;
             if (apiDescriptionBuilder == null)
             {
-                apiDescriptionBuilder = new ApiDescriptionBuilder<T>((DelegateMapper)handlerMapper);
+                apiDescriptionBuilder = new ApiDescriptionBuilder<T>(descriptionBuilder);
             }
         }
 

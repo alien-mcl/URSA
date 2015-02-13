@@ -74,7 +74,6 @@
     <Compile Include="HeaderParameterCollection.cs" />
     <Compile Include="HeaderValue.cs" />
     <Compile Include="IHttpControllerDescriptionBuilder.cs" />
-    <Compile Include="IHttpDelegateMapper.cs" />
     <Compile Include="Mapping\ArgumentBinder.cs" />
     <Compile Include="Mapping\ArgumentBindingContext.cs" />
     <Compile Include="Mapping\AsMediaTypeAttribute.cs" />

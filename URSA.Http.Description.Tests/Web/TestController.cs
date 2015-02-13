@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using URSA.Http.Description.Tests.Data;
+using URSA.Web.Http.Description.Tests.Data;
 using URSA.Web.Mapping;
 
 namespace URSA.Web.Http.Description.Tests

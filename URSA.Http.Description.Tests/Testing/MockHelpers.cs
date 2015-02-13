@@ -8,7 +8,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 
-namespace URSA.Http.Description.Testing
+namespace URSA.Web.Http.Description.Testing
 {
     /// <summary>Provides Moq helper methods.</summary>
     public static class MockHelpers

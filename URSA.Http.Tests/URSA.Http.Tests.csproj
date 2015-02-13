@@ -78,7 +78,8 @@
     <Compile Include="Given_instance_of_the\binder\FromQueryStringArgumentBinder_class.cs" />
     <Compile Include="Given_instance_of_the\binder\FromBodyArgumentBinder_class.cs" />
     <Compile Include="Given_instance_of_the\binder\FromUriArgumentBinder_class.cs" />
-    <Compile Include="Given_instance_of_the\ControllerDescriptionBuilder_class.cs" />
+    <Compile Include="Given_instance_of_the\ControllerDescriptionBuilder_class\when_having_standard_controller.cs" />
+    <Compile Include="Given_instance_of_the\ControllerDescriptionBuilder_class\when_having_dependent_route_controller.cs" />
     <Compile Include="Given_instance_of_the\RequestHandler_class.cs" />
     <Compile Include="Testing\ArgumentBinderTest.cs" />
     <Compile Include="Given_instance_of_the\converter_of\BinaryConverter_class.cs" />
@@ -96,6 +97,7 @@
     <Compile Include="Given_instance_of_the\converter_of\StringConverter_class.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Testing\ConverterTest.cs" />
+    <Compile Include="Web\AnotherTestController.cs" />
     <Compile Include="Web\TestController.cs" />
   </ItemGroup>
   <ItemGroup>
