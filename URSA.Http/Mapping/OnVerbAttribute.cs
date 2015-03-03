@@ -3,7 +3,7 @@
 namespace URSA.Web.Http.Mapping
 {
     /// <summary>Instructs the pipeline to map the method to a given HTTP verb.</summary>
-    [AttributeUsage(AttributeTargets.Method)]
+    [AttributeUsage(AttributeTargets.Method, AllowMultiple = true)]
     public class OnVerbAttribute : Attribute
     {
         /// <summary>Initializes a new instance of the <see cref="OnVerbAttribute" /> class.</summary>

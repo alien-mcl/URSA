@@ -9,7 +9,7 @@ namespace URSA.Web.Http.Description.Hydra
     {
         /// <summary>Gets or sets an RDF property description.</summary>
         [Property("hydra", "property")]
-        IProperty Property { get; set; }
+        Rdfs.IProperty Property { get; set; }
 
         /// <summary>Gets or sets a value indicating whether the property is required in the request body.</summary>
         [Property("hydra", "required")]

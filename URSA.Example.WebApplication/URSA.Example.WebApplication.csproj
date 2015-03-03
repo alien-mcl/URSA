@@ -69,8 +69,14 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="DocumentationStylesheet.xslt">
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
     <Content Include="Global.asax" />
     <Content Include="Web.config">
+      <SubType>Designer</SubType>
+    </Content>
+    <Content Include="Example.xml">
       <SubType>Designer</SubType>
     </Content>
   </ItemGroup>

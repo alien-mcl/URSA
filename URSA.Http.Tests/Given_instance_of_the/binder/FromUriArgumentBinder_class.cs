@@ -18,19 +18,19 @@ namespace Given_instance_of_the.binder
         protected override string MethodName { get { return "Add"; } }
 
         [TestMethod]
-        public void it_should_call_converter_provider()
+        public void it_should_not_call_converter_provider()
         {
             Binder.GetArgumentValue(GetContext());
 
-            ConverterProvider.Verify(instance => instance.FindBestInputConverter(It.IsAny<Type>(), It.IsAny<IRequestInfo>(), false), Times.Once);
+            ConverterProvider.Verify(instance => instance.FindBestInputConverter(It.IsAny<Type>(), It.IsAny<IRequestInfo>(), false), Times.Never);
         }
 
         [TestMethod]
-        public void it_should_call_converter()
+        public void it_should_not_call_converter()
         {
             Binder.GetArgumentValue(GetContext());
 
-            Converter.Verify(instance => instance.ConvertTo(It.IsAny<Type>(), "1"), Times.Once);
+            Converter.Verify(instance => instance.ConvertTo(It.IsAny<Type>(), "1"), Times.Never);
         }
     }
 }

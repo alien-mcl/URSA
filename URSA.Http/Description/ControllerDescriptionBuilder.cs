@@ -105,7 +105,7 @@ namespace URSA.Web.Description.Http
                     .Where(item => item.DeclaringType != typeof(object));
                 foreach (var method in methods)
                 {
-                    operations.Add(BuildMethodDescriptor(method, uri));
+                    operations.AddRange(BuildMethodDescriptor(method, uri));
                 }
 
                 _description = new ControllerInfo<T>(uri, operations.ToArray());
@@ -133,20 +133,31 @@ namespace URSA.Web.Description.Http
             return Regex.Replace(type.Name, "Controller", String.Empty, RegexOptions.IgnoreCase).ToLower();
         }
 
-        private OperationInfo BuildMethodDescriptor(MethodInfo method, Uri prefix)
+        private IEnumerable<OperationInfo> BuildMethodDescriptor(MethodInfo method, Uri prefix)
         {
-            var verb = method.GetCustomAttribute<OnVerbAttribute>(true) ??
-                method.DeclaringType.GetInterfaces().Select(@interface => @interface.GetCustomAttribute<OnVerbAttribute>()).FirstOrDefault();
+            OnVerbAttribute verb = null;
+            var verbs = (method.GetCustomAttributes<OnVerbAttribute>(true) ??
+                method.DeclaringType.GetInterfaces().Select(@interface => @interface.GetCustomAttribute<OnVerbAttribute>())).ToList();
             var route = method.GetCustomAttribute<RouteAttribute>(true) ??
                 method.DeclaringType.GetInterfaces().Select(@interface => @interface.GetCustomAttribute<RouteAttribute>()).FirstOrDefault();
-            if ((route == null) || (verb == null))
+            if ((route == null) || (!verbs.Any()))
             {
                 ObtainMethodDetailsFromVerbs(method, ref route, ref verb);
+                if (verb != null)
+                {
+                    verbs.Add(verb);
+                    verb = null;
+                }
             }
 
-            if ((route == null) || (verb == null))
+            if ((route == null) || (!verbs.Any()))
             {
                 ObtainMethodDetailsFromPopularNames(method, ref route, ref verb);
+                if (verb != null)
+                {
+                    verbs.Add(verb);
+                    verb = null;
+                }
             }
 
             if (route == null)
@@ -154,16 +165,23 @@ namespace URSA.Web.Description.Http
                 route = new RouteAttribute(method.Name.ToLower());
             }
 
-            if (verb == null)
+            if (!verbs.Any())
             {
-                verb = new OnVerbAttribute(Verb.GET);
+                verbs.Add(new OnVerbAttribute(Verb.GET));
             }
 
-            string templateRegex = Regex.Escape(route.Uri.Combine(prefix).ToString());
-            Uri uri = new Uri(templateRegex, UriKind.RelativeOrAbsolute);
-            string uriTemplate;
-            var parameters = BuildParameterDescriptors(method, verb.Verb, ref templateRegex, out uriTemplate);
-            return new Description.Http.OperationInfo(method, verb.Verb, uri, new Regex("^" + templateRegex + "$", RegexOptions.IgnoreCase), uriTemplate, parameters);
+            string operationTemplateRegex = Regex.Escape(route.Uri.Combine(prefix).ToString());
+            Uri uri = new Uri(operationTemplateRegex, UriKind.RelativeOrAbsolute);
+            IList<OperationInfo> result = new List<OperationInfo>();
+            foreach (var item in verbs)
+            {
+                string templateRegex = operationTemplateRegex;
+                string uriTemplate;
+                var parameters = BuildParameterDescriptors(method, item.Verb, ref templateRegex, out uriTemplate);
+                result.Add(new Description.Http.OperationInfo(method, item.Verb, uri, new Regex("^" + templateRegex + "$", RegexOptions.IgnoreCase), uriTemplate, parameters));
+            }
+
+            return result;
         }
 
         private void ObtainMethodDetailsFromVerbs(MethodInfo method, ref RouteAttribute route, ref OnVerbAttribute verb)

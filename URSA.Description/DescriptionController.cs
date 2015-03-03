@@ -2,12 +2,23 @@
 using RomanticWeb.Entities;
 using System;
 using URSA.Web.Description.Http;
+using URSA.Web.Http.Converters;
 using URSA.Web.Http.Description.Hydra;
 using URSA.Web.Http.Mapping;
 using URSA.Web.Mapping;
 
 namespace URSA.Web.Http.Description
 {
+    /// <summary>Defines possible documentation output formats.</summary>
+    public enum OutputFormats
+    {
+        /// <summary>Turtle format.</summary>
+        Turtle,
+
+        /// <summary>XML format.</summary>
+        Xml
+    }
+
     /// <summary>Provides a ReST description facility.</summary>
     /// <typeparam name="T">Type of the controller to generate documentation for.</typeparam>
     [DependentRoute]
@@ -43,12 +54,29 @@ namespace URSA.Web.Http.Description
         public IResponseInfo Response { get; set; }
 
         /// <summary>Gets the API documentation.</summary>
+        /// <param name="format">Optional output format.</param>
         /// <returns><see cref="IApiDocumentation" /> instance.</returns>
         [Route("/")]
         [OnOptions]
-        public IApiDocumentation GetApiEntryPointDescription()
+        [OnGet]
+        public IApiDocumentation GetApiEntryPointDescription(OutputFormats? format)
         {
-            IApiDocumentation result = _entityContext.Create<IApiDocumentation>(new EntityId(Response.Request.Uri));
+            format = format ?? OutputFormats.Turtle;
+            var accept = Response.Request.Headers[Header.Accept];
+            if ((accept != null) && (accept.Contains("*/*")))
+            {
+                switch ((OutputFormats)format)
+                {
+                    case OutputFormats.Turtle:
+                        Response.Request.Headers[Header.Accept] = EntityConverter.TextTurtle;
+                        break;
+                    case OutputFormats.Xml:
+                        Response.Request.Headers[Header.Accept] = EntityConverter.ApplicationRdfXml;
+                        break;
+                }
+            }
+
+            IApiDocumentation result = _entityContext.Create<IApiDocumentation>(new EntityId(Response.Request.Uri.AddFragment(String.Empty)));
             apiDescriptionBuilder.BuildDescription(result);
             return result;
         }

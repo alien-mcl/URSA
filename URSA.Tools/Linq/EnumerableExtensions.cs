@@ -64,5 +64,27 @@ namespace System.Linq
                 items.Add(newItem);
             }
         }
+
+        /// <summary>Adds a range of items to the collection.</summary>
+        /// <typeparam name="T">Type of items in the collection.</typeparam>
+        /// <param name="items">Collection to add to.</param>
+        /// <param name="newItems">Items to be added.</param>
+        public static void AddRange<T>(this ICollection<T> items, IEnumerable<T> newItems)
+        {
+            if (items == null)
+            {
+                throw new ArgumentNullException("items");
+            }
+
+            if (newItems == null)
+            {
+                throw new ArgumentNullException("newItems");
+            }
+
+            foreach (var item in newItems)
+            {
+                items.Add(item);
+            }
+        }
     }
 }

@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 
 namespace URSA.Web.Description
 {
     /// <summary>Describes an controller operation.</summary>
+    [DebuggerDisplay("{Uri}", Name = "{Uri}")]
     public class OperationInfo
     {
         /// <summary>Initializes a new instance of the <see cref="OperationInfo" /> class.</summary>

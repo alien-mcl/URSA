@@ -7,6 +7,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Xml;
 using URSA.Web.Converters;
 using VDS.RDF;
 using VDS.RDF.Parsing;
@@ -17,6 +18,9 @@ namespace URSA.Web.Http.Converters
     /// <summary>Converts entities from and to RDF serialization.</summary>
     public class EntityConverter : IConverter
     {
+        /// <summary>Defines a document name for <![CDATA[XML/XSLT]]> documentation style-sheet.</summary>
+        public const string DocumentationStylesheet = "documentation-stylesheet";
+
         /// <summary>Defines a '<![CDATA[text/turtle]]>' media type.</summary>
         public const string TextTurtle = "text/turtle";
 
@@ -242,9 +246,29 @@ namespace URSA.Web.Http.Converters
                 graph.Assert(entity.Context.Store.Quads.Select(quad =>
                     new Triple(quad.Subject.UnWrapNode(graph), quad.Predicate.UnWrapNode(graph), quad.Object.UnWrapNode(graph))));
                 var writer = CreateWriter(mediaType);
-                using (var textWriter = new StreamWriter(response.Body))
+                if (writer is RdfXmlWriter)
                 {
-                    writer.Save(graph, textWriter);
+                    Stream buffer = new MemoryStream();
+                    buffer = new UnclosableStream(buffer);
+                    using (var textWriter = new StreamWriter(buffer))
+                    {
+                        writer.Save(graph, textWriter);
+                    }
+
+                    buffer.Seek(0, SeekOrigin.Begin);
+                    XmlDocument document = new XmlDocument();
+                    document.Load(buffer);
+                    document.InsertAfter(
+                        document.CreateProcessingInstruction("xml-stylesheet", "type=\"text/xsl\" href=\"" + DocumentationStylesheet + "\""),
+                        document.FirstChild);
+                    document.Save(response.Body);
+                }
+                else
+                {
+                    using (var textWriter = new StreamWriter(response.Body))
+                    {
+                        writer.Save(graph, textWriter);
+                    }
                 }
             }
         }

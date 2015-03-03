@@ -73,6 +73,10 @@
     <Reference Include="RomanticWeb">
       <HintPath>..\packages\RomanticWeb.0.3.40.0\Lib\net40\RomanticWeb.dll</HintPath>
     </Reference>
+    <Reference Include="RomanticWeb.dotNetRDF, Version=0.3.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\RomanticWeb.dotNetRDF.0.3.40.0\Lib\net40\RomanticWeb.dotNetRDF.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Xml" />

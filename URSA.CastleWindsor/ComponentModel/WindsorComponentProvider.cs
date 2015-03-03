@@ -192,7 +192,7 @@ namespace URSA.ComponentModel
             IList<Type> result = new List<Type>();
             foreach (var handler in _container.Kernel.GetAssignableHandlers(serviceType))
             {
-                if (handler.CurrentState == HandlerState.Valid)
+                if ((handler.CurrentState == HandlerState.Valid) && (!handler.ComponentModel.Implementation.IsGenericTypeDefinition))
                 {
                     result.Add(handler.ComponentModel.Implementation);
                 }
@@ -203,7 +203,10 @@ namespace URSA.ComponentModel
                             _container.Kernel.GetAssignableHandlers(constrain).Where(item => item.CurrentState == HandlerState.Valid).Select(item => item.ComponentModel.Implementation));
                     foreach (var type in candidates)
                     {
-                        result.Add(handler.ComponentModel.Implementation.MakeGenericType(type));
+                        if (type != handler.ComponentModel.Implementation)
+                        {
+                            result.Add(handler.ComponentModel.Implementation.MakeGenericType(type));
+                        }
                     }
                 }
             }

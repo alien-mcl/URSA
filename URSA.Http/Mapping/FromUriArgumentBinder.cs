@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.ComponentModel;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using URSA.Web.Converters;
@@ -54,13 +55,38 @@ namespace URSA.Web.Http.Mapping
                 return null;
             }
 
-            var converter = _converterProvider.FindBestInputConverter(context.Parameter.ParameterType, context.Request, true);
-            if (converter == null)
+            bool success;
+            object result = ConvertUsingTypeConverters(context, match, out success);
+            if (!success)
             {
-                return null;
+                result = ConvertUsingCustomConverters(context, match);
             }
 
-            return converter.ConvertTo(context.Parameter.ParameterType, match.Groups["Value"].Value);
+            return result;
+        }
+
+        private object ConvertUsingTypeConverters(ArgumentBindingContext<FromUriAttribute> context, Match match, out bool success)
+        {
+            success = false;
+            var converter = TypeDescriptor.GetConverter(context.Parameter.ParameterType);
+            if ((converter != null) && (converter.CanConvertFrom(typeof(string))))
+            {
+                success = true;
+                return converter.ConvertFromInvariantString(match.Groups["Value"].Value);
+            }
+
+            return null;
+        }
+
+        private object ConvertUsingCustomConverters(ArgumentBindingContext<FromUriAttribute> context, Match match)
+        {
+            var converter = _converterProvider.FindBestInputConverter(context.Parameter.ParameterType, context.Request, true);
+            if (converter != null)
+            {
+                return converter.ConvertTo(context.Parameter.ParameterType, match.Groups["Value"].Value);
+            }
+
+            return null;
         }
 
         private Uri MakeUri(ParameterInfo parameter, Uri baseUri, OperationInfo operation)

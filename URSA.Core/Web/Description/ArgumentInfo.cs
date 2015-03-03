@@ -1,10 +1,12 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Reflection;
 using URSA.Web.Mapping;
 
 namespace URSA.Web.Description
 {
     /// <summary>Describes a parameter.</summary>
+    [DebuggerDisplay("{Parameter}", Name = "{Parameter}")]
     public class ArgumentInfo
     {
         /// <summary>Initializes a new instance of the <see cref="ArgumentInfo" /> class.</summary>

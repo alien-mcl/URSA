@@ -28,11 +28,24 @@ namespace System
         /// <returns>Text converted to lowerCamelCase or <b>null</b> if the input <paramref name="value" /> was also <b>null</b>.</returns>
         public static string ToLowerCamelCase(this string value)
         {
+            return value.ToCamelCase(true);
+        }
+
+        /// <summary>Converts a given text value into a UpperCamelCase string (aka. Pascal case).</summary>
+        /// <param name="value">Value to be converter</param>
+        /// <returns>Text converted to UpperCamelCase or <b>null</b> if the input <paramref name="value" /> was also <b>null</b>.</returns>
+        public static string ToUpperCamelCase(this string value)
+        {
+            return value.ToCamelCase(false);
+        }
+
+        private static string ToCamelCase(this string value, bool lowerCase)
+        {
             string result = value;
-            if (value != null)
+            if (result != null)
             {
-                value = Regex.Replace(Regex.Replace(value, "([a-zA-Z])(\\s+)([a-zA-Z])", ReplaceSpace), "\\W", "_");
-                value = Char.ToLower(value[0]) + value.Substring(1);
+                result = Regex.Replace(Regex.Replace(value, "([a-zA-Z])(\\s+)([a-zA-Z])", ReplaceSpace), "\\W", "_");
+                result = (lowerCase ? Char.ToLower(value[0]) : Char.ToUpper(value[0])) + value.Substring(1);
             }
 
             return result;

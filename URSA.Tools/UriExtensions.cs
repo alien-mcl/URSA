@@ -52,7 +52,11 @@ namespace System
                 Uri relativeUri = uri;
                 if (relativeUri.ToString().StartsWith("/"))
                 {
-                    baseUri = new Uri(baseUri.ToString() + "/");
+                    if (!baseUri.ToString().EndsWith("/"))
+                    {
+                        baseUri = new Uri(baseUri.ToString() + "/");
+                    }
+
                     relativeUri = new Uri(relativeUri.ToString().Substring(1), UriKind.Relative);
                 }
 
@@ -84,13 +88,22 @@ namespace System
                 throw new ArgumentNullException("uri");
             }
 
-            if (!String.IsNullOrEmpty(fragment))
+            if (uri.Scheme == "urn")
+            {
+                return AddName(uri, fragment);
+            }
+
+            if (fragment != null)
             {
                 var iri = new StringBuilder(uri.ToString());
                 if (uri.Fragment.Length > 0)
                 {
                     int hash = iri.ToString().LastIndexOf('#');
-                    iri = iri.Remove(hash, 1).Insert(hash, '/');
+                    iri.Remove(hash, 1);
+                    if (iri[hash - 1] != '/')
+                    {
+                        iri.Insert(hash, '/');
+                    }
                 }
                 else if (iri[iri.Length - 1] != '/')
                 {
@@ -103,6 +116,28 @@ namespace System
             }
 
             return uri;
+        }
+
+        /// <summary>Adds a name to given URN.</summary>
+        /// <remarks>Appended name will start with dot (.).</remarks>
+        /// <param name="uri">Uri to add name to.</param>
+        /// <param name="name">Name to be added.</param>
+        /// <returns><see cref="Uri" /> with name added.</returns>
+        public static Uri AddName(this Uri uri, string name)
+        {
+            if (uri == null)
+            {
+                throw new ArgumentNullException("uri");
+            }
+
+            if (!String.IsNullOrEmpty(name))
+            {
+                return new Uri(uri.ToString() + "." + name);
+            }
+            else
+            {
+                return uri;
+            }
         }
     }
 }

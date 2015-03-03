@@ -2,9 +2,11 @@
 using Moq;
 using System;
 using System.IO;
+using URSA.Web;
 using URSA.Web.Converters;
+using URSA.Web.Http;
 
-namespace URSA.Web.Http.Tests.Given_instance_of_the
+namespace Given_instance_of_the
 {
     [TestClass]
     public class ObjectResponseInfo_class

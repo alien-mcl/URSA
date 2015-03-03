@@ -9,6 +9,7 @@ using URSA.Configuration;
 using URSA.Web.Description;
 using URSA.Web.Description.Http;
 using URSA.Web.Handlers;
+using URSA.Web.Http.Converters;
 using URSA.Web.Http.Description;
 
 namespace URSA.Web
@@ -26,17 +27,26 @@ namespace URSA.Web
             var container = UrsaConfigurationSection.InitializeComponentProvider();
             container.RegisterAll<IController>(assemblies);
             var controllers = container.ResolveAllTypes<IController>();
+            IDictionary<string, Route> routes = new Dictionary<string, Route>();
             foreach (var controller in controllers)
             {
                 if ((!controller.IsGenericType) || ((controller.IsGenericType) && (!typeof(DescriptionController<>).IsAssignableFrom(controller.GetGenericTypeDefinition()))))
                 {
-                    typeof(HttpApplicationExtesions).GetMethods(BindingFlags.NonPublic | BindingFlags.Static)
+                    ((IDictionary<string, Route>)typeof(HttpApplicationExtesions).GetMethods(BindingFlags.NonPublic | BindingFlags.Static)
                         .Where(method => (method.Name == "RegisterApi") && (method.IsGenericMethodDefinition))
                         .Select(method => method.MakeGenericMethod(typeof(P), controller))
                         .First()
-                        .Invoke(null, new object[] { container });
+                        .Invoke(null, new object[] { container })).ForEach(route =>
+                            {
+                                if (!routes.ContainsKey(route.Key))
+                                {
+                                    routes.Add(route.Key, route.Value);
+                                }
+                            });
                 }
             }
+
+            routes.ForEach(route => RouteTable.Routes.Add(route.Key, route.Value));
         }
 
         /// <summary>Registers a single <typeparamref name="P" /> protocol API.</summary>
@@ -47,10 +57,11 @@ namespace URSA.Web
             where P : IRequestInfo
             where T : IController
         {
-            RegisterApi<P, T>(UrsaConfigurationSection.InitializeComponentProvider());
+            var routes = RegisterApi<P, T>(UrsaConfigurationSection.InitializeComponentProvider());
+            routes.ForEach(route => RouteTable.Routes.Add(route.Key, route.Value));
         }
 
-        private static void RegisterApi<P, T>(IComponentProvider container)
+        private static IDictionary<string, Route> RegisterApi<P, T>(IComponentProvider container)
             where P : IRequestInfo
             where T : IController
         {
@@ -58,6 +69,7 @@ namespace URSA.Web
             var builder = container.Resolve<IHttpControllerDescriptionBuilder<T>>();
             var description = builder.BuildDescriptor();
             IDictionary<string, Route> routes = new Dictionary<string, Route>();
+            routes[typeof(T).FullName + "DocumentationStylesheet"] = new Route(EntityConverter.DocumentationStylesheet, handler);
             routes[typeof(T).FullName] = new Route(description.Uri.ToString().Substring(1), handler);
             foreach (var operation in description.Operations.Cast<URSA.Web.Description.Http.OperationInfo>())
             {
@@ -74,7 +86,7 @@ namespace URSA.Web
                 }
             }
 
-            routes.ForEach(route => RouteTable.Routes.Add(route.Key, route.Value));
+            return routes;
         }
     }
 }

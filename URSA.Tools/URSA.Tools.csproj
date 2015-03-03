@@ -47,6 +47,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AppDomainExtensions.cs" />
+    <Compile Include="Collections\Generic\DictionaryExtensions.cs" />
     <Compile Include="IO\UnclosableStream.cs" />
     <Compile Include="Linq\EnumerableExtensions.cs" />
     <Compile Include="LiteralUriComparer.cs" />

@@ -78,17 +78,22 @@
     <Compile Include="Converters\EntityConverter.cs" />
     <Compile Include="DescriptionController.cs" />
     <Compile Include="Hydra\IApiDocumentation.cs" />
+    <Compile Include="Hydra\IDatatypeDefinition.cs" />
+    <Compile Include="Owl\IClass.cs" />
+    <Compile Include="Owl\IRestriction.cs" />
     <Compile Include="Hydra\IClass.cs" />
     <Compile Include="Hydra\IIriTemplate.cs" />
     <Compile Include="Hydra\IIriTemplateMapping.cs" />
     <Compile Include="Hydra\ILink.cs" />
     <Compile Include="Hydra\ITemplatedLink.cs" />
     <Compile Include="Hydra\IOperation.cs" />
-    <Compile Include="Hydra\IProperty.cs" />
+    <Compile Include="Rdfs\IClass.cs" />
+    <Compile Include="Rdfs\IProperty.cs" />
     <Compile Include="Hydra\IResource.cs" />
     <Compile Include="Hydra\ISupportedProperty.cs" />
     <Compile Include="Parsing\JsonLdParser.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Rdfs\IResource.cs" />
     <Compile Include="Writing\JsonLdWriter.cs" />
   </ItemGroup>
   <ItemGroup>

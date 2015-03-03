@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Web;
 using System.Web.Routing;
 using URSA.Web.Description;
 using URSA.Web.Http;
+using URSA.Web.Http.Converters;
 using URSA.Web.Http.Description;
 
 namespace URSA.Web.Handlers
@@ -33,6 +36,17 @@ namespace URSA.Web.Handlers
         public void ProcessRequest(HttpContext context)
         {
             context.Response.TrySkipIisCustomErrors = true;
+            if ((context.Request.Url.Segments.Any()) && (context.Request.Url.Segments.Skip(1).First() == EntityConverter.DocumentationStylesheet))
+            {
+                context.Response.ContentType = "text/xsl";
+                using (var source = new StreamReader(GetType().Assembly.GetManifestResourceStream("URSA.Web.DocumentationStylesheet.xslt")))
+                {
+                    context.Response.Output.Write(source.ReadToEnd());
+                }
+
+                return;
+            }
+
             var headers = new HeaderCollection();
             foreach (string headerName in context.Request.Headers)
             {

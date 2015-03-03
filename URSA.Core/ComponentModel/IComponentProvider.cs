@@ -134,21 +134,25 @@ namespace URSA.ComponentModel
         IEnumerable<object> ResolveAll(Type type, params object[] arguments);
 
         /// <summary>Resolves type of the component.</summary>
+        /// <remarks>This method should return only resolvable, generic closed types.</remarks>
         /// <typeparam name="T">Type of the component to be resolved.</typeparam>
         /// <returns>Type of the implementation.</returns>
         Type ResolveType<T>();
 
         /// <summary>Resolves type of components based on given type.</summary>
+        /// <remarks>This method should return only resolvable, generic closed types.</remarks>
         /// <typeparam name="T">Type of the components.</typeparam>
         /// <returns>Enumeration of types registered.</returns>
         IEnumerable<Type> ResolveAllTypes<T>();
 
         /// <summary>Resolves type of the component.</summary>
+        /// <remarks>This method should return only resolvable, generic closed types.</remarks>
         /// <param name="serviceType">Type of the component to be resolved.</param>
         /// <returns>Type of the implementation.</returns>
         Type ResolveType(Type serviceType);
 
         /// <summary>Resolves type of components based on given type.</summary>
+        /// <remarks>This method should return only resolvable, generic closed types.</remarks>
         /// <param name="serviceType">Type of the components.</param>
         /// <returns>Enumeration of types registered.</returns>
         IEnumerable<Type> ResolveAllTypes(Type serviceType);

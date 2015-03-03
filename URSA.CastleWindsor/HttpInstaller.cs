@@ -62,9 +62,12 @@ namespace URSA.CastleWindsor
             IEntityContext result = null;
             lock (_lock)
             {
-                result = _entityContextFactory.Value.WithDotNetRDF(new TripleStore())
-                    .WithBaseUri(policy => policy.Default.Is(new Uri(String.Format("{0}://{1}/", HttpContext.Current.Request.Url.Scheme, HttpContext.Current.Request.Url.Host))))
-                    .CreateContext();
+                var baseUri = String.Format(
+                    "{0}://{1}{2}/",
+                    HttpContext.Current.Request.Url.Scheme,
+                    HttpContext.Current.Request.Url.Host,
+                    ((HttpContext.Current.Request.Url.Port != 80) && (HttpContext.Current.Request.Url.Port > 0) ? String.Format(":{0}", HttpContext.Current.Request.Url.Port) : String.Empty));
+                result = _entityContextFactory.Value.WithDotNetRDF(new TripleStore()).WithBaseUri(policy => policy.Default.Is(new Uri(baseUri))).CreateContext();
             }
 
             return result;

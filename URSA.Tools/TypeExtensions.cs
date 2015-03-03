@@ -7,12 +7,45 @@ namespace System
     /// <summary>Provides useful <see cref="Type" /> extensions.</summary>
     public static class TypeExtensions
     {
+        /// <summary>Checks if a given type is of type <see cref="IList{T}" />.</summary>
+        /// <param name="type">Type to check.</param>
+        /// <returns><b>true</b> if the type implements a proper interface; otherwise <b>false</b>.</returns>
+        public static bool IsGenericList(this Type type)
+        {
+            if (type == null)
+            {
+                throw new ArgumentNullException("type");
+            }
+
+            return ((type.IsGenericType) && (type.GetGenericTypeDefinition() == typeof(IList<>))) ||
+                (type.GetInterfaces().Any(@interface => (@interface.IsGenericTypeDefinition) && (typeof(IList<>).IsAssignableFrom(@interface.GetGenericTypeDefinition()))));
+        }
+
+        /// <summary>Checks if a given type is of type <see cref="ICollection{T}" />.</summary>
+        /// <param name="type">Type to check.</param>
+        /// <returns><b>true</b> if the type implements a proper interface; otherwise <b>false</b>.</returns>
+        public static bool IsGenericCollection(this Type type)
+        {
+            if (type == null)
+            {
+                throw new ArgumentNullException("type");
+            }
+
+            return ((type.IsGenericType) && (type.GetGenericTypeDefinition() == typeof(ICollection<>))) ||
+                (type.GetInterfaces().Any(@interface => (@interface.IsGenericTypeDefinition) && (typeof(ICollection<>).IsAssignableFrom(@interface.GetGenericTypeDefinition()))));
+        }
+
         /// <summary>Checks if the type can be assigned to the <see cref="IEnumerable" /> interface.</summary> 
         /// <remarks>This method will return false for type <see cref="System.String" />.</remarks> 
         /// <param name="type">Type to be checked.</param> 
         /// <returns><b>true</b> if the type is <see cref="System.Array" /> or is assignable to <see cref="IEnumerable" /> (except <see cref="System.String" />); otherwise <b>false</b>.</returns> 
         public static bool IsEnumerable(this Type type) 
-        { 
+        {
+            if (type == null)
+            {
+                throw new ArgumentNullException("type");
+            }
+
             return (type != null && ((type.IsArray) || ((typeof(IEnumerable).IsAssignableFrom(type)) && (type != typeof(string))))); 
         } 
 
@@ -21,6 +54,11 @@ namespace System
         /// <returns><see cref="Type" /> being the item of the collection or the <paramref name="type" /> itself.</returns>
         public static Type GetItemType(this Type type)
         {
+            if (type == null)
+            {
+                throw new ArgumentNullException("type");
+            }
+
             if (type.IsArray)
             {
                 return type.GetElementType();

@@ -2,6 +2,7 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using RomanticWeb;
+using RomanticWeb.DotNetRDF;
 using RomanticWeb.Entities;
 using System;
 using System.Collections;
@@ -16,6 +17,8 @@ using URSA.Web.Http.Description;
 using URSA.Web.Http.Description.Hydra;
 using URSA.Web.Http.Description.Testing;
 using URSA.Web.Http.Description.Tests;
+using URSA.Web.Mapping;
+using VDS.RDF;
 
 namespace Given_instance_of_the
 {
@@ -30,10 +33,11 @@ namespace Given_instance_of_the
             var apiDescriptionBuilder = new ApiDescriptionBuilder<TestController>(handlerMapper);
             apiDescriptionBuilder.BuildDescription(apiDocumentation);
 
-            apiDocumentation.EntryPoints.Should().HaveCount(5);
-            apiDocumentation.EntryPoints.First().Operations.Should().HaveCount(1);
-            apiDocumentation.EntryPoints.First().Operations.First().Method.Should().HaveCount(1);
-            apiDocumentation.EntryPoints.First().Operations.First().Method.First().Should().Be("GET");
+            apiDocumentation.EntryPoints.Should().HaveCount(0);
+            apiDocumentation.SupportedClasses.Should().HaveCount(1);
+            apiDocumentation.SupportedClasses.First().SupportedOperations.Should().HaveCount(1);
+            apiDocumentation.SupportedClasses.First().SupportedOperations.First().Method.Should().HaveCount(1);
+            apiDocumentation.SupportedClasses.First().SupportedOperations.First().Method.First().Should().Be("POST");
         }
 
         private IHttpControllerDescriptionBuilder<TestController> SetupInfrastucture(out IApiDocumentation apiDocumentationInstance)
@@ -46,37 +50,71 @@ namespace Given_instance_of_the
                 { "Delete", Verb.DELETE }
             };
             Uri baseUri = new Uri("http://temp.org/");
-            IEnumerable<ArgumentInfo> parameterMapping = new List<ArgumentInfo>();
             var operations = typeof(TestController)
                 .GetMethods(BindingFlags.Public | BindingFlags.Instance)
                 .Where(method => method.DeclaringType != typeof(object))
                 .Except(typeof(TestController).GetProperties(BindingFlags.Public | BindingFlags.Instance).SelectMany(property => new MethodInfo[] { property.GetGetMethod(), property.GetSetMethod() }))
-                .Select(method => new URSA.Web.Description.Http.OperationInfo(method, Verb.GET, new Uri("/" + method.Name.ToLower(), UriKind.Relative), new Regex(".*"), null));
+                .Select(method => CreateOperation(method, verbs[method.Name]));
 
             ControllerInfo<TestController> controllerInfo = new ControllerInfo<TestController>(new Uri("/", UriKind.Relative), operations.ToArray());
 
             Mock<IHttpControllerDescriptionBuilder<TestController>> descriptionBuilder = new Mock<IHttpControllerDescriptionBuilder<TestController>>();
             descriptionBuilder.Setup(instance => instance.BuildDescriptor()).Returns(controllerInfo);
             descriptionBuilder.Setup(instance => instance.GetMethodVerb(It.IsAny<MethodInfo>())).Returns<MethodInfo>(method => verbs[method.Name]);
-            descriptionBuilder.Setup(instance => instance.GetOperationUriTemplate(It.IsAny<MethodInfo>(), out parameterMapping))
-                .Returns<MethodInfo, IEnumerable<ArgumentInfo>>((method, parameters) => 
-                    (method.GetParameters().Length > 0 ? new Uri(baseUri, "api/" + method.Name.ToLower()).ToString() : null));
+            foreach (var operation in operations)
+            {
+                IEnumerable<ArgumentInfo> parameterMapping = operation.Arguments;
+                descriptionBuilder.Setup(instance => instance.GetOperationUriTemplate(operation.UnderlyingMethod, out parameterMapping))
+                    .Returns<MethodInfo, IEnumerable<ArgumentInfo>>((method, parameters) => operation.UriTemplate);
+            }
 
             Mock<IBaseUriSelectionPolicy> baseUriSelector = new Mock<IBaseUriSelectionPolicy>();
             baseUriSelector.Setup(instance => instance.SelectBaseUri(It.IsAny<EntityId>())).Returns(baseUri);
 
-            Mock<IEntityContext> context = new Mock<IEntityContext>();
-            context.SetupGet(instance => instance.BaseUriSelector).Returns(baseUriSelector.Object);
-            context.Setup(instance => instance.Create<IEntity>(It.IsAny<EntityId>())).Returns<EntityId>(id => MockHelpers.MockEntity<IEntity>(context.Object, id).Object);
-            context.Setup(instance => instance.Create<IResource>(It.IsAny<EntityId>())).Returns<EntityId>(id => MockHelpers.MockEntity<IResource>(context.Object, id).Object);
-            context.Setup(instance => instance.Create<IProperty>(It.IsAny<EntityId>())).Returns<EntityId>(id => MockHelpers.MockEntity<IProperty>(context.Object, id).Object);
-            context.Setup(instance => instance.Create<ISupportedProperty>(It.IsAny<EntityId>())).Returns<EntityId>(id => MockHelpers.MockEntity<ISupportedProperty>(context.Object, id).Object);
-            context.Setup(instance => instance.Create<IClass>(It.IsAny<EntityId>())).Returns<EntityId>(id => MockHelpers.MockEntity<IClass>(context.Object, id).Object);
-            context.Setup(instance => instance.Create<IOperation>(It.IsAny<EntityId>())).Returns<EntityId>(id => MockHelpers.MockEntity<IOperation>(context.Object, id).Object);
-
-            var apiDocumentation = MockHelpers.MockEntity<IApiDocumentation>(context.Object, new EntityId(new Uri(baseUri, "api")));
+            var ontology = new Mock<RomanticWeb.Ontologies.IOntologyProvider>();
+            ontology.Setup(instance => instance.ResolveUri("hydra", It.IsAny<string>())).Returns<string, string>((prefix, term) => new Uri("http://www.w3.org/ns/hydra/core#" + term));
+            var factory = EntityContextFactory.FromConfiguration("http").WithDefaultOntologies().WithDotNetRDF(new TripleStore()).WithBaseUri(policy => policy.Default.Is(baseUri));
+            var apiDocumentation = MockHelpers.MockEntity<IApiDocumentation>(factory.CreateContext(), new EntityId(new Uri(baseUri, "api")));
             apiDocumentationInstance = apiDocumentation.Object;
             return descriptionBuilder.Object;
+        }
+
+        private URSA.Web.Description.Http.OperationInfo CreateOperation(MethodInfo method, Verb verb)
+        {
+            string queryString = String.Empty;
+            string uriTemplate = null;
+            IList<ArgumentInfo> arguments = new List<ArgumentInfo>();
+            foreach (var parameter in method.GetParameters())
+            {
+                if (!parameter.IsOut)
+                {
+                    string parameterTemplate = null;
+                    ParameterSourceAttribute source = null;
+                    if (parameter.ParameterType == typeof(Guid))
+                    {
+                        source = FromUriAttribute.For(parameter);
+                        uriTemplate += (parameterTemplate = "/" + parameter.Name + "/{?value}");
+                    }
+                    else if (parameter.ParameterType.IsValueType)
+                    {
+                        source = FromQueryStringAttribute.For(parameter);
+                        queryString += (parameterTemplate = "&" + parameter.Name + "={?value}");
+                    }
+                    else if (!parameter.ParameterType.IsValueType)
+                    {
+                        source = FromBodyAttribute.For(parameter);
+                    }
+
+                    arguments.Add(new ArgumentInfo(parameter, source, parameterTemplate, (parameterTemplate != null ? parameter.Name : null)));
+                }
+            }
+
+            if (queryString.Length > 0)
+            {
+                uriTemplate += "?" + queryString.Substring(1);
+            }
+
+            return new URSA.Web.Description.Http.OperationInfo(method, verb, new Uri("/", UriKind.Relative), new Regex(".*"), uriTemplate, arguments.ToArray());
         }
     }
 }

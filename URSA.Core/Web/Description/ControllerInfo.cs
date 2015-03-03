@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 
 namespace URSA.Web.Description
 {
     /// <summary>Describes a controller.</summary>
+    [DebuggerDisplay("{Uri}", Name = "{Uri}")]
     public abstract class ControllerInfo
     {
         /// <summary>Initializes a new instance of the <see cref="ControllerInfo" /> class.</summary>
