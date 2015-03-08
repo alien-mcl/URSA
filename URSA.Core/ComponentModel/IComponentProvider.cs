@@ -90,7 +90,7 @@ namespace URSA.ComponentModel
         /// <returns><b>true</b> if it is possible to resolve the instance; otherwise <b>false</b>.</returns>
         bool CanResolve<T>();
 
-        /// <summary>Determines whether it is possible to resolve the instance of type <paramref name="T" />.</summary>
+        /// <summary>Determines whether it is possible to resolve the instance of type <paramref name="type" />.</summary>
         /// <param name="type">Type of instance to resolve.</param>
         /// <returns><b>true</b> if it is possible to resolve the instance; otherwise <b>false</b>.</returns>
         bool CanResolve(Type type);

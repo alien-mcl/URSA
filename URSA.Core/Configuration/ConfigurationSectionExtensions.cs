@@ -25,7 +25,7 @@ namespace URSA.Configuration
                 throw new InvalidOperationException(String.Format("Provided '{1}' type is invalid and cannot be used as a '{0}'.", typeof(T), type));
             }
 
-            var ctor = type.GetConstructor(parameterTypes != null ? parameterTypes : new Type[0]);
+            var ctor = type.GetConstructor(parameterTypes ?? new Type[0]);
             if (ctor == null)
             {
                 throw new InvalidOperationException(String.Format("Provided '{0}' service provided cannot be instantiated.", type));

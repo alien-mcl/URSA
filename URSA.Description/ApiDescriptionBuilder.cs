@@ -7,6 +7,7 @@ using System.Linq;
 using System.Reflection;
 using URSA.Web.Description;
 using URSA.Web.Description.Http;
+using URSA.Web.Http.Description.CodeGen;
 using URSA.Web.Http.Description.Hydra;
 using URSA.Web.Mapping;
 
@@ -16,29 +17,15 @@ namespace URSA.Web.Http.Description
     /// <typeparam name="T">Type of the API to describe</typeparam>
     public class ApiDescriptionBuilder<T> where T : IController
     {
-        private const string Xsd = "http://www.w3.org/2001/XMLSchema#";
-        private const string OGuid = "http://openguid.net/rdf#";
-        private static readonly IDictionary<Type, Uri> TypeDescriptions = new Dictionary<Type, Uri>
-        {
-            { typeof(byte[]), new Uri(Xsd + "hexBinary") },
-            { typeof(string), new Uri(Xsd + "string") },
-            { typeof(bool), new Uri(Xsd + "boolean") },
-            { typeof(sbyte), new Uri(Xsd + "byte") },
-            { typeof(byte), new Uri(Xsd + "unsignedByte") },
-            { typeof(short), new Uri(Xsd + "short") },
-            { typeof(ushort), new Uri(Xsd + "unsignedShort") },
-            { typeof(int), new Uri(Xsd + "int") },
-            { typeof(uint), new Uri(Xsd + "unsignedInt") },
-            { typeof(long), new Uri(Xsd + "long") },
-            { typeof(ulong), new Uri(Xsd + "unsignedLong") },
-            { typeof(float), new Uri(Xsd + "float") },
-            { typeof(double), new Uri(Xsd + "double") },
-            { typeof(decimal), new Uri(Xsd + "decimal") },
-            { typeof(DateTime), new Uri(Xsd + "dateTime") },
-            { typeof(TimeSpan), new Uri(Xsd + "duration") },
-            { typeof(Uri), new Uri(Xsd + "anyUri") },
-            { typeof(Guid), new Uri(OGuid + "guid") }
-        };
+        /// <summary>The default entity context factory name.</summary>
+        public const string DefaultEntityContextFactoryName = "http";
+
+        internal const string DotNetSymbol = "net";
+        internal const string DotNetListSymbol = "net-list";
+        internal const string DotNetCollectionSymbol = "net-collection";
+        internal const string HydraSymbol = "hydra";
+
+        private static readonly IDictionary<Type, Uri> TypeDescriptions = XsdUriParser.Types.Concat(OGuidUriParser.Types).ToDictionary(item => item.Key, item => item.Value);
 
         private readonly IHttpControllerDescriptionBuilder<T> _descriptionBuilder;
         private Type _specializationType;
@@ -209,7 +196,6 @@ namespace URSA.Web.Http.Description
                 return apiDocumentation.Context.Create<IEntity>(new EntityId(uri));
             }
 
-            IClass result = null;
             if (type.IsGenericList())
             {
                 return typeDefinitions[type] = CreateGenericListDefinition(apiDocumentation, type, typeDefinitions);
@@ -220,11 +206,12 @@ namespace URSA.Web.Http.Description
             }
             else
             {
-                result = apiDocumentation.Context.Create<IClass>(new EntityId(new Uri(String.Format("urn:net:{0}", type.FullName))));
+                IClass result = null;
+                result = apiDocumentation.Context.Create<IClass>(new EntityId(new Uri(String.Format("urn:" + DotNetSymbol + ":{0}", type.FullName))));
                 result.Label = type.Name;
                 foreach (var property in type.GetProperties(BindingFlags.Instance | BindingFlags.Public))
                 {
-                    var supportedProperty = apiDocumentation.Context.Create<ISupportedProperty>(new Uri(String.Format("urn:hydra:{0}.{1}", type.FullName, property.Name)));
+                    var supportedProperty = apiDocumentation.Context.Create<ISupportedProperty>(new Uri(String.Format("urn:" + HydraSymbol + ":{0}.{1}", type.FullName, property.Name)));
                     supportedProperty.ReadOnly = !property.CanWrite;
                     supportedProperty.WriteOnly = !property.CanRead;
                     supportedProperty.Required = property.PropertyType.IsValueType;
@@ -247,17 +234,17 @@ namespace URSA.Web.Http.Description
 
         private IClass CreateGenericListDefinition(IApiDocumentation apiDocumentation, Type type, IDictionary<Type, IEntity> typeDefinitions)
         {
-            Type itemType = type.GetItemType();
-            IClass result = apiDocumentation.Context.Create<IClass>(new EntityId(new Uri(String.Format("urn:net:list:{0}", itemType.FullName))));
+            var itemType = type.GetItemType();
+            var result = apiDocumentation.Context.Create<IClass>(new EntityId(new Uri(String.Format("urn:" + DotNetListSymbol + ":{0}", itemType.FullName))));
             result.Label = type.Name;
             result.SubClassOf.Add(apiDocumentation.Context.Create<IClass>(new EntityId(Rdf.List)));
 
-            Owl.IRestriction typeConstrain = apiDocumentation.Context.Create<Owl.IRestriction>(result.CreateBlankId());
+            var typeConstrain = apiDocumentation.Context.Create<Owl.IRestriction>(result.CreateBlankId());
             typeConstrain.OnProperty = apiDocumentation.Context.Create<Rdfs.IProperty>(new EntityId(Rdf.first));
             typeConstrain.AllValuesFrom = typeDefinitions.GetOrCreate(itemType, () => BuildTypeDescription(apiDocumentation, itemType, typeDefinitions));
             result.SubClassOf.Add(typeConstrain);
 
-            Owl.IRestriction restConstrain = apiDocumentation.Context.Create<Owl.IRestriction>(result.CreateBlankId());
+            var restConstrain = apiDocumentation.Context.Create<Owl.IRestriction>(result.CreateBlankId());
             restConstrain.OnProperty = apiDocumentation.Context.Create<Rdfs.IProperty>(new EntityId(Rdf.rest));
             restConstrain.AllValuesFrom = result;
             result.SubClassOf.Add(restConstrain);
@@ -266,12 +253,12 @@ namespace URSA.Web.Http.Description
 
         private IClass CreateGenericCollectionDefinition(IApiDocumentation apiDocumentation, Type type, IDictionary<Type, IEntity> typeDefinitions)
         {
-            Type itemType = type.GetItemType();
-            IClass result = apiDocumentation.Context.Create<IClass>(new EntityId(new Uri(String.Format("urn:net:collection:{0}", itemType.FullName))));
+            var itemType = type.GetItemType();
+            var result = apiDocumentation.Context.Create<IClass>(new EntityId(new Uri(String.Format("urn:" + DotNetCollectionSymbol + ":{0}", itemType.FullName))));
             result.Label = type.Name;
             result.SubClassOf.Add(apiDocumentation.Context.Create<IClass>(new EntityId(Rdf.Bag)));
 
-            Owl.IRestriction typeConstrain = apiDocumentation.Context.Create<Owl.IRestriction>(result.CreateBlankId());
+            var typeConstrain = apiDocumentation.Context.Create<Owl.IRestriction>(result.CreateBlankId());
             typeConstrain.OnProperty = apiDocumentation.Context.Create<Rdfs.IProperty>(new EntityId(new Uri(Rdf.BaseUri + "_1")));
             typeConstrain.AllValuesFrom = typeDefinitions.GetOrCreate(itemType, () => BuildTypeDescription(apiDocumentation, itemType, typeDefinitions));
             result.SubClassOf.Add(typeConstrain);

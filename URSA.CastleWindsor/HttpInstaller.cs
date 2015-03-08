@@ -9,7 +9,9 @@ using System;
 using System.Configuration;
 using System.Linq;
 using System.Web;
+using RomanticWeb.Configuration;
 using URSA.CastleWindsor.ComponentModel;
+using URSA.CodeGen;
 using URSA.ComponentModel;
 using URSA.Configuration;
 using URSA.Web;
@@ -17,6 +19,7 @@ using URSA.Web.Description;
 using URSA.Web.Description.Http;
 using URSA.Web.Http;
 using URSA.Web.Http.Description;
+using URSA.Web.Http.Description.CodeGen;
 using URSA.Web.Http.Mapping;
 using URSA.Web.Mapping;
 using VDS.RDF;
@@ -26,8 +29,8 @@ namespace URSA.CastleWindsor
     /// <summary>Installs HTTP components.</summary>
     public class HttpInstaller : IWindsorInstaller
     {
-        private Lazy<EntityContextFactory> _entityContextFactory;
-        private object _lock = new object();
+        private readonly Lazy<EntityContextFactory> _entityContextFactory;
+        private readonly object _lock = new object();
 
         /// <summary>Initializes a new instance of the <see cref="HttpInstaller" /> class.</summary>
         public HttpInstaller()
@@ -55,6 +58,11 @@ namespace URSA.CastleWindsor
             container.Register(Component.For<IParameterSourceArgumentBinder>().ImplementedBy<FromQueryStringArgumentBinder>().Activator<NonPublicComponentActivator>().LifestyleSingleton());
             container.Register(Component.For<IParameterSourceArgumentBinder>().ImplementedBy<FromUriArgumentBinder>().Activator<NonPublicComponentActivator>().LifestyleSingleton());
             container.Register(Component.For<IParameterSourceArgumentBinder>().ImplementedBy<FromBodyArgumentBinder>().Activator<NonPublicComponentActivator>().LifestyleSingleton());
+            container.Register(Component.For<IClassGenerator>().ImplementedBy<HydraClassGenerator>().LifestyleSingleton());
+            container.Register(Component.For<IUriParser>().ImplementedBy<URSA.Web.Http.Description.CodeGen.GenericUriParser>().LifestyleSingleton());
+            container.Register(Component.For<IUriParser>().ImplementedBy<HydraUriParser>().LifestyleSingleton().Named(typeof(HydraUriParser).FullName));
+            container.Register(Component.For<IUriParser>().ImplementedBy<XsdUriParser>().LifestyleSingleton().Named(typeof(XsdUriParser).FullName));
+            container.Register(Component.For<IUriParser>().ImplementedBy<OGuidUriParser>().LifestyleSingleton().Named(typeof(OGuidUriParser).FullName));
         }
 
         private IEntityContext CreateEntityContext(IKernel kernel, CreationContext context)
@@ -75,7 +83,7 @@ namespace URSA.CastleWindsor
 
         private EntityContextFactory CreateEntityContextFactory()
         {
-            return EntityContextFactory.FromConfiguration("http").WithDefaultOntologies();
+            return EntityContextFactory.FromConfiguration(ApiDescriptionBuilder<IController>.DefaultEntityContextFactoryName).WithDefaultOntologies();
         }
     }
 }

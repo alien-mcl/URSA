@@ -59,7 +59,7 @@ namespace URSA.Web.Http.Description
         [Route("/")]
         [OnOptions]
         [OnGet]
-        public IApiDocumentation GetApiEntryPointDescription(OutputFormats? format)
+        public IApiDocumentation GetApiEntryPointDescription(OutputFormats? format = null)
         {
             format = format ?? OutputFormats.Turtle;
             var accept = Response.Request.Headers[Header.Accept];

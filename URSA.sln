@@ -23,9 +23,15 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "URSA.Web", "URSA.Web\URSA.W
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "URSA.Example.WebApplication", "URSA.Example.WebApplication\URSA.Example.WebApplication.csproj", "{A2C340A6-BBCB-47DE-B3D2-F315B812E808}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "URSA.Http.Client", "URSA.Http.Client\URSA.Http.Client.csproj", "{37E9DBCC-7DE1-47C8-B93D-458F507895D3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "URSA.Http.Client.Proxy", "URSA.Http.Client.Proxy\URSA.Http.Client.Proxy.csproj", "{C9D703F6-6A10-4F6C-97A7-601399291762}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "URSA.Example.Client", "URSA.Example.Client\URSA.Example.Client.csproj", "{433E0693-2669-4DF1-B366-8330CF5AC0CE}"
+EndProject
 Global
 	GlobalSection(TeamFoundationVersionControl) = preSolution
-		SccNumberOfProjects = 11
+		SccNumberOfProjects = 14
 		SccEnterpriseProvider = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
 		SccTeamFoundationServer = https://aliensoftworks.visualstudio.com/defaultcollection
 		SccLocalPath0 = .
@@ -59,6 +65,15 @@ Global
 		SccProjectUniqueName10 = URSA.Web\\URSA.Web.csproj
 		SccProjectName10 = URSA.Web
 		SccLocalPath10 = URSA.Web
+		SccProjectUniqueName11 = URSA.Http.Client\\URSA.Http.Client.csproj
+		SccProjectName11 = URSA.Http.Client
+		SccLocalPath11 = URSA.Http.Client
+		SccProjectUniqueName12 = URSA.Http.Client.Proxy\\URSA.Http.Client.Proxy.csproj
+		SccProjectName12 = URSA.Http.Client.Proxy
+		SccLocalPath12 = URSA.Http.Client.Proxy
+		SccProjectUniqueName13 = URSA.Example.Client\\URSA.Example.Client.csproj
+		SccProjectName13 = URSA.Example.Client
+		SccLocalPath13 = URSA.Example.Client
 	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -105,6 +120,18 @@ Global
 		{A2C340A6-BBCB-47DE-B3D2-F315B812E808}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A2C340A6-BBCB-47DE-B3D2-F315B812E808}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A2C340A6-BBCB-47DE-B3D2-F315B812E808}.Release|Any CPU.Build.0 = Release|Any CPU
+		{37E9DBCC-7DE1-47C8-B93D-458F507895D3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{37E9DBCC-7DE1-47C8-B93D-458F507895D3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{37E9DBCC-7DE1-47C8-B93D-458F507895D3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{37E9DBCC-7DE1-47C8-B93D-458F507895D3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C9D703F6-6A10-4F6C-97A7-601399291762}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C9D703F6-6A10-4F6C-97A7-601399291762}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C9D703F6-6A10-4F6C-97A7-601399291762}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C9D703F6-6A10-4F6C-97A7-601399291762}.Release|Any CPU.Build.0 = Release|Any CPU
+		{433E0693-2669-4DF1-B366-8330CF5AC0CE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{433E0693-2669-4DF1-B366-8330CF5AC0CE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{433E0693-2669-4DF1-B366-8330CF5AC0CE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{433E0693-2669-4DF1-B366-8330CF5AC0CE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

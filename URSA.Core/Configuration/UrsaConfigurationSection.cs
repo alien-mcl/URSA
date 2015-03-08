@@ -79,7 +79,9 @@ namespace URSA.Configuration
             set { this[ControllerActivatorTypeNameAttribute] = value; }
         }
 
-        internal static IComponentProvider InitializeComponentProvider()
+        /// <summary>Initializes the component provider configured.</summary>
+        /// <returns>Implementation of the <see cref="IComponentProvider" /> pointed in the configuration with installers loaded.</returns>
+        public static IComponentProvider InitializeComponentProvider()
         {
             if (ComponentProvider == null)
             {
@@ -95,6 +97,9 @@ namespace URSA.Configuration
                 var assemblies = GetInstallerAssemblies(installerAssemblyNameMask).Concat(new Assembly[] { Assembly.GetExecutingAssembly() });
                 container.Install(assemblies);
                 container.RegisterAll<IConverter>(assemblies);
+                var converterProvider = (IConverterProvider)(configuration.GetProvider<IConverterProvider>(configuration.ConverterProviderType ?? typeof(DefaultConverterProvider))).Invoke(null);
+                converterProvider.Initialize(container.ResolveAll<IConverter>());
+                container.Register(converterProvider);
                 ComponentProvider = container;
             }
 

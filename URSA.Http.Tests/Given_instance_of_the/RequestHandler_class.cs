@@ -74,10 +74,14 @@ namespace Given_instance_of_the
             converter.Setup(instance => instance.CanConvertFrom(typeof(int), It.IsAny<ResponseInfo>())).Returns(CompatibilityLevel.ExactMatch);
             converter.Setup(instance => instance.ConvertFrom<int>(result, It.IsAny<ResponseInfo>()));
 
+            Mock<IConverterProvider> converterProvider = new Mock<IConverterProvider>(MockBehavior.Strict);
+            converterProvider.Setup(instance => instance.FindBestOutputConverter<int>(It.IsAny<IResponseInfo>())).Returns(converter.Object);
+
             Mock<IHttpControllerDescriptionBuilder<TestController>> builder = new Mock<IHttpControllerDescriptionBuilder<TestController>>(MockBehavior.Strict);
             Mock<IControllerActivator> activator = new Mock<IControllerActivator>(MockBehavior.Strict);
 
             Mock<IComponentProvider> container = new Mock<IComponentProvider>(MockBehavior.Strict);
+            container.Setup(instance => instance.Resolve<IConverterProvider>()).Returns(converterProvider.Object);
             container.Setup(instance => instance.Resolve<IDelegateMapper<RequestInfo>>()).Returns(delegateMapper.Object);
             container.Setup(instance => instance.Register<IDelegateMapper<RequestInfo>>(It.IsAny<DelegateMapper>()));
             container.Setup(instance => instance.Resolve<IArgumentBinder<RequestInfo>>()).Returns(argumentBinder.Object);

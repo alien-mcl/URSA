@@ -10,6 +10,8 @@ using RomanticWeb.Vocabularies;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Remoting.Messaging;
+using System.Runtime.Remoting.Proxies;
 using URSA.Web.Http.Converters;
 using URSA.Web.Http.Description.Hydra;
 using URSA.Web.Http.Description.Testing;
@@ -56,8 +58,7 @@ namespace Given_instance_of_the.converter_of
         {
             ITripleStore tripleStore = null;
             _context = new Mock<IEntityContext>();
-            _context.Setup(instance => instance.Create<IOperation>(It.IsAny<EntityId>()))
-                .Returns<EntityId>(id => CreateOperationMock(tripleStore, id).Object);
+            _context.Setup(instance => instance.Load<IOperation>(It.IsAny<EntityId>())).Returns<EntityId>(id => CreateOperationMock(tripleStore, id).Object);
             Mock<IEntityContextFactory> entityContextFactory = new Mock<IEntityContextFactory>();
             entityContextFactory.Setup(instance => instance.CreateContext()).Returns(_context.Object);
             entityContextFactory.As<IComponentRegistryFacade>().Setup(instance => instance.Register<ITripleStore>(It.IsAny<ITripleStore>()))

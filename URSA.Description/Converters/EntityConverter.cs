@@ -4,11 +4,15 @@ using RomanticWeb.DotNetRDF;
 using RomanticWeb.Entities;
 using RomanticWeb.Vocabularies;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Xml;
+using RomanticWeb.Configuration;
 using URSA.Web.Converters;
+using URSA.Web.Http.Description;
+using URSA.Web.Http.Description.VDS.RDF;
 using VDS.RDF;
 using VDS.RDF.Parsing;
 using VDS.RDF.Writing;
@@ -33,7 +37,9 @@ namespace URSA.Web.Http.Converters
         /// <summary>Defines a '<![CDATA[application/ld+json]]>' media type.</summary>
         public const string ApplicationLdJson = "application/ld+json";
 
-        private static readonly string[] SupportedMediaTypes = new[] { TextTurtle, ApplicationRdfXml, ApplicationOwlXml, ApplicationLdJson };
+        /// <summary>Defines the supported media types.</summary>
+        public static readonly string[] SupportedMediaTypes = new[] { TextTurtle, ApplicationRdfXml, ApplicationOwlXml, ApplicationLdJson };
+
         private static readonly Uri Hydra = new Uri("http://www.w3.org/ns/hydra/core#");
         private static readonly string Context = String.Format(
             @"{{
@@ -143,22 +149,23 @@ namespace URSA.Web.Http.Converters
 
             var requestInfo = (RequestInfo)request;
             var accept = requestInfo.Headers[Header.Accept];
-            var mediaType = accept.Values.Join(SupportedMediaTypes, outer => outer.Value, inner => inner, (outer, inner) => outer).First();
+            var mediaType = (accept != null ? accept.Values.Join(SupportedMediaTypes, outer => outer.Value, inner => inner, (outer, inner) => outer.Value).First() : TextTurtle);
             ITripleStore store = new TripleStore();
             IGraph graph = new Graph();
             store.Add(graph);
-            var reader = CreateReader(mediaType.Value);
+            var reader = CreateReader(mediaType);
             using (var textReader = new StreamReader(requestInfo.Body))
             {
                 reader.Load(graph, textReader);
             }
 
+            store.MapToMetaGraph(ConfigurationSectionHandler.Default.Factories[ApiDescriptionBuilder<IController>.DefaultEntityContextFactoryName].MetaGraphUri);
             ((IComponentRegistryFacade)_entityContextFactory).Register(store);
-            var context = _entityContextFactory.CreateContext();
+            var entityContextFactory = (_entityContextFactory is EntityContextFactory ? ((EntityContextFactory)_entityContextFactory).WithDotNetRDF(store) : _entityContextFactory);
+            var context = entityContextFactory.CreateContext();
             var entity = (IEntity)context.GetType().GetInterfaceMap(typeof(IEntityContext))
                 .TargetMethods
-                .Where(method => method.Name == "Create")
-                .First()
+                .First(method => method.Name == "Load")
                 .MakeGenericMethod(expectedType)
                 .Invoke(context, new object[] { new EntityId(request.Uri) });
             return entity;
@@ -237,9 +244,11 @@ namespace URSA.Web.Http.Converters
                     throw new InvalidOperationException(String.Format("Instance type '{0}' mismatch from the given '{1}'.", instance.GetType(), givenType));
                 }
 
-                var requestInfo = (RequestInfo)response.Request;
+                var responseInfo = (ResponseInfo)response;
+                var requestInfo = responseInfo.Request;
                 var accept = requestInfo.Headers[Header.Accept];
                 var mediaType = accept.Values.Join(SupportedMediaTypes, outer => outer.Value, inner => inner, (outer, inner) => outer.Value).First();
+                responseInfo.Headers.ContentType = mediaType;
                 var entity = (IEntity)instance;
                 ITripleStore store = new TripleStore();
                 IGraph graph = new Graph();

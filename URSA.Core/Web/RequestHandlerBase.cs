@@ -26,7 +26,6 @@ namespace URSA.Web
 
             BaseInitialize(
                 UrsaConfigurationSection.InitializeComponentProvider(),
-                configuration.GetProvider<IConverterProvider>(configuration.ConverterProviderType ?? typeof(DefaultConverterProvider)),
                 configuration.GetProvider<IControllerActivator>(configuration.ControllerActivatorType ?? typeof(DefaultControllerActivator), typeof(IComponentProvider)));
         }
 
@@ -58,15 +57,13 @@ namespace URSA.Web
         /// <summary>Initializes the instance of the request handler.</summary>
         protected abstract void Initialize();
          
-        private void BaseInitialize(IComponentProvider container, ConstructorInfo converterProviderCtor, ConstructorInfo controllerActivatorCtor)
+        private void BaseInitialize(IComponentProvider container, ConstructorInfo controllerActivatorCtor)
         {
             Container = container;
-            ConverterProvider = (IConverterProvider)converterProviderCtor.Invoke(null);
-            Container.Register<IConverterProvider>(ConverterProvider);
+            ConverterProvider = Container.Resolve<IConverterProvider>();
             var controllerActivator = (IControllerActivator)controllerActivatorCtor.Invoke(new object[] { Container });
-            Container.Register<IControllerActivator>(controllerActivator);
+            Container.Register(controllerActivator);
             Initialize();
-            ConverterProvider.Initialize(container.ResolveAll<IConverter>());
             if (HandlerMapper == null)
             {
                 HandlerMapper = Container.Resolve<IDelegateMapper<T>>();

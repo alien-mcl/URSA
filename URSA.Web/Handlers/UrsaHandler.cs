@@ -63,7 +63,17 @@ namespace URSA.Web.Handlers
             context.Response.StatusCode = (int)response.Status;
             foreach (var header in response.Headers)
             {
-                context.Response.Headers.Add(header.Name, header.Value);
+                switch (header.Name)
+                {
+                    case Header.ContentType:
+                        context.Response.ContentType = header.Value;
+                        break;
+                    case Header.ContentLength:
+                        break;
+                    default:
+                        context.Response.Headers.Add(header.Name, header.Value);
+                        break;
+                }
             }
 
             response.Body.CopyTo(context.Response.OutputStream);

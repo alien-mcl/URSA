@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("URSA.Description")]
+[assembly: AssemblyTitle("URSA.Example.Client")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("URSA.Description")]
+[assembly: AssemblyProduct("URSA.Example.Client")]
 [assembly: AssemblyCopyright("Copyright ©  2015")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("acc3b615-ef96-4c57-8fba-3f6d1a3dcc4c")]
+[assembly: Guid("c4996f0c-7379-479b-8c2a-adfbc1fef7c5")]
 
 // Version information for an assembly consists of the following four values:
 //
@@ -34,4 +34,3 @@ using System.Runtime.InteropServices;
 // [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyVersion("1.0.0.0")]
 [assembly: AssemblyFileVersion("1.0.0.0")]
-[assembly: InternalsVisibleTo("URSA.Http.Description.Tests")]

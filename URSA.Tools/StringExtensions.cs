@@ -42,7 +42,7 @@ namespace System
         private static string ToCamelCase(this string value, bool lowerCase)
         {
             string result = value;
-            if (result != null)
+            if (!String.IsNullOrEmpty(result))
             {
                 result = Regex.Replace(Regex.Replace(value, "([a-zA-Z])(\\s+)([a-zA-Z])", ReplaceSpace), "\\W", "_");
                 result = (lowerCase ? Char.ToLower(value[0]) : Char.ToUpper(value[0])) + value.Substring(1);
