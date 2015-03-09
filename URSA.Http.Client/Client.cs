@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Dynamic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -21,7 +22,7 @@ namespace URSA.Web.Http
 
         private Uri BaseUri { get; set; }
 
-        protected object Call(Verb verb, string url, params object[] arguments)
+        protected object Call(Verb verb, string url, dynamic uriArguments, params object[] bodyArguments)
         {
             return null;
         }

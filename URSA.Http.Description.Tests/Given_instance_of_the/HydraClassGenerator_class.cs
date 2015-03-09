@@ -1,8 +1,13 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using RomanticWeb;
 using RomanticWeb.Entities;
+using RomanticWeb.Linq.Model;
+using RomanticWeb.Model;
 using RomanticWeb.Ontologies;
 using RomanticWeb.Vocabularies;
 using URSA.CodeGen;
@@ -48,21 +53,65 @@ namespace Given_instance_of_the
         [TestMethod]
         public void it_should_generate_class_code()
         {
-            var readId = new Uri("http://temp.uri/type/");
-            const string ReadMethod = "GET";
+            Uri hydraSupportedOperation = new Uri(HydraUriParser.HyDrA + "supportedOperation");
+            Uri hydraIriTemplate = new Uri(HydraUriParser.HyDrA + "IriTemplate");
+            const string HttpMethod = "GET";
+            var readOperationUri = new Uri("http://temp.uri/type/");
+            var readOperationId = new EntityId(readOperationUri);
             var readOperation = new Mock<IOperation>(MockBehavior.Strict);
-            readOperation.SetupGet(instance => instance.Id).Returns(new EntityId(readId));
+            readOperation.SetupGet(instance => instance.Id).Returns(readOperationId);
             readOperation.SetupGet(instance => instance.Label).Returns("List");
-            readOperation.SetupGet(instance => instance.Method).Returns(new string[] { ReadMethod });
+            readOperation.SetupGet(instance => instance.Method).Returns(new string[] { HttpMethod });
             readOperation.SetupGet(instance => instance.Expects).Returns(new IClass[0]);
+            var getOperationUri = new Uri("http://temp.uri/type/#withId");
+            var getOperationId = new EntityId(getOperationUri);
+            var getOperation = new Mock<IOperation>(MockBehavior.Strict);
+            getOperation.SetupGet(instance => instance.Id).Returns(getOperationId);
+            getOperation.SetupGet(instance => instance.Label).Returns("Get");
+            getOperation.SetupGet(instance => instance.Method).Returns(new string[] { HttpMethod });
+            getOperation.SetupGet(instance => instance.Expects).Returns(new IClass[0]);
+            var rangeType = new Mock<URSA.Web.Http.Description.Rdfs.IResource>(MockBehavior.Strict);
+            rangeType.SetupGet(instance => instance.Id).Returns(Xsd.Int);
+            var range = new List<URSA.Web.Http.Description.Rdfs.IResource>();
+            range.Add(rangeType.Object);
+            var property = new Mock<URSA.Web.Http.Description.Rdfs.IProperty>(MockBehavior.Strict);
+            property.SetupGet(instance => instance.Range).Returns(range);
+            var mapping = new Mock<IIriTemplateMapping>(MockBehavior.Strict);
+            mapping.SetupGet(instance => instance.Variable).Returns("id");
+            mapping.SetupGet(instance => instance.Property).Returns(property.Object);
+            var mappings = new List<IIriTemplateMapping>() { mapping.Object };
+            var iriTemplateUri = new Uri("http://temp.uri/type/withId");
+            var iriTemplateId = new EntityId(iriTemplateUri);
+            var iriTemplate = new Mock<IIriTemplate>(MockBehavior.Strict);
+            iriTemplate.SetupGet(instance => instance.Id).Returns(iriTemplateId);
+            iriTemplate.SetupGet(instance => instance.Template).Returns("http://temp.uri/type/{?id}");
+            iriTemplate.SetupGet(instance => instance.Mappings).Returns(mappings);
             var @namespace = "Test";
-            const string Name = "Type";
-            var classId = new Uri(String.Format("urn:net:{0}.{1}", @namespace, Name));
+            const string ClassName = "Type";
+            var classUri = new Uri(String.Format("urn:net:{0}.{1}", @namespace, ClassName));
+            var classId = new EntityId(classUri);
+            var quads = new List<EntityQuad>()
+            {
+                new EntityQuad(classId, Node.ForUri(classUri), Node.ForUri(hydraSupportedOperation), Node.ForUri(readOperationUri)),
+                new EntityQuad(classId, Node.ForUri(classUri), Node.ForUri(iriTemplateUri), Node.ForUri(getOperationUri)),
+                new EntityQuad(iriTemplateId, Node.ForUri(iriTemplateUri), Node.ForUri(Rdf.type), Node.ForUri(hydraIriTemplate))
+            };
+            var store = new Mock<IEntityStore>(MockBehavior.Strict);
+            store.SetupGet(instance => instance.Quads).Returns(quads);
+            store.Setup(instance => instance.GetEntityQuads(It.IsAny<EntityId>())).Returns<EntityId>(id => quads.Where(quad => quad.EntityId == id));
+            var context = new Mock<IEntityContext>(MockBehavior.Strict);
+            context.SetupGet(instance => instance.Store).Returns(store.Object);
+            context.Setup(instance => instance.Load<IOperation>(readOperationId)).Returns(readOperation.Object);
+            context.Setup(instance => instance.Load<IOperation>(getOperationId)).Returns(getOperation.Object);
+            context.Setup(instance => instance.Load<IIriTemplate>(iriTemplateId)).Returns(iriTemplate.Object);
             var @class = new Mock<IClass>(MockBehavior.Strict);
-            @class.SetupGet(instance => instance.Id).Returns(new EntityId(classId));
+            @class.SetupGet(instance => instance.Context).Returns(context.Object);
+            @class.SetupGet(instance => instance.Id).Returns(classId);
             @class.SetupGet(instance => instance.Label).Returns("Type");
             @class.SetupGet(instance => instance.SupportedOperations).Returns(new IOperation[] { readOperation.Object });
-            _uriParser.Setup(instance => instance.Parse(classId, out @namespace)).Returns<Uri, string>((id, ns) => Name);
+            _uriParser.Setup(instance => instance.Parse(classUri, out @namespace)).Returns<Uri, string>((id, ns) => ClassName);
+            var @systemNamespace = "System";
+            _uriParser.Setup(instance => instance.Parse(Xsd.Int, out @systemNamespace)).Returns<Uri, string>((id, ns) => typeof(int).Name);
 
             var result = _generator.CreateCode(@class.Object);
 
@@ -86,9 +135,9 @@ namespace {0}
     }}
 }}",
                @namespace,
-               Name,
-               ReadMethod,
-               readId));
+               ClassName,
+               HttpMethod,
+               readOperationUri));
         }
 
         [TestInitialize]

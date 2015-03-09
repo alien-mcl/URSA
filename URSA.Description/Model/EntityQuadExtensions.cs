@@ -12,14 +12,16 @@ namespace URSA.Web.Http.Description.Model
 {
     internal static class EntityQuadExtensions
     {
-        internal static bool PredicateIs(this EntityQuad quad, IEntityStore store, Uri type)
+        internal static bool PredicateIs(this EntityQuad quad, IEntityContext context, Uri type)
         {
             if (!quad.Predicate.IsUri)
             {
                 return false;
             }
 
-            return (from item in store.GetEntityQuads(new EntityId(quad.Predicate.Uri))
+            var id = new EntityId(quad.Predicate.Uri);
+            context.Load<IEntity>(id);
+            return (from item in context.Store.GetEntityQuads(id)
                     where (item.Predicate.IsUri) && (AbsoluteUriComparer.Default.Equals(item.Predicate.Uri, Rdf.type)) &&
                           (item.Object.IsUri) && (AbsoluteUriComparer.Default.Equals(item.Object.Uri, type))
                     select item).Any();

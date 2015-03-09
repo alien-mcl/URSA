@@ -68,7 +68,7 @@ namespace URSA.Web.Http.Description
             }
 
             Uri baseUri = apiDocumentation.Context.BaseUriSelector.SelectBaseUri(new EntityId(new Uri("/", UriKind.Relative)));
-            IDictionary<Type, IEntity> typeDefinitions = new Dictionary<Type, IEntity>();
+            IDictionary<Type, Rdfs.IResource> typeDefinitions = new Dictionary<Type, Rdfs.IResource>();
             var description = _descriptionBuilder.BuildDescriptor();
             if (SpecializationType != typeof(object))
             {
@@ -94,7 +94,7 @@ namespace URSA.Web.Http.Description
             }
         }
 
-        private IOperation BuildOperation(IApiDocumentation apiDocumentation, Uri baseUri, Web.Description.Http.OperationInfo operation, IDictionary<Type, IEntity> typeDefinitions, out IIriTemplate template)
+        private IOperation BuildOperation(IApiDocumentation apiDocumentation, Uri baseUri, Web.Description.Http.OperationInfo operation, IDictionary<Type, Rdfs.IResource> typeDefinitions, out IIriTemplate template)
         {
             var nonBodyArguments = operation.Arguments.Where(argument => (argument.Source is FromQueryStringAttribute) || (argument.Source is FromUriAttribute)).ToList();
             EntityId methodId = new EntityId(nonBodyArguments.Count == 0 ? operation.Uri.Combine(baseUri) :
@@ -117,7 +117,7 @@ namespace URSA.Web.Http.Description
             return result;
         }
 
-        private IIriTemplate BuildTemplate(IApiDocumentation apiDocumentation, Web.Description.Http.OperationInfo operation, IOperation operationDocumentation, IDictionary<Type, IEntity> typeDefinitions)
+        private IIriTemplate BuildTemplate(IApiDocumentation apiDocumentation, Web.Description.Http.OperationInfo operation, IOperation operationDocumentation, IDictionary<Type, Rdfs.IResource> typeDefinitions)
         {
             IIriTemplate template = null;
             IEnumerable<ArgumentInfo> parameterMapping;
@@ -154,7 +154,7 @@ namespace URSA.Web.Http.Description
             return template;
         }
 
-        private IClass BuildBodyArgument(IApiDocumentation apiDocumentation, ParameterInfo parameter, IDictionary<Type, IEntity> typeDefinitions)
+        private IClass BuildBodyArgument(IApiDocumentation apiDocumentation, ParameterInfo parameter, IDictionary<Type, Rdfs.IResource> typeDefinitions)
         {
             var expected = BuildTypeDescription(apiDocumentation, parameter.ParameterType, typeDefinitions);
             if (!(expected is IClass))
@@ -167,9 +167,9 @@ namespace URSA.Web.Http.Description
             return (IClass)expected;
         }
 
-        private Rdfs.IProperty GetMappingProperty(IApiDocumentation apiDocumentation, ParameterInfo parameter, Type type, IDictionary<Type, IEntity> typeDefinitions)
+        private Rdfs.IProperty GetMappingProperty(IApiDocumentation apiDocumentation, ParameterInfo parameter, Type type, IDictionary<Type, Rdfs.IResource> typeDefinitions)
         {
-            IEntity @class;
+            Rdfs.IResource @class;
             if (!typeDefinitions.TryGetValue(type, out @class))
             {
                 @class = BuildTypeDescription(apiDocumentation, type, typeDefinitions);
@@ -188,12 +188,12 @@ namespace URSA.Web.Http.Description
             }
         }
 
-        private IEntity BuildTypeDescription(IApiDocumentation apiDocumentation, Type type, IDictionary<Type, IEntity> typeDefinitions)
+        private Rdfs.IResource BuildTypeDescription(IApiDocumentation apiDocumentation, Type type, IDictionary<Type, Rdfs.IResource> typeDefinitions)
         {
             Uri uri;
             if (TypeDescriptions.TryGetValue(type, out uri))
             {
-                return apiDocumentation.Context.Create<IEntity>(new EntityId(uri));
+                return apiDocumentation.Context.Create<Rdfs.IResource>(new EntityId(uri));
             }
 
             if (type.IsGenericList())
@@ -218,7 +218,7 @@ namespace URSA.Web.Http.Description
                     supportedProperty.Property = apiDocumentation.Context.Create<Rdfs.IProperty>(result.Id.Uri.AddName(property.Name));
                     supportedProperty.Property.Label = property.Name;
                     supportedProperty.Property.Domain.Add(result);
-                    IEntity range;
+                    Rdfs.IResource range;
                     if (!typeDefinitions.TryGetValue(property.PropertyType, out range))
                     {
                         typeDefinitions[property.PropertyType] = range = BuildTypeDescription(apiDocumentation, property.PropertyType, typeDefinitions);
@@ -232,7 +232,7 @@ namespace URSA.Web.Http.Description
             }
         }
 
-        private IClass CreateGenericListDefinition(IApiDocumentation apiDocumentation, Type type, IDictionary<Type, IEntity> typeDefinitions)
+        private IClass CreateGenericListDefinition(IApiDocumentation apiDocumentation, Type type, IDictionary<Type, Rdfs.IResource> typeDefinitions)
         {
             var itemType = type.GetItemType();
             var result = apiDocumentation.Context.Create<IClass>(new EntityId(new Uri(String.Format("urn:" + DotNetListSymbol + ":{0}", itemType.FullName))));
@@ -251,7 +251,7 @@ namespace URSA.Web.Http.Description
             return result;
         }
 
-        private IClass CreateGenericCollectionDefinition(IApiDocumentation apiDocumentation, Type type, IDictionary<Type, IEntity> typeDefinitions)
+        private IClass CreateGenericCollectionDefinition(IApiDocumentation apiDocumentation, Type type, IDictionary<Type, Rdfs.IResource> typeDefinitions)
         {
             var itemType = type.GetItemType();
             var result = apiDocumentation.Context.Create<IClass>(new EntityId(new Uri(String.Format("urn:" + DotNetCollectionSymbol + ":{0}", itemType.FullName))));

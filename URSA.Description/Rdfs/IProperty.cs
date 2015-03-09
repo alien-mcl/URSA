@@ -10,7 +10,7 @@ namespace URSA.Web.Http.Description.Rdfs
     {
         /// <summary>Gets the range.</summary>
         [Collection("rdfs", "range")]
-        ICollection<IEntity> Range { get; }
+        ICollection<IResource> Range { get; }
 
         /// <summary>Gets the domain.</summary>
         [Collection("rdfs", "domain")]

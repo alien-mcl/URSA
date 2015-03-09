@@ -3,12 +3,8 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using RomanticWeb;
 using RomanticWeb.Entities;
-using URSA.Web;
-using URSA.Web.Http.Description;
 using URSA.Web.Http.Description.CodeGen;
 using URSA.Web.Http.Description.Hydra;
 using URSA.Web.Http.Description.Model;
@@ -20,6 +16,7 @@ namespace URSA.CodeGen
     {
         private const string ClassTemplate =
             @"using System;
+using System.Dynamic;
 using URSA.Web.Http;
 
 namespace {0}
@@ -30,16 +27,19 @@ namespace {0}
         {{
         }}
 
-{2}
-    }}
+{2}    }}
 }}";
 
         private const string OperationTemplate =
             @"        public void {0}({1})
         {{
-            Call(Verb.{2}, new Uri(""{3}""){4});
+            " + ArgumentsTemplate + @"
+{4}            Call(Verb.{2}, new Uri(""{3}""), uriArguments{5});
         }}
+
 ";
+
+        private const string ArgumentsTemplate = "ExpandoObject uriArguments = new ExpandoObject();";
 
         private static readonly IDictionary<IResource, string> Namespaces = new ConcurrentDictionary<IResource, string>();
         private static readonly IDictionary<IResource, string> Names = new ConcurrentDictionary<IResource, string>();
@@ -62,11 +62,12 @@ namespace {0}
         public string CreateCode(IClass supportedClass)
         {
             var operations = new StringBuilder(1024);
-            var supportedOperations = from quad in supportedClass.Context.Store.Quads
+            bool isTemplate = false;
+            var supportedOperations = from quad in supportedClass.Context.Store.Quads.ToList()
                                       where (quad.Subject.IsUri) && (AbsoluteUriComparer.Default.Equals(quad.Subject.Uri, supportedClass.Id.Uri)) &&
-                                            (quad.Object.IsUri) && (quad.Predicate.IsUri)
-                                      let isTemplate = quad.PredicateIs(supportedClass.Context.Store, new Uri(HydraUriParser.HyDrA + "IriTemplate"))
-                                      where ((quad.Predicate.Uri.ToString() == HydraUriParser.HyDrA + "supportedOperation") || (isTemplate))
+                                            (quad.Object.IsUri) && (quad.Predicate.IsUri) && (!(isTemplate = false)) &&
+                                            ((quad.Predicate.Uri.ToString() == HydraUriParser.HyDrA + "supportedOperation") ||
+                                             (isTemplate = quad.PredicateIs(supportedClass.Context, new Uri(HydraUriParser.HyDrA + "IriTemplate"))))
                                       select new
                                       {
                                           Id = new EntityId(quad.Object.Uri),
@@ -77,21 +78,37 @@ namespace {0}
                 var operation = supportedClass.Context.Load<IOperation>(operationDescriptor.Id);
                 foreach (var method in operation.Method)
                 {
-                    var arguments = new StringBuilder(256);
+                    var bodyArguments = new StringBuilder(256);
+                    var uriArguments = new StringBuilder(256);
                     var parameters = new StringBuilder(256);
+                    if (operationDescriptor.Template != null)
+                    {
+                        foreach (var mapping in operationDescriptor.Template.Mappings)
+                        {
+                            var variableName = mapping.Variable.ToLowerCamelCase();
+                            IResource expected = null;
+                            if ((mapping.Property != null) && (mapping.Property.Range.Any()))
+                            {
+                                expected = mapping.Property.Range.First().AsEntity<IResource>();
+                            }
+
+                            parameters.AppendFormat(
+                                "{0}.{1} {2}", 
+                                (expected != null ? CreateNamespace(expected) : "System"), 
+                                (expected != null ? CreateName(expected) : "Object"), 
+                                variableName);
+                            uriArguments.AppendFormat("            uriArguments.{0} = {0};{1}", variableName, Environment.NewLine);
+                        }
+                    }
+
                     foreach (var expected in operation.Expects)
                     {
                         string variableName = expected.Label.ToLowerCamelCase();
                         parameters.AppendFormat("{0}.{1} {2}", CreateNamespace(expected), CreateName(expected), variableName);
-                        arguments.Append(variableName);
+                        bodyArguments.AppendFormat(", {0}", variableName);
                     }
 
-                    if (arguments.Length > 0)
-                    {
-                        arguments.Insert(0, ", ");
-                    }
-
-                    operations.AppendFormat(OperationTemplate, CreateName(operation), parameters, method, operation.Id, arguments);
+                    operations.AppendFormat(OperationTemplate, CreateName(operation), parameters, method, operation.Id, uriArguments, bodyArguments);
                 }
             }
 
