@@ -1,4 +1,5 @@
-﻿using FluentAssertions;
+﻿using System.Diagnostics.CodeAnalysis;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using System.Linq;
@@ -10,6 +11,7 @@ using URSA.Web.Tests;
 
 namespace Given_instance_of_the.ControllerDescriptionBuilder_class
 {
+    [ExcludeFromCodeCoverage]
     [TestClass]
     public class when_having_dependent_route_controller
     {

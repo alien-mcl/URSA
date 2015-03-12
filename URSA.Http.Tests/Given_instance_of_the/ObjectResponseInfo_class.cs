@@ -1,6 +1,7 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using URSA.Web;
 using URSA.Web.Converters;
@@ -8,6 +9,7 @@ using URSA.Web.Http;
 
 namespace Given_instance_of_the
 {
+    [ExcludeFromCodeCoverage]
     [TestClass]
     public class ObjectResponseInfo_class
     {

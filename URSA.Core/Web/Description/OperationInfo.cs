@@ -1,12 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 
 namespace URSA.Web.Description
 {
     /// <summary>Describes an controller operation.</summary>
+    [ExcludeFromCodeCoverage]
     [DebuggerDisplay("{Uri}", Name = "{Uri}")]
     public class OperationInfo
     {
@@ -37,7 +39,7 @@ namespace URSA.Web.Description
                 throw new ArgumentOutOfRangeException("uri");
             }
 
-            if ((uriTemplate != null) && (uriTemplate.Length > 0))
+            if (!String.IsNullOrEmpty(uriTemplate))
             {
                 if (arguments == null)
                 {

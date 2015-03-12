@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 namespace URSA.Web.Http.Description.Tests.Data
 {
+    [ExcludeFromCodeCoverage]
     public class Person
     {
         public Guid Id { get; set; }

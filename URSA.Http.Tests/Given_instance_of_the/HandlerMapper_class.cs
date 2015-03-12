@@ -2,6 +2,7 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Text.RegularExpressions;
 using URSA.Web;
@@ -13,6 +14,7 @@ using URSA.Web.Tests;
 
 namespace Given_instance_of_the
 {
+    [ExcludeFromCodeCoverage]
     [TestClass]
     public class HandlerMapper_class
     {

@@ -9,6 +9,7 @@ using RomanticWeb.Entities;
 using RomanticWeb.Vocabularies;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.Remoting.Messaging;
 using System.Runtime.Remoting.Proxies;
@@ -22,6 +23,7 @@ using Node = RomanticWeb.Model.Node;
 
 namespace Given_instance_of_the.converter_of
 {
+    [ExcludeFromCodeCoverage]
     [TestClass]
     public class EntityConverter_class : ConverterTest<EntityConverter>
     {

@@ -1,4 +1,5 @@
-﻿using FluentAssertions;
+﻿using System.Diagnostics.CodeAnalysis;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.IO;
 using System.Linq;
@@ -11,6 +12,7 @@ using URSA.Web.Http.Tests.Data;
 
 namespace Given_instance_of_the.converter_of
 {
+    [ExcludeFromCodeCoverage]
     [TestClass]
     public class XmlConverter_class : ConverterTest<XmlConverter>
     {

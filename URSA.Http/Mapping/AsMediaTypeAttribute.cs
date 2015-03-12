@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
 namespace URSA.Web.Http.Mapping
 {
     /// <summary>Instructs the pipeline to output the result as the given media type.</summary>
+    [ExcludeFromCodeCoverage]
     [AttributeUsage(AttributeTargets.ReturnValue)]
     public class AsMediaTypeAttribute : Attribute
     {

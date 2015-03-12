@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -33,6 +34,7 @@ namespace URSA.Web.Description.Http
 
         /// <summary>Initializes a new instance of the <see cref="ControllerDescriptionBuilder{T}" /> class.</summary>
         /// <param name="defaultParameterSourceSelector">Default parameter source selector.</param>
+        [ExcludeFromCodeCoverage]
         public ControllerDescriptionBuilder(IDefaultParameterSourceSelector defaultParameterSourceSelector)
         {
             if (defaultParameterSourceSelector == null)
@@ -44,7 +46,7 @@ namespace URSA.Web.Description.Http
         }
 
         /// <inheritdoc />
-        public Verb GetMethodVerb(System.Reflection.MethodInfo methodInfo)
+        public Verb GetMethodVerb(MethodInfo methodInfo)
         {
             if (methodInfo == null)
             {
@@ -57,7 +59,7 @@ namespace URSA.Web.Description.Http
             }
 
             return BuildDescriptor().Operations.Where(operation => operation.UnderlyingMethod == methodInfo)
-                .Select(operation => ((Description.Http.OperationInfo)operation).Verb).FirstOrDefault() ?? Verb.GET;
+                .Select(operation => ((OperationInfo)operation).Verb).FirstOrDefault() ?? Verb.GET;
         }
 
         /// <inheritdoc />
@@ -74,9 +76,7 @@ namespace URSA.Web.Description.Http
             }
 
             argumentMapping = new ArgumentInfo[0];
-            OperationInfo method = BuildDescriptor().Operations.Cast<OperationInfo>()
-                .Where(operation => operation.UnderlyingMethod == methodInfo)
-                .FirstOrDefault();
+            OperationInfo method = BuildDescriptor().Operations.Cast<OperationInfo>().FirstOrDefault(operation => operation.UnderlyingMethod == methodInfo);
             if (method != null)
             {
                 argumentMapping = method.Arguments;
@@ -114,6 +114,12 @@ namespace URSA.Web.Description.Http
             return _description;
         }
 
+        [ExcludeFromCodeCoverage]
+        private static string BuildControllerName(Type type)
+        {
+            return Regex.Replace(type.Name, "Controller", String.Empty, RegexOptions.IgnoreCase).ToLower();
+        }
+
         private Uri GetControllerRoute(Type type)
         {
             var route = type.GetCustomAttribute<RouteAttribute>(true) ??
@@ -126,11 +132,6 @@ namespace URSA.Web.Description.Http
             }
 
             return (route != null ? route.Uri : new Uri("/" + BuildControllerName(type), UriKind.Relative));
-        }
-
-        private string BuildControllerName(Type type)
-        {
-            return Regex.Replace(type.Name, "Controller", String.Empty, RegexOptions.IgnoreCase).ToLower();
         }
 
         private IEnumerable<OperationInfo> BuildMethodDescriptor(MethodInfo method, Uri prefix)
@@ -277,7 +278,7 @@ namespace URSA.Web.Description.Http
 
         private void Increment<S>(ParameterSourceAttribute parameterSource, ParameterInfo parameter, ref int total, ref int optional)
         {
-            if (typeof(S).IsAssignableFrom(parameterSource.GetType()))
+            if (parameterSource is S)
             {
                 total++;
                 if (parameter.HasDefaultValue)
@@ -294,8 +295,7 @@ namespace URSA.Web.Description.Http
             parameterTemplateRegex = null;
             var parameterSource = parameter.GetCustomAttribute<ParameterSourceAttribute>(true) ?? _defaultParameterSourceSelector.ProvideDefault(parameter, verb);
             var methodInfo = GetType().GetMethods(BindingFlags.Instance | BindingFlags.NonPublic)
-                .Where(item => (item.Name == "CreateParameterTemplateRegex") && (item.GetParameters().Length > 0) && (item.GetParameters()[0].ParameterType == parameterSource.GetType()))
-                .FirstOrDefault();
+                .FirstOrDefault(item => (item.Name == "CreateParameterTemplateRegex") && (item.GetParameters().Length > 0) && (item.GetParameters()[0].ParameterType == parameterSource.GetType()));
             if (methodInfo != null)
             {
                 var arguments = new object[] { parameterSource, method, parameter, verb, parameterUriTemplate, parameterTemplateRegex };

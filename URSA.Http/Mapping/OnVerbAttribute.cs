@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 
 namespace URSA.Web.Http.Mapping
 {
     /// <summary>Instructs the pipeline to map the method to a given HTTP verb.</summary>
+    [ExcludeFromCodeCoverage]
     [AttributeUsage(AttributeTargets.Method, AllowMultiple = true)]
     public class OnVerbAttribute : Attribute
     {

@@ -7,6 +7,7 @@ using RomanticWeb.Entities;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
@@ -22,6 +23,7 @@ using VDS.RDF;
 
 namespace Given_instance_of_the
 {
+    [ExcludeFromCodeCoverage]
     [TestClass]
     public class ApiDescriptionBuilder_class
     {

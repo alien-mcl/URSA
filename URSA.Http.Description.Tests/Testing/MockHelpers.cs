@@ -4,6 +4,7 @@ using RomanticWeb.Entities;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -11,6 +12,7 @@ using System.Reflection;
 namespace URSA.Web.Http.Description.Testing
 {
     /// <summary>Provides Moq helper methods.</summary>
+    [ExcludeFromCodeCoverage]
     public static class MockHelpers
     {
         /// <summary>Creates an <see cref="IEntity" /> mock.</summary>

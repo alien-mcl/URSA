@@ -1,6 +1,7 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Text;
 using URSA.Web.Converters;
@@ -8,6 +9,7 @@ using URSA.Web.Tests;
 
 namespace URSA.Web.Http.Testing
 {
+    [ExcludeFromCodeCoverage]
     public abstract class ConverterTest<T> where T : class, IConverter
     {
         protected static readonly Uri BaseUri = new Uri("http://temp.org/api/test/");

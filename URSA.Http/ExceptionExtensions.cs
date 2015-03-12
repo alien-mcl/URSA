@@ -1,4 +1,5 @@
-﻿using System.Net;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Net;
 using URSA.Web.Http;
 
 namespace System
@@ -9,6 +10,7 @@ namespace System
         /// <summary>Converts several standard exceptions into their corresponding HTTP equivalents.</summary>
         /// <param name="exception">Exception to be mapped.</param>
         /// <returns>Instance of the <see cref="ProtocolException"/> with a proper HTTP status code.</returns>
+        [ExcludeFromCodeCoverage]
         public static ProtocolException AsHttpException(this Exception exception)
         {
             if (exception == null)

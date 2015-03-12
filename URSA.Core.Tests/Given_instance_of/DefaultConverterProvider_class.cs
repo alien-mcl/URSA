@@ -2,11 +2,14 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using System;
+using System.Diagnostics.CodeAnalysis;
+using System.Runtime.InteropServices;
 using URSA.Web;
 using URSA.Web.Converters;
 
 namespace Given_instance_of
 {
+    [ExcludeFromCodeCoverage]
     [TestClass]
     public class DefaultConverterProvider_class
     {
@@ -18,7 +21,7 @@ namespace Given_instance_of
         [TestMethod]
         public void it_should_provide_string_converter()
         {
-            var match = _provider.FindBestInputConverter(typeof(string), _request.Object);
+            var match = _provider.FindBestInputConverter<string>(_request.Object);
 
             match.Should().Be(_stringConverter.Object);
             _stringConverter.Verify(instance => instance.CanConvertTo(typeof(string), _request.Object), Times.Once);
@@ -35,6 +38,69 @@ namespace Given_instance_of
             _uriConverter.Verify(instance => instance.CanConvertTo(typeof(Uri), _request.Object), Times.Once);
         }
 
+        [TestMethod]
+        public void it_should_throw_when_initializing_without_converters()
+        {
+            ArgumentNullException exception = null;
+            try
+            {
+                new DefaultConverterProvider().Initialize(null);
+            }
+            catch (ArgumentNullException error)
+            {
+                exception = error;
+            }
+
+            exception.Should().NotBeNull();
+        }
+
+        [TestMethod]
+        public void it_should_throw_when_not_initialized_and_trying_to_find_input_conveter()
+        {
+            InvalidOperationException exception = null;
+            try
+            {
+                new DefaultConverterProvider().FindBestInputConverter(typeof(string), _request.Object);
+            }
+            catch (InvalidOperationException error)
+            {
+                exception = error;
+            }
+
+            exception.Should().NotBeNull();
+        }
+
+        [TestMethod]
+        public void it_should_throw_when_looking_for_input_converter_without_specifying_target_type()
+        {
+            _provider.Invoking(instance => instance.FindBestInputConverter(null, _request.Object)).ShouldThrow<ArgumentNullException>();
+        }
+
+        [TestMethod]
+        public void it_should_throw_when_looking_for_input_converter_without_request_details()
+        {
+            _provider.Invoking(instance => instance.FindBestInputConverter(typeof(string), null)).ShouldThrow<ArgumentNullException>();
+        }
+
+        [TestMethod]
+        public void it_should_throw_when_not_initialized_and_trying_to_find_output_converter()
+        {
+            var provider = new DefaultConverterProvider();
+            provider.Invoking(instance => instance.FindBestOutputConverter(typeof(string), new Mock<IResponseInfo>().Object)).ShouldThrow<InvalidOperationException>();
+        }
+
+        [TestMethod]
+        public void it_should_throw_when_looking_for_output_converter_without_specifying_target_type()
+        {
+            _provider.Invoking(instance => instance.FindBestOutputConverter(null, new Mock<IResponseInfo>().Object)).ShouldThrow<ArgumentNullException>();
+        }
+
+        [TestMethod]
+        public void it_should_throw_when_looking_for_output_converter_without_response_details()
+        {
+            _provider.Invoking(instance => instance.FindBestOutputConverter(typeof(string), null)).ShouldThrow<ArgumentNullException>();
+        }
+
         [TestInitialize]
         public void Setup()
         {
@@ -49,6 +115,15 @@ namespace Given_instance_of
                 (type, request) => type == typeof(Uri) ? CompatibilityLevel.ExactMatch : CompatibilityLevel.None);
             _provider = new DefaultConverterProvider();
             _provider.Initialize(new[] { _stringConverter.Object, _uriConverter.Object });
+        }
+
+        [TestCleanup]
+        public void Teardown()
+        {
+            _request = null;
+            _stringConverter = null;
+            _uriConverter = null;
+            _provider = null;
         }
     }
 }

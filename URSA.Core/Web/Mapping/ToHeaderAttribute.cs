@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 
 namespace URSA.Web.Mapping
 {
     /// <summary>Marks the parameter to be bound to the response header.</summary>
+    [ExcludeFromCodeCoverage]
     [AttributeUsage(AttributeTargets.ReturnValue | AttributeTargets.Parameter)]
     public class ToHeaderAttribute : Attribute
     {

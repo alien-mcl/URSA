@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using URSA.Web.Http;
@@ -7,6 +8,7 @@ using URSA.Web.Http;
 namespace URSA.Web.Description.Http
 {
     /// <summary>Describes an HTTP controller operation.</summary>
+    [ExcludeFromCodeCoverage]
     [DebuggerDisplay("{Verb} {TemplateRegex}", Name = "{TemplateRegex}")]
     public class OperationInfo : URSA.Web.Description.OperationInfo
     {

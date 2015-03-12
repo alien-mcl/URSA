@@ -1,6 +1,7 @@
 ﻿using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
 using URSA.Web.Http.Converters;
@@ -8,6 +9,7 @@ using URSA.Web.Http.Testing;
 
 namespace Given_instance_of_the.converter_of
 {
+    [ExcludeFromCodeCoverage]
     [TestClass]
     public class DateTimeConverter_class : ConverterTest<DateTimeConverter>
     {

@@ -1,10 +1,12 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using URSA.Web.Http;
 using URSA.Web.Http.Mapping;
 using URSA.Web.Mapping;
 
 namespace URSA.Web.Tests
 {
+    [ExcludeFromCodeCoverage]
     [Route("api/test")]
     public class TestController : IController
     {

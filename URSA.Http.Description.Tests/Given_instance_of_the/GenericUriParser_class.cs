@@ -1,10 +1,12 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using GenericUriParser = URSA.Web.Http.Description.CodeGen.GenericUriParser;
 
 namespace Given_instance_of_the
 {
+    [ExcludeFromCodeCoverage]
     [TestClass]
     public class GenericUriParser_class
     {

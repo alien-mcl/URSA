@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using URSA.Web.Mapping;
 
 namespace URSA.Web.Description
 {
     /// <summary>Describes a parameter.</summary>
+    [ExcludeFromCodeCoverage]
     [DebuggerDisplay("{Parameter}", Name = "{Parameter}")]
     public class ArgumentInfo
     {
@@ -26,7 +28,7 @@ namespace URSA.Web.Description
                 throw new ArgumentNullException("source");
             }
 
-            if ((variableName != null) && (variableName.Length > 0))
+            if (!String.IsNullOrEmpty(variableName))
             {
                 if (uriTemplate == null)
                 {
@@ -39,7 +41,7 @@ namespace URSA.Web.Description
                 }
             }
 
-            if ((uriTemplate != null) && (uriTemplate.Length > 0))
+            if (!String.IsNullOrEmpty(uriTemplate))
             {
                 if (variableName == null)
                 {

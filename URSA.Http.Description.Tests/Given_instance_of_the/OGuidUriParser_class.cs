@@ -1,10 +1,12 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using URSA.Web.Http.Description.CodeGen;
 
 namespace Given_instance_of_the
 {
+    [ExcludeFromCodeCoverage]
     [TestClass]
     public class OGuidUriParser_class
     {

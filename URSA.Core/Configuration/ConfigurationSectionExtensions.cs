@@ -17,12 +17,12 @@ namespace URSA.Configuration
         {
             if (type == null)
             {
-                throw new InvalidOperationException(String.Format("Provided '{0}' configuration is invalid.", typeof(T)));
+                throw new ArgumentNullException(String.Format("Provided '{0}' configuration is invalid.", typeof(T)));
             }
 
             if (!typeof(T).IsAssignableFrom(type))
             {
-                throw new InvalidOperationException(String.Format("Provided '{1}' type is invalid and cannot be used as a '{0}'.", typeof(T), type));
+                throw new ArgumentOutOfRangeException(String.Format("Provided '{1}' type is invalid and cannot be used as a '{0}'.", typeof(T), type));
             }
 
             var ctor = type.GetConstructor(parameterTypes ?? new Type[0]);

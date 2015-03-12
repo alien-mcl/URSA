@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using URSA.ComponentModel;
 
@@ -11,6 +12,7 @@ namespace URSA.Web
 
         /// <summary>Initializes a new instance of the <see cref="DefaultControllerActivator" /> class.</summary>
         /// <param name="container">Dependency injection container.</param>
+        [ExcludeFromCodeCoverage]
         public DefaultControllerActivator(IComponentProvider container)
         {
             if (container == null)
@@ -31,7 +33,7 @@ namespace URSA.Web
             }
             else if ((type.IsGenericType) && (_container.CanResolve(candidate = type.GetGenericTypeDefinition())))
             {
-                return (IController)_container.Resolve(type);
+                return (IController)_container.Resolve(candidate);
             }
             else
             {

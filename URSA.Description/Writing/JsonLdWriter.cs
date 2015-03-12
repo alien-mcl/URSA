@@ -2,6 +2,7 @@
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 
@@ -9,6 +10,7 @@ namespace VDS.RDF.Writing
 {
     /// <summary>Provides a JSON-LD doNetRDF writing integration.</summary>
     /// <remarks>This code is based on <![CDATA[https://github.com/NuGet/NuGet.Services.Metadata/tree/master/src/Catalog/JsonLdIntegration]]>.</remarks>
+    [ExcludeFromCodeCoverage]
     public class JsonLdWriter : IRdfWriter
     {
         private const string First = "http://www.w3.org/1999/02/22-rdf-syntax-ns#first";

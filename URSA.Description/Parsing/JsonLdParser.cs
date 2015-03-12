@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using VDS.RDF.Parsing.Handlers;
 
@@ -8,6 +9,7 @@ namespace VDS.RDF.Parsing
 {
     /// <summary>Provides a JSON-LD dotNetRDF parsing integration.</summary>
     /// <remarks>This code is based on <![CDATA[https://github.com/NuGet/NuGet.Services.Metadata/tree/master/src/Catalog/JsonLdIntegration]]>.</remarks>
+    [ExcludeFromCodeCoverage]
     public class JsonLdParser : IRdfReader
     {
         /// <inheritdoc />

@@ -1,5 +1,8 @@
-﻿namespace URSA.Web.Http.Tests.Data
+﻿using System.Diagnostics.CodeAnalysis;
+
+namespace URSA.Web.Http.Tests.Data
 {
+    [ExcludeFromCodeCoverage]
     public class Person
     {
         public int Id { get; set; }

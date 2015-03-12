@@ -6,6 +6,7 @@ using System.Diagnostics.CodeAnalysis;
 namespace URSA.Web.Description
 {
     /// <summary>Describes a controller.</summary>
+    [ExcludeFromCodeCoverage]
     [DebuggerDisplay("{Uri}", Name = "{Uri}")]
     public abstract class ControllerInfo
     {
@@ -25,7 +26,7 @@ namespace URSA.Web.Description
             }
 
             Uri = uri;
-            Operations = (operations != null ? operations : new OperationInfo[0]);
+            Operations = (operations ?? new OperationInfo[0]);
         }
 
         /// <summary>Gets the base uri of the controller.</summary>
@@ -37,6 +38,7 @@ namespace URSA.Web.Description
 
     /// <summary>Describes a controller.</summary>
     /// <typeparam name="T">Type of the controller.</typeparam>
+    [ExcludeFromCodeCoverage]
     [SuppressMessage("StyleCop.CSharp.MaintainabilityRules", "SA1402:FileMayOnlyContainASingleClass", Justification = "Generic and non-generic interfaces. Suppression is OK.")]
     public class ControllerInfo<T> : ControllerInfo where T : IController
     {

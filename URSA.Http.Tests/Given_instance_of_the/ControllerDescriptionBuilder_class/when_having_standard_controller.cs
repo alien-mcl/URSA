@@ -1,8 +1,14 @@
-﻿using FluentAssertions;
+﻿using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using FluentAssertions;
+using FluentAssertions.Specialized;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using System.Linq;
 using System.Reflection;
+using URSA.Web.Description;
 using URSA.Web.Description.Http;
 using URSA.Web.Http;
 using URSA.Web.Mapping;
@@ -10,6 +16,7 @@ using URSA.Web.Tests;
 
 namespace Given_instance_of_the.ControllerDescriptionBuilder_class
 {
+    [ExcludeFromCodeCoverage]
     [TestClass]
     public class when_having_standard_controller
     {
@@ -19,7 +26,7 @@ namespace Given_instance_of_the.ControllerDescriptionBuilder_class
         public void it_should_describe_Add_method_correctly()
         {
             var method = typeof(TestController).GetMethod("Add");
-            var details = _builder.BuildDescriptor().Operations.Cast<URSA.Web.Description.Http.OperationInfo>().FirstOrDefault(operation => operation.UnderlyingMethod == method);
+            var details = ((IControllerDescriptionBuilder)_builder).BuildDescriptor().Operations.Cast<URSA.Web.Description.Http.OperationInfo>().FirstOrDefault(operation => operation.UnderlyingMethod == method);
 
             details.Should().NotBeNull();
             details.Verb.Should().Be(Verb.GET);
@@ -144,6 +151,52 @@ namespace Given_instance_of_the.ControllerDescriptionBuilder_class
             details.Arguments.First().Parameter.Should().Be(method.GetParameters().First());
             details.Arguments.First().UriTemplate.Should().Be("&operands={?operands}");
             details.Arguments.First().VariableName.Should().Be("operands");
+        }
+
+        [TestMethod]
+        public void it_should_retrieve_methods_associated_HTTP_verb()
+        {
+            var result = _builder.GetMethodVerb(typeof(TestController).GetMethod("Log"));
+
+            result.Should().Be(Verb.GET);
+        }
+
+        [TestMethod]
+        public void it_should_throw_when_obtaining_associated_HTTP_verb_for_null_method()
+        {
+            _builder.Invoking(instance => instance.GetMethodVerb(null)).ShouldThrow<ArgumentNullException>();
+        }
+
+        [TestMethod]
+        public void it_should_throw_when_obtaining_associated_HTTP_verb_for_method_which_doesnt_belong_to_given_type()
+        {
+            _builder.Invoking(instance => instance.GetMethodVerb(typeof(object).GetMethod("ToString"))).ShouldThrow<ArgumentOutOfRangeException>();
+        }
+
+        [TestMethod]
+        public void it_should_retrieve_methods_Uri()
+        {
+            var method = typeof(TestController).GetMethod("Log");
+            IEnumerable<ArgumentInfo> mappings;
+            var result = _builder.GetOperationUriTemplate(method, out mappings);
+
+            result.Should().Be("/api/test/log?operands={?operands}");
+            mappings.Should().HaveCount(method.GetParameters().Length);
+            mappings.First().Parameter.Should().Be(method.GetParameters()[0]);
+        }
+
+        [TestMethod]
+        public void it_should_throw_when_obtaining_operation_Uri_for_null_method()
+        {
+            IEnumerable<ArgumentInfo> mappings;
+            _builder.Invoking(instance => instance.GetOperationUriTemplate(null, out mappings)).ShouldThrow<ArgumentNullException>();
+        }
+
+        [TestMethod]
+        public void it_should_throw_when_obtaining_operation_Uri_for_method_which_doesnt_belong_to_given_type()
+        {
+            IEnumerable<ArgumentInfo> mappings;
+            _builder.Invoking(instance => instance.GetOperationUriTemplate(typeof(object).GetMethod("ToString"), out mappings)).ShouldThrow<ArgumentOutOfRangeException>();
         }
 
         [TestInitialize]

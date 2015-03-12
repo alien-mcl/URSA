@@ -1,6 +1,7 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using System;
+using System.Diagnostics.CodeAnalysis;
 using URSA.Web;
 using URSA.Web.Http.Mapping;
 using URSA.Web.Http.Testing;
@@ -8,6 +9,7 @@ using URSA.Web.Mapping;
 
 namespace Given_instance_of_the.binder
 {
+    [ExcludeFromCodeCoverage]
     [TestClass]
     public class FromQueryStringArgumentBinder_class : ArgumentBinderTest<FromQueryStringArgumentBinder, FromQueryStringAttribute, int>
     {

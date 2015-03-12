@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 
 namespace URSA.Web.Mapping
 {
     /// <summary>Marks the parameter to be bound to the uri.</summary>
+    [ExcludeFromCodeCoverage]
     [AttributeUsage(AttributeTargets.Parameter)]
     public sealed class FromUriAttribute : ParameterSourceAttribute
     {

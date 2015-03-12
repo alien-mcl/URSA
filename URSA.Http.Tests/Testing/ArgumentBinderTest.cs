@@ -2,6 +2,7 @@
 using Moq;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -15,6 +16,7 @@ using URSA.Web.Tests;
 
 namespace URSA.Web.Http.Testing
 {
+    [ExcludeFromCodeCoverage]
     public abstract class ArgumentBinderTest<T, I, D>
         where T : class, IParameterSourceArgumentBinder<I>
         where I : ParameterSourceAttribute, new()
