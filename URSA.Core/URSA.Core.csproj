@@ -51,6 +51,8 @@
     <Compile Include="Configuration\UrsaConfigurationSection.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Web\DefaultControllerActivator.cs" />
+    <Compile Include="Web\Description\ValueInfo.cs" />
+    <Compile Include="Web\Description\ResultInfo.cs" />
     <Compile Include="Web\Description\ArgumentInfo.cs" />
     <Compile Include="Web\Description\ControllerInfo.cs" />
     <Compile Include="Web\Converters\DefaultConverterProvider.cs" />
@@ -70,6 +72,8 @@
     <Compile Include="Web\Mapping\FromQueryStringAttribute.cs" />
     <Compile Include="Web\Mapping\FromBodyAttribute.cs" />
     <Compile Include="Web\Mapping\ParameterSourceAttribute.cs" />
+    <Compile Include="Web\Mapping\ResultTargetAttribute.cs" />
+    <Compile Include="Web\Mapping\ToBodyAttribute.cs" />
     <Compile Include="Web\Mapping\ToHeaderAttribute.cs" />
     <Compile Include="Web\Mapping\FromUriAttribute.cs" />
     <Compile Include="Web\Mapping\RouteAttribute.cs" />

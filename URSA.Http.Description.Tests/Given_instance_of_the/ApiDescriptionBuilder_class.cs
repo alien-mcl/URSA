@@ -81,7 +81,7 @@ namespace Given_instance_of_the
             return descriptionBuilder.Object;
         }
 
-        private URSA.Web.Description.Http.OperationInfo CreateOperation(MethodInfo method, Verb verb)
+        private OperationInfo<Verb> CreateOperation(MethodInfo method, Verb verb)
         {
             string queryString = String.Empty;
             string uriTemplate = null;
@@ -116,7 +116,7 @@ namespace Given_instance_of_the
                 uriTemplate += "?" + queryString.Substring(1);
             }
 
-            return new URSA.Web.Description.Http.OperationInfo(method, verb, new Uri("/", UriKind.Relative), new Regex(".*"), uriTemplate, arguments.ToArray());
+            return new OperationInfo<Verb>(method, new Uri("/", UriKind.Relative), uriTemplate, new Regex(".*"), verb, arguments.ToArray());
         }
     }
 }

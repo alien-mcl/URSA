@@ -23,6 +23,21 @@ namespace System
             return result;
         }
 
+        /// <summary>Indents the specified text.</summary>
+        /// <param name="text">The text to be indented.</param>
+        /// <param name="indentation">The indentation.</param>
+        /// <returns>Text with indented new lines.</returns>
+        public static string Indent(this string text, int indentation)
+        {
+            string result = text;
+            if ((indentation <= 0) || (result == null))
+            {
+                return result;
+            }
+
+            return result.Replace(Environment.NewLine, Environment.NewLine + new String(' ', indentation));
+        }
+
         /// <summary>Converts a given text value into a lowerCamelCase string.</summary>
         /// <param name="value">Value to be converter</param>
         /// <returns>Text converted to lowerCamelCase or <b>null</b> if the input <paramref name="value" /> was also <b>null</b>.</returns>

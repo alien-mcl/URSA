@@ -4,7 +4,7 @@ using System.ComponentModel;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using URSA.Web.Converters;
-using URSA.Web.Description.Http;
+using URSA.Web.Description;
 using URSA.Web.Mapping;
 
 namespace URSA.Web.Http.Mapping
@@ -12,7 +12,7 @@ namespace URSA.Web.Http.Mapping
     /// <summary>Binds arguments from <see cref="FromUriAttribute" />.</summary>
     public class FromUriArgumentBinder : IParameterSourceArgumentBinder<FromUriAttribute>
     {
-        private IConverterProvider _converterProvider;
+        private readonly IConverterProvider _converterProvider;
 
         /// <summary>Initializes a new instance of the <see cref="FromUriArgumentBinder" /> class.</summary>
         /// <param name="converterProvider">Converters provider</param>
@@ -89,7 +89,7 @@ namespace URSA.Web.Http.Mapping
             return null;
         }
 
-        private Uri MakeUri(ParameterInfo parameter, Uri baseUri, OperationInfo operation)
+        private Uri MakeUri(ParameterInfo parameter, Uri baseUri, OperationInfo<Verb> operation)
         {
             if (parameter == null)
             {

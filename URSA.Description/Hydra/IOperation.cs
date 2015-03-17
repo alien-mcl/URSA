@@ -16,9 +16,9 @@ namespace URSA.Web.Http.Description.Hydra
         [Collection("hydra", "expects")]
         ICollection<IClass> Expects { get; }
 
-        /// <summary>Gets or sets the class Uri returned in response body.</summary>
-        [Property("hydra", "returns")]
-        IClass Returns { get; set; }
+        /// <summary>Gets the classes returned in response body.</summary>
+        [Collection("hydra", "returns")]
+        ICollection<IClass> Returns { get; }
 
         /// <summary>Gets the HTTP status codes.</summary>
         [Property("hydra", "statusCodes")]

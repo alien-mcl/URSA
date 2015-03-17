@@ -6,7 +6,6 @@ namespace URSA.Web.Mapping
 {
     /// <summary>Marks the parameter to be bound to the body of the request.</summary>
     [ExcludeFromCodeCoverage]
-    [AttributeUsage(AttributeTargets.Parameter)]
     public sealed class FromBodyAttribute : ParameterSourceAttribute
     {
         /// <summary>Initializes a new instance of the <see cref="FromBodyAttribute" /> class.</summary>
@@ -31,7 +30,7 @@ namespace URSA.Web.Mapping
         public string Name { get; private set; }
 
         /// <summary>Creates a body parameter source mapping for given parameter.</summary>
-        /// <param name="parameter">parameter for which to create mapping.</param>
+        /// <param name="parameter">Parameter for which to create mapping.</param>
         /// <returns>Instance of the <see cref="FromBodyAttribute" />.</returns>
         public static FromBodyAttribute For(ParameterInfo parameter)
         {

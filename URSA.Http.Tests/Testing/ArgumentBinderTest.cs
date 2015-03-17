@@ -9,6 +9,7 @@ using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using URSA.Web.Converters;
+using URSA.Web.Description;
 using URSA.Web.Description.Http;
 using URSA.Web.Http.Mapping;
 using URSA.Web.Mapping;
@@ -69,12 +70,12 @@ namespace URSA.Web.Http.Testing
                 headers.ContentType = "multipart/mixed; boundary=\"" + multipartBoundary + "\"";
             }
 
-            var operation = new OperationInfo(
+            var operation = new OperationInfo<Verb>(
                 method,
-                httpVerb,
                 MethodUri.ToRelativeUri(),
-                new Regex(".*"),
                 MethodUri.ToString(),
+                new Regex(".*"),
+                httpVerb,
                 method.GetParameters().Select(item => new URSA.Web.Description.ArgumentInfo(item, new I(), "test={?test}", "test")).ToArray());
             return (ArgumentBindingContext<I>)typeof(ArgumentBindingContext<I>)
                 .GetConstructors(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)

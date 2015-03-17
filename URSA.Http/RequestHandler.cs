@@ -15,7 +15,7 @@ namespace URSA.Web.Http
     /// <summary>Serves as the main entry point for the URSA.</summary>
     public class RequestHandler : RequestHandlerBase<RequestInfo, ResponseInfo>
     {
-        private static readonly IDictionary<Type, IDictionary<string, MethodInfo>> ControllerCRUDMethodsCache = new ConcurrentDictionary<Type, IDictionary<string, MethodInfo>>();
+        private static readonly IDictionary<Type, IDictionary<string, MethodInfo>> ControllerCrudMethodsCache = new ConcurrentDictionary<Type, IDictionary<string, MethodInfo>>();
 
         /// <inheritdoc />
         protected override ResponseInfo HandleRequest(RequestInfo request, IRequestMapping requestMapping)
@@ -49,10 +49,10 @@ namespace URSA.Web.Http
             Container.Register<IArgumentBinder<RequestInfo>>(new ArgumentBinder(Container.ResolveAll<IParameterSourceArgumentBinder>()));
         }
 
-        private static IDictionary<string, MethodInfo> GetCRUDMethods(Type controllerType)
+        private static IDictionary<string, MethodInfo> GetCrudMethods(Type controllerType)
         {
             IDictionary<string, MethodInfo> result;
-            if (!ControllerCRUDMethodsCache.TryGetValue(controllerType, out result))
+            if (!ControllerCrudMethodsCache.TryGetValue(controllerType, out result))
             {
                 Type all = null;
                 Type read = null;
@@ -77,7 +77,7 @@ namespace URSA.Web.Http
                     }
                 }
 
-                ControllerCRUDMethodsCache[controllerType] = result = new Dictionary<string, MethodInfo>()
+                ControllerCrudMethodsCache[controllerType] = result = new Dictionary<string, MethodInfo>()
                 {
                     { String.Empty, controllerType.GetInterfaceMap(all).TargetMethods.First() },
                     { Verb.GET.ToString(), controllerType.GetInterfaceMap(read).TargetMethods.First() },
@@ -90,7 +90,7 @@ namespace URSA.Web.Http
             return result;
         }
 
-        private void ValidateArguments(ParameterInfo[] parameters, object[] arguments)
+        private static void ValidateArguments(ParameterInfo[] parameters, object[] arguments)
         {
             for (int index = 0; index <parameters.Length; index++)
             {
@@ -120,30 +120,32 @@ namespace URSA.Web.Http
                 if (requestMapping.Target.GetType().GetInterfaces()
                     .Any(@interface => (@interface.IsGenericType) && (typeof(IController<>).IsAssignableFrom(@interface.GetGenericTypeDefinition()))))
                 {
-                    responseInfo = HandleCRUDRequest(response, output, requestMapping, arguments, out success);
+                    responseInfo = HandleCrudRequest(response, output, requestMapping, arguments, out success);
                 }
 
                 if (!success)
                 {
-                    responseInfo = MakeObjectResponse(requestMapping.Operation.UnderlyingMethod.ReturnType, response, output);
+                    var parameters = requestMapping.Operation.UnderlyingMethod.GetParameters();
+                    var result = new object[] { output }.Concat(arguments.Where((item, index) => parameters[index].IsOut));
+                    responseInfo = MakeObjectResponse(requestMapping.Operation.UnderlyingMethod.ReturnType, response, result.ToArray());
                 }
             }
 
             if (responseInfo == response)
             {
-                responseInfo.Headers.ContentType = URSA.Web.Http.Converters.StringConverter.TextPlain;
+                responseInfo.Headers.ContentType = Converters.StringConverter.TextPlain;
             }
 
             return responseInfo;
         }
 
-        private ResponseInfo HandleCRUDRequest(ResponseInfo response, object output, IRequestMapping requestMapping, object[] arguments, out bool success)
+        private ResponseInfo HandleCrudRequest(ResponseInfo response, object output, IRequestMapping requestMapping, object[] arguments, out bool success)
         {
             success = true;
             var type = requestMapping.Operation.UnderlyingMethod.ReturnType;
-            var methods = GetCRUDMethods(requestMapping.Target.GetType());
+            var methods = GetCrudMethods(requestMapping.Target.GetType());
             var method = methods.FirstOrDefault(entry => entry.Value == requestMapping.Operation.UnderlyingMethod);
-            if (!Object.Equals(method, default(KeyValuePair<string, MethodInfo>)))
+            if (!Equals(method, default(KeyValuePair<string, MethodInfo>)))
             {
                 switch (method.Key)
                 {
@@ -171,11 +173,20 @@ namespace URSA.Web.Http
             return MakeObjectResponse(parameters[outIndex].ParameterType, response, arguments[outIndex]);
         }
 
-        private ResponseInfo MakeObjectResponse(Type type, ResponseInfo response, object output)
+        private ResponseInfo MakeObjectResponse(Type type, ResponseInfo response, params object[] output)
         {
-            var result = (ResponseInfo)typeof(ObjectResponseInfo<>).MakeGenericType(type)
-                .GetConstructor(new[] { typeof(Encoding), typeof(RequestInfo), type, typeof(IConverterProvider), typeof(HeaderCollection) })
-                .Invoke(new[] { response.Encoding, response.Request, output, ConverterProvider, response.Headers });
+            ResponseInfo result;
+            if (output.Length > 1)
+            {
+                result = new MultiObjectResponseInfo(response.Encoding, response.Request, output, ConverterProvider, response.Headers);
+            }
+            else
+            {
+                result = (ResponseInfo)typeof(ObjectResponseInfo<>).MakeGenericType(type)
+                    .GetConstructor(new[] { typeof(Encoding), typeof(RequestInfo), type, typeof(IConverterProvider), typeof(HeaderCollection) })
+                    .Invoke(new[] { response.Encoding, response.Request, output[0], ConverterProvider, response.Headers });
+            }
+
             result.Status = HttpStatusCode.OK;
             return result;
         }
@@ -186,25 +197,15 @@ namespace URSA.Web.Http
             {
                 if (status.Value)
                 {
-                    if (arguments != null)
-                    {
-                        return MakeObjectResponseWithOutParameter(response, requestMapping, arguments);
-                    }
-                    else
-                    {
-                        return MakeResponseFromValue(null, response, null, HttpStatusCode.NoContent);
-                    }
+                    return arguments != null ?
+                        MakeObjectResponseWithOutParameter(response, requestMapping, arguments) :
+                        MakeResponseFromValue(null, response, null, HttpStatusCode.NoContent);
                 }
-                else
-                {
-                    return MakeResponseFromValue(null, response, null, HttpStatusCode.Found);
-                }
-            }
-            else
-            {
-                response.Status = System.Net.HttpStatusCode.NotFound;
-            }
 
+                return MakeResponseFromValue(null, response, null, HttpStatusCode.Found);
+            }
+            
+            response.Status = HttpStatusCode.NotFound;
             return response;
         }
 
@@ -214,11 +215,8 @@ namespace URSA.Web.Http
             {
                 return MakeObjectResponse(type, response, output);
             }
-            else
-            {
-                response.Status = status;
-            }
 
+            response.Status = status;
             return response;
         }
     }

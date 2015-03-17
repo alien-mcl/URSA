@@ -44,7 +44,8 @@ namespace Given_instance_of_the.converter_of
             result.Id.ToString().Should().Be(new Uri(BaseUri, OperationId).ToString());
             result.Method.Should().HaveCount(1);
             result.Method.First().Should().Be(Method);
-            result.Returns.Id.ToString().Should().Be(new Uri(BaseUri, ClassId).ToString());
+            result.Returns.Should().HaveCount(1);
+            result.Returns.First().Id.ToString().Should().Be(new Uri(BaseUri, ClassId).ToString());
         }
 
         [TestMethod]
@@ -82,7 +83,7 @@ namespace Given_instance_of_the.converter_of
                              (triple.Predicate is IUriNode) && (((IUriNode)triple.Predicate).Uri.ToString() == Hydra.ToString() + "returns") &&
                              (triple.Object is IUriNode)
                            select MockHelpers.MockEntity<IClass>(_context.Object, new EntityId(((IUriNode)triple.Object).Uri))).First();
-            mock.SetupGet(instance => instance.Returns).Returns(returns.Object);
+            mock.SetupGet(instance => instance.Returns).Returns(new IClass[] { returns.Object });
             return mock;
         }
 
@@ -106,7 +107,7 @@ namespace Given_instance_of_the.converter_of
             Mock<IOperation> body = new Mock<IOperation>();
             body.SetupGet(instance => instance.Context).Returns(context.Object);
             body.SetupGet(instance => instance.Method).Returns(new List<string>() { Method });
-            body.SetupGet(instance => instance.Returns).Returns(@class.Object);
+            body.SetupGet(instance => instance.Returns).Returns(new IClass[] { @class.Object });
             return body;
         }
     }

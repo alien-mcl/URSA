@@ -6,7 +6,6 @@ namespace URSA.Web.Mapping
 {
     /// <summary>Marks the parameter to be bound to the query string.</summary>
     [ExcludeFromCodeCoverage]
-    [AttributeUsage(AttributeTargets.Parameter)]
     public sealed class FromQueryStringAttribute : ParameterSourceAttribute
     {
         /// <summary>Defines a part of the uri responsible for mapping the actual value of the parameter in the uri.</summary>

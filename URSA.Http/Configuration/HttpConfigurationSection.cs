@@ -10,20 +10,20 @@ namespace URSA.Configuration
     {
         internal const string ConfigurationSectionName = "http";
         internal const string ConfigurationSection = UrsaConfigurationSection.ConfigurationSectionGroupName + "/" + ConfigurationSectionName;
-        private const string DefaultParameterSourceSelectorTypeNameAttribute = "defaultParameterSourceSelectorType";
+        private const string DefaultValueRelationSelectorTypeNameAttribute = "defaultValueRelationSelectorType";
 
         /// <summary>Gets or sets the default parameter source selector type.</summary>
-        public Type DefaultParameterSourceSelectorType
+        public Type DefaultValueRelationSelectorType
         {
-            get { return Type.GetType(DefaultParameterSourceSelectorTypeName); }
-            set { DefaultParameterSourceSelectorTypeName = (value != null ? value.AssemblyQualifiedName : null); }
+            get { return Type.GetType(DefaultValueRelationSelectorTypeName); }
+            set { DefaultValueRelationSelectorTypeName = (value != null ? value.AssemblyQualifiedName : null); }
         }
 
-        [ConfigurationProperty(DefaultParameterSourceSelectorTypeNameAttribute)]
-        private string DefaultParameterSourceSelectorTypeName
+        [ConfigurationProperty(DefaultValueRelationSelectorTypeNameAttribute)]
+        private string DefaultValueRelationSelectorTypeName
         {
-            get { return (string)this[DefaultParameterSourceSelectorTypeNameAttribute]; }
-            set { this[DefaultParameterSourceSelectorTypeNameAttribute] = value; }
+            get { return (string)this[DefaultValueRelationSelectorTypeNameAttribute]; }
+            set { this[DefaultValueRelationSelectorTypeNameAttribute] = value; }
         }
     }
 }

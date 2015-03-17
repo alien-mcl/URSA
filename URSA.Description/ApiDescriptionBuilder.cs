@@ -74,7 +74,7 @@ namespace URSA.Web.Http.Description
             {
                 IClass specializationType = (IClass)(typeDefinitions[SpecializationType] = BuildTypeDescription(apiDocumentation, SpecializationType, typeDefinitions));
                 apiDocumentation.SupportedClasses.Add(specializationType);
-                foreach (Web.Description.Http.OperationInfo operation in description.Operations)
+                foreach (OperationInfo<Verb> operation in description.Operations)
                 {
                     IIriTemplate template;
                     var operationDefinition = BuildOperation(apiDocumentation, baseUri, operation, typeDefinitions, out template);
@@ -94,30 +94,30 @@ namespace URSA.Web.Http.Description
             }
         }
 
-        private IOperation BuildOperation(IApiDocumentation apiDocumentation, Uri baseUri, Web.Description.Http.OperationInfo operation, IDictionary<Type, Rdfs.IResource> typeDefinitions, out IIriTemplate template)
+        private IOperation BuildOperation(IApiDocumentation apiDocumentation, Uri baseUri, OperationInfo<Verb> operation, IDictionary<Type, Rdfs.IResource> typeDefinitions, out IIriTemplate template)
         {
             var nonBodyArguments = operation.Arguments.Where(argument => (argument.Source is FromQueryStringAttribute) || (argument.Source is FromUriAttribute)).ToList();
-            EntityId methodId = new EntityId(nonBodyArguments.Count == 0 ? operation.Uri.Combine(baseUri) :
+            EntityId methodId = new EntityId(!operation.Arguments.Any() ? operation.Uri.Combine(baseUri) :
                 operation.Uri.Combine(baseUri).AddFragment(
-                    String.Format("with{0}", String.Join("And", nonBodyArguments.Select(argument => argument.VariableName.ToUpperCamelCase())))));
+                    String.Format("with{0}", String.Join("And", operation.Arguments.Select(argument => (argument.VariableName ?? argument.Parameter.Name).ToUpperCamelCase())))));
             IOperation result = apiDocumentation.Context.Create<IOperation>(methodId);
             result.Label = operation.UnderlyingMethod.Name;
             result.Method.Add(_descriptionBuilder.GetMethodVerb(operation.UnderlyingMethod).ToString());
-            if ((template = BuildTemplate(apiDocumentation, operation, result, typeDefinitions)) == null)
+            template = BuildTemplate(apiDocumentation, operation, result, typeDefinitions);
+            foreach (var parameter in operation.Arguments.Where(parameter => parameter.Source is FromBodyAttribute))
             {
-                foreach (var parameter in operation.Arguments)
-                {
-                    if (parameter.Source is FromBodyAttribute)
-                    {
-                        result.Expects.Add(BuildBodyArgument(apiDocumentation, parameter.Parameter, typeDefinitions));
-                    }
-                }
+                result.Expects.Add(BuildBodyArgument(apiDocumentation, parameter.Parameter, typeDefinitions));
+            }
+
+            foreach (var output in operation.Results.Where(output => output.Target is ToBodyAttribute))
+            {
+                result.Returns.Add(BuildBodyArgument(apiDocumentation, output.Parameter, typeDefinitions));
             }
 
             return result;
         }
 
-        private IIriTemplate BuildTemplate(IApiDocumentation apiDocumentation, Web.Description.Http.OperationInfo operation, IOperation operationDocumentation, IDictionary<Type, Rdfs.IResource> typeDefinitions)
+        private IIriTemplate BuildTemplate(IApiDocumentation apiDocumentation, OperationInfo<Verb> operation, IOperation operationDocumentation, IDictionary<Type, Rdfs.IResource> typeDefinitions)
         {
             IIriTemplate template = null;
             IEnumerable<ArgumentInfo> parameterMapping;
@@ -144,10 +144,6 @@ namespace URSA.Web.Http.Description
 
                         template.Mappings.Add(templateMapping);
                     }
-                    else
-                    {
-                        operationDocumentation.Expects.Add(BuildBodyArgument(apiDocumentation, mapping.Parameter, typeDefinitions));
-                    }
                 }
             }
 
@@ -156,15 +152,15 @@ namespace URSA.Web.Http.Description
 
         private IClass BuildBodyArgument(IApiDocumentation apiDocumentation, ParameterInfo parameter, IDictionary<Type, Rdfs.IResource> typeDefinitions)
         {
-            var expected = BuildTypeDescription(apiDocumentation, parameter.ParameterType, typeDefinitions);
-            if (!(expected is IClass))
+            var type = BuildTypeDescription(apiDocumentation, parameter.ParameterType, typeDefinitions);
+            if (!(type is IClass))
             {
                 var definition = apiDocumentation.Context.Create<IDatatypeDefinition>(new EntityId(new Uri("urn:ursa:" + parameter.ParameterType)));
-                definition.Datatype = expected;
-                expected = definition;
+                definition.Datatype = type;
+                type = definition;
             }
 
-            return (IClass)expected;
+            return (IClass)type;
         }
 
         private Rdfs.IProperty GetMappingProperty(IApiDocumentation apiDocumentation, ParameterInfo parameter, Type type, IDictionary<Type, Rdfs.IResource> typeDefinitions)

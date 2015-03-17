@@ -9,7 +9,7 @@ namespace URSA.Web
         /// <summary>Gets the target of the invocation.</summary>
         IController Target { get; }
 
-        /// <summary>Gets the method to be invoked.</summary>
+        /// <summary>Gets the operation to be invoked.</summary>
         OperationInfo Operation { get; }
 
         /// <summary>Gets the mapped method route.</summary>

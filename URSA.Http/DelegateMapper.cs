@@ -50,8 +50,8 @@ namespace URSA.Web.Http
         {
             string requestUri = request.Uri.ToRelativeUri().ToString();
             return (from controller in _controllerDescriptors.Value
-                    from operation in controller.Operations.Cast<Description.Http.OperationInfo>()
-                    where (request.Method == operation.Verb) && (operation.TemplateRegex.IsMatch(requestUri))
+                    from operation in controller.Operations.Cast<OperationInfo<Verb>>()
+                    where (request.Method == operation.ProtocolSpecificCommand) && (operation.TemplateRegex.IsMatch(requestUri))
                     let controllerType = controller.GetType().GetGenericArguments()[0]
                     select new RequestMapping(_controllerActivator.CreateInstance(controllerType), operation, operation.Uri))
                    .FirstOrDefault();

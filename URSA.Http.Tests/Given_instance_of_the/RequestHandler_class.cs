@@ -99,11 +99,11 @@ namespace Given_instance_of_the
                 .SetValue(null, container.Object);
         }
 
-        private URSA.Web.Description.Http.OperationInfo CreateOperation()
+        private OperationInfo<Verb> CreateOperation()
         {
             var method = typeof(TestController).GetMethod("Substract");
             var arguments = method.GetParameters().Select(parameter => new ArgumentInfo(parameter, FromQueryStringAttribute.For(parameter), "test", "test")).ToArray();
-            return new URSA.Web.Description.Http.OperationInfo(method, Verb.GET, new Uri("/", UriKind.Relative), new Regex(".*"), "test", arguments);
+            return new OperationInfo<Verb>(method, new Uri("/", UriKind.Relative), "test", new Regex(".*"), Verb.GET, arguments);
         }
     }
 }

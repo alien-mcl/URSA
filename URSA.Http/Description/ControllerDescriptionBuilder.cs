@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 using URSA.Web.Http;
 using URSA.Web.Http.Mapping;
 using URSA.Web.Mapping;
@@ -15,7 +16,8 @@ namespace URSA.Web.Description.Http
     /// <typeparam name="T"></typeparam>
     public class ControllerDescriptionBuilder<T> : IHttpControllerDescriptionBuilder<T> where T : IController
     {
-        private static readonly IDictionary<string, Verb> PopularNameMappings = new Dictionary<string, Verb>()
+        /// <summary>Exposes popular names - HTTP verb mappings.</summary>
+        public static readonly IDictionary<string, Verb> PopularNameMappings = new Dictionary<string, Verb>()
         {
             { "Query", Verb.GET },
             { "All", Verb.GET },
@@ -29,20 +31,21 @@ namespace URSA.Web.Description.Http
             { "Teardown", Verb.DELETE }
         };
 
-        private ControllerInfo<T> _description = null;
-        private IDefaultParameterSourceSelector _defaultParameterSourceSelector;
+        private readonly Lazy<ControllerInfo<T>> _description;
+        private readonly IDefaultValueRelationSelector _defaultValueRelationSelector;
 
         /// <summary>Initializes a new instance of the <see cref="ControllerDescriptionBuilder{T}" /> class.</summary>
-        /// <param name="defaultParameterSourceSelector">Default parameter source selector.</param>
+        /// <param name="defaultValueRelationSelector">Default parameter source selector.</param>
         [ExcludeFromCodeCoverage]
-        public ControllerDescriptionBuilder(IDefaultParameterSourceSelector defaultParameterSourceSelector)
+        public ControllerDescriptionBuilder(IDefaultValueRelationSelector defaultValueRelationSelector)
         {
-            if (defaultParameterSourceSelector == null)
+            if (defaultValueRelationSelector == null)
             {
-                throw new ArgumentNullException("defaultParameterSourceSelector");
+                throw new ArgumentNullException("defaultValueRelationSelector");
             }
 
-            _defaultParameterSourceSelector = defaultParameterSourceSelector;
+            _defaultValueRelationSelector = defaultValueRelationSelector;
+            _description = new Lazy<ControllerInfo<T>>(BuildDescriptorInternal, LazyThreadSafetyMode.ExecutionAndPublication);
         }
 
         /// <inheritdoc />
@@ -58,8 +61,8 @@ namespace URSA.Web.Description.Http
                 throw new ArgumentOutOfRangeException("methodInfo");
             }
 
-            return BuildDescriptor().Operations.Where(operation => operation.UnderlyingMethod == methodInfo)
-                .Select(operation => ((OperationInfo)operation).Verb).FirstOrDefault() ?? Verb.GET;
+            return _description.Value.Operations.Where(operation => operation.UnderlyingMethod == methodInfo)
+                .Select(operation => ((OperationInfo<Verb>)operation).ProtocolSpecificCommand).FirstOrDefault() ?? Verb.GET;
         }
 
         /// <inheritdoc />
@@ -76,7 +79,7 @@ namespace URSA.Web.Description.Http
             }
 
             argumentMapping = new ArgumentInfo[0];
-            OperationInfo method = BuildDescriptor().Operations.Cast<OperationInfo>().FirstOrDefault(operation => operation.UnderlyingMethod == methodInfo);
+            OperationInfo method = _description.Value.Operations.FirstOrDefault(operation => operation.UnderlyingMethod == methodInfo);
             if (method != null)
             {
                 argumentMapping = method.Arguments;
@@ -89,29 +92,13 @@ namespace URSA.Web.Description.Http
         /// <inheritdoc />
         ControllerInfo IControllerDescriptionBuilder.BuildDescriptor()
         {
-            return BuildDescriptor();
+            return _description.Value;
         }
 
         /// <inheritdoc />
         public ControllerInfo<T> BuildDescriptor()
         {
-            if (_description == null)
-            {
-                Uri uri = GetControllerRoute(typeof(T));
-                IList<OperationInfo> operations = new List<OperationInfo>();
-                var methods = typeof(T).GetMethods(BindingFlags.Public | BindingFlags.Instance)
-                    .Except(typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance)
-                        .SelectMany(property => new MethodInfo[] { property.GetGetMethod(), property.GetSetMethod() }))
-                    .Where(item => item.DeclaringType != typeof(object));
-                foreach (var method in methods)
-                {
-                    operations.AddRange(BuildMethodDescriptor(method, uri));
-                }
-
-                _description = new ControllerInfo<T>(uri, operations.ToArray());
-            }
-
-            return _description;
+            return _description.Value;
         }
 
         [ExcludeFromCodeCoverage]
@@ -120,18 +107,99 @@ namespace URSA.Web.Description.Http
             return Regex.Replace(type.Name, "Controller", String.Empty, RegexOptions.IgnoreCase).ToLower();
         }
 
-        private Uri GetControllerRoute(Type type)
+        private static Uri GetControllerRoute(Type type)
         {
-            var route = type.GetCustomAttribute<RouteAttribute>(true) ??
-                type.GetInterfaces().Select(@interface => @interface.GetCustomAttribute<RouteAttribute>(true)).FirstOrDefault();
-            Type genericType = null;
-            if ((route is DependentRouteAttribute) && (type.IsGenericType) && 
-                (type.GetGenericArguments().Any(argument => (typeof(IController).IsAssignableFrom(argument)) && ((genericType = argument) != null))))
+            while (true)
             {
-                return GetControllerRoute(genericType);
+                var route = type.GetCustomAttribute<RouteAttribute>(true) ?? 
+                    type.GetInterfaces().Select(@interface => @interface.GetCustomAttribute<RouteAttribute>(true)).FirstOrDefault();
+                Type genericType = null;
+                if ((!(route is DependentRouteAttribute)) || (!type.IsGenericType) || 
+                    (!type.GetGenericArguments().Any(argument => (typeof(IController).IsAssignableFrom(argument)) &&((genericType = argument) != null))))
+                {
+                    return (route != null ? route.Uri : new Uri("/" + BuildControllerName(type), UriKind.Relative));
+                }
+
+                type = genericType;
+            }
+        }
+
+        private static void ObtainMethodDetailsFromVerbs(MethodInfo method, ref RouteAttribute route, ref OnVerbAttribute verb)
+        {
+            string methodNameWithoutVerb = null;
+            Verb detectedVerb = null;
+            string methodName = method.Name;
+            Verb.Verbs.SkipWhile(item => (methodNameWithoutVerb = Regex.Replace(methodName, "^" + (detectedVerb = item).ToString(), String.Empty, RegexOptions.IgnoreCase)) == methodName).ToArray();
+            if ((route == null) && (methodNameWithoutVerb != null) && (methodNameWithoutVerb != methodName))
+            {
+                route = new RouteAttribute((methodNameWithoutVerb.Length == 0 ? "/" : methodNameWithoutVerb).ToLower());
             }
 
-            return (route != null ? route.Uri : new Uri("/" + BuildControllerName(type), UriKind.Relative));
+            if ((verb == null) && (methodNameWithoutVerb != null) && (methodNameWithoutVerb != methodName) && (detectedVerb != null))
+            {
+                verb = new OnVerbAttribute(detectedVerb);
+            }
+        }
+
+        private static void ObtainMethodDetailsFromPopularNames(MethodInfo method, ref RouteAttribute route, ref OnVerbAttribute verb)
+        {
+            string methodNameWithoutVerb = null;
+            Verb detectedVerb = null;
+            string methodName = method.Name;
+            PopularNameMappings.SkipWhile(item => (methodNameWithoutVerb = Regex.Replace(methodName, "^" + item.Key, ((detectedVerb = item.Value) != null ? String.Empty : String.Empty), RegexOptions.IgnoreCase)) == methodName).ToArray();
+            if ((route == null) && (methodNameWithoutVerb != null) && (methodNameWithoutVerb != methodName))
+            {
+                route = new RouteAttribute((methodNameWithoutVerb.Length == 0 ? "/" : methodNameWithoutVerb).ToLower());
+            }
+
+            if ((verb == null) && (methodNameWithoutVerb != null) && (methodNameWithoutVerb != methodName) && (detectedVerb != null))
+            {
+                verb = new OnVerbAttribute(detectedVerb);
+            }
+        }
+
+        private static void Increment<TS>(ParameterSourceAttribute parameterSource, ParameterInfo parameter, ref int total, ref int optional)
+        {
+            if (!(parameterSource is TS))
+            {
+                return;
+            }
+
+            total++;
+            if (parameter.HasDefaultValue)
+            {
+                optional++;
+            }
+        }
+
+        private static void CreateParameterTemplateRegex(FromQueryStringAttribute fromQueryString, ParameterInfo parameter, out string parameterUriTemplate, out string parameterTemplateRegex)
+        {
+            string result = (fromQueryString.UriTemplate == FromQueryStringAttribute.Default ? FromQueryStringAttribute.For(parameter).UriTemplate : fromQueryString.UriTemplate);
+            parameterUriTemplate = result.Replace(FromUriAttribute.Value, "{?" + parameter.Name + "}");
+            parameterTemplateRegex = result.Replace(FromUriAttribute.Value, "[^&]+");
+        }
+
+        private static void CreateParameterTemplateRegex(FromUriAttribute fromUri, ParameterInfo parameter, out string parameterUriTemplate, out string parameterTemplateRegex)
+        {
+            string result = (fromUri.UriTemplate == FromUriAttribute.Default ? FromUriAttribute.For(parameter).UriTemplate.ToString() : fromUri.UriTemplate.ToString());
+            parameterUriTemplate = result.Replace(FromUriAttribute.Value, "{?" + parameter.Name + "}");
+            parameterTemplateRegex = (parameter.HasDefaultValue ? "(" : String.Empty) + result.Replace(FromUriAttribute.Value, String.Format("[^/?]+{0}", (parameter.HasDefaultValue ? ")?" : String.Empty)));
+        }
+
+        private ControllerInfo<T> BuildDescriptorInternal()
+        {
+            Uri uri = GetControllerRoute(typeof(T));
+            IList<OperationInfo> operations = new List<OperationInfo>();
+            var methods = typeof(T).GetMethods(BindingFlags.Public | BindingFlags.Instance)
+                .Except(typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance)
+                    .SelectMany(property => new MethodInfo[] { property.GetGetMethod(), property.GetSetMethod() }))
+                .Where(item => item.DeclaringType != typeof(object));
+            foreach (var method in methods)
+            {
+                operations.AddRange(BuildMethodDescriptor(method, uri));
+            }
+
+            return new ControllerInfo<T>(uri, operations.ToArray());
         }
 
         private IEnumerable<OperationInfo> BuildMethodDescriptor(MethodInfo method, Uri prefix)
@@ -179,50 +247,16 @@ namespace URSA.Web.Description.Http
                 string templateRegex = operationTemplateRegex;
                 string uriTemplate;
                 var parameters = BuildParameterDescriptors(method, item.Verb, ref templateRegex, out uriTemplate);
-                result.Add(new Description.Http.OperationInfo(method, item.Verb, uri, new Regex("^" + templateRegex + "$", RegexOptions.IgnoreCase), uriTemplate, parameters));
+                result.Add(new OperationInfo<Verb>(method, uri, uriTemplate, new Regex("^" + templateRegex + "$", RegexOptions.IgnoreCase), item.Verb, parameters));
             }
 
             return result;
         }
 
-        private void ObtainMethodDetailsFromVerbs(MethodInfo method, ref RouteAttribute route, ref OnVerbAttribute verb)
-        {
-            string methodNameWithoutVerb = null;
-            Verb detectedVerb = null;
-            string methodName = method.Name;
-            Verb.Verbs.SkipWhile(item => (methodNameWithoutVerb = Regex.Replace(methodName, "^" + (detectedVerb = item).ToString(), String.Empty, RegexOptions.IgnoreCase)) == methodName).ToArray();
-            if ((route == null) && (methodNameWithoutVerb != null) && (methodNameWithoutVerb != methodName))
-            {
-                route = new RouteAttribute((methodNameWithoutVerb.Length == 0 ? "/" : methodNameWithoutVerb).ToLower());
-            }
-
-            if ((verb == null) && (methodNameWithoutVerb != null) && (methodNameWithoutVerb != methodName) && (detectedVerb != null))
-            {
-                verb = new OnVerbAttribute(detectedVerb);
-            }
-        }
-
-        private void ObtainMethodDetailsFromPopularNames(MethodInfo method, ref RouteAttribute route, ref OnVerbAttribute verb)
-        {
-            string methodNameWithoutVerb = null;
-            Verb detectedVerb = null;
-            string methodName = method.Name;
-            PopularNameMappings.SkipWhile(item => (methodNameWithoutVerb = Regex.Replace(methodName, "^" + item.Key, ((detectedVerb = item.Value) != null ? String.Empty : String.Empty), RegexOptions.IgnoreCase)) == methodName).ToArray();
-            if ((route == null) && (methodNameWithoutVerb != null) && (methodNameWithoutVerb != methodName))
-            {
-                route = new RouteAttribute((methodNameWithoutVerb.Length == 0 ? "/" : methodNameWithoutVerb).ToLower());
-            }
-
-            if ((verb == null) && (methodNameWithoutVerb != null) && (methodNameWithoutVerb != methodName) && (detectedVerb != null))
-            {
-                verb = new OnVerbAttribute(detectedVerb);
-            }
-        }
-
-        private ArgumentInfo[] BuildParameterDescriptors(MethodInfo method, Verb verb, ref string templateRegex, out string uriTemplate)
+        private ValueInfo[] BuildParameterDescriptors(MethodInfo method, Verb verb, ref string templateRegex, out string uriTemplate)
         {
             bool restUriTemplate = true;
-            IList<ArgumentInfo> result = new List<ArgumentInfo>();
+            IList<ValueInfo> result = new List<ValueInfo>();
             uriTemplate = templateRegex;
             StringBuilder queryString = new StringBuilder(512);
             StringBuilder iriQueryString = new StringBuilder(512);
@@ -230,9 +264,20 @@ namespace URSA.Web.Description.Http
             int totalQueryStringParameters = 0;
             int optionalUriParameters = 0;
             int totalUriParameters = 0;
-            var parameters = method.GetParameters().Where(parameter => !parameter.IsOut);
+            if (method.ReturnParameter != null)
+            {
+                result.Add(new ResultInfo(method.ReturnParameter, CreateResultTarget(method.ReturnParameter), null, null));
+            }
+
+            var parameters = method.GetParameters();
             foreach (var parameter in parameters)
             {
+                if (parameter.IsOut)
+                {
+                    result.Add(new ResultInfo(parameter, CreateResultTarget(parameter), null, null));
+                    continue;
+                }
+
                 bool isBodyParameter;
                 string parameterUriTemplate;
                 string parameterTemplateRegex;
@@ -276,32 +321,20 @@ namespace URSA.Web.Description.Http
             return result.ToArray();
         }
 
-        private void Increment<S>(ParameterSourceAttribute parameterSource, ParameterInfo parameter, ref int total, ref int optional)
-        {
-            if (parameterSource is S)
-            {
-                total++;
-                if (parameter.HasDefaultValue)
-                {
-                    optional++;
-                }
-            }
-        }
-
         private ParameterSourceAttribute CreateParameterTemplateRegex(MethodInfo method, ParameterInfo parameter, Verb verb, out string parameterUriTemplate, out string parameterTemplateRegex, out bool isBodyParameter)
         {
             isBodyParameter = false;
             parameterUriTemplate = null;
             parameterTemplateRegex = null;
-            var parameterSource = parameter.GetCustomAttribute<ParameterSourceAttribute>(true) ?? _defaultParameterSourceSelector.ProvideDefault(parameter, verb);
-            var methodInfo = GetType().GetMethods(BindingFlags.Instance | BindingFlags.NonPublic)
+            var parameterSource = parameter.GetCustomAttribute<ParameterSourceAttribute>(true) ?? _defaultValueRelationSelector.ProvideDefault(parameter, verb);
+            var methodInfo = GetType().GetMethods(BindingFlags.Static | BindingFlags.NonPublic)
                 .FirstOrDefault(item => (item.Name == "CreateParameterTemplateRegex") && (item.GetParameters().Length > 0) && (item.GetParameters()[0].ParameterType == parameterSource.GetType()));
             if (methodInfo != null)
             {
-                var arguments = new object[] { parameterSource, method, parameter, verb, parameterUriTemplate, parameterTemplateRegex };
+                var arguments = new object[] { parameterSource, parameter, parameterUriTemplate, parameterTemplateRegex };
                 methodInfo.Invoke(this, arguments);
-                parameterUriTemplate = (string)arguments[4];
-                parameterTemplateRegex = (string)arguments[5];
+                parameterUriTemplate = (string)arguments[2];
+                parameterTemplateRegex = (string)arguments[3];
 
             }
             else if (parameterSource is FromBodyAttribute)
@@ -312,18 +345,9 @@ namespace URSA.Web.Description.Http
             return parameterSource;
         }
 
-        private void CreateParameterTemplateRegex(FromQueryStringAttribute fromQueryString, MethodInfo method, ParameterInfo parameter, Verb verb, out string parameterUriTemplate, out string parameterTemplateRegex)
+        private ResultTargetAttribute CreateResultTarget(ParameterInfo parameter)
         {
-            string result = (fromQueryString.UriTemplate == FromQueryStringAttribute.Default ? FromQueryStringAttribute.For(parameter).UriTemplate : fromQueryString.UriTemplate);
-            parameterUriTemplate = result.Replace(FromUriAttribute.Value, "{?" + parameter.Name + "}");
-            parameterTemplateRegex = result.Replace(FromUriAttribute.Value, "[^&]+");
-        }
-
-        private void CreateParameterTemplateRegex(FromUriAttribute fromUri, MethodInfo method, ParameterInfo parameter, Verb verb, out string parameterUriTemplate, out string parameterTemplateRegex)
-        {
-            string result = (fromUri.UriTemplate == FromUriAttribute.Default ? FromUriAttribute.For(parameter).UriTemplate.ToString() : fromUri.UriTemplate.ToString());
-            parameterUriTemplate = result.Replace(FromUriAttribute.Value, "{?" + parameter.Name + "}");
-            parameterTemplateRegex = (parameter.HasDefaultValue ? "(" : String.Empty) + result.Replace(FromUriAttribute.Value, String.Format("[^/?]+{0}", (parameter.HasDefaultValue ? ")?" : String.Empty)));
+            return parameter.GetCustomAttribute<ResultTargetAttribute>(true) ?? _defaultValueRelationSelector.ProvideDefault(parameter);
         }
     }
 }

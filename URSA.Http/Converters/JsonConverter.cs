@@ -134,7 +134,7 @@ namespace URSA.Web.Http.Converters
 
             var responseInfo = (ResponseInfo)response;
             responseInfo.Headers.ContentType = ApplicationJson;
-            if ((instance != null) && (!givenType.IsAssignableFrom(instance.GetType())))
+            if ((instance != null) && (!givenType.IsInstanceOfType(instance)))
             {
                 throw new InvalidOperationException(String.Format("Instance type '{0}' mismatch from the given '{1}'.", instance.GetType(), givenType));
             }

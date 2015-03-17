@@ -71,16 +71,16 @@ namespace URSA.Web
             IDictionary<string, Route> routes = new Dictionary<string, Route>();
             routes[typeof(T).FullName + "DocumentationStylesheet"] = new Route(EntityConverter.DocumentationStylesheet, handler);
             routes[typeof(T).FullName] = new Route(description.Uri.ToString().Substring(1), handler);
-            foreach (var operation in description.Operations.Cast<URSA.Web.Description.Http.OperationInfo>())
+            foreach (var operation in description.Operations.Cast<OperationInfo>())
             {
-                string routeTemplate = (operation.UriTemplate != null ? operation.UriTemplate : operation.Uri.ToString()).Substring(1).Replace("{?", "{");
+                string routeTemplate = (operation.UriTemplate ?? operation.Uri.ToString()).Substring(1).Replace("{?", "{");
                 int indexOf = routeTemplate.IndexOf('?');
                 if (indexOf != -1)
                 {
                     routeTemplate = routeTemplate.Substring(0, indexOf);
                 }
 
-                if (!routes.Any(route => String.Compare(route.Value.Url, routeTemplate, true) == 0))
+                if (routes.All(route => String.Compare(route.Value.Url, routeTemplate, true) != 0))
                 {
                     routes[typeof(T).FullName + "." + operation.UnderlyingMethod.Name] = new Route(routeTemplate, handler);
                 }

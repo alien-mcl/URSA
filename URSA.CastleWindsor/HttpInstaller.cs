@@ -43,13 +43,13 @@ namespace URSA.CastleWindsor
         {
             WindsorComponentProvider componentProvider = container.Resolve<WindsorComponentProvider>();
             var configuration = (HttpConfigurationSection)ConfigurationManager.GetSection(HttpConfigurationSection.ConfigurationSection);
-            Type sourceSelectorType = ((configuration != null) && (configuration.DefaultParameterSourceSelectorType != null) ?
-                configuration.DefaultParameterSourceSelectorType :
-                typeof(DefaultParameterSourceSelector));
+            Type sourceSelectorType = ((configuration != null) && (configuration.DefaultValueRelationSelectorType != null) ?
+                configuration.DefaultValueRelationSelectorType :
+                typeof(DefaultValueRelationSelector));
 
             container.Register(Component.For<IEntityContext>().UsingFactoryMethod(CreateEntityContext).LifestylePerWebRequest());
             container.Register(Component.For<IEntityContextFactory>().Instance(_entityContextFactory.Value).LifestyleSingleton());
-            container.Register(Component.For<IDefaultParameterSourceSelector>().ImplementedBy(sourceSelectorType).LifestyleSingleton());
+            container.Register(Component.For<IDefaultValueRelationSelector>().ImplementedBy(sourceSelectorType).LifestyleSingleton());
             container.Register(Component.For(typeof(IControllerDescriptionBuilder<>)).Forward(typeof(IHttpControllerDescriptionBuilder<>))
                 .Forward<IControllerDescriptionBuilder>().Forward<IHttpControllerDescriptionBuilder>()
                 .ImplementedBy(typeof(ControllerDescriptionBuilder<>), componentProvider.GenericImplementationMatchingStrategy).LifestyleTransient());

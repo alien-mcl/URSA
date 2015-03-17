@@ -10,6 +10,7 @@ using System.Reflection;
 using System.Text.RegularExpressions;
 using URSA.Web;
 using URSA.Web.Converters;
+using URSA.Web.Description;
 using URSA.Web.Description.Http;
 using URSA.Web.Http;
 using URSA.Web.Http.Mapping;
@@ -174,13 +175,13 @@ namespace Given_instance_of_the
             var queryStringParameters = Regex.Matches(callUri, "[?&]([^=]+)=[^&]+").Cast<System.Text.RegularExpressions.Match>();
             var queryStringRegex = (queryStringParameters.Any() ? "[?&](" + String.Join("|", queryStringParameters.Select(item => item.Groups[1].Value)) + ")=[^&]+" : String.Empty);
             var arguments = method.GetParameters()
-                .Select(item => new URSA.Web.Description.ArgumentInfo(item, FromQueryStringAttribute.For(item), "&test={?test}", "test"));
-            var operation = new OperationInfo(
+                .Select(item => new ArgumentInfo(item, FromQueryStringAttribute.For(item), "&test={?test}", "test"));
+            var operation = new OperationInfo<Verb>(
                 method,
-                verb,
                 new Uri(methodUri, UriKind.RelativeOrAbsolute),
-                new Regex("^" + methodUri + queryStringRegex + "$"),
                 callUri,
+                new Regex("^" + methodUri + queryStringRegex + "$"),
+                verb,
                 arguments.ToArray());
             return _binder.BindArguments(
                 new RequestInfo(Verb.GET, new Uri("http://temp.uri" + callUri), new MemoryStream()),

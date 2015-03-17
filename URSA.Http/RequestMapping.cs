@@ -1,5 +1,5 @@
 ﻿using System;
-using URSA.Web.Description.Http;
+using URSA.Web.Description;
 
 namespace URSA.Web.Http
 {
@@ -10,7 +10,7 @@ namespace URSA.Web.Http
         /// <param name="target">Target of the invocation.</param>
         /// <param name="operation">Operation to be invoked.</param>
         /// <param name="methodRoute">Method route.</param>
-        public RequestMapping(IController target, OperationInfo operation, Uri methodRoute)
+        public RequestMapping(IController target, OperationInfo<Verb> operation, Uri methodRoute)
         {
             if (target == null)
             {
@@ -34,9 +34,10 @@ namespace URSA.Web.Http
         public Uri MethodRoute { get; private set; }
 
         /// <inheritdoc />
-        public OperationInfo Operation { get; private set; }
+        OperationInfo IRequestMapping.Operation { get { return Operation; } }
 
-        URSA.Web.Description.OperationInfo IRequestMapping.Operation { get { return Operation; } }
+        /// <summary>Gets the operation to be invoked.</summary>
+        public OperationInfo<Verb> Operation { get; private set; }
 
         /// <inheritdoc />
         public object Invoke(params object[] arguments)

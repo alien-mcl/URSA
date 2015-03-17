@@ -50,6 +50,7 @@
     <Reference Include="System.Xml.Serialization" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Client.cs" />
     <Compile Include="Configuration\HttpConfigurationSection.cs" />
     <Compile Include="Converters\GuidConverter.cs" />
     <Compile Include="Description\ControllerDescriptionBuilder.cs" />
@@ -64,8 +65,8 @@
     <Compile Include="Converters\StringConverter.cs" />
     <Compile Include="Converters\TimeSpanConverter.cs" />
     <Compile Include="Converters\UriConverter.cs" />
-    <Compile Include="Description\DefaultParameterSourceSelector.cs" />
-    <Compile Include="Description\IDefaultParameterSourceSelector.cs" />
+    <Compile Include="Description\DefaultValueRelationSelector.cs" />
+    <Compile Include="Description\IDefaultValueRelationSelector.cs" />
     <Compile Include="ExceptionExtensions.cs" />
     <Compile Include="DelegateMapper.cs" />
     <Compile Include="Header.cs" />
@@ -86,7 +87,8 @@
     <Compile Include="Mapping\OnGetAttribute.cs" />
     <Compile Include="Mapping\OnPostAttribute.cs" />
     <Compile Include="Mapping\OnVerbAttribute.cs" />
-    <Compile Include="Description\OperationInfo.cs" />
+    <None Include="Description\OperationInfo.cs" />
+    <Compile Include="MultiObjectResponseInfo.cs" />
     <Compile Include="StringResponseInfo.cs" />
     <Compile Include="ExceptionResponseInfo.cs" />
     <Compile Include="ObjectResponseInfo.cs" />

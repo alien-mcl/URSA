@@ -48,12 +48,12 @@ namespace Given_instance_of_the
             var method = typeof(TestController).GetMethod("Add");
             var baseUri = new Uri("/api/test/", UriKind.Relative);
             var operationUri = new Uri("/add", UriKind.Relative).Combine(baseUri);
-            var operation = new URSA.Web.Description.Http.OperationInfo(
+            var operation = new OperationInfo<Verb>(
                 method,
-                Verb.GET,
                 operationUri,
-                new Regex(operationUri.ToString() + "[?&](operandA|operandB)=[^&]+", RegexOptions.IgnoreCase),
                 operationUri.ToString() + "?operandA={?operandA}&operandB={?operandB}",
+                new Regex(operationUri.ToString() + "[?&](operandA|operandB)=[^&]+", RegexOptions.IgnoreCase),
+                Verb.GET,
                 new ArgumentInfo(method.GetParameters()[0], FromQueryStringAttribute.For(method.GetParameters()[0]), "&operandA={?operandA}", "operandA"),
                 new ArgumentInfo(method.GetParameters()[1], FromQueryStringAttribute.For(method.GetParameters()[1]), "&operandB={?operandB}", "operandB"));
             var description = new ControllerInfo<TestController>(new Uri("/api/test/", UriKind.Relative), operation);
