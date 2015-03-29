@@ -22,7 +22,7 @@ namespace URSA.Web.Http.Description.Tests
             return null;
         }
 
-        public bool? Create(Person person, out Guid id)
+        public bool? Create(out Guid id, Person person)
         {
             id = Guid.Empty;
             return null;

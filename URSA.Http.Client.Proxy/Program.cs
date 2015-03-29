@@ -118,8 +118,11 @@ namespace URSA.Web.Http.Client.Proxy
             var generator = _container.Resolve<IClassGenerator>();
             foreach (var supportedClass in apiDocumentation.SupportedClasses)
             {
-                var classProxy = generator.CreateCode(supportedClass);
-                File.WriteAllText(Path.Combine(targetDirectory, supportedClass.Label + ".cs"), classProxy);
+                var classes = generator.CreateCode(supportedClass);
+                foreach (var @class in classes)
+                {
+                    File.WriteAllText(Path.Combine(targetDirectory, @class.Key), @class.Value);
+                }
             }
         }
     }

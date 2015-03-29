@@ -15,6 +15,6 @@ namespace URSA.Web.Http.Description.Hydra
     {
         /// <summary>Gets or sets the data type defined.</summary>
         [Property("ursa", "defines")]
-        IEntity Datatype { get; set; }
+        IResource Datatype { get; set; }
     }
 }

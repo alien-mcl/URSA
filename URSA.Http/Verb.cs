@@ -32,9 +32,9 @@ namespace URSA.Web.Http
         /// <summary>Defines a collection of all HTTP verbs.</summary>
         public static readonly IEnumerable<Verb> Verbs = new[] { OPTIONS, HEAD, GET, PUT, POST, PATCH, DELETE };
 
-        private string _verb;
+        private readonly string _verb;
 
-        private Verb(string verb)
+        public Verb(string verb)
         {
             if (verb == null)
             {

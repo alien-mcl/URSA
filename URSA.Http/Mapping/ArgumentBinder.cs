@@ -55,7 +55,6 @@ namespace URSA.Web.Http.Mapping
             }
 
             ArrayList result = new ArrayList();
-            var parameters = requestMapping.Operation.Arguments;
             IDictionary<RequestInfo, RequestInfo[]> multipartBodies = new Dictionary<RequestInfo, RequestInfo[]>();
             int index = 0;
             foreach (var argument in requestMapping.Operation.Arguments)
@@ -87,27 +86,27 @@ namespace URSA.Web.Http.Mapping
             Type parameterSourceArgumentBinderType = typeof(IParameterSourceArgumentBinder<>).MakeGenericType(parameter.Source.GetType());
             IParameterSourceArgumentBinder argumentBinder =
                 (from binder in _parameterSourceArgumentBinders
-                 where (parameterSourceArgumentBinderType.IsAssignableFrom(binder.GetType())) ||
-                    (binder.GetType().GetInterfaces().Any(type => parameterSourceArgumentBinderType.IsAssignableFrom(type)))
+                 where (parameterSourceArgumentBinderType.IsInstanceOfType(binder)) ||
+                     (binder.GetType().GetInterfaces().Any(type => parameterSourceArgumentBinderType.IsAssignableFrom(type)))
                  select binder).FirstOrDefault();
 
-            if (argumentBinder != null)
+            if (argumentBinder == null)
             {
-                ArgumentBindingContext context = (ArgumentBindingContext)typeof(ArgumentBindingContext<>)
-                    .MakeGenericType(parameter.Source.GetType())
-                    .GetConstructors(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
-                    .First()
-                    .Invoke(new object[] {
-                        (RequestInfo)request,
-                        (RequestMapping)requestMapping,
-                        parameter.Parameter,
-                        index,
-                        parameter.Source,
-                        multipartBodies });
-                return argumentBinder.GetArgumentValue(context);
+                return null;
             }
 
-            return null;
+            ArgumentBindingContext context = (ArgumentBindingContext)typeof(ArgumentBindingContext<>)
+                .MakeGenericType(parameter.Source.GetType())
+                .GetConstructors(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
+                .First()
+                .Invoke(new object[] {
+                    (RequestInfo)request,
+                    (RequestMapping)requestMapping,
+                    parameter.Parameter,
+                    index,
+                    parameter.Source,
+                    multipartBodies });
+            return argumentBinder.GetArgumentValue(context);
         }
     }
 }

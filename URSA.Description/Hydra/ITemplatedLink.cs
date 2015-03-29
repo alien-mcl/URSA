@@ -4,7 +4,7 @@ namespace URSA.Web.Http.Description.Hydra
 {
     /// <summary>Describes a template link.</summary>
     [Class("hydra", "TemplatedLink")]
-    public interface ITemplatedLink : IClass
+    public interface ITemplatedLink : Rdfs.IProperty, IResource
     {
     }
 }

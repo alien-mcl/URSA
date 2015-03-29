@@ -19,7 +19,7 @@ namespace URSA.Example.WebApplication.Controllers
             return null;
         }
 
-        public bool? Create(Person person, out Guid id)
+        public bool? Create(out Guid id, Person person)
         {
             id = Guid.Empty;
             return null;

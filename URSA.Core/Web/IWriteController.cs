@@ -6,10 +6,10 @@
     public interface IWriteController<T, I> : IController<T>
     {
         /// <summary>Creates a new instance.</summary>
-        /// <param name="instance">Instance to be created.</param>
         /// <param name="id">Identifier of newly created entity.</param>
+        /// <param name="instance">Instance to be created.</param>
         /// <returns><b>true</b> for success and <b>false</b> for failure; otherwise <b>null</b> when the instance does not exist.</returns>
-        bool? Create(T instance, out I id);
+        bool? Create(out I id, T instance);
 
         /// <summary>Updates an existing instance.</summary>
         /// <param name="id">Identifier of the entity to be updated.</param>

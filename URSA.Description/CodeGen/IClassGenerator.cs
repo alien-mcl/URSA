@@ -12,8 +12,8 @@ namespace URSA.CodeGen
     {
         /// <summary>Creates a code the given <paramref name="supportedClass" />.</summary>
         /// <param name="supportedClass">The supported class.</param>
-        /// <returns>String with class code.</returns>
-        string CreateCode(IClass supportedClass);
+        /// <returns>Map of file names with corresponding code.</returns>
+        IDictionary<string, string> CreateCode(IClass supportedClass);
 
         /// <summary>Creates the namespace of the given <paramref name="resource" />.</summary>
         /// <param name="resource">The resource.</param>

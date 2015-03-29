@@ -5,6 +5,7 @@ using System.ComponentModel;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using URSA.Web.Converters;
@@ -191,7 +192,7 @@ namespace URSA.Web.Http.Converters
 
             if (instance != null)
             {
-                if (!givenType.IsAssignableFrom(instance.GetType()))
+                if (!givenType.IsInstanceOfType(instance))
                 {
                     throw new InvalidOperationException(String.Format("Instance type '{0}' mismatch from the given '{1}'.", instance.GetType(), givenType));
                 }

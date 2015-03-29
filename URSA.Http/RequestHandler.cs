@@ -15,7 +15,7 @@ namespace URSA.Web.Http
     /// <summary>Serves as the main entry point for the URSA.</summary>
     public class RequestHandler : RequestHandlerBase<RequestInfo, ResponseInfo>
     {
-        private static readonly IDictionary<Type, IDictionary<string, MethodInfo>> ControllerCrudMethodsCache = new ConcurrentDictionary<Type, IDictionary<string, MethodInfo>>();
+        private static readonly IDictionary<Type, IDictionary<Verb, MethodInfo>> ControllerCrudMethodsCache = new ConcurrentDictionary<Type, IDictionary<Verb, MethodInfo>>();
 
         /// <inheritdoc />
         protected override ResponseInfo HandleRequest(RequestInfo request, IRequestMapping requestMapping)
@@ -49,14 +49,12 @@ namespace URSA.Web.Http
             Container.Register<IArgumentBinder<RequestInfo>>(new ArgumentBinder(Container.ResolveAll<IParameterSourceArgumentBinder>()));
         }
 
-        private static IDictionary<string, MethodInfo> GetCrudMethods(Type controllerType)
+        private static IDictionary<Verb, MethodInfo> GetCrudMethods(Type controllerType)
         {
-            IDictionary<string, MethodInfo> result;
+            IDictionary<Verb, MethodInfo> result;
             if (!ControllerCrudMethodsCache.TryGetValue(controllerType, out result))
             {
-                Type all = null;
-                Type read = null;
-                Type write = null;
+                ControllerCrudMethodsCache[controllerType] = result = new Dictionary<Verb, MethodInfo>();
                 foreach (var @interface in controllerType.GetInterfaces())
                 {
                     if (@interface.IsGenericType)
@@ -64,27 +62,21 @@ namespace URSA.Web.Http
                         var definition = @interface.GetGenericTypeDefinition();
                         if (typeof(IController<>).IsAssignableFrom(definition))
                         {
-                            all = @interface;
+                            result[new Verb(String.Empty)] = controllerType.GetInterfaceMap(@interface).TargetMethods.First();
                         }
                         else if (typeof(IReadController<,>).IsAssignableFrom(definition))
                         {
-                            read = @interface;
+                            result[Verb.GET] = controllerType.GetInterfaceMap(@interface).TargetMethods.First();
                         }
                         else if (typeof(IWriteController<,>).IsAssignableFrom(definition))
                         {
-                            write = @interface;
+                            var write = @interface;
+                            result[Verb.POST] = controllerType.GetInterfaceMap(write).TargetMethods.First(method => method.Name == "Create");
+                            result[Verb.PUT] = controllerType.GetInterfaceMap(write).TargetMethods.First(method => method.Name == "Update");
+                            result[Verb.DELETE] = controllerType.GetInterfaceMap(write).TargetMethods.First(method => method.Name == "Delete");
                         }
                     }
                 }
-
-                ControllerCrudMethodsCache[controllerType] = result = new Dictionary<string, MethodInfo>()
-                {
-                    { String.Empty, controllerType.GetInterfaceMap(all).TargetMethods.First() },
-                    { Verb.GET.ToString(), controllerType.GetInterfaceMap(read).TargetMethods.First() },
-                    { Verb.POST.ToString(), controllerType.GetInterfaceMap(write).TargetMethods.First(method => method.Name == "Create") },
-                    { Verb.PUT.ToString(), controllerType.GetInterfaceMap(write).TargetMethods.First(method => method.Name == "Update") },
-                    { Verb.DELETE.ToString(), controllerType.GetInterfaceMap(write).TargetMethods.First(method => method.Name == "Delete") }
-                };
             }
 
             return result;
@@ -145,9 +137,9 @@ namespace URSA.Web.Http
             var type = requestMapping.Operation.UnderlyingMethod.ReturnType;
             var methods = GetCrudMethods(requestMapping.Target.GetType());
             var method = methods.FirstOrDefault(entry => entry.Value == requestMapping.Operation.UnderlyingMethod);
-            if (!Equals(method, default(KeyValuePair<string, MethodInfo>)))
+            if (!Equals(method, default(KeyValuePair<Verb, MethodInfo>)))
             {
-                switch (method.Key)
+                switch (method.Key.ToString())
                 {
                     case "":
                         return MakeObjectResponse(type, response, output ?? (object)Array.CreateInstance(type.GetItemType(), 0));

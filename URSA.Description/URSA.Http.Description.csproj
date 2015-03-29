@@ -61,6 +61,7 @@
       <HintPath>..\packages\RomanticWeb.dotNetRDF.0.3.40.0\Lib\net40\RomanticWeb.dotNetRDF.dll</HintPath>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
     <Reference Include="System.Web" />
@@ -87,8 +88,10 @@
     <Compile Include="DescriptionController.cs" />
     <Compile Include="Hydra\IApiDocumentation.cs" />
     <Compile Include="Hydra\IDatatypeDefinition.cs" />
+    <Compile Include="Hydra\OperationComparer.cs" />
     <Compile Include="Model\EntityQuadExtensions.cs" />
     <Compile Include="Owl\IClass.cs" />
+    <Compile Include="Owl\IInverseFunctionalProperty.cs" />
     <Compile Include="Owl\IRestriction.cs" />
     <Compile Include="Hydra\IClass.cs" />
     <Compile Include="Hydra\IIriTemplate.cs" />

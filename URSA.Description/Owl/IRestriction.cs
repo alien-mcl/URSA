@@ -15,5 +15,9 @@ namespace URSA.Web.Http.Description.Owl
         /// <summary>Gets or sets a type of which all the values are.</summary>
         [Property("owl", "allValuesFrom")]
         IEntity AllValuesFrom { get; set; }
+
+        /// <summary>Gets or sets the maximum cardinality.</summary>
+        [Property("owl", "maxCardinality")]
+        uint MaxCardinality { get; set; }
     }
 }

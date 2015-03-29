@@ -57,9 +57,10 @@ namespace URSA.Web.Http.Description.CodeGen
 
             switch (language)
             {
-                case ApiDescriptionBuilder<IController>.DotNetSymbol:
                 case ApiDescriptionBuilder<IController>.DotNetListSymbol:
                 case ApiDescriptionBuilder<IController>.DotNetCollectionSymbol:
+                case ApiDescriptionBuilder<IController>.DotNetEnumerableSymbol:
+                case ApiDescriptionBuilder<IController>.DotNetSymbol:
                 case ApiDescriptionBuilder<IController>.HydraSymbol:
                     break;
                 default:

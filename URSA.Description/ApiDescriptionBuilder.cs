@@ -5,11 +5,14 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using RomanticWeb.Mapping.Attributes;
 using URSA.Web.Description;
 using URSA.Web.Description.Http;
 using URSA.Web.Http.Description.CodeGen;
 using URSA.Web.Http.Description.Hydra;
+using URSA.Web.Http.Description.Owl;
 using URSA.Web.Mapping;
+using IClass = URSA.Web.Http.Description.Hydra.IClass;
 
 namespace URSA.Web.Http.Description
 {
@@ -21,6 +24,7 @@ namespace URSA.Web.Http.Description
         public const string DefaultEntityContextFactoryName = "http";
 
         internal const string DotNetSymbol = "net";
+        internal const string DotNetEnumerableSymbol = "net-enumerable";
         internal const string DotNetListSymbol = "net-list";
         internal const string DotNetCollectionSymbol = "net-collection";
         internal const string HydraSymbol = "hydra";
@@ -70,48 +74,67 @@ namespace URSA.Web.Http.Description
             Uri baseUri = apiDocumentation.Context.BaseUriSelector.SelectBaseUri(new EntityId(new Uri("/", UriKind.Relative)));
             IDictionary<Type, Rdfs.IResource> typeDefinitions = new Dictionary<Type, Rdfs.IResource>();
             var description = _descriptionBuilder.BuildDescriptor();
-            if (SpecializationType != typeof(object))
+            if (SpecializationType == typeof(object))
             {
-                IClass specializationType = (IClass)(typeDefinitions[SpecializationType] = BuildTypeDescription(apiDocumentation, SpecializationType, typeDefinitions));
-                apiDocumentation.SupportedClasses.Add(specializationType);
-                foreach (OperationInfo<Verb> operation in description.Operations)
+                return;
+            }
+
+            IClass specializationType = (IClass)(typeDefinitions[SpecializationType] = BuildTypeDescription(apiDocumentation, SpecializationType, typeDefinitions));
+            apiDocumentation.SupportedClasses.Add(specializationType);
+            foreach (OperationInfo<Verb> operation in description.Operations)
+            {
+                IIriTemplate template;
+                var operationDefinition = BuildOperation(apiDocumentation, baseUri, operation, typeDefinitions, out template);
+                if (template != null)
                 {
-                    IIriTemplate template;
-                    var operationDefinition = BuildOperation(apiDocumentation, baseUri, operation, typeDefinitions, out template);
-                    if (template != null)
-                    {
-                        apiDocumentation.Context.Store.ReplacePredicateValues(
-                            specializationType.Id,
-                            Node.ForUri(template.Id.Uri),
-                            () => new Node[] { Node.ForUri(operationDefinition.Id.Uri) },
-                            specializationType.Id.Uri);
-                    }
-                    else
-                    {
-                        specializationType.SupportedOperations.Add(operationDefinition);
-                    }
+                    ITemplatedLink templatedLink = apiDocumentation.Context.Create<ITemplatedLink>(template.Id.Uri.AbsoluteUri.Replace("#template", "#withTemplate"));
+                    templatedLink.Operations.Add(operationDefinition);
+                    apiDocumentation.Context.Store.ReplacePredicateValues(
+                        specializationType.Id,
+                        Node.ForUri(templatedLink.Id.Uri),
+                        () => new Node[] { Node.ForUri(template.Id.Uri) },
+                        specializationType.Id.Uri);
+                }
+                else
+                {
+                    specializationType.SupportedOperations.Add(operationDefinition);
                 }
             }
         }
 
         private IOperation BuildOperation(IApiDocumentation apiDocumentation, Uri baseUri, OperationInfo<Verb> operation, IDictionary<Type, Rdfs.IResource> typeDefinitions, out IIriTemplate template)
         {
-            var nonBodyArguments = operation.Arguments.Where(argument => (argument.Source is FromQueryStringAttribute) || (argument.Source is FromUriAttribute)).ToList();
             EntityId methodId = new EntityId(!operation.Arguments.Any() ? operation.Uri.Combine(baseUri) :
-                operation.Uri.Combine(baseUri).AddFragment(
-                    String.Format("with{0}", String.Join("And", operation.Arguments.Select(argument => (argument.VariableName ?? argument.Parameter.Name).ToUpperCamelCase())))));
+                operation.Uri.Combine(baseUri).AddFragment(String.Format(
+                "{0}{1}",
+                operation.ProtocolSpecificCommand,
+                String.Join("And", operation.Arguments.Select(argument => (argument.VariableName ?? argument.Parameter.Name).ToUpperCamelCase())))));
             IOperation result = apiDocumentation.Context.Create<IOperation>(methodId);
             result.Label = operation.UnderlyingMethod.Name;
             result.Method.Add(_descriptionBuilder.GetMethodVerb(operation.UnderlyingMethod).ToString());
             template = BuildTemplate(apiDocumentation, operation, result, typeDefinitions);
-            foreach (var parameter in operation.Arguments.Where(parameter => parameter.Source is FromBodyAttribute))
+            Type type;
+            if (((type = operation.UnderlyingMethod.DeclaringType.GetInterfaces()
+                .FirstOrDefault(@interface => (@interface.IsGenericType) && (typeof(IWriteController<,>).IsAssignableFrom(@interface.GetGenericTypeDefinition())))) != null) &&
+                (operation.UnderlyingMethod.DeclaringType.GetInterfaceMap(type).TargetMethods.Contains(operation.UnderlyingMethod)))
             {
-                result.Expects.Add(BuildBodyArgument(apiDocumentation, parameter.Parameter, typeDefinitions));
+                var parameters = operation.UnderlyingMethod.GetParameters();
+                if (parameters.Length > 1)
+                {
+                    result.Expects.Add(BuildTypeDescription(apiDocumentation, parameters[1].ParameterType, typeDefinitions));
+                }
             }
-
-            foreach (var output in operation.Results.Where(output => output.Target is ToBodyAttribute))
+            else
             {
-                result.Returns.Add(BuildBodyArgument(apiDocumentation, output.Parameter, typeDefinitions));
+                foreach (var parameter in operation.Arguments.Where(parameter => parameter.Source is FromBodyAttribute))
+                {
+                    result.Expects.Add(BuildTypeDescription(apiDocumentation, parameter.Parameter.ParameterType, typeDefinitions));
+                }
+
+                foreach (var output in operation.Results.Where(output => output.Target is ToBodyAttribute))
+                {
+                    result.Returns.Add(BuildTypeDescription(apiDocumentation, output.Parameter.ParameterType, typeDefinitions));
+                }
             }
 
             return result;
@@ -132,35 +155,24 @@ namespace URSA.Web.Http.Description
                         template.Template = uriTemplate;
                     }
 
-                    if (!(mapping.Source is FromBodyAttribute))
+                    if (mapping.Source is FromBodyAttribute)
                     {
-                        IIriTemplateMapping templateMapping = apiDocumentation.Context.Create<IIriTemplateMapping>(template.Id.Uri.AddFragment(mapping.VariableName));
-                        templateMapping.Variable = mapping.VariableName;
-                        templateMapping.Required = mapping.Parameter.ParameterType.IsValueType;
-                        if (SpecializationType != typeof(object))
-                        {
-                            templateMapping.Property = GetMappingProperty(apiDocumentation, mapping.Parameter, SpecializationType, typeDefinitions);
-                        }
-
-                        template.Mappings.Add(templateMapping);
+                        continue;
                     }
+
+                    IIriTemplateMapping templateMapping = apiDocumentation.Context.Create<IIriTemplateMapping>(template.Id.Uri.AddFragment(mapping.VariableName));
+                    templateMapping.Variable = mapping.VariableName;
+                    templateMapping.Required = mapping.Parameter.ParameterType.IsValueType;
+                    if (SpecializationType != typeof(object))
+                    {
+                        templateMapping.Property = GetMappingProperty(apiDocumentation, mapping.Parameter, SpecializationType, typeDefinitions);
+                    }
+
+                    template.Mappings.Add(templateMapping);
                 }
             }
 
             return template;
-        }
-
-        private IClass BuildBodyArgument(IApiDocumentation apiDocumentation, ParameterInfo parameter, IDictionary<Type, Rdfs.IResource> typeDefinitions)
-        {
-            var type = BuildTypeDescription(apiDocumentation, parameter.ParameterType, typeDefinitions);
-            if (!(type is IClass))
-            {
-                var definition = apiDocumentation.Context.Create<IDatatypeDefinition>(new EntityId(new Uri("urn:ursa:" + parameter.ParameterType)));
-                definition.Datatype = type;
-                type = definition;
-            }
-
-            return (IClass)type;
         }
 
         private Rdfs.IProperty GetMappingProperty(IApiDocumentation apiDocumentation, ParameterInfo parameter, Type type, IDictionary<Type, Rdfs.IResource> typeDefinitions)
@@ -184,52 +196,66 @@ namespace URSA.Web.Http.Description
             }
         }
 
-        private Rdfs.IResource BuildTypeDescription(IApiDocumentation apiDocumentation, Type type, IDictionary<Type, Rdfs.IResource> typeDefinitions)
+        private IClass BuildTypeDescription(IApiDocumentation apiDocumentation, Type type, IDictionary<Type, Rdfs.IResource> typeDefinitions)
         {
             Uri uri;
             if (TypeDescriptions.TryGetValue(type, out uri))
             {
-                return apiDocumentation.Context.Create<Rdfs.IResource>(new EntityId(uri));
+                var datatype = apiDocumentation.Context.Create<IResource>(new EntityId(uri));
+                var definition = apiDocumentation.Context.Create<IDatatypeDefinition>(new EntityId(String.Format("urn:guid:{0}", Guid.NewGuid())));
+                definition.Datatype = datatype;
+                return definition.AsEntity<IClass>();
             }
 
-            if (type.IsGenericList())
+            if (type.IsList())
             {
-                return typeDefinitions[type] = CreateGenericListDefinition(apiDocumentation, type, typeDefinitions);
+                return (IClass)(typeDefinitions[type] = CreateListDefinition(apiDocumentation, type, typeDefinitions, type.IsGenericList()));
             }
-            else if (type.IsGenericCollection())
+
+            IClass result = null;
+            Type itemType = type.FindItemType();
+            result = apiDocumentation.Context.Create<IClass>(new EntityId(new Uri(String.Format("urn:" + DotNetSymbol + ":{0}", itemType))));
+            result.Label = type.Name;
+            foreach (var property in type.GetProperties(BindingFlags.Instance | BindingFlags.Public))
             {
-                return typeDefinitions[type] = CreateGenericCollectionDefinition(apiDocumentation, type, typeDefinitions);
-            }
-            else
-            {
-                IClass result = null;
-                result = apiDocumentation.Context.Create<IClass>(new EntityId(new Uri(String.Format("urn:" + DotNetSymbol + ":{0}", type.FullName))));
-                result.Label = type.Name;
-                foreach (var property in type.GetProperties(BindingFlags.Instance | BindingFlags.Public))
+                var supportedProperty = apiDocumentation.Context.Create<ISupportedProperty>(new Uri(String.Format("urn:" + HydraSymbol + ":{0}.{1}", itemType, property.Name)));
+                supportedProperty.ReadOnly = !property.CanWrite;
+                supportedProperty.WriteOnly = !property.CanRead;
+                supportedProperty.Required = property.PropertyType.IsValueType;
+                supportedProperty.Property = (property.GetCustomAttribute<System.ComponentModel.DataAnnotations.KeyAttribute>() != null ? 
+                    apiDocumentation.Context.Create<Owl.IInverseFunctionalProperty>(result.Id.Uri.AddName(property.Name)) :
+                    apiDocumentation.Context.Create<Rdfs.IProperty>(result.Id.Uri.AddName(property.Name)));
+                supportedProperty.Property.Label = property.Name;
+                supportedProperty.Property.Domain.Add(result);
+                Rdfs.IResource range;
+                if (!typeDefinitions.TryGetValue(property.PropertyType, out range))
                 {
-                    var supportedProperty = apiDocumentation.Context.Create<ISupportedProperty>(new Uri(String.Format("urn:" + HydraSymbol + ":{0}.{1}", type.FullName, property.Name)));
-                    supportedProperty.ReadOnly = !property.CanWrite;
-                    supportedProperty.WriteOnly = !property.CanRead;
-                    supportedProperty.Required = property.PropertyType.IsValueType;
-                    supportedProperty.Property = apiDocumentation.Context.Create<Rdfs.IProperty>(result.Id.Uri.AddName(property.Name));
-                    supportedProperty.Property.Label = property.Name;
-                    supportedProperty.Property.Domain.Add(result);
-                    Rdfs.IResource range;
-                    if (!typeDefinitions.TryGetValue(property.PropertyType, out range))
-                    {
-                        typeDefinitions[property.PropertyType] = range = BuildTypeDescription(apiDocumentation, property.PropertyType, typeDefinitions);
-                    }
-
-                    supportedProperty.Property.Range.Add(range);
-                    result.SupportedProperties.Add(supportedProperty);
+                    typeDefinitions[property.PropertyType] = range = BuildTypeDescription(apiDocumentation, property.PropertyType, typeDefinitions);
                 }
 
-                return typeDefinitions[type] = result;
+                supportedProperty.Property.Range.Add(range);
+
+                if ((!System.Reflection.TypeExtensions.IsEnumerable(property.PropertyType)) || (property.PropertyType == typeof(byte[])))
+                {
+                    var restriction = apiDocumentation.Context.Create<IRestriction>(result.CreateBlankId());
+                    restriction.OnProperty = supportedProperty.Property;
+                    restriction.MaxCardinality = 1u;
+                    result.SubClassOf.Add(restriction);
+                }
+
+                result.SupportedProperties.Add(supportedProperty);
             }
+
+            return (IClass)(typeDefinitions[type] = result);
         }
 
-        private IClass CreateGenericListDefinition(IApiDocumentation apiDocumentation, Type type, IDictionary<Type, Rdfs.IResource> typeDefinitions)
+        private IClass CreateListDefinition(IApiDocumentation apiDocumentation, Type type, IDictionary<Type, Rdfs.IResource> typeDefinitions, bool isGeneric = true)
         {
+            if (!isGeneric)
+            {
+                return apiDocumentation.Context.Create<IClass>(new EntityId(Rdf.List));
+            }
+
             var itemType = type.GetItemType();
             var result = apiDocumentation.Context.Create<IClass>(new EntityId(new Uri(String.Format("urn:" + DotNetListSymbol + ":{0}", itemType.FullName))));
             result.Label = type.Name;
@@ -244,20 +270,6 @@ namespace URSA.Web.Http.Description
             restConstrain.OnProperty = apiDocumentation.Context.Create<Rdfs.IProperty>(new EntityId(Rdf.rest));
             restConstrain.AllValuesFrom = result;
             result.SubClassOf.Add(restConstrain);
-            return result;
-        }
-
-        private IClass CreateGenericCollectionDefinition(IApiDocumentation apiDocumentation, Type type, IDictionary<Type, Rdfs.IResource> typeDefinitions)
-        {
-            var itemType = type.GetItemType();
-            var result = apiDocumentation.Context.Create<IClass>(new EntityId(new Uri(String.Format("urn:" + DotNetCollectionSymbol + ":{0}", itemType.FullName))));
-            result.Label = type.Name;
-            result.SubClassOf.Add(apiDocumentation.Context.Create<IClass>(new EntityId(Rdf.Bag)));
-
-            var typeConstrain = apiDocumentation.Context.Create<Owl.IRestriction>(result.CreateBlankId());
-            typeConstrain.OnProperty = apiDocumentation.Context.Create<Rdfs.IProperty>(new EntityId(new Uri(Rdf.BaseUri + "_1")));
-            typeConstrain.AllValuesFrom = typeDefinitions.GetOrCreate(itemType, () => BuildTypeDescription(apiDocumentation, itemType, typeDefinitions));
-            result.SubClassOf.Add(typeConstrain);
             return result;
         }
     }
