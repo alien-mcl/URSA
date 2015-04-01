@@ -32,18 +32,26 @@ namespace URSA.Web.Http.Description
         private static readonly IDictionary<Type, Uri> TypeDescriptions = XsdUriParser.Types.Concat(OGuidUriParser.Types).ToDictionary(item => item.Key, item => item.Value);
 
         private readonly IHttpControllerDescriptionBuilder<T> _descriptionBuilder;
+        private readonly IXmlDocProvider _xmlDocProvider;
         private Type _specializationType;
 
         /// <summary>Initializes a new instance of the <see cref="ApiDescriptionBuilder{T}" /> class.</summary>
         /// <param name="descriptionBuilder">Description builder.</param>
-        public ApiDescriptionBuilder(IHttpControllerDescriptionBuilder<T> descriptionBuilder)
+        /// <param name="xmlDocProvider">The XML documentation provider.</param>
+        public ApiDescriptionBuilder(IHttpControllerDescriptionBuilder<T> descriptionBuilder, IXmlDocProvider xmlDocProvider)
         {
             if (descriptionBuilder == null)
             {
                 throw new ArgumentNullException("descriptionBuilder");
             }
 
+            if (xmlDocProvider == null)
+            {
+                throw new ArgumentNullException("xmlDocProvider");
+            }
+
             _descriptionBuilder = descriptionBuilder;
+            _xmlDocProvider = xmlDocProvider;
         }
 
         private Type SpecializationType
@@ -111,6 +119,7 @@ namespace URSA.Web.Http.Description
                 String.Join("And", operation.Arguments.Select(argument => (argument.VariableName ?? argument.Parameter.Name).ToUpperCamelCase())))));
             IOperation result = apiDocumentation.Context.Create<IOperation>(methodId);
             result.Label = operation.UnderlyingMethod.Name;
+            result.Description = _xmlDocProvider.GetDescription(operation.UnderlyingMethod);
             result.Method.Add(_descriptionBuilder.GetMethodVerb(operation.UnderlyingMethod).ToString());
             template = BuildTemplate(apiDocumentation, operation, result, typeDefinitions);
             Type type;
@@ -198,8 +207,9 @@ namespace URSA.Web.Http.Description
 
         private IClass BuildTypeDescription(IApiDocumentation apiDocumentation, Type type, IDictionary<Type, Rdfs.IResource> typeDefinitions)
         {
+            Type itemType = type.FindItemType();
             Uri uri;
-            if (TypeDescriptions.TryGetValue(type, out uri))
+            if (TypeDescriptions.TryGetValue(itemType, out uri))
             {
                 var datatype = apiDocumentation.Context.Create<IResource>(new EntityId(uri));
                 var definition = apiDocumentation.Context.Create<IDatatypeDefinition>(new EntityId(String.Format("urn:guid:{0}", Guid.NewGuid())));
@@ -213,9 +223,9 @@ namespace URSA.Web.Http.Description
             }
 
             IClass result = null;
-            Type itemType = type.FindItemType();
             result = apiDocumentation.Context.Create<IClass>(new EntityId(new Uri(String.Format("urn:" + DotNetSymbol + ":{0}", itemType))));
             result.Label = type.Name;
+            result.Description = _xmlDocProvider.GetDescription(itemType);
             foreach (var property in type.GetProperties(BindingFlags.Instance | BindingFlags.Public))
             {
                 var supportedProperty = apiDocumentation.Context.Create<ISupportedProperty>(new Uri(String.Format("urn:" + HydraSymbol + ":{0}.{1}", itemType, property.Name)));
@@ -226,6 +236,7 @@ namespace URSA.Web.Http.Description
                     apiDocumentation.Context.Create<Owl.IInverseFunctionalProperty>(result.Id.Uri.AddName(property.Name)) :
                     apiDocumentation.Context.Create<Rdfs.IProperty>(result.Id.Uri.AddName(property.Name)));
                 supportedProperty.Property.Label = property.Name;
+                supportedProperty.Property.Description = _xmlDocProvider.GetDescription(property);
                 supportedProperty.Property.Domain.Add(result);
                 Rdfs.IResource range;
                 if (!typeDefinitions.TryGetValue(property.PropertyType, out range))

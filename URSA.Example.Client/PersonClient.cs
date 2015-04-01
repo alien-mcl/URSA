@@ -24,13 +24,6 @@ namespace URSA.Example.WebApplication.Data
             Call(Verb.POST, "/person/#POSTPerson", uriArguments, person);
         }
 
-        public void Delete(System.Guid id)
-        {
-            dynamic uriArguments = new ExpandoObject();
-            uriArguments.id = id;
-            Call(Verb.DELETE, "/person/id/{?id}", uriArguments);
-        }
-
         public URSA.Example.WebApplication.Data.Person Get(System.Guid id)
         {
             dynamic uriArguments = new ExpandoObject();
@@ -38,12 +31,19 @@ namespace URSA.Example.WebApplication.Data
             return Call<URSA.Example.WebApplication.Data.Person>(Verb.GET, "/person/id/{?id}", uriArguments);
         }
 
-        public System.Collections.Generic.IEnumerable<URSA.Example.WebApplication.Data.Person> Get(System.Object pageSize, System.Object page)
+        public System.Collections.Generic.IEnumerable<URSA.Example.WebApplication.Data.Person> List(System.Object page, System.Object pageSize)
         {
             dynamic uriArguments = new ExpandoObject();
-            uriArguments.pageSize = pageSize;
             uriArguments.page = page;
+            uriArguments.pageSize = pageSize;
             return Call<System.Collections.Generic.IEnumerable<URSA.Example.WebApplication.Data.Person>>(Verb.GET, "/person?page={?page}&pageSize={?pageSize}", uriArguments);
+        }
+
+        public void Delete(System.Guid id)
+        {
+            dynamic uriArguments = new ExpandoObject();
+            uriArguments.id = id;
+            Call(Verb.DELETE, "/person/id/{?id}", uriArguments);
         }
 
         public void Update(System.Guid id, URSA.Example.WebApplication.Data.Person person)

@@ -36,15 +36,21 @@ namespace URSA.Web.Handlers
         public void ProcessRequest(HttpContext context)
         {
             context.Response.TrySkipIisCustomErrors = true;
-            if ((context.Request.Url.Segments.Any()) && (context.Request.Url.Segments.Skip(1).First() == EntityConverter.DocumentationStylesheet))
+            if (context.Request.Url.Segments.Any())
             {
-                context.Response.ContentType = "text/xsl";
-                using (var source = new StreamReader(GetType().Assembly.GetManifestResourceStream("URSA.Web.DocumentationStylesheet.xslt")))
+                var segment = context.Request.Url.Segments.Skip(1).First();
+                switch (segment)
                 {
-                    context.Response.Output.Write(source.ReadToEnd());
+                    case EntityConverter.DocumentationStylesheet:
+                        HandleDocumentationStylesheet(context);
+                        return;
+                    case EntityConverter.PropertyIcon:
+                        HandleIcon(context, "Property");
+                        return;
+                    case EntityConverter.MethodIcon:
+                        HandleIcon(context, "Method");
+                        return;
                 }
-
-                return;
             }
 
             var headers = new HeaderCollection();
@@ -53,11 +59,7 @@ namespace URSA.Web.Handlers
                 ((IDictionary<string, string>)headers)[headerName] = context.Request.Headers[headerName];
             }
 
-            var requestInfo = new RequestInfo(
-                Verb.Parse(context.Request.HttpMethod),
-                context.Request.Url,
-                context.Request.InputStream,
-                headers);
+            var requestInfo = new RequestInfo(Verb.Parse(context.Request.HttpMethod), context.Request.Url, context.Request.InputStream, headers);
             var response = _requestHandler.HandleRequest(requestInfo);
             context.Response.ContentEncoding = context.Response.HeaderEncoding = response.Encoding;
             context.Response.StatusCode = (int)response.Status;
@@ -77,6 +79,26 @@ namespace URSA.Web.Handlers
             }
 
             response.Body.CopyTo(context.Response.OutputStream);
+        }
+
+        private void HandleDocumentationStylesheet(HttpContext context)
+        {
+            context.Response.ContentType = "text/xsl";
+            using (var source = new StreamReader(GetType().Assembly.GetManifestResourceStream("URSA.Web.DocumentationStylesheet.xslt")))
+            {
+                context.Response.Output.Write(source.ReadToEnd());
+            }
+        }
+
+        private void HandleIcon(HttpContext context, string imagePath)
+        {
+            context.Response.ContentType = "image/png";
+            using (var stream = GetType().Assembly.GetManifestResourceStream(String.Format("URSA.Web.{0}.png", imagePath)))
+            {
+                byte[] buffer = new byte[stream.Length];
+                stream.Read(buffer, 0, buffer.Length);
+                context.Response.BinaryWrite(buffer);
+            }
         }
     }
 }

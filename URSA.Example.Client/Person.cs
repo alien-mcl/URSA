@@ -19,8 +19,8 @@ namespace URSA.Example.WebApplication.Data
 
         public System.String Firstname { get; set; }
 
-        public System.String Lastname { get; set; }
-
         public System.Collections.Generic.IEnumerable<System.String> Roles { get; set; }
+
+        public System.String Lastname { get; set; }
     }
 }

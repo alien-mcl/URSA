@@ -17,6 +17,6 @@ namespace URSA.Web
         /// <param name="page">Page of the collection. Use 0 for all of the entities.</param>
         /// <param name="pageSize">Page size. Ignored when <paramref name="page" /> is set to 0.</param>
         /// <returns>Collection of entities.</returns>
-        IEnumerable<T> Get(int page = 0, int pageSize = 0);
+        IEnumerable<T> List(int page = 0, int pageSize = 0);
     }
 }

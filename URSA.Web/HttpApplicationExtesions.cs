@@ -70,6 +70,8 @@ namespace URSA.Web
             var description = builder.BuildDescriptor();
             IDictionary<string, Route> routes = new Dictionary<string, Route>();
             routes[typeof(T).FullName + "DocumentationStylesheet"] = new Route(EntityConverter.DocumentationStylesheet, handler);
+            routes[typeof(T).FullName + "PropertyIcon"] = new Route(EntityConverter.PropertyIcon, handler);
+            routes[typeof(T).FullName + "MethodIcon"] = new Route(EntityConverter.MethodIcon, handler);
             routes[typeof(T).FullName] = new Route(description.Uri.ToString().Substring(1), handler);
             foreach (var operation in description.Operations.Cast<OperationInfo>())
             {

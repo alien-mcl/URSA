@@ -14,6 +14,9 @@ namespace URSA.Web.Http.Description
     {
         /// <summary>Turtle format.</summary>
         Turtle,
+        
+        /// <summary>RDF/XML format.</summary>
+        Rdf,
 
         /// <summary>XML format.</summary>
         Xml
@@ -24,29 +27,33 @@ namespace URSA.Web.Http.Description
     [DependentRoute]
     public class DescriptionController<T> : IController where T : IController
     {
-        private static ApiDescriptionBuilder<T> apiDescriptionBuilder;
+        /// <summary>Defines a '<![CDATA[application/xml]]>' media type.</summary>
+        private const string ApplicationXml = "application/xml";
 
-        private IEntityContext _entityContext;
+        private static ApiDescriptionBuilder<T> _apiDescriptionBuilder;
+
+        private readonly IEntityContext _entityContext;
 
         /// <summary>Initializes a new instance of the <see cref="DescriptionController{T}" /> class.</summary>
         /// <param name="entityContext">Entity context.</param>
         /// <param name="descriptionBuilder">Controller description builder.</param>
-        public DescriptionController(IEntityContext entityContext, IHttpControllerDescriptionBuilder<T> descriptionBuilder)
+        /// <param name="xmlDocProvider">The XML documentation provider.</param>
+        public DescriptionController(IEntityContext entityContext, IHttpControllerDescriptionBuilder<T> descriptionBuilder, IXmlDocProvider xmlDocProvider)
         {
             if (entityContext == null)
             {
                 throw new ArgumentNullException("entityContext");
             }
 
-            if ((apiDescriptionBuilder == null) && (descriptionBuilder == null))
+            if ((_apiDescriptionBuilder == null) && (descriptionBuilder == null))
             {
                 throw new ArgumentNullException("descriptionBuilder");
             }
 
             _entityContext = entityContext;
-            if (apiDescriptionBuilder == null)
+            if (_apiDescriptionBuilder == null)
             {
-                apiDescriptionBuilder = new ApiDescriptionBuilder<T>(descriptionBuilder);
+                _apiDescriptionBuilder = new ApiDescriptionBuilder<T>(descriptionBuilder, xmlDocProvider);
             }
         }
 
@@ -63,21 +70,30 @@ namespace URSA.Web.Http.Description
         {
             format = format ?? OutputFormats.Turtle;
             var accept = Response.Request.Headers[Header.Accept];
+            var fileExtension = "txt";
             if ((accept != null) && (accept.Contains("*/*")))
             {
                 switch ((OutputFormats)format)
                 {
                     case OutputFormats.Turtle:
                         Response.Request.Headers[Header.Accept] = EntityConverter.TextTurtle;
+                        fileExtension = "ttl";
                         break;
                     case OutputFormats.Xml:
                         Response.Request.Headers[Header.Accept] = EntityConverter.ApplicationRdfXml;
+                        Response.Headers[Header.ContentType] = ApplicationXml;
+                        fileExtension = "xml";
+                        break;
+                    case OutputFormats.Rdf:
+                        Response.Request.Headers[Header.Accept] = EntityConverter.ApplicationRdfXml;
+                        fileExtension = "rdf";
                         break;
                 }
             }
 
+            ((ResponseInfo)Response).Headers.ContentDisposition = String.Format("inline; filename=\"{0}.{1}\"", typeof(T).Name, fileExtension);
             IApiDocumentation result = _entityContext.Create<IApiDocumentation>(new EntityId(Response.Request.Uri.AddFragment(String.Empty)));
-            apiDescriptionBuilder.BuildDescription(result);
+            _apiDescriptionBuilder.BuildDescription(result);
             return result;
         }
     }

@@ -31,8 +31,9 @@ namespace Given_instance_of_the
         public void it_should_build_the_api_documentation()
         {
             IApiDocumentation apiDocumentation;
-            var handlerMapper = SetupInfrastucture(out apiDocumentation);
-            var apiDescriptionBuilder = new ApiDescriptionBuilder<TestController>(handlerMapper);
+            IXmlDocProvider xmlDocProvider;
+            var handlerMapper = SetupInfrastucture(out apiDocumentation, out xmlDocProvider);
+            var apiDescriptionBuilder = new ApiDescriptionBuilder<TestController>(handlerMapper, xmlDocProvider);
             apiDescriptionBuilder.BuildDescription(apiDocumentation);
 
             apiDocumentation.EntryPoints.Should().HaveCount(0);
@@ -42,8 +43,13 @@ namespace Given_instance_of_the
             apiDocumentation.SupportedClasses.First().SupportedOperations.First().Method.First().Should().Be("POST");
         }
 
-        private IHttpControllerDescriptionBuilder<TestController> SetupInfrastucture(out IApiDocumentation apiDocumentationInstance)
+        private IHttpControllerDescriptionBuilder<TestController> SetupInfrastucture(out IApiDocumentation apiDocumentationInstance, out IXmlDocProvider xmlDocProvider)
         {
+            var xmlDocProviderMock = new Mock<IXmlDocProvider>(MockBehavior.Strict);
+            xmlDocProviderMock.Setup(instance => instance.GetDescription(It.IsAny<MethodInfo>())).Returns<MethodInfo>(method => method.Name);
+            xmlDocProviderMock.Setup(instance => instance.GetDescription(It.IsAny<PropertyInfo>())).Returns<PropertyInfo>(property => property.Name);
+            xmlDocProviderMock.Setup(instance => instance.GetDescription(It.IsAny<Type>())).Returns<Type>(type => type.Name);
+            xmlDocProvider = xmlDocProviderMock.Object;
             IDictionary<string, Verb> verbs = new Dictionary<string, Verb>()
             {
                 { "Get", Verb.GET },

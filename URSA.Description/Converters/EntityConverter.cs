@@ -25,6 +25,12 @@ namespace URSA.Web.Http.Converters
         /// <summary>Defines a document name for <![CDATA[XML/XSLT]]> documentation style-sheet.</summary>
         public const string DocumentationStylesheet = "documentation-stylesheet";
 
+        /// <summary>Defines a document name for documentation's property icon.</summary>
+        public const string PropertyIcon = "property";
+
+        /// <summary>Defines a document name for documentation's method icon.</summary>
+        public const string MethodIcon = "method";
+
         /// <summary>Defines a '<![CDATA[text/turtle]]>' media type.</summary>
         public const string TextTurtle = "text/turtle";
 
@@ -248,7 +254,11 @@ namespace URSA.Web.Http.Converters
                 var requestInfo = responseInfo.Request;
                 var accept = requestInfo.Headers[Header.Accept];
                 var mediaType = accept.Values.Join(SupportedMediaTypes, outer => outer.Value, inner => inner, (outer, inner) => outer.Value).First();
-                responseInfo.Headers.ContentType = mediaType;
+                if (String.IsNullOrEmpty(responseInfo.Headers.ContentType))
+                {
+                    responseInfo.Headers.ContentType = mediaType;
+                }
+
                 var entity = (IEntity)instance;
                 ITripleStore store = new TripleStore();
                 IGraph graph = new Graph();

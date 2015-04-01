@@ -117,7 +117,7 @@ namespace Given_instance_of_the
 
             var result = _generator.CreateCode(@class.Object);
 
-            result.Should().Be(String.Format(
+            result.First().Value.Should().Be(String.Format(
                 @"using System;
 using URSA.Web.Http;
 

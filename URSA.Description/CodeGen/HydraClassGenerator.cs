@@ -291,12 +291,7 @@ namespace {0}
                 if (operation.Returns.Any())
                 {
                     isReturns = "return ";
-                    returns = AnalyzeResult(operationName, operation.Returns, classes);
-                    if (!singleValueExpected)
-                    {
-                        returns = String.Format("System.Collections.Generic.IEnumerable<{0}>", returns);
-                    }
-
+                    returns = AnalyzeResult(operationName, operation.Returns, classes, singleValueExpected);
                     returnedType = String.Format("<{0}>", returns);
                 }
 
@@ -327,11 +322,6 @@ namespace {0}
 
                 var @namespace = (expected != null ? CreateNamespace(expected) : "System");
                 var name = (expected != null ? CreateName(expected) : "Object");
-                if (expected != null)
-                {
-                    MakeNonGeneric(expected.Id.Uri, ref @namespace, ref name);
-                }
-
                 parameters.AppendFormat("{0}.{1} {2}, ", @namespace, name, variableName);
                 uriArguments.AppendFormat("            uriArguments.{0} = {0};{1}", variableName, Environment.NewLine);
             }
@@ -344,13 +334,12 @@ namespace {0}
                 string variableName = expected.Label.ToLowerCamelCase();
                 var @namespace = CreateNamespace(expected);
                 var name = CreateName(expected);
-                MakeNonGeneric(expected.Id.Uri, ref @namespace, ref name);
                 parameters.AppendFormat("{0}.{1} {2}, ", @namespace, name, variableName);
                 bodyArguments.AppendFormat(", {0}", variableName);
             }
         }
 
-        private string AnalyzeResult(string operationName, ICollection<IClass> returns, IDictionary<string, string> classes)
+        private string AnalyzeResult(string operationName, ICollection<IClass> returns, IDictionary<string, string> classes, bool singleValueExpected)
         {
             string result;
             if (returns.Count > 1)
@@ -367,7 +356,6 @@ namespace {0}
                 {
                     var name = CreateName(returned);
                     var @namespace = CreateNamespace(returned);
-                    MakeNonGeneric(returned.Id.Uri, ref @namespace, ref name);
                     properties.AppendFormat(PropertyTemplate, name, " get;", String.Empty, @namespace, name);
                 }
 
@@ -377,8 +365,11 @@ namespace {0}
             else
             {
                 var returned = returns.First();
-                result = CreateName(returned);
-                result = String.Format("{0}.{1}", CreateNamespace(returned), result);
+                result = String.Format("{0}.{1}", CreateNamespace(returned), CreateName(returned));
+                if (!singleValueExpected)
+                {
+                    result = String.Format("System.Collections.Generic.IEnumerable<{0}>", result);
+                }
             }
 
             return result;

@@ -30,6 +30,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <DocumentationFile>bin\Debug\URSA.Http.Description.Tests.XML</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -106,6 +107,7 @@
     <Compile Include="Given_instance_of_the\ApiDescriptionBuilder_class.cs" />
     <Compile Include="Given_instance_of_the\converter_of\EntityConverter_class.cs" />
     <Compile Include="Given_instance_of_the\OGuidUriParser_class.cs" />
+    <Compile Include="Given_instance_of_the\XmlDocProvider_class.cs" />
     <Compile Include="Given_instance_of_the\XsdUriParser_class.cs" />
     <Compile Include="Given_instance_of_the\GenericUriParser_class.cs" />
     <Compile Include="Given_instance_of_the\HydraClassGenerator_class.cs" />
