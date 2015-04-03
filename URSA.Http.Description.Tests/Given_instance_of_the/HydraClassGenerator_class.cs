@@ -1,4 +1,5 @@
-﻿using System;
+﻿#pragma warning disable 1591
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -8,6 +9,8 @@ using Moq;
 using RomanticWeb;
 using RomanticWeb.Entities;
 using RomanticWeb.Linq.Model;
+using RomanticWeb.Mapping;
+using RomanticWeb.Mapping.Model;
 using RomanticWeb.Model;
 using RomanticWeb.Ontologies;
 using RomanticWeb.Vocabularies;
@@ -65,6 +68,7 @@ namespace Given_instance_of_the
             readOperation.SetupGet(instance => instance.Label).Returns("List");
             readOperation.SetupGet(instance => instance.Method).Returns(new string[] { HttpMethod });
             readOperation.SetupGet(instance => instance.Expects).Returns(new IClass[0]);
+            readOperation.SetupGet(instance => instance.Returns).Returns(new IClass[0]);
             var getOperationUri = new Uri("http://temp.uri/type/#withId");
             var getOperationId = new EntityId(getOperationUri);
             var getOperation = new Mock<IOperation>(MockBehavior.Strict);
@@ -72,6 +76,7 @@ namespace Given_instance_of_the
             getOperation.SetupGet(instance => instance.Label).Returns("Get");
             getOperation.SetupGet(instance => instance.Method).Returns(new string[] { HttpMethod });
             getOperation.SetupGet(instance => instance.Expects).Returns(new IClass[0]);
+            getOperation.SetupGet(instance => instance.Returns).Returns(new IClass[0]);
             var rangeType = new Mock<URSA.Web.Http.Description.Rdfs.IResource>(MockBehavior.Strict);
             rangeType.SetupGet(instance => instance.Id).Returns(Xsd.Int);
             var range = new List<URSA.Web.Http.Description.Rdfs.IResource>();
@@ -110,7 +115,8 @@ namespace Given_instance_of_the
             @class.SetupGet(instance => instance.Context).Returns(context.Object);
             @class.SetupGet(instance => instance.Id).Returns(classId);
             @class.SetupGet(instance => instance.Label).Returns("Type");
-            @class.SetupGet(instance => instance.SupportedOperations).Returns(new IOperation[] { readOperation.Object });
+            @class.SetupGet(instance => instance.SupportedOperations).Returns(new[] { readOperation.Object });
+            @class.SetupGet(instance => instance.SupportedProperties).Returns(new ISupportedProperty[0]);
             _uriParser.Setup(instance => instance.Parse(classUri, out @namespace)).Returns<Uri, string>((id, ns) => ClassName);
             var @systemNamespace = "System";
             _uriParser.Setup(instance => instance.Parse(Xsd.Int, out @systemNamespace)).Returns<Uri, string>((id, ns) => typeof(int).Name);
@@ -150,8 +156,18 @@ namespace {0}
             _uriParser = new Mock<IUriParser>(MockBehavior.Strict);
             _uriParser.Setup(instance => instance.IsApplicable(It.IsAny<Uri>())).Returns(UriParserCompatibility.ExactMatch);
             _uriParser.Setup(instance => instance.Parse(It.IsAny<Uri>(), out @namespace)).Returns<Uri, string>((id, ns) => Name);
+            var classMapping = new Mock<IClassMapping>(MockBehavior.Strict);
+            classMapping.SetupGet(instance => instance.Uri).Returns(new Uri(DescriptionController<IController>.VocabularyBaseUri.AbsoluteUri + "DatatypeDefinition"));
+            var mapping = new Mock<IEntityMapping>(MockBehavior.Strict);
+            mapping.SetupGet(instance => instance.Classes).Returns(new[] { classMapping.Object });
+            var mappings = new Mock<IMappingsRepository>(MockBehavior.Strict);
+            mappings.Setup(instance => instance.MappingFor<IDatatypeDefinition>()).Returns(mapping.Object);
+            var context = new Mock<IEntityContext>(MockBehavior.Strict);
+            context.SetupGet(instance => instance.Mappings).Returns(mappings.Object);
             _resource = new Mock<IResource>(MockBehavior.Strict);
             _resource.SetupGet(instance => instance.Id).Returns(uri);
+            _resource.As<ITypedEntity>().SetupGet(instance => instance.Types).Returns(new EntityId[0]);
+            _resource.As<IEntity>().SetupGet(instance => instance.Context).Returns(context.Object);
             _generator = new HydraClassGenerator(new IUriParser[] { _uriParser.Object });
         }
 

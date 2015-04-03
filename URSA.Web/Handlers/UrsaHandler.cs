@@ -81,6 +81,7 @@ namespace URSA.Web.Handlers
             response.Body.CopyTo(context.Response.OutputStream);
         }
 
+        //// TODO: Replace it with ScriptResource.axd call.
         private void HandleDocumentationStylesheet(HttpContext context)
         {
             context.Response.ContentType = "text/xsl";

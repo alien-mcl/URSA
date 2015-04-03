@@ -18,6 +18,7 @@ using URSA.Web;
 using URSA.Web.Description;
 using URSA.Web.Description.Http;
 using URSA.Web.Http;
+using URSA.Web.Http.Converters;
 using URSA.Web.Http.Description;
 using URSA.Web.Http.Description.CodeGen;
 using URSA.Web.Http.Mapping;
@@ -84,7 +85,7 @@ namespace URSA.CastleWindsor
 
         private EntityContextFactory CreateEntityContextFactory()
         {
-            return EntityContextFactory.FromConfiguration(ApiDescriptionBuilder<IController>.DefaultEntityContextFactoryName).WithDefaultOntologies();
+            return EntityContextFactory.FromConfiguration(EntityConverter.DefaultEntityContextFactoryName).WithDefaultOntologies();
         }
     }
 }

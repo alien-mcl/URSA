@@ -8,6 +8,7 @@ namespace URSA.Example.WebApplication.Controllers
     /// <summary>Provides a basic person handling.</summary>
     public class PersonController : IController<Person>, IReadController<Person, Guid>, IWriteController<Person, Guid>
     {
+        /// <inheritdoc />
         public IResponseInfo Response { get; set; }
 
         /// <summary>Gets all persons.</summary>
@@ -21,7 +22,7 @@ namespace URSA.Example.WebApplication.Controllers
 
         /// <summary>Gets the person with identifier of <paramref name="id" />.</summary>
         /// <param name="id">Identifier of the person to retrieve.</param>
-        /// <returns>Instance of the <typeparamref name="T" /> if matching <paramref name="id" />; otherwise <b>null</b>.</returns>
+        /// <returns>Instance of the <see cref="Person" /> if matching <paramref name="id" />; otherwise <b>null</b>.</returns>
         public Person Get(Guid id)
         {
             return null;

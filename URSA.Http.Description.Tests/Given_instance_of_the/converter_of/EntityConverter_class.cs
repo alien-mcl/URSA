@@ -1,4 +1,5 @@
-﻿using FluentAssertions;
+﻿#pragma warning disable 1591 
+using FluentAssertions;
 using JsonLD.Core;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;

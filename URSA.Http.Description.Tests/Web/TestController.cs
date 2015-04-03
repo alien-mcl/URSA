@@ -1,4 +1,5 @@
-﻿using System;
+﻿#pragma warning disable 1591
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using URSA.Web.Http.Description.Tests.Data;

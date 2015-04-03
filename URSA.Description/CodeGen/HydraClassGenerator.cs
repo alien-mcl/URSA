@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -153,23 +154,12 @@ namespace {0}
             return Names[resource];
         }
 
-        private static void MakeNonGeneric(Uri uri, ref string @namespace, ref string name)
-        {
-            if ((!AbsoluteUriComparer.Default.Equals(uri, Rdf.List)) && (!AbsoluteUriComparer.Default.Equals(uri, Rdf.Bag)) && (!AbsoluteUriComparer.Default.Equals(uri, Rdf.Seq)))
-            {
-                return;
-            }
-
-            int indexOf = -1;
-            @namespace = @namespace.Replace(".Generic", String.Empty);
-            name = ((indexOf = name.IndexOf('<')) != -1 ? name.Substring(0, indexOf) : name);
-        }
-
-        /// <inheritdoc />
         private string CreateName(IClass @class)
         {
-            if (@class.SubClassOf.Any(superClass => (AbsoluteUriComparer.Default.Equals(superClass.Id.Uri, Rdf.List) ||
-                (AbsoluteUriComparer.Default.Equals(superClass.Id.Uri, Rdf.Seq)) || (AbsoluteUriComparer.Default.Equals(superClass.Id.Uri, Rdf.Bag)))))
+            if (@class.SubClassOf.Any(superClass => 
+                (AbsoluteUriComparer.Default.Equals(superClass.Id.Uri, Rdf.List) ||
+                (AbsoluteUriComparer.Default.Equals(superClass.Id.Uri, Rdf.Seq)) || 
+                (AbsoluteUriComparer.Default.Equals(superClass.Id.Uri, Rdf.Bag)))))
             {
                 return CreateName((IResource)@class);
             }
@@ -198,7 +188,7 @@ namespace {0}
         private void ParseUri(IResource resource)
         {
             var uriParser = (from parser in _uriParsers
-                             orderby parser.IsApplicable(resource.Id.Uri) descending 
+                             orderby parser.IsApplicable(resource.Id.Uri) descending
                              select parser).FirstOrDefault();
 
             if (uriParser == null)
@@ -233,9 +223,9 @@ namespace {0}
                 }
 
                 properties.AppendFormat(
-                    PropertyTemplate, 
+                    PropertyTemplate,
                     property.Property.Label,
-                    property.WriteOnly ? String.Empty : " get" + (property.ReadOnly ? " " : String.Empty) + ";", 
+                    property.WriteOnly ? String.Empty : " get" + (property.ReadOnly ? " " : String.Empty) + ";",
                     property.ReadOnly ? String.Empty : " set; ",
                     typeName);
             }
@@ -248,13 +238,13 @@ namespace {0}
             var operations = new StringBuilder(1024);
             var supportedOperations = (from operation in supportedClass.SupportedOperations
                                        select new KeyValuePair<IOperation, IIriTemplate>(operation, null))
-                                      .Union(
-                                       from quad in supportedClass.Context.Store.Quads.ToList()
-                                       where (quad.Subject.IsUri) && (quad.Object.IsUri) && (AbsoluteUriComparer.Default.Equals(quad.Subject.Uri, supportedClass.Id.Uri)) &&
-                                           (quad.PredicateIs(supportedClass.Context, supportedClass.Context.Mappings.MappingFor<ITemplatedLink>().Classes.First().Uri))
-                                       let templatedLink = supportedClass.Context.Load<ITemplatedLink>(quad.Predicate.ToEntityId())
-                                       from operation in templatedLink.Operations
-                                       select new KeyValuePair<IOperation, IIriTemplate>(operation, supportedClass.Context.Load<IIriTemplate>(quad.Object.ToEntityId())));
+                .Union(
+                    from quad in supportedClass.Context.Store.Quads.ToList()
+                    where (quad.Subject.IsUri) && (quad.Object.IsUri) && (AbsoluteUriComparer.Default.Equals(quad.Subject.Uri, supportedClass.Id.Uri)) &&
+                        (quad.PredicateIs(supportedClass.Context, supportedClass.Context.Mappings.MappingFor<ITemplatedLink>().Classes.First().Uri))
+                    let templatedLink = supportedClass.Context.Load<ITemplatedLink>(quad.Predicate.ToEntityId())
+                    from operation in templatedLink.Operations
+                    select new KeyValuePair<IOperation, IIriTemplate>(operation, supportedClass.Context.Load<IIriTemplate>(quad.Object.ToEntityId())));
             foreach (var operationDescriptor in supportedOperations)
             {
                 AnalyzeOperation(supportedClass, operationDescriptor.Key, operationDescriptor.Value, operations, classes);
@@ -327,22 +317,24 @@ namespace {0}
             }
         }
 
-        private void AnalyzeBody(IEnumerable<IClass> expects, StringBuilder parameters, StringBuilder bodyArguments)
+        private void AnalyzeBody(IEnumerable<IResource> expects, StringBuilder parameters, StringBuilder bodyArguments)
         {
             foreach (var expected in expects)
             {
                 string variableName = expected.Label.ToLowerCamelCase();
-                var @namespace = CreateNamespace(expected);
-                var name = CreateName(expected);
+                string @namespace;
+                string name = AnalyzeType(expected, out @namespace);
                 parameters.AppendFormat("{0}.{1} {2}, ", @namespace, name, variableName);
                 bodyArguments.AppendFormat(", {0}", variableName);
             }
         }
 
-        private string AnalyzeResult(string operationName, ICollection<IClass> returns, IDictionary<string, string> classes, bool singleValueExpected)
+        private string AnalyzeResult(string operationName, IEnumerable<IResource> returns, IDictionary<string, string> classes, bool singleValueExpected)
         {
             string result;
-            if (returns.Count > 1)
+            string @namespace;
+            string name;
+            if (returns.Count() > 1)
             {
                 StringBuilder includes = new StringBuilder();
                 result = String.Format("{0}Result", operationName);
@@ -354,8 +346,7 @@ namespace {0}
                 var properties = new StringBuilder(256);
                 foreach (var returned in returns)
                 {
-                    var name = CreateName(returned);
-                    var @namespace = CreateNamespace(returned);
+                    name = AnalyzeType(returned, out @namespace);
                     properties.AppendFormat(PropertyTemplate, name, " get;", String.Empty, @namespace, name);
                 }
 
@@ -364,8 +355,8 @@ namespace {0}
             }
             else
             {
-                var returned = returns.First();
-                result = String.Format("{0}.{1}", CreateNamespace(returned), CreateName(returned));
+                name = AnalyzeType(returns.First(), out @namespace);
+                result = String.Format("{0}.{1}", @namespace, name);
                 if (!singleValueExpected)
                 {
                     result = String.Format("System.Collections.Generic.IEnumerable<{0}>", result);
@@ -373,6 +364,48 @@ namespace {0}
             }
 
             return result;
+        }
+
+        private string AnalyzeType(IResource type, out string @namespace)
+        {
+            IClass @class = (type.Is(Rdfs.Class) ? type.AsEntity<IClass>() : null);
+            if (@class == null)
+            {
+                @namespace = CreateNamespace(type);
+                return CreateName(type);
+            }
+
+            @namespace = CreateNamespace(@class);
+            var name = CreateName(@class);
+            if (@class.Is(Rdf.List))
+            {
+                @namespace = typeof(IList).Namespace;
+                return typeof(IList).Name;
+            }
+
+            IResource itemRestriction;
+            if (!@class.IsGenericRdfList(out itemRestriction))
+            {
+                return name;
+            }
+
+            @namespace = typeof(IList<>).Namespace;
+            string itemType = "System.Object";
+            if ((itemRestriction != null) && (itemRestriction != @class))
+            {
+                if (itemRestriction.Is(Rdfs.Class))
+                {
+                    string itemTypeNamespace;
+                    itemType = AnalyzeType(itemRestriction.AsEntity<IClass>(), out itemTypeNamespace);
+                    itemType = String.Format("{0}.{1}", itemTypeNamespace, itemType);
+                }
+                else
+                {
+                    itemType = String.Format("{0}.{1}", CreateNamespace(itemRestriction), CreateName(itemRestriction));
+                }
+            }
+
+            return String.Format("{0}<{1}>", typeof(IList<>).Name, itemType);
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using FluentAssertions;
+﻿#pragma warning disable 1591 
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using RomanticWeb;
@@ -53,6 +54,7 @@ namespace Given_instance_of_the
             IDictionary<string, Verb> verbs = new Dictionary<string, Verb>()
             {
                 { "Get", Verb.GET },
+                { "List", Verb.GET },
                 { "Create", Verb.POST },
                 { "Update", Verb.PUT },
                 { "Delete", Verb.DELETE }

@@ -21,7 +21,11 @@ namespace URSA.Web.Http.Description.Hydra
         ICollection<IClass> Returns { get; }
 
         /// <summary>Gets the HTTP status codes.</summary>
-        [Property("hydra", "statusCodes")]
+        [Collection("hydra", "statusCodes")]
         ICollection<int> StatusCodes { get; }
+
+        /// <summary>Gets the media types supported by given operation.</summary>
+        [Collection("ursa", "mediaTypes")]
+        ICollection<string> MediaTypes { get; } 
     }
 }

@@ -27,6 +27,9 @@ namespace URSA.Web.Http.Description
     [DependentRoute]
     public class DescriptionController<T> : IController where T : IController
     {
+        /// <summary>Defines an URSA vocabulary base URI.</summary>
+        public static readonly Uri VocabularyBaseUri = new Uri("http://github.io/ursa/vocabulary#");
+
         /// <summary>Defines a '<![CDATA[application/xml]]>' media type.</summary>
         private const string ApplicationXml = "application/xml";
 

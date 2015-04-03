@@ -92,8 +92,8 @@
     <Compile Include="CodeGen\IUriParser.cs" />
     <Compile Include="Converters\EntityConverter.cs" />
     <Compile Include="DescriptionController.cs" />
+    <Compile Include="Hydra\ClassExtensions.cs" />
     <Compile Include="Hydra\IApiDocumentation.cs" />
-    <Compile Include="Hydra\ISerializationHint.cs" />
     <Compile Include="Hydra\IDatatypeDefinition.cs" />
     <Compile Include="IXmlDocProvider.cs" />
     <Compile Include="Model\EntityQuadExtensions.cs" />

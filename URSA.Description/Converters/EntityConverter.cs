@@ -22,6 +22,9 @@ namespace URSA.Web.Http.Converters
     /// <summary>Converts entities from and to RDF serialization.</summary>
     public class EntityConverter : IConverter
     {
+        /// <summary>The default entity context factory name.</summary>
+        public const string DefaultEntityContextFactoryName = "http";
+
         /// <summary>Defines a document name for <![CDATA[XML/XSLT]]> documentation style-sheet.</summary>
         public const string DocumentationStylesheet = "documentation-stylesheet";
 
@@ -44,7 +47,7 @@ namespace URSA.Web.Http.Converters
         public const string ApplicationLdJson = "application/ld+json";
 
         /// <summary>Defines the supported media types.</summary>
-        public static readonly string[] SupportedMediaTypes = new[] { TextTurtle, ApplicationRdfXml, ApplicationOwlXml, ApplicationLdJson };
+        public static readonly string[] MediaTypes = new[] { TextTurtle, ApplicationRdfXml, ApplicationOwlXml, ApplicationLdJson };
 
         private static readonly Uri Hydra = new Uri("http://www.w3.org/ns/hydra/core#");
         private static readonly string Context = String.Format(
@@ -119,7 +122,7 @@ namespace URSA.Web.Http.Converters
             var result = CompatibilityLevel.TypeMatch;
             var requestInfo = (RequestInfo)request;
             var contentType = requestInfo.Headers[Header.ContentType];
-            if ((contentType != null) && (contentType.Values.Join(SupportedMediaTypes, outer => outer.Value, inner => inner, (outer, inner) => outer).Any()))
+            if ((contentType != null) && (contentType.Values.Join(MediaTypes, outer => outer.Value, inner => inner, (outer, inner) => outer).Any()))
             {
                 result |= CompatibilityLevel.ExactProtocolMatch;
             }
@@ -155,7 +158,7 @@ namespace URSA.Web.Http.Converters
 
             var requestInfo = (RequestInfo)request;
             var accept = requestInfo.Headers[Header.Accept];
-            var mediaType = (accept != null ? accept.Values.Join(SupportedMediaTypes, outer => outer.Value, inner => inner, (outer, inner) => outer.Value).First() : TextTurtle);
+            var mediaType = (accept != null ? accept.Values.Join(MediaTypes, outer => outer.Value, inner => inner, (outer, inner) => outer.Value).First() : TextTurtle);
             ITripleStore store = new TripleStore();
             IGraph graph = new Graph();
             store.Add(graph);
@@ -165,7 +168,7 @@ namespace URSA.Web.Http.Converters
                 reader.Load(graph, textReader);
             }
 
-            store.MapToMetaGraph(ConfigurationSectionHandler.Default.Factories[ApiDescriptionBuilder<IController>.DefaultEntityContextFactoryName].MetaGraphUri);
+            store.MapToMetaGraph(ConfigurationSectionHandler.Default.Factories[DefaultEntityContextFactoryName].MetaGraphUri);
             ((IComponentRegistryFacade)_entityContextFactory).Register(store);
             var entityContextFactory = (_entityContextFactory is EntityContextFactory ? ((EntityContextFactory)_entityContextFactory).WithDotNetRDF(store) : _entityContextFactory);
             var context = entityContextFactory.CreateContext();
@@ -216,7 +219,7 @@ namespace URSA.Web.Http.Converters
             var result = CompatibilityLevel.TypeMatch;
             var requestInfo = (RequestInfo)response.Request;
             var accept = requestInfo.Headers[Header.Accept];
-            if ((accept != null) && (accept.Values.Join(SupportedMediaTypes, outer => outer.Value, inner => inner, (outer, inner) => outer).Any()))
+            if ((accept != null) && (accept.Values.Join(MediaTypes, outer => outer.Value, inner => inner, (outer, inner) => outer).Any()))
             {
                 result |= CompatibilityLevel.ExactProtocolMatch;
             }
@@ -253,7 +256,7 @@ namespace URSA.Web.Http.Converters
                 var responseInfo = (ResponseInfo)response;
                 var requestInfo = responseInfo.Request;
                 var accept = requestInfo.Headers[Header.Accept];
-                var mediaType = accept.Values.Join(SupportedMediaTypes, outer => outer.Value, inner => inner, (outer, inner) => outer.Value).First();
+                var mediaType = accept.Values.Join(MediaTypes, outer => outer.Value, inner => inner, (outer, inner) => outer.Value).First();
                 if (String.IsNullOrEmpty(responseInfo.Headers.ContentType))
                 {
                     responseInfo.Headers.ContentType = mediaType;

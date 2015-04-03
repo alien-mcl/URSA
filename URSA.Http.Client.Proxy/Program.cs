@@ -96,7 +96,7 @@ namespace URSA.Web.Http.Client.Proxy
             var request = WebRequest.CreateHttp(url);
             request.Method = method;
             request.UserAgent = "URSA Proxy Generator";
-            request.Accept = String.Join(", ", EntityConverter.SupportedMediaTypes);
+            request.Accept = String.Join(", ", EntityConverter.MediaTypes);
             var response = (HttpWebResponse)request.GetResponse();
             contentType = response.Headers[HttpResponseHeader.ContentType];
             return response.GetResponseStream();
