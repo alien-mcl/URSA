@@ -1,14 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using RomanticWeb.Entities;
 using URSA.Web.Http.Description.Owl;
 
 namespace URSA.Web.Http.Description.Hydra
 {
-    internal static class ClassExtensions
+    internal static class EntityExtensions
     {
         internal static bool IsGenericRdfList(this IClass @class, out IResource itemRestriction)
         {
@@ -31,6 +28,14 @@ namespace URSA.Web.Http.Description.Hydra
             }
 
             return result;
+        }
+
+        internal static IEnumerable<Rdfs.IResource> GetUniqueIdentifierType(this IClass @class)
+        {
+            return (from supportedProperty in @class.SupportedProperties
+                    let property = supportedProperty.Property
+                    where property.Is(RomanticWeb.Vocabularies.Owl.InverseFunctionalProperty)
+                    select property.Range).FirstOrDefault() ?? new Rdfs.IResource[0];
         }
     }
 }

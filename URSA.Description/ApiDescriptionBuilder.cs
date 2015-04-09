@@ -13,6 +13,7 @@ using URSA.Web.Description.Http;
 using URSA.Web.Http.Converters;
 using URSA.Web.Http.Description.CodeGen;
 using URSA.Web.Http.Description.Hydra;
+using URSA.Web.Http.Description.Mapping;
 using URSA.Web.Http.Description.Owl;
 using URSA.Web.Http.Mapping;
 using URSA.Web.Mapping;
@@ -121,16 +122,25 @@ namespace URSA.Web.Http.Description
             result.Description = _xmlDocProvider.GetDescription(operation.UnderlyingMethod);
             result.Method.Add(_descriptionBuilder.GetMethodVerb(operation.UnderlyingMethod).ToString());
             template = BuildTemplate(apiDocumentation, operation, result, typeDefinitions);
-            bool isRdfRequired;
+            bool isRdfRequired = false;
             bool requiresRdf = false;
             Type type;
-            ParameterInfo[] parameters;
             if (((type = operation.UnderlyingMethod.DeclaringType.GetInterfaces()
                 .FirstOrDefault(@interface => (@interface.IsGenericType) && (typeof(IWriteController<,>).IsAssignableFrom(@interface.GetGenericTypeDefinition())))) != null) &&
-                (operation.UnderlyingMethod.DeclaringType.GetInterfaceMap(type).TargetMethods.Contains(operation.UnderlyingMethod)) &&
-                ((parameters = operation.UnderlyingMethod.GetParameters()).Length > 1))
+                (operation.UnderlyingMethod.DeclaringType.GetInterfaceMap(type).TargetMethods.Contains(operation.UnderlyingMethod)))
             {
-                result.Expects.Add(BuildTypeDescription(apiDocumentation, parameters[1].ParameterType, typeDefinitions, out isRdfRequired));
+                ParameterInfo[] parameters;
+                if ((parameters = operation.UnderlyingMethod.GetParameters()).Length > 1)
+                {
+                    result.Expects.Add(BuildTypeDescription(apiDocumentation, parameters[1].ParameterType, typeDefinitions, out isRdfRequired));
+                    requiresRdf |= isRdfRequired;
+                }
+
+                if (parameters[0].IsOut)
+                {
+                    result.Returns.Add(BuildTypeDescription(apiDocumentation, parameters[0].ParameterType, typeDefinitions, out isRdfRequired));
+                }
+
                 requiresRdf |= isRdfRequired;
             }
             else
@@ -148,11 +158,11 @@ namespace URSA.Web.Http.Description
                 }
             }
 
-            result.MediaTypes.AddRange(BuildOperationMediaType(apiDocumentation, operation, requiresRdf));
+            result.MediaTypes.AddRange(BuildOperationMediaType(operation, requiresRdf));
             return result;
         }
 
-        private IEnumerable<string> BuildOperationMediaType(IApiDocumentation apiDocumentation, OperationInfo<Verb> operation, bool requiresRdf)
+        private IEnumerable<string> BuildOperationMediaType(OperationInfo<Verb> operation, bool requiresRdf)
         {
             IList<string> result = operation.UnderlyingMethod.GetCustomAttributes<AsMediaTypeAttribute>().Select(mediaType => mediaType.MediaType).ToList();
             if (result.Count != 0)
@@ -196,7 +206,20 @@ namespace URSA.Web.Http.Description
             IIriTemplateMapping templateMapping = apiDocumentation.Context.Create<IIriTemplateMapping>(templateUri.AddFragment(mapping.VariableName));
             templateMapping.Variable = mapping.VariableName;
             templateMapping.Required = mapping.Parameter.ParameterType.IsValueType;
-            if (SpecializationType != typeof(object))
+            var linqBehavior = mapping.Parameter.GetCustomAttribute<LinqServerBehaviorAttribute>(true);
+            if (linqBehavior != null)
+            {
+                templateMapping.Property = apiDocumentation.Context.Create<Rdfs.IProperty>(
+                    DescriptionController<IController>.VocabularyBaseUri.AbsoluteUri + linqBehavior.Operation.ToString().ToLowerCamelCase());
+                Tuple<Rdfs.IResource, bool> range;
+                if (!typeDefinitions.TryGetValue(typeof(int), out range))
+                {
+                    range = new Tuple<Rdfs.IResource, bool>(BuildTypeDescription(apiDocumentation, typeof(int), typeDefinitions), false);
+                }
+
+                templateMapping.Property.Range.Add(range.Item1);
+            }
+            else if (SpecializationType != typeof(object))
             {
                 templateMapping.Property = GetMappingProperty(apiDocumentation, mapping.Parameter, SpecializationType, typeDefinitions);
             }
@@ -244,14 +267,14 @@ namespace URSA.Web.Http.Description
                 return result;
             }
 
-            var classUri = new Uri(String.Format("urn:" + DotNetSymbol + ":{0}", itemType));
+            var classUri = new Uri(String.Format("urn:" + DotNetSymbol + ":{0}", itemType.FullName.Replace("&", String.Empty)));
             if (typeof(IEntity).IsAssignableFrom(itemType))
             {
                 classUri = apiDocumentation.Context.Mappings.MappingFor(itemType).Classes.Select(item => item.Uri).FirstOrDefault() ?? classUri;
             }
 
             result = apiDocumentation.Context.Create<IClass>(classUri);
-            result.Label = type.Name;
+            result.Label = type.Name.Replace("&", String.Empty);
             result.Description = _xmlDocProvider.GetDescription(itemType);
             foreach (var property in type.GetProperties(BindingFlags.Instance | BindingFlags.Public))
             {

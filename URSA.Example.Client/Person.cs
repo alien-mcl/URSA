@@ -12,7 +12,19 @@ using URSA.Web.Http;
 
 namespace URSA.Example.WebApplication.Data
 {
-    public class Person
+    public interface IPerson
+    {
+
+         System.Guid Id { get; set; }
+
+         System.String Firstname { get; set; }
+
+         System.Collections.Generic.IEnumerable<System.String> Roles { get; set; }
+
+         System.String Lastname { get; set; }
+    }
+
+    public class Person : IPerson
     {
 
         public System.Guid Id { get; set; }

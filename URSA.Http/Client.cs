@@ -30,10 +30,11 @@ namespace URSA.Web.Http
         /// <summary>Calls the ReST service using specified HTTP verb.</summary>
         /// <param name="verb">The HTTP verb.</param>
         /// <param name="url">Relative URL of the service to call.</param>
+        /// <param name="mediaTypes">Enumeration of accepted media types.</param>
         /// <param name="uriArguments">The URI template arguments.</param>
         /// <param name="bodyArguments">The body arguments.</param>
         /// <returns>Result of the call.</returns>
-        protected object Call(Verb verb, string url, dynamic uriArguments, params object[] bodyArguments)
+        protected object Call(Verb verb, string url, IEnumerable<string> mediaTypes, dynamic uriArguments, params object[] bodyArguments)
         {
             var uri = BuildUri(url, uriArguments);
             return null;
@@ -43,10 +44,11 @@ namespace URSA.Web.Http
         /// <typeparam name="T">Type of the result.</typeparam>
         /// <param name="verb">The HTTP verb.</param>
         /// <param name="url">Relative URL of the service to call.</param>
+        /// <param name="mediaTypes">Enumeration of accepted media types.</param>
         /// <param name="uriArguments">The URI template arguments.</param>
         /// <param name="bodyArguments">The body arguments.</param>
         /// <returns>Result of the call.</returns>
-        protected T Call<T>(Verb verb, string url, dynamic uriArguments, params object[] bodyArguments)
+        protected T Call<T>(Verb verb, string url, IEnumerable<string> mediaTypes, dynamic uriArguments, params object[] bodyArguments)
         {
             var result = Call(verb, url, uriArguments, bodyArguments);
             return (result == null ? default(T) : Convert.ChangeType(result, typeof(T)));

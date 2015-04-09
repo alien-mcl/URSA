@@ -18,39 +18,59 @@ namespace URSA.Example.WebApplication.Data
         {
         }
 
-        public void Create(URSA.Example.WebApplication.Data.Person person)
+        public System.Guid Create(URSA.Example.WebApplication.Data.IPerson person)
         {
             dynamic uriArguments = new ExpandoObject();
-            Call(Verb.POST, "/person/#POSTPerson", uriArguments, person);
-        }
-
-        public URSA.Example.WebApplication.Data.Person Get(System.Guid id)
-        {
-            dynamic uriArguments = new ExpandoObject();
-            uriArguments.id = id;
-            return Call<URSA.Example.WebApplication.Data.Person>(Verb.GET, "/person/id/{?id}", uriArguments);
-        }
-
-        public System.Collections.Generic.IEnumerable<URSA.Example.WebApplication.Data.Person> List(System.Object page, System.Object pageSize)
-        {
-            dynamic uriArguments = new ExpandoObject();
-            uriArguments.page = page;
-            uriArguments.pageSize = pageSize;
-            return Call<System.Collections.Generic.IEnumerable<URSA.Example.WebApplication.Data.Person>>(Verb.GET, "/person?page={?page}&pageSize={?pageSize}", uriArguments);
+            var mediaTypes = new string[] {
+                "text/xml",
+                "application/xml",
+                "application/json"};
+            return Call<System.Guid>(Verb.POST, "/person/#POSTPerson", mediaTypes, uriArguments, person);
         }
 
         public void Delete(System.Guid id)
         {
             dynamic uriArguments = new ExpandoObject();
+            var mediaTypes = new string[] {
+                "application/xml",
+                "application/json",
+                "text/xml"};
             uriArguments.id = id;
-            Call(Verb.DELETE, "/person/id/{?id}", uriArguments);
+            Call(Verb.DELETE, "/person/id/{?id}", mediaTypes, uriArguments);
         }
 
-        public void Update(System.Guid id, URSA.Example.WebApplication.Data.Person person)
+        public void Update(System.Guid id, URSA.Example.WebApplication.Data.IPerson person)
         {
             dynamic uriArguments = new ExpandoObject();
+            var mediaTypes = new string[] {
+                "application/json",
+                "application/xml",
+                "text/xml"};
             uriArguments.id = id;
-            Call(Verb.PUT, "/person/id/{?id}", uriArguments, person);
+            Call(Verb.PUT, "/person/id/{?id}", mediaTypes, uriArguments, person);
+        }
+
+        public URSA.Example.WebApplication.Data.IPerson Get(System.Guid id)
+        {
+            dynamic uriArguments = new ExpandoObject();
+            var mediaTypes = new string[] {
+                "application/json",
+                "text/xml",
+                "application/xml"};
+            uriArguments.id = id;
+            return Call<URSA.Example.WebApplication.Data.IPerson>(Verb.GET, "/person/id/{?id}", mediaTypes, uriArguments);
+        }
+
+        public System.Collections.Generic.IEnumerable<URSA.Example.WebApplication.Data.IPerson> List(System.Int32 skip, System.Int32 take)
+        {
+            dynamic uriArguments = new ExpandoObject();
+            var mediaTypes = new string[] {
+                "application/json",
+                "application/xml",
+                "text/xml"};
+            uriArguments.skip = skip;
+            uriArguments.take = take;
+            return Call<System.Collections.Generic.IEnumerable<URSA.Example.WebApplication.Data.IPerson>>(Verb.GET, "/person?skip={?skip}&take={?take}", mediaTypes, uriArguments);
         }
     }
 }

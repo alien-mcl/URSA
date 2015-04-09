@@ -12,7 +12,11 @@ namespace URSA.Web.Http.Description.CodeGen
     {
         internal const string OGuid = "http://openguid.net/rdf#";
 
-        internal static readonly IDictionary<Type, Uri> Types = new Dictionary<Type, Uri> { { typeof(Guid), new Uri(OGuidUriParser.OGuid + "guid") } };
+        internal static readonly IDictionary<Type, Uri> Types = new Dictionary<Type, Uri>
+        {
+            { typeof(Guid), new Uri(OGuidUriParser.OGuid + "guid") },
+            { typeof(Guid).MakeByRefType(), new Uri(OGuidUriParser.OGuid + "guid") }
+        };
 
         /// <inheritdoc />
         protected override IEnumerable<KeyValuePair<Type, Uri>> TypeDescriptions { get { return Types; } }

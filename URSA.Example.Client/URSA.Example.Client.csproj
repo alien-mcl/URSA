@@ -43,8 +43,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Person.cs" />
-    <None Include="PersonClient.cs" />
+    <Compile Include="Person.cs" />
+    <Compile Include="PersonClient.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -9,6 +9,7 @@ using RomanticWeb.Entities;
 using RomanticWeb.Vocabularies;
 using URSA.Web;
 using URSA.Web.Description.Http;
+using URSA.Web.Http;
 using URSA.Web.Http.Description.CodeGen;
 using URSA.Web.Http.Description.Hydra;
 using URSA.Web.Http.Description.Model;
@@ -35,7 +36,11 @@ using URSA.Web.Http;
 
 namespace {0}
 {{
-    public class {1}
+    public interface I{1}
+    {{{3}
+    }}
+
+    public class {1} : I{1}
     {{{2}
     }}
 }}";
@@ -82,7 +87,8 @@ namespace {0}
         public{0} {1} {2}({3})
         {{
             " + ArgumentsTemplate + @"
-{6}            {8}Call{9}(Verb.{4}, ""{5}"", uriArguments{7});
+{10}
+{6}            {8}Call{9}(Verb.{4}, ""{5}"", mediaTypes, uriArguments{7});
         }}";
 
         private const string ArgumentsTemplate = "dynamic uriArguments = new ExpandoObject();";
@@ -107,13 +113,13 @@ namespace {0}
         /// <inheritdoc />
         public IDictionary<string, string> CreateCode(IClass supportedClass)
         {
+            var @namespace = CreateNamespace(supportedClass);
+            var name = CreateName(supportedClass);
             var result = new Dictionary<string, string>();
             var includes = new StringBuilder(256);
             var properties = AnalyzeProperties(supportedClass);
-            var operations = AnalyzeOperations(supportedClass, result);
-            var @namespace = CreateNamespace(supportedClass);
-            var name = CreateName(supportedClass);
-            result[name + ".cs"] = String.Format(DataClassTemplate, @namespace, name, properties);
+            var operations = AnalyzeOperations(supportedClass, @namespace + "." + name, result);
+            result[name + ".cs"] = String.Format(DataClassTemplate, @namespace, name, properties, properties.Replace("        public", "        "));
             result[name + "Client.cs"] = String.Format(ClientClassTemplate, @namespace, name, operations);
             return result;
         }
@@ -233,7 +239,7 @@ namespace {0}
             return properties.ToString();
         }
 
-        private string AnalyzeOperations(IClass supportedClass, IDictionary<string, string> classes)
+        private string AnalyzeOperations(IClass supportedClass, string supportedClassFullName, IDictionary<string, string> classes)
         {
             var operations = new StringBuilder(1024);
             var supportedOperations = (from operation in supportedClass.SupportedOperations
@@ -247,13 +253,13 @@ namespace {0}
                     select new KeyValuePair<IOperation, IIriTemplate>(operation, supportedClass.Context.Load<IIriTemplate>(quad.Object.ToEntityId())));
             foreach (var operationDescriptor in supportedOperations)
             {
-                AnalyzeOperation(supportedClass, operationDescriptor.Key, operationDescriptor.Value, operations, classes);
+                AnalyzeOperation(supportedClass, supportedClassFullName, operationDescriptor.Key, operationDescriptor.Value, operations, classes);
             }
 
             return operations.ToString();
         }
 
-        private void AnalyzeOperation(IClass supportedClass, IOperation operation, IIriTemplate template, StringBuilder operations, IDictionary<string, string> classes)
+        private void AnalyzeOperation(IClass supportedClass, string supportedClassFullName, IOperation operation, IIriTemplate template, StringBuilder operations, IDictionary<string, string> classes)
         {
             foreach (var method in operation.Method)
             {
@@ -261,6 +267,7 @@ namespace {0}
                 var bodyArguments = new StringBuilder(256);
                 var uriArguments = new StringBuilder(256);
                 var parameters = new StringBuilder(256);
+                var mediaTypes = new StringBuilder(256);
                 var returns = "void";
                 var operationName = CreateName(operation, method);
                 var uri = operation.Id.Uri.ToRelativeUri().ToString();
@@ -272,7 +279,14 @@ namespace {0}
                     AnalyzeTemplate(template.Mappings, parameters, uriArguments, out singleValueExpected);
                 }
 
-                AnalyzeBody(operation.Expects, parameters, bodyArguments);
+                singleValueExpected |= (method == Verb.POST.ToString()) && (operation.Returns.Count() == 1) &&
+                    (operation.Expects.Count() == 1) && (operation.Expects.First().Id == supportedClass.Id) &&
+                    (operation.Returns.Join(
+                        supportedClass.GetUniqueIdentifierType(), 
+                        outer => (outer.Is(supportedClass.Context.Mappings.MappingFor<IDatatypeDefinition>().Classes.First().Uri) ? outer.AsEntity<IDatatypeDefinition>().Datatype.Id : outer.Id),
+                        inner => (inner.Is(supportedClass.Context.Mappings.MappingFor<IDatatypeDefinition>().Classes.First().Uri) ? inner.AsEntity<IDatatypeDefinition>().Datatype.Id : inner.Id), 
+                        (outer, inner) => inner).Any());
+                AnalyzeBody(supportedClassFullName, operation.Expects, parameters, bodyArguments);
                 if (parameters.Length > 2)
                 {
                     parameters.Remove(parameters.Length - 2, 2);
@@ -281,12 +295,23 @@ namespace {0}
                 if (operation.Returns.Any())
                 {
                     isReturns = "return ";
-                    returns = AnalyzeResult(operationName, operation.Returns, classes, singleValueExpected);
+                    returns = AnalyzeResult(supportedClassFullName, operationName, operation.Returns, classes, singleValueExpected);
                     returnedType = String.Format("<{0}>", returns);
                 }
 
+                if (operation.MediaTypes.Any())
+                {
+                    mediaTypes.AppendFormat(
+                        "            var mediaTypes = new string[] {{\r\n                {0}}};",
+                        String.Join(",\r\n                ", operation.MediaTypes.Select(mediaType => String.Format("\"{0}\"", mediaType))));
+                }
+                else
+                {
+                    mediaTypes.Append("            var mediaTypes = new string[0];");
+                }
+
                 var isStatic = ((operation.Expects.Any(expected => expected == supportedClass)) && (method == "POST") ? " static" : String.Empty);
-                operations.AppendFormat(OperationTemplate, isStatic, returns, operationName, parameters, method, uri, uriArguments, bodyArguments, isReturns, returnedType);
+                operations.AppendFormat(OperationTemplate, isStatic, returns, operationName, parameters, method, uri, uriArguments, bodyArguments, isReturns, returnedType, mediaTypes);
             }
         }
 
@@ -317,19 +342,19 @@ namespace {0}
             }
         }
 
-        private void AnalyzeBody(IEnumerable<IResource> expects, StringBuilder parameters, StringBuilder bodyArguments)
+        private void AnalyzeBody(string supportedClassFullName, IEnumerable<IResource> expects, StringBuilder parameters, StringBuilder bodyArguments)
         {
             foreach (var expected in expects)
             {
                 string variableName = expected.Label.ToLowerCamelCase();
                 string @namespace;
-                string name = AnalyzeType(expected, out @namespace);
+                string name = AnalyzeType(supportedClassFullName, expected, out @namespace);
                 parameters.AppendFormat("{0}.{1} {2}, ", @namespace, name, variableName);
                 bodyArguments.AppendFormat(", {0}", variableName);
             }
         }
 
-        private string AnalyzeResult(string operationName, IEnumerable<IResource> returns, IDictionary<string, string> classes, bool singleValueExpected)
+        private string AnalyzeResult(string supportedClassFullName, string operationName, IEnumerable<IResource> returns, IDictionary<string, string> classes, bool singleValueExpected)
         {
             string result;
             string @namespace;
@@ -346,7 +371,7 @@ namespace {0}
                 var properties = new StringBuilder(256);
                 foreach (var returned in returns)
                 {
-                    name = AnalyzeType(returned, out @namespace);
+                    name = AnalyzeType(supportedClassFullName, returned, out @namespace);
                     properties.AppendFormat(PropertyTemplate, name, " get;", String.Empty, @namespace, name);
                 }
 
@@ -355,7 +380,7 @@ namespace {0}
             }
             else
             {
-                name = AnalyzeType(returns.First(), out @namespace);
+                name = AnalyzeType(supportedClassFullName, returns.First(), out @namespace);
                 result = String.Format("{0}.{1}", @namespace, name);
                 if (!singleValueExpected)
                 {
@@ -366,7 +391,7 @@ namespace {0}
             return result;
         }
 
-        private string AnalyzeType(IResource type, out string @namespace)
+        private string AnalyzeType(string supportedClassFullName, IResource type, out string @namespace)
         {
             IClass @class = (type.Is(Rdfs.Class) ? type.AsEntity<IClass>() : null);
             if (@class == null)
@@ -377,6 +402,11 @@ namespace {0}
 
             @namespace = CreateNamespace(@class);
             var name = CreateName(@class);
+            if (@namespace + "." + name == supportedClassFullName)
+            {
+                name = "I" + name;
+            }
+
             if (@class.Is(Rdf.List))
             {
                 @namespace = typeof(IList).Namespace;
@@ -391,18 +421,20 @@ namespace {0}
 
             @namespace = typeof(IList<>).Namespace;
             string itemType = "System.Object";
-            if ((itemRestriction != null) && (itemRestriction != @class))
+            if ((itemRestriction == null) || (itemRestriction == @class))
             {
-                if (itemRestriction.Is(Rdfs.Class))
-                {
-                    string itemTypeNamespace;
-                    itemType = AnalyzeType(itemRestriction.AsEntity<IClass>(), out itemTypeNamespace);
-                    itemType = String.Format("{0}.{1}", itemTypeNamespace, itemType);
-                }
-                else
-                {
-                    itemType = String.Format("{0}.{1}", CreateNamespace(itemRestriction), CreateName(itemRestriction));
-                }
+                return String.Format("{0}<{1}>", typeof(IList<>).Name, itemType);
+            }
+
+            if (itemRestriction.Is(Rdfs.Class))
+            {
+                string itemTypeNamespace;
+                itemType = AnalyzeType(supportedClassFullName, itemRestriction.AsEntity<IClass>(), out itemTypeNamespace);
+                itemType = String.Format("{0}.{1}", itemTypeNamespace, itemType);
+            }
+            else
+            {
+                itemType = String.Format("{0}.{1}", CreateNamespace(itemRestriction), CreateName(itemRestriction));
             }
 
             return String.Format("{0}<{1}>", typeof(IList<>).Name, itemType);

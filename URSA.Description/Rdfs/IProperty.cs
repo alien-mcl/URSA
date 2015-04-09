@@ -5,7 +5,7 @@ using System.Collections.Generic;
 namespace URSA.Web.Http.Description.Rdfs
 {
     /// <summary>Describes a property.</summary>
-    [Class("rdfs", "Property")]
+    [Class("rdf", "Property")]
     public interface IProperty : IResource
     {
         /// <summary>Gets the range.</summary>
