@@ -50,7 +50,7 @@ namespace URSA.Web.Http.Mapping
                 .Replace("/" + context.Parameter.Name + "/" + FromUriAttribute.Value, "/" + context.Parameter.Name + "/(?<Value>[^/\\?]+)")
                 .Replace(FromUriAttribute.Value, "[^/\\?]+");
             Match match = Regex.Match(context.Request.Uri.ToString(), template);
-            if (match == null)
+            if (!match.Success)
             {
                 return null;
             }

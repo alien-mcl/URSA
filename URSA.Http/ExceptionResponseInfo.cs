@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using URSA.Web.Converters;
 using URSA.Web.Http.Converters;
@@ -6,13 +7,14 @@ using URSA.Web.Http.Converters;
 namespace URSA.Web.Http
 {
     /// <summary>Describes an exception response.</summary>
+    [ExcludeFromCodeCoverage]
     public class ExceptionResponseInfo : ObjectResponseInfo<Exception>
     {
-        private static readonly IConverterProvider ConverterProvider = new DefaultConverterProvider();
+        private static readonly IConverterProvider ConverterProvider;
 
         static ExceptionResponseInfo()
         {
-            ConverterProvider.Initialize(new IConverter[] { new ExceptionConverter() });
+            (ConverterProvider = new DefaultConverterProvider()).Initialize(new IConverter[] { new ExceptionConverter() });
         }
 
         /// <summary>Initializes a new instance of the <see cref="ExceptionResponseInfo" /> class.</summary>

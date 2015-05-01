@@ -13,7 +13,7 @@ namespace URSA.Web.Description
         /// <summary>Initializes a new instance of the <see cref="ControllerInfo" /> class.</summary>
         /// <param name="uri">Base uri of the controller.</param>
         /// <param name="operations">Operation details.</param>
-        public ControllerInfo(Uri uri, params OperationInfo[] operations)
+        protected ControllerInfo(Uri uri, params OperationInfo[] operations)
         {
             if (uri == null)
             {

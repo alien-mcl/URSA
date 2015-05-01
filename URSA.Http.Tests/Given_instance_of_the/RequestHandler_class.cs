@@ -25,7 +25,7 @@ namespace Given_instance_of_the
     public class RequestHandler_class
     {
         [TestMethod]
-        public void it_call_method_on_the_controller()
+        public void it_should_call_method_on_the_controller()
         {
             SetupEnvironment(true);
             var handler = new RequestHandler();

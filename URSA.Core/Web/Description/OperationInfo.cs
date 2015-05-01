@@ -19,7 +19,7 @@ namespace URSA.Web.Description
         /// <param name="uriTemplate">Relative uri template with all arguments included.</param>
         /// <param name="templateRegex">Regular expression template with all arguments included.</param>
         /// <param name="values">Values descriptions.</param>
-        public OperationInfo(MethodInfo underlyingMethod, Uri uri, string uriTemplate, Regex templateRegex, params ValueInfo[] values)
+        protected OperationInfo(MethodInfo underlyingMethod, Uri uri, string uriTemplate, Regex templateRegex, params ValueInfo[] values)
         {
             if (underlyingMethod == null)
             {

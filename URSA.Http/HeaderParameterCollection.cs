@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 
 namespace URSA.Web.Http
 {
@@ -7,12 +9,14 @@ namespace URSA.Web.Http
     public sealed class HeaderParameterCollection : ICollection<HeaderParameter>
     {
         private static readonly IEqualityComparer<string> Comparer = StringComparer.OrdinalIgnoreCase;
-        private IDictionary<string, HeaderParameter> _parameters = new Dictionary<string, HeaderParameter>(Comparer);
+        private readonly IDictionary<string, HeaderParameter> _parameters = new Dictionary<string, HeaderParameter>(Comparer);
 
         /// <inheritdoc />
+        [ExcludeFromCodeCoverage]
         public int Count { get { return _parameters.Count; } }
 
         /// <inheritdoc />
+        [ExcludeFromCodeCoverage]
         bool ICollection<HeaderParameter>.IsReadOnly { get { return _parameters.IsReadOnly; } }
 
         /// <summary>Gets or sets the parameter by it's name.</summary>
@@ -164,36 +168,36 @@ namespace URSA.Web.Http
         }
 
         /// <inheritdoc />
+        [ExcludeFromCodeCoverage]
         IEnumerator<HeaderParameter> IEnumerable<HeaderParameter>.GetEnumerator()
         {
             return _parameters.Values.GetEnumerator();
         }
 
         /// <inheritdoc />
+        [ExcludeFromCodeCoverage]
         bool ICollection<HeaderParameter>.Contains(HeaderParameter item)
         {
             HeaderParameter result;
-            if (_parameters.TryGetValue(item.Name, out result))
-            {
-                return Object.Equals(result.Value, item.Value);
-            }
-
-            return false;
+            return (_parameters.TryGetValue(item.Name, out result) && Equals(result.Value, item.Value));
         }
 
         /// <inheritdoc />
+        [ExcludeFromCodeCoverage]
         void ICollection<HeaderParameter>.CopyTo(HeaderParameter[] array, int arrayIndex)
         {
-            throw new NotImplementedException();
+            _parameters.Values.ToArray().CopyTo(array, arrayIndex);
         }
 
         /// <inheritdoc />
+        [ExcludeFromCodeCoverage]
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
         {
             return _parameters.Values.GetEnumerator();
         }
 
         /// <inheritdoc />
+        [ExcludeFromCodeCoverage]
         public override string ToString()
         {
             return String.Join(";", _parameters.Values);

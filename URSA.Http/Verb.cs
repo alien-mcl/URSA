@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 
@@ -23,17 +24,17 @@ namespace URSA.Web.Http
         /// <summary>Represents an HTTP POST method.</summary>
         public static readonly Verb POST = new Verb("POST");
 
-        /// <summary>Represents an HTTP PATCH method.</summary>
-        public static readonly Verb PATCH = new Verb("PATCH");
-
         /// <summary>Represents an HTTP DELETE method.</summary>
         public static readonly Verb DELETE = new Verb("DELETE");
 
         /// <summary>Defines a collection of all HTTP verbs.</summary>
-        public static readonly IEnumerable<Verb> Verbs = new[] { OPTIONS, HEAD, GET, PUT, POST, PATCH, DELETE };
+        public static readonly IEnumerable<Verb> Verbs = new[] { OPTIONS, HEAD, GET, PUT, POST, DELETE };
 
         private readonly string _verb;
 
+        /// <summary>Initializes a new instance of the <see cref="Verb"/> class.</summary>
+        /// <param name="verb">The verb.</param>
+        [ExcludeFromCodeCoverage]
         public Verb(string verb)
         {
             if (verb == null)
@@ -82,16 +83,20 @@ namespace URSA.Web.Http
         /// <returns><b>false</b> if both operands are <b>null</b> or both represents the same verb; otherwise <b>true</b>.</returns>
         public static bool operator !=(Verb operandA, Verb operandB)
         {
-            return !(operandA == operandB);
+            return ((Object.Equals(operandA, null)) && (!Object.Equals(operandB, null))) ||
+                ((!Object.Equals(operandA, null)) && (Object.Equals(operandB, null))) ||
+                ((!Object.Equals(operandA, null)) && (!Object.Equals(operandB, null)) && (operandA._verb.GetHashCode() != operandB._verb.GetHashCode()));
         }
 
         /// <inheritdoc />
+        [ExcludeFromCodeCoverage]
         public override string ToString()
         {
-            return _verb.ToString();
+            return _verb;
         }
 
         /// <inheritdoc />
+        [ExcludeFromCodeCoverage]
         public override int GetHashCode()
         {
             return _verb.GetHashCode();

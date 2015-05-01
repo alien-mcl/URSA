@@ -15,7 +15,7 @@ namespace URSA.Web.Description
         /// <param name="parameter">Actual underlying parameter.</param>
         /// <param name="uriTemplate">Relative uri template of this value.</param>
         /// <param name="variableName">Variable name in the template for given value</param>
-        public ValueInfo(ParameterInfo parameter, string uriTemplate, string variableName)
+        protected ValueInfo(ParameterInfo parameter, string uriTemplate, string variableName)
         {
             if (parameter == null)
             {

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -10,13 +11,14 @@ namespace URSA.Web.Http
     /// <summary>Describes an HTTP request.</summary>
     public sealed class RequestInfo : IRequestInfo, IDisposable
     {
-        private Stream _stream;
+        private readonly Stream _stream;
 
         /// <summary>Initializes a new instance of the <see cref="RequestInfo"/> class.</summary>
         /// <param name="method">HTTP method verb of the request.</param>
         /// <param name="uri">Address requested.</param>
         /// <param name="body">Body of the request.</param>
         /// <param name="headers">Headers of the request.</param>
+        [ExcludeFromCodeCoverage]
         public RequestInfo(Verb method, Uri uri, Stream body, params Header[] headers)
         {
             if (method == null)
@@ -46,6 +48,7 @@ namespace URSA.Web.Http
         /// <param name="uri">Address requested.</param>
         /// <param name="body">Body of the request.</param>
         /// <param name="headers">Headers of the request.</param>
+        [ExcludeFromCodeCoverage]
         public RequestInfo(Verb method, Uri uri, Stream body, HeaderCollection headers)
         {
             if (method == null)
@@ -123,6 +126,7 @@ namespace URSA.Web.Http
         }
 
         /// <inheritdoc />
+        [ExcludeFromCodeCoverage]
         public void Dispose()
         {
             _stream.Dispose();

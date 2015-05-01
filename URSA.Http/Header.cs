@@ -145,9 +145,14 @@ namespace URSA.Web.Http
         /// <inheritdoc />
         public override bool Equals(object obj)
         {
-            if ((Object.Equals(obj, null)) || (!(obj is Header)))
+            if (!(obj is Header))
             {
                 return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
             }
 
             Header header = (Header)obj;

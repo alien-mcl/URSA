@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text.RegularExpressions;
 
@@ -8,25 +9,25 @@ namespace URSA.Web.Http
     /// <summary>Represents an HTTP header collection.</summary>
     public sealed class HeaderCollection : IDictionary<string, string>, IEnumerable<Header>
     {
-        internal static readonly string Token = "[^\x00-\x20'()<>@,;:\\\"/\\[\\]?={}]+";
+        internal const string Token = "[^\x00-\x20'()<>@,;:\\\"/\\[\\]?={}]+";
         internal static readonly Regex Header = new Regex(String.Format("(?<Name>{0}):(?<Value>(.|(?<=\r)\n(?=[ \t]))*)", Token));
-        private IDictionary<string, Header> _headers = new Dictionary<string, Header>(Http.Header.Comparer);
+        private readonly IDictionary<string, Header> _headers = new Dictionary<string, Header>(Http.Header.Comparer);
 
         /// <summary>Gets or sets the 'Content-Length' header's value.</summary>
         /// <remarks>If the header does not exist, value of 0 is returned.</remarks>
         public int ContentLength
         {
-            get { return (this[Http.Header.ContentLength] != null ? ((Http.Header<int>)this[Http.Header.ContentLength]).Values.First().Value : default(int)); }
+            get { return (this[Http.Header.ContentLength] != null ? ((Header<int>)this[Http.Header.ContentLength]).Values.First().Value : default(int)); }
             set
             {
-                Http.Header<int> contentLength = (Http.Header<int>)this[Http.Header.ContentLength];
+                Header<int> contentLength = (Header<int>)this[Http.Header.ContentLength];
                 if (contentLength == null)
                 {
                     this[Http.Header.ContentLength] = new Header<int>(Http.Header.ContentLength, value);
                 }
                 else
                 {
-                    ((Http.Header<int>)this[Http.Header.ContentLength]).Values.First().Value = value;
+                    ((Header<int>)this[Http.Header.ContentLength]).Values.First().Value = value;
                 }
             }
         }
@@ -53,15 +54,19 @@ namespace URSA.Web.Http
         }
 
         /// <summary>Gets the count if headers.</summary>
+        [ExcludeFromCodeCoverage]
         public int Count { get { return _headers.Count; } }
 
         /// <inheritdoc />
+        [ExcludeFromCodeCoverage]
         bool ICollection<KeyValuePair<string, string>>.IsReadOnly { get { return _headers.IsReadOnly; } }
 
         /// <inheritdoc />
+        [ExcludeFromCodeCoverage]
         ICollection<string> IDictionary<string, string>.Values { get { return _headers.Values.Select(value => value.Value).ToList(); } }
 
         /// <inheritdoc />
+        [ExcludeFromCodeCoverage]
         ICollection<string> IDictionary<string, string>.Keys { get { return _headers.Keys; } }
 
         /// <inheritdoc />
@@ -112,7 +117,7 @@ namespace URSA.Web.Http
             }
         }
 
-        /// <summary>Tries to parse a given string as a <see cref="HttpHeaderCollection" />.</summary>
+        /// <summary>Tries to parse a given string as a <see cref="HeaderCollection" />.</summary>
         /// <param name="headers">String to be parsed.</param>
         /// <param name="headersCollection">Resulting collection of headers if parsing was successful; otherwise <b>null</b>.</param>
         /// <returns><b>true</b> if the parsing was successful; otherwise <b>false</b>.</returns>
@@ -233,61 +238,69 @@ namespace URSA.Web.Http
         /// <param name="headers">Headers to be merged.</param>
         public void Merge(HeaderCollection headers)
         {
-            if (headers != null)
+            if (headers == null)
             {
-                foreach (var header in headers)
-                {
-                    Add(header);
-                }
+                return;
+            }
+
+            foreach (var header in headers)
+            {
+                Add(header);
             }
         }
 
         /// <inheritdoc />
+        [ExcludeFromCodeCoverage]
         public IEnumerator<Header> GetEnumerator()
         {
             return _headers.Values.GetEnumerator();
         }
 
         /// <inheritdoc />
+        [ExcludeFromCodeCoverage]
         void IDictionary<string, string>.Add(string name, string value)
         {
             Add(name, value);
         }
 
         /// <inheritdoc />
+        [ExcludeFromCodeCoverage]
         bool IDictionary<string, string>.ContainsKey(string key)
         {
             return _headers.ContainsKey(key);
         }
 
         /// <inheritdoc />
+        [ExcludeFromCodeCoverage]
         bool IDictionary<string, string>.TryGetValue(string key, out string value)
         {
             value = null;
-            bool result = false;
             Header header;
-            if (_headers.TryGetValue(key, out header))
+            if (!_headers.TryGetValue(key, out header))
             {
-                value = header.Value;
-                result = true;
+                return false;
             }
 
-            return result;
+            value = header.Value;
+            return true;
         }
 
         /// <inheritdoc />
+        [ExcludeFromCodeCoverage]
         void ICollection<KeyValuePair<string, string>>.Add(KeyValuePair<string, string> item)
         {
             Set(item.Key, item.Value);
         }
 
         /// <inheritdoc />
+        [ExcludeFromCodeCoverage]
         void ICollection<KeyValuePair<string, string>>.Clear()
         {
             _headers.Clear();
         }
 
         /// <inheritdoc />
+        [ExcludeFromCodeCoverage]
         bool ICollection<KeyValuePair<string, string>>.Contains(KeyValuePair<string, string> item)
         {
             Header header = this[item.Key];
@@ -295,41 +308,48 @@ namespace URSA.Web.Http
         }
 
         /// <inheritdoc />
+        [ExcludeFromCodeCoverage]
         void ICollection<KeyValuePair<string, string>>.CopyTo(KeyValuePair<string, string>[] array, int arrayIndex)
         {
-            throw new NotImplementedException();
+            _headers.Select(header => new KeyValuePair<string, string>(header.Key, header.Value.Value)).ToArray().CopyTo(array, arrayIndex);
         }
 
         /// <inheritdoc />
+        [ExcludeFromCodeCoverage]
         bool ICollection<KeyValuePair<string, string>>.Remove(KeyValuePair<string, string> item)
         {
             Header header = this[item.Key];
-            if (header != null)
+            if (header == null)
             {
-                HeaderValue value = header.Values.FirstOrDefault(valueItem => valueItem.Value == item.Value);
-                if (value != null)
-                {
-                    header.Values.Remove(value);
-                    return true;
-                }
+                return false;
             }
 
-            return false;
+            HeaderValue value = header.Values.FirstOrDefault(valueItem => valueItem.Value == item.Value);
+            if (value == null)
+            {
+                return false;
+            }
+
+            header.Values.Remove(value);
+            return true;
         }
 
         /// <inheritdoc />
+        [ExcludeFromCodeCoverage]
         IEnumerator<KeyValuePair<string, string>> IEnumerable<KeyValuePair<string, string>>.GetEnumerator()
         {
             return _headers.Select(header => new KeyValuePair<string, string>(header.Key, header.Value.Value)).GetEnumerator();
         }
 
         /// <inheritdoc />
+        [ExcludeFromCodeCoverage]
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
         {
             return GetEnumerator();
         }
 
         /// <inheritdoc />
+        [ExcludeFromCodeCoverage]
         public override string ToString()
         {
             return String.Format("{0}\r\n\r\n", String.Join("\r\n", _headers.Values));

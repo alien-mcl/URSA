@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 
@@ -14,6 +15,7 @@ namespace URSA.Web.Http
         /// <summary>Initializes a new instance of the <see cref="HeaderValue" /> class.</summary>
         /// <param name="value">Actual value.</param>
         /// <param name="parameters">Optional parameters.</param>
+        [ExcludeFromCodeCoverage]
         public HeaderValue(string value, params HeaderParameter[] parameters)
         {
             if (value == null)
@@ -29,6 +31,7 @@ namespace URSA.Web.Http
         /// <summary>Initializes a new instance of the <see cref="HeaderValue" /> class.</summary>
         /// <param name="value">Actual value.</param>
         /// <param name="parameters">Optional parameters.</param>
+        [ExcludeFromCodeCoverage]
         public HeaderValue(string value, HeaderParameterCollection parameters)
         {
             if (value == null)
@@ -84,7 +87,7 @@ namespace URSA.Web.Http
         public static bool operator ==(HeaderValue value, string someValue)
         {
             return ((Object.Equals(value, null)) && (Object.Equals(someValue, null))) ||
-                ((!Object.Equals(value, null)) && (!Object.Equals(someValue, null)) && (StringComparer.OrdinalIgnoreCase.Equals(value.Value, someValue)));
+                ((!Object.Equals(value, null)) && (!Object.Equals(someValue, null)) && (value.Equals(Parse(someValue))));
         }
 
         /// <summary>Checks if the given header value is not equal a literal.</summary>
@@ -97,6 +100,7 @@ namespace URSA.Web.Http
         }
 
         /// <inheritdoc />
+        [ExcludeFromCodeCoverage]
         public override int GetHashCode()
         {
             return Value.GetHashCode() ^ Parameters.GetHashCode();
@@ -105,9 +109,14 @@ namespace URSA.Web.Http
         /// <inheritdoc />
         public override bool Equals(object obj)
         {
-            if ((obj == null) || (!(obj is HeaderValue)))
+            if (!(obj is HeaderValue))
             {
                 return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
             }
 
             HeaderValue value = (HeaderValue)obj;
@@ -115,16 +124,18 @@ namespace URSA.Web.Http
         }
 
         /// <inheritdoc />
+        [ExcludeFromCodeCoverage]
         public override string ToString()
         {
             StringBuilder result = new StringBuilder(256);
             result.Append(Value);
-            if (Parameters.Count > 0)
+            if (Parameters.Count <= 0)
             {
-                result.Append(";");
-                result.Append(Parameter);
+                return result.ToString();
             }
 
+            result.Append(";");
+            result.Append(Parameter);
             return result.ToString();
         }
 
@@ -141,21 +152,21 @@ namespace URSA.Web.Http
             StringBuilder currentTarget = currentValue;
             bool isInString = false;
             bool isEscape = false;
-            for (int index = 0; index < value.Length; index++)
+            foreach (char letter in value)
             {
-                switch (value[index])
+                switch (letter)
                 {
                     default:
-                        ParseOtherChars(value[index], currentTarget, ref isInString, ref isEscape);
+                        ParseOtherChars(letter, currentTarget, ref isInString, ref isEscape);
                         break;
                     case '\\':
-                        ParseEscapeChar(value[index], currentTarget, ref isInString, ref isEscape);
+                        ParseEscapeChar(letter, currentTarget, ref isInString, ref isEscape);
                         break;
                     case '"':
-                        ParseStringChar(value[index], currentTarget, ref isInString, ref isEscape);
+                        ParseStringChar(letter, currentTarget, ref isInString, ref isEscape);
                         break;
                     case ';':
-                        ParseSeparatorChar(value[index], ref currentTarget, ref isInString, ref isEscape, currentValue, currentParameter, parameters);
+                        ParseSeparatorChar(letter, ref currentTarget, ref isInString, ref isEscape, currentValue, currentParameter, parameters);
                         break;
                 }
             }
@@ -249,11 +260,12 @@ namespace URSA.Web.Http
     /// <typeparam name="T">Type of the value</typeparam>
     public class HeaderValue<T> : HeaderValue
     {
-        private TypeConverter _typeConverter;
+        private readonly TypeConverter _typeConverter;
 
         /// <summary>Initializes a new instance of the <see cref="HeaderValue" /> class.</summary>
         /// <param name="value">Actual value.</param>
         /// <param name="parameters">Optional parameters.</param>
+        [ExcludeFromCodeCoverage]
         public HeaderValue(T value, params HeaderParameter[] parameters) : base((value != null ? value.ToString() : null), parameters)
         {
             _typeConverter = TypeDescriptor.GetConverter(typeof(T));
@@ -266,6 +278,7 @@ namespace URSA.Web.Http
         /// <summary>Initializes a new instance of the <see cref="HeaderValue" /> class.</summary>
         /// <param name="value">Actual value.</param>
         /// <param name="parameters">Optional parameters.</param>
+        [ExcludeFromCodeCoverage]
         public HeaderValue(T value, HeaderParameterCollection parameters) : base((value != null ? value.ToString() : null), parameters)
         {
             _typeConverter = TypeDescriptor.GetConverter(typeof(T));

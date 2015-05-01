@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using URSA.Web.Description;
@@ -10,13 +11,14 @@ namespace URSA.Web.Http
     /// <summary>Provides a default implementation of the <see cref="IDelegateMapper{RequestInfo}"/> interface.</summary>
     public class DelegateMapper : IDelegateMapper<RequestInfo>
     {
-        private IEnumerable<IHttpControllerDescriptionBuilder> _httpControllerDescriptionBuilders;
-        private Lazy<IEnumerable<ControllerInfo>> _controllerDescriptors;
-        private IControllerActivator _controllerActivator;
+        private readonly IEnumerable<IHttpControllerDescriptionBuilder> _httpControllerDescriptionBuilders;
+        private readonly Lazy<IEnumerable<ControllerInfo>> _controllerDescriptors;
+        private readonly IControllerActivator _controllerActivator;
 
         /// <summary>Initializes a new instance of the <see cref="DelegateMapper" /> class.</summary>
         /// <param name="httpControllerDescriptionBuilders">HTTP controller description builders.</param>
-        /// <param name="controllerInstanceFactoryMethod">Method creating instances of <see cref="IController" />s.</param>
+        /// <param name="controllerActivator">Method creating instances of <see cref="IController" />s.</param>
+        [ExcludeFromCodeCoverage]
         public DelegateMapper(IEnumerable<IHttpControllerDescriptionBuilder> httpControllerDescriptionBuilders, IControllerActivator controllerActivator)
         {
             if (httpControllerDescriptionBuilders == null)

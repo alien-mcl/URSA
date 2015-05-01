@@ -12,27 +12,34 @@ using URSA.Web.Http;
 
 namespace URSA.Example.WebApplication.Data
 {
-    public interface IPerson
+    [System.CodeDom.Compiler.GeneratedCode("URSA HTTP client proxy generation tool", "1.0")]
+    public interface IPerson : RomanticWeb.Entities.IEntity
     {
 
-         System.Guid Id { get; set; }
+        System.Collections.Generic.IEnumerable<System.String> Roles { get; set; }
 
-         System.String Firstname { get; set; }
+        new System.Guid Id { get; set; }
 
-         System.Collections.Generic.IEnumerable<System.String> Roles { get; set; }
+        System.String Lastname { get; set; }
 
-         System.String Lastname { get; set; }
+        System.String Firstname { get; set; }
     }
 
-    public class Person : IPerson
+    [System.CodeDom.Compiler.GeneratedCode("URSA HTTP client proxy generation tool", "1.0")]
+    public partial class Person : IPerson
     {
+        private RomanticWeb.Entities.EntityId _id = new RomanticWeb.Entities.EntityId(new System.Uri("urn:guid:" + System.Guid.NewGuid()));
 
-        public System.Guid Id { get; set; }
+        RomanticWeb.IEntityContext RomanticWeb.Entities.IEntity.Context { get { return null; } }
 
-        public System.String Firstname { get; set; }
+        RomanticWeb.Entities.EntityId RomanticWeb.Entities.IEntity.Id { get { return _id; } }
 
         public System.Collections.Generic.IEnumerable<System.String> Roles { get; set; }
 
+        public new System.Guid Id { get; set; }
+
         public System.String Lastname { get; set; }
+
+        public System.String Firstname { get; set; }
     }
 }

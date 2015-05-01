@@ -11,7 +11,7 @@ namespace URSA.Web.Http.Mapping
     /// <summary>Provides an HTTP related argument binding facility.</summary>
     public class ArgumentBinder : IArgumentBinder<RequestInfo>
     {
-        private IEnumerable<IParameterSourceArgumentBinder> _parameterSourceArgumentBinders;
+        private readonly IEnumerable<IParameterSourceArgumentBinder> _parameterSourceArgumentBinders;
 
         /// <summary>Initializes a new instance of the <see cref="ArgumentBinder" /> class.</summary>
         /// <param name="parameterSourceArgumentBinders">Parameter source argument binders.</param>

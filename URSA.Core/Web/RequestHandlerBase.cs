@@ -10,13 +10,13 @@ namespace URSA.Web
 {
     /// <summary>Serves as an abstract of the main entry point for the URSA.</summary>
     /// <typeparam name="T">Type of the requests.</typeparam>
-    /// <typeparam name="R">Type of the response.</typeparam>
-    public abstract class RequestHandlerBase<T, R> : IRequestHandler<T, R>
+    /// <typeparam name="TR">Type of the response.</typeparam>
+    public abstract class RequestHandlerBase<T, TR> : IRequestHandler<T, TR>
         where T : IRequestInfo
-        where R : IResponseInfo
+        where TR : IResponseInfo
     {
-        /// <summary>Initializes a new instance of the <see cref="RequestHandlerBase{T,R}"/> class.</summary>
-        public RequestHandlerBase()
+        /// <summary>Initializes a new instance of the <see cref="RequestHandlerBase{T,TR}"/> class.</summary>
+        protected RequestHandlerBase()
         {
             UrsaConfigurationSection configuration = (UrsaConfigurationSection)ConfigurationManager.GetSection(UrsaConfigurationSection.ConfigurationSection);
             if (configuration == null)
@@ -42,7 +42,7 @@ namespace URSA.Web
         protected IComponentProvider Container { get; private set; }
 
         /// <inheritdoc />
-        public R HandleRequest(T request)
+        public TR HandleRequest(T request)
         {
             var action = HandlerMapper.MapRequest(request);
             return HandleRequest(request, action);
@@ -52,7 +52,7 @@ namespace URSA.Web
         /// <param name="request">Request details.</param>
         /// <param name="requestMapping">Request mapping.</param>
         /// <returns>Response descriptor.</returns>
-        protected abstract R HandleRequest(T request, IRequestMapping requestMapping);
+        protected abstract TR HandleRequest(T request, IRequestMapping requestMapping);
 
         /// <summary>Initializes the instance of the request handler.</summary>
         protected abstract void Initialize();

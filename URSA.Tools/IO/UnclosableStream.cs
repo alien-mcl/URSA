@@ -7,7 +7,7 @@ namespace System.IO
     /// <summary>Wraps streams so they cannot be closed.</summary>
     public class UnclosableStream : Stream, IDisposable
     {
-        private Stream _stream;
+        private readonly Stream _stream;
 
         /// <summary>Initializes a new instance of the <see cref="UnclosableStream" /> class.</summary>
         /// <param name="stream">Stream to be wrapped.</param>
@@ -179,13 +179,9 @@ namespace System.IO
         /// <inheritdoc />
         protected override void Dispose(bool disposing)
         {
-            if (disposing)
+            if ((disposing) && (_stream != null))
             {
-                if (_stream != null)
-                {
-                    _stream.Dispose();
-                    _stream = null;
-                }
+                _stream.Dispose();
             }
 
             base.Dispose(disposing);

@@ -81,7 +81,13 @@
     <Compile Include="Given_instance_of_the\binder\FromUriArgumentBinder_class.cs" />
     <Compile Include="Given_instance_of_the\ControllerDescriptionBuilder_class\when_having_standard_controller.cs" />
     <Compile Include="Given_instance_of_the\ControllerDescriptionBuilder_class\when_having_dependent_route_controller.cs" />
+    <Compile Include="Given_instance_of_the\HeaderValue_class\when_integer_specialized_instance_is_given.cs" />
     <Compile Include="Given_instance_of_the\RequestHandler_class.cs" />
+    <Compile Include="Given_instance_of_the\RequestInfo_class.cs" />
+    <Compile Include="Given_instance_of_the\MultiObjectResponseInfo_class.cs" />
+    <Compile Include="Given_instance_of_the\HeaderValue_class\when_not_specialized_instance_is_given.cs" />
+    <Compile Include="Given_instance_of_the\DelegateMapper_class.cs" />
+    <Compile Include="Given_instance_of_the\Verb_class.cs" />
     <Compile Include="Testing\ArgumentBinderTest.cs" />
     <Compile Include="Given_instance_of_the\converter_of\BinaryConverter_class.cs" />
     <Compile Include="Given_instance_of_the\ObjectResponseInfo_class.cs" />

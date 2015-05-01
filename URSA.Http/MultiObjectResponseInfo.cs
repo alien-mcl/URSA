@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -17,18 +18,20 @@ namespace URSA.Web.Http
         /// <param name="values">Values to be returned.</param>
         /// <param name="converterProvider">Converter provider instance.</param>
         /// <param name="headers">Headers of the response.</param>
-        public MultiObjectResponseInfo(RequestInfo request, IEnumerable<object> values, IConverterProvider converterProvider, params Header[] headers) : 
+        [ExcludeFromCodeCoverage]
+        public MultiObjectResponseInfo(RequestInfo request, IEnumerable<object> values, IConverterProvider converterProvider, params Header[] headers) :
             this(Encoding.UTF8, request, values, converterProvider, headers)
         {
         }
-        
+
         /// <summary>Initializes a new instance of the <see cref="MultiObjectResponseInfo" /> class.</summary>
         /// <param name="encoding">Text encoding of the response.</param>
         /// <param name="request">Corresponding request.</param>
         /// <param name="values">Values to be returned.</param>
         /// <param name="converterProvider">Converter provider instance.</param>
         /// <param name="headers">Headers of the response.</param>
-        public MultiObjectResponseInfo(Encoding encoding, RequestInfo request, IEnumerable<object> values, IConverterProvider converterProvider, params Header[] headers) : 
+        [ExcludeFromCodeCoverage]
+        public MultiObjectResponseInfo(Encoding encoding, RequestInfo request, IEnumerable<object> values, IConverterProvider converterProvider, params Header[] headers) :
             base(encoding, request, headers)
         {
             Initialize(encoding, request, values, converterProvider);
@@ -39,7 +42,8 @@ namespace URSA.Web.Http
         /// <param name="values">Values to be returned.</param>
         /// <param name="converterProvider">Converter provider instance.</param>
         /// <param name="headers">Headers of the response.</param>
-        public MultiObjectResponseInfo(RequestInfo request, IEnumerable<object> values, IConverterProvider converterProvider, HeaderCollection headers) : 
+        [ExcludeFromCodeCoverage]
+        public MultiObjectResponseInfo(RequestInfo request, IEnumerable<object> values, IConverterProvider converterProvider, HeaderCollection headers) :
             this(Encoding.UTF8, request, values, converterProvider, headers)
         {
         }
@@ -50,6 +54,7 @@ namespace URSA.Web.Http
         /// <param name="values">Values to be returned.</param>
         /// <param name="converterProvider">Converter provider instance.</param>
         /// <param name="headers">Headers of the response.</param>
+        [ExcludeFromCodeCoverage]
         public MultiObjectResponseInfo(Encoding encoding, RequestInfo request, IEnumerable<object> values, IConverterProvider converterProvider, HeaderCollection headers) :
             base(encoding, request, headers)
         {
@@ -60,22 +65,26 @@ namespace URSA.Web.Http
         public IEnumerable<object> Values { get; private set; }
 
         /// <inheritdoc />
-        public sealed override Stream Body { get; protected set; }
+        public override sealed Stream Body { get; protected set; }
 
         /// <inheritdoc />
-        public sealed override void Dispose()
+        [ExcludeFromCodeCoverage]
+        public override sealed void Dispose()
         {
             Dispose(true);
             GC.SuppressFinalize(this);
         }
 
+        [ExcludeFromCodeCoverage]
         protected virtual void Dispose(bool disposing)
         {
-            if (disposing)
+            if (!disposing)
             {
-                _body.Dispose();
-                _body = null;
+                return;
             }
+
+            _body.Dispose();
+            _body = null;
         }
 
         private void Initialize(Encoding encoding, RequestInfo request, IEnumerable<object> values, IConverterProvider converterProvider)
@@ -89,32 +98,36 @@ namespace URSA.Web.Http
             Headers.ContentType = String.Format("multipart/mixed; boundary=\"{0}\"", boundary);
             _body = new MemoryStream();
             Body = new UnclosableStream(_body);
-            var writer = new StreamWriter(Body);
-            foreach (var value in values.Where(value => value != null))
+            using (var writer = new StreamWriter(Body))
             {
-                writer.Write("--{0}\r\n", boundary);
-                var type = value.GetType();
-                var objectResponse = (ResponseInfo)typeof(ObjectResponseInfo<>).MakeGenericType(type)
-                    .GetConstructor(new[] { typeof(Encoding), typeof(RequestInfo), type, typeof(IConverterProvider), typeof(Header[]) })
-                    .Invoke(new[] { encoding, request, value, converterProvider, new Header[0] });
-                foreach (var header in objectResponse.Headers)
+                foreach (var value in values.Where(value => value != null))
                 {
-                    switch (header.Name)
+                    writer.Write("--{0}\r\n", boundary);
+                    var objectResponse = ObjectResponseInfo<object>.CreateInstance(encoding, request, value.GetType(), value, converterProvider);
+                    foreach (var header in objectResponse.Headers)
                     {
-                        case "Content-Lenght":
-                            break;
-                        default:
-                            writer.Write("{0}\r\n", header);
-                            break;
+                        switch (header.Name)
+                        {
+                            case "Content-Lenght":
+                                break;
+                            default:
+                                writer.Write("{0}\r\n", header);
+                                break;
+                        }
                     }
+
+                    writer.Write("Content-Length:{0}\r\n\r\n", objectResponse.Body.Length);
+                    writer.Flush();
+                    objectResponse.Body.CopyTo(Body);
+                    writer.Flush();
+                    writer.Write("\r\n");
+                    writer.Flush();
                 }
 
-                writer.Write("Content-Lenght: {0}\r\n\r\n", objectResponse.Body.Length);
-                objectResponse.Body.CopyTo(Body);
-                writer.Write("\r\n");
+                writer.Write("--{0}--", boundary);
+                writer.Flush();
             }
 
-            writer.Write("--{0}--\r\n", boundary);
             _body.Seek(0, SeekOrigin.Begin);
             Values = values;
         }

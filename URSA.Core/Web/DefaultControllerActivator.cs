@@ -8,7 +8,7 @@ namespace URSA.Web
     /// <summary>Default implementation of the <see cref="IControllerActivator" />.</summary>
     public class DefaultControllerActivator : IControllerActivator
     {
-        private IComponentProvider _container;
+        private readonly IComponentProvider _container;
 
         /// <summary>Initializes a new instance of the <see cref="DefaultControllerActivator" /> class.</summary>
         /// <param name="container">Dependency injection container.</param>

@@ -8,12 +8,7 @@ namespace URSA.Web.Converters
     /// <summary>Default implementation of the <see cref="IConverterProvider" />.</summary>
     public class DefaultConverterProvider : IConverterProvider
     {
-        private IEnumerable<IConverter> _converters = null;
-
-        /// <summary>Initializes a new instance of the <see cref="DefaultConverterProvider" /> class.</summary>
-        public DefaultConverterProvider()
-        {
-        }
+        private IEnumerable<IConverter> _converters;
 
         /// <inheritdoc />
         public void Initialize(IEnumerable<IConverter> converters)

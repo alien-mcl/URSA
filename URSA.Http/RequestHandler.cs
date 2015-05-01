@@ -38,13 +38,9 @@ namespace URSA.Web.Http
         /// <inheritdoc />
         protected override void Initialize()
         {
-            IList<IHttpControllerDescriptionBuilder> builders = new List<IHttpControllerDescriptionBuilder>();
             var controllerTypes = Container.ResolveAllTypes<IController>();
-            foreach (var controllerType in controllerTypes)
-            {
-                builders.Add((IHttpControllerDescriptionBuilder)Container.Resolve(typeof(IHttpControllerDescriptionBuilder<>).MakeGenericType(controllerType)));
-            }
-
+            IList<IHttpControllerDescriptionBuilder> builders = controllerTypes
+                .Select(controllerType => (IHttpControllerDescriptionBuilder)Container.Resolve(typeof(IHttpControllerDescriptionBuilder<>).MakeGenericType(controllerType))).ToList();
             Container.Register<IDelegateMapper<RequestInfo>>(new DelegateMapper(builders, Container.Resolve<IControllerActivator>()));
             Container.Register<IArgumentBinder<RequestInfo>>(new ArgumentBinder(Container.ResolveAll<IParameterSourceArgumentBinder>()));
         }
@@ -52,30 +48,34 @@ namespace URSA.Web.Http
         private static IDictionary<Verb, MethodInfo> GetCrudMethods(Type controllerType)
         {
             IDictionary<Verb, MethodInfo> result;
-            if (!ControllerCrudMethodsCache.TryGetValue(controllerType, out result))
+            if (ControllerCrudMethodsCache.TryGetValue(controllerType, out result))
             {
-                ControllerCrudMethodsCache[controllerType] = result = new Dictionary<Verb, MethodInfo>();
-                foreach (var @interface in controllerType.GetInterfaces())
+                return result;
+            }
+
+            ControllerCrudMethodsCache[controllerType] = result = new Dictionary<Verb, MethodInfo>();
+            foreach (var @interface in controllerType.GetInterfaces())
+            {
+                if (!@interface.IsGenericType)
                 {
-                    if (@interface.IsGenericType)
-                    {
-                        var definition = @interface.GetGenericTypeDefinition();
-                        if (typeof(IController<>).IsAssignableFrom(definition))
-                        {
-                            result[new Verb(String.Empty)] = controllerType.GetInterfaceMap(@interface).TargetMethods.First();
-                        }
-                        else if (typeof(IReadController<,>).IsAssignableFrom(definition))
-                        {
-                            result[Verb.GET] = controllerType.GetInterfaceMap(@interface).TargetMethods.First();
-                        }
-                        else if (typeof(IWriteController<,>).IsAssignableFrom(definition))
-                        {
-                            var write = @interface;
-                            result[Verb.POST] = controllerType.GetInterfaceMap(write).TargetMethods.First(method => method.Name == "Create");
-                            result[Verb.PUT] = controllerType.GetInterfaceMap(write).TargetMethods.First(method => method.Name == "Update");
-                            result[Verb.DELETE] = controllerType.GetInterfaceMap(write).TargetMethods.First(method => method.Name == "Delete");
-                        }
-                    }
+                    continue;
+                }
+
+                var definition = @interface.GetGenericTypeDefinition();
+                if (typeof(IController<>).IsAssignableFrom(definition))
+                {
+                    result[new Verb(String.Empty)] = controllerType.GetInterfaceMap(@interface).TargetMethods.First();
+                }
+                else if (typeof(IReadController<,>).IsAssignableFrom(definition))
+                {
+                    result[Verb.GET] = controllerType.GetInterfaceMap(@interface).TargetMethods.First();
+                }
+                else if (typeof(IWriteController<,>).IsAssignableFrom(definition))
+                {
+                    var write = @interface;
+                    result[Verb.POST] = controllerType.GetInterfaceMap(write).TargetMethods.First(method => method.Name == "Create");
+                    result[Verb.PUT] = controllerType.GetInterfaceMap(write).TargetMethods.First(method => method.Name == "Update");
+                    result[Verb.DELETE] = controllerType.GetInterfaceMap(write).TargetMethods.First(method => method.Name == "Delete");
                 }
             }
 

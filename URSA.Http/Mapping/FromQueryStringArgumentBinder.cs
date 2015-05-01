@@ -11,7 +11,7 @@ namespace URSA.Web.Http.Mapping
     /// <summary>Binds arguments from <see cref="FromQueryStringAttribute" />.</summary>
     public class FromQueryStringArgumentBinder : IParameterSourceArgumentBinder<FromQueryStringAttribute>
     {
-        private IConverterProvider _converterProvider;
+        private readonly IConverterProvider _converterProvider;
 
         /// <summary>Initializes a new instance of the <see cref="FromQueryStringArgumentBinder" /> class.</summary>
         /// <param name="converterProvider">Converters provider</param>
@@ -68,26 +68,26 @@ namespace URSA.Web.Http.Mapping
         {
             success = false;
             var converter = TypeDescriptor.GetConverter(itemType);
-            if ((converter != null) && (converter.CanConvertFrom(typeof(string))))
+            if ((converter == null) || (!converter.CanConvertFrom(typeof(string))))
             {
-                success = true;
-                var values = matches.Cast<Match>().Select(match => converter.ConvertFromInvariantString(match.Groups["Value"].Value));
-                return values.MakeInstance(context.Parameter.ParameterType, itemType);
+                return null;
             }
 
-            return null;
+            success = true;
+            var values = matches.Cast<Match>().Select(match => converter.ConvertFromInvariantString(match.Groups["Value"].Value));
+            return values.MakeInstance(context.Parameter.ParameterType, itemType);
         }
 
         private object ConvertUsingCustomConverters(ArgumentBindingContext<FromQueryStringAttribute> context, MatchCollection matches, Type itemType)
         {
             var converter = _converterProvider.FindBestInputConverter(context.Parameter.ParameterType, context.Request, true);
-            if (converter != null)
+            if (converter == null)
             {
-                var values = matches.Cast<Match>().Select(match => converter.ConvertTo(itemType, match.Groups["Value"].Value));
-                return values.MakeInstance(context.Parameter.ParameterType, itemType);
+                return null;
             }
 
-            return null;
+            var values = matches.Cast<Match>().Select(match => converter.ConvertTo(itemType, match.Groups["Value"].Value));
+            return values.MakeInstance(context.Parameter.ParameterType, itemType);
         }
     }
 }

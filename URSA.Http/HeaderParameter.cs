@@ -128,24 +128,21 @@ namespace URSA.Web.Http
         private static HeaderParameter ParseInternal(string key, string rest)
         {
             HeaderParameter result = new HeaderParameter(key);
-            if (rest != null)
+            if (rest == null)
             {
-                if ((rest.Length > 2) && (rest[0] == '"') && (rest[rest.Length - 1] == '"'))
-                {
-                    result.Value = Regex.Unescape(rest.Trim('"'));
-                }
-                else
-                {
-                    double numericValue;
-                    if (Double.TryParse(rest, AllowedNumberStyles, CultureInfo.InvariantCulture, out numericValue))
-                    {
-                        result.Value = numericValue;
-                    }
-                    else
-                    {
-                        result.Value = AppDomain.CurrentDomain.GetAssemblies().FindEnumValue(rest);
-                    }
-                }
+                return result;
+            }
+
+            if ((rest.Length > 2) && (rest[0] == '"') && (rest[rest.Length - 1] == '"'))
+            {
+                result.Value = Regex.Unescape(rest.Trim('"'));
+            }
+            else
+            {
+                double numericValue;
+                result.Value = (Double.TryParse(rest, AllowedNumberStyles, CultureInfo.InvariantCulture, out numericValue) ? 
+                    numericValue :
+                    AppDomain.CurrentDomain.GetAssemblies().FindEnumValue(rest)) ?? rest;
             }
 
             return result;

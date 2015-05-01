@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Configuration;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 
 namespace URSA.Configuration
@@ -13,6 +14,7 @@ namespace URSA.Configuration
         /// <param name="type">Type of the provider implementing <typeparamref name="T" /> to get constructor for.</param>
         /// <param name="parameterTypes">Optional constructor parameter types.</param>
         /// <returns>Default constructor.</returns>
+        [ExcludeFromCodeCoverage]
         public static ConstructorInfo GetProvider<T>(this ConfigurationElement configSection, Type type, params Type[] parameterTypes)
         {
             if (type == null)

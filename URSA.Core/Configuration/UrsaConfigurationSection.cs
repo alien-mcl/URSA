@@ -83,26 +83,27 @@ namespace URSA.Configuration
         /// <returns>Implementation of the <see cref="IComponentProvider" /> pointed in the configuration with installers loaded.</returns>
         public static IComponentProvider InitializeComponentProvider()
         {
-            if (ComponentProvider == null)
+            if (ComponentProvider != null)
             {
-                UrsaConfigurationSection configuration = (UrsaConfigurationSection)ConfigurationManager.GetSection(UrsaConfigurationSection.ConfigurationSection);
-                if (configuration == null)
-                {
-                    throw new InvalidOperationException(String.Format("Cannot instantiate a '{0}' without a proper configuration.", typeof(IComponentProvider)));
-                }
-
-                string installerAssemblyNameMask = configuration.InstallerAssemblyNameMask ?? DefaultInstallerAssemblyNameMask;
-                var componentProviderCtor = ConfigurationSectionExtensions.GetProvider<IComponentProvider>(null, configuration.ServiceProviderType);
-                var container = (IComponentProvider)componentProviderCtor.Invoke(null);
-                var assemblies = GetInstallerAssemblies(installerAssemblyNameMask).Concat(new Assembly[] { Assembly.GetExecutingAssembly() });
-                container.Install(assemblies);
-                container.RegisterAll<IConverter>(assemblies);
-                var converterProvider = (IConverterProvider)(configuration.GetProvider<IConverterProvider>(configuration.ConverterProviderType ?? typeof(DefaultConverterProvider))).Invoke(null);
-                converterProvider.Initialize(container.ResolveAll<IConverter>());
-                container.Register(converterProvider);
-                ComponentProvider = container;
+                return ComponentProvider;
             }
 
+            UrsaConfigurationSection configuration = (UrsaConfigurationSection)ConfigurationManager.GetSection(UrsaConfigurationSection.ConfigurationSection);
+            if (configuration == null)
+            {
+                throw new InvalidOperationException(String.Format("Cannot instantiate a '{0}' without a proper configuration.", typeof(IComponentProvider)));
+            }
+
+            string installerAssemblyNameMask = configuration.InstallerAssemblyNameMask ?? DefaultInstallerAssemblyNameMask;
+            var componentProviderCtor = ConfigurationSectionExtensions.GetProvider<IComponentProvider>(null, configuration.ServiceProviderType);
+            var container = (IComponentProvider)componentProviderCtor.Invoke(null);
+            var assemblies = GetInstallerAssemblies(installerAssemblyNameMask).Concat(new Assembly[] { Assembly.GetExecutingAssembly() });
+            container.Install(assemblies);
+            container.RegisterAll<IConverter>(assemblies);
+            var converterProvider = (IConverterProvider)(configuration.GetProvider<IConverterProvider>(configuration.ConverterProviderType ?? typeof(DefaultConverterProvider))).Invoke(null);
+            converterProvider.Initialize(container.ResolveAll<IConverter>());
+            container.Register(converterProvider);
+            ComponentProvider = container;
             return ComponentProvider;
         }
 

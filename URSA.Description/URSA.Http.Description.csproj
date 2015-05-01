@@ -82,9 +82,14 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ApiDescriptionBuilder.cs" />
+    <EmbeddedResource Include="CodeGen\Templates\Client.cs" />
+    <EmbeddedResource Include="CodeGen\Templates\Entity.cs" />
     <Compile Include="CodeGen\HydraClassGenerator.cs" />
     <Compile Include="CodeGen\GenericUriParser.cs" />
     <Compile Include="CodeGen\OGuidUriParser.cs" />
+    <EmbeddedResource Include="CodeGen\Templates\Operation.cs" />
+    <EmbeddedResource Include="CodeGen\Templates\Property.cs" />
+    <EmbeddedResource Include="CodeGen\Templates\Response.cs" />
     <Compile Include="CodeGen\SpecializedUriParser.cs" />
     <Compile Include="CodeGen\XsdUriParser.cs" />
     <Compile Include="CodeGen\HydraUriParser.cs" />

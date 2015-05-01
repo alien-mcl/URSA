@@ -11,7 +11,7 @@ namespace URSA.Web.Http.Mapping
     /// <summary>Binds arguments from <see cref="FromQueryStringAttribute" />.</summary>
     public class FromBodyArgumentBinder : IParameterSourceArgumentBinder<FromBodyAttribute>
     {
-        private IConverterProvider _converterProvider;
+        private readonly IConverterProvider _converterProvider;
 
         /// <summary>Initializes a new instance of the <see cref="FromQueryStringArgumentBinder" /> class.</summary>
         /// <param name="converterProvider">Converters provider</param>
@@ -46,14 +46,14 @@ namespace URSA.Web.Http.Mapping
             }
 
             var converter = _converterProvider.FindBestInputConverter(context.Parameter.ParameterType, context.Request);
-            if (converter != null)
+            if (converter == null)
             {
-                object result = converter.ConvertTo(context.Parameter.ParameterType, context.Request);
-                context.Request.Body.Seek(0, SeekOrigin.Begin);
-                return result;
+                return null;
             }
 
-            return null;
+            object result = converter.ConvertTo(context.Parameter.ParameterType, context.Request);
+            context.Request.Body.Seek(0, SeekOrigin.Begin);
+            return result;
         }
 
         private object GetArgumentValueFromMultipartBody(ArgumentBindingContext<FromBodyAttribute> context)
@@ -80,32 +80,15 @@ namespace URSA.Web.Http.Mapping
                 return GetArgumentValueFromMultipartFormDataBody(context);
             }
 
-            if (!context.Success)
-            {
-                return GetArgumentValueFromMultipartMixedBody(context);
-            }
-
-            return null;
+            return (!context.Success ? GetArgumentValueFromMultipartMixedBody(context) : null);
         }
 
         private object GetArgumentValueFromMultipartMixedBody(ArgumentBindingContext<FromBodyAttribute> context)
         {
             RequestInfo[] parts = context.MultipartBodies[context.Request];
-            int partIndex = 0;
-            foreach (var argument in context.RequestMapping.Operation.UnderlyingMethod.GetParameters())
-            {
-                if (argument == context.Parameter)
-                {
-                    break;
-                }
-
-                var argumentSource = argument.GetCustomAttribute<ParameterSourceAttribute>(true);
-                if (argumentSource is FromBodyAttribute)
-                {
-                    partIndex++;
-                }
-            }
-
+            int partIndex = context.RequestMapping.Operation.UnderlyingMethod.GetParameters()
+                .TakeWhile(argument => argument != context.Parameter)
+                .Select(argument => argument.GetCustomAttribute<ParameterSourceAttribute>(true)).OfType<FromBodyAttribute>().Count();
             if (partIndex < parts.Length)
             {
                 return GetArgumentValue(new ArgumentBindingContext<FromBodyAttribute>(
@@ -132,19 +115,19 @@ namespace URSA.Web.Http.Mapping
                         where (param.Name == "name") && (param.Value is string) && 
                             (String.Compare((string)param.Value, context.ParameterSource.Name, true) == 0)
                         select item).FirstOrDefault();
-            if (part != null)
+            if (part == null)
             {
-                context.Success = true;
-                return GetArgumentValue(new ArgumentBindingContext<FromBodyAttribute>(
-                    part,
-                    context.RequestMapping,
-                    context.Parameter,
-                    context.Index,
-                    context.ParameterSource,
-                    context.MultipartBodies));
+                return null;
             }
 
-            return null;
+            context.Success = true;
+            return GetArgumentValue(new ArgumentBindingContext<FromBodyAttribute>(
+                part,
+                context.RequestMapping,
+                context.Parameter,
+                context.Index,
+                context.ParameterSource,
+                context.MultipartBodies));
         }
 
         private RequestInfo[] ParseMultipartMessage(Verb method, Uri uri, string content, string boundary)

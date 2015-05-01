@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using URSA.Web.Description;
 
 namespace URSA.Web.Http
@@ -10,6 +11,7 @@ namespace URSA.Web.Http
         /// <param name="target">Target of the invocation.</param>
         /// <param name="operation">Operation to be invoked.</param>
         /// <param name="methodRoute">Method route.</param>
+        [ExcludeFromCodeCoverage]
         public RequestMapping(IController target, OperationInfo<Verb> operation, Uri methodRoute)
         {
             if (target == null)
@@ -40,6 +42,7 @@ namespace URSA.Web.Http
         public OperationInfo<Verb> Operation { get; private set; }
 
         /// <inheritdoc />
+        [ExcludeFromCodeCoverage]
         public object Invoke(params object[] arguments)
         {
             return Operation.UnderlyingMethod.Invoke(Target, arguments);

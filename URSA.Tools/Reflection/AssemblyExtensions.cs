@@ -34,7 +34,7 @@ namespace System.Reflection
                 try
                 {
                     result = (from type in assembly.GetTypes()
-                              where type.IsEnum
+                              where (type.IsEnum) && (!type.IsGenericType)
                               from enumValue in Enum.GetValues(type).Cast<object>()
                               where StringComparer.OrdinalIgnoreCase.Equals(enumValue.ToString(), value)
                               select enumValue).FirstOrDefault();

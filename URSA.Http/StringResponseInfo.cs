@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Text;
 
@@ -12,6 +13,7 @@ namespace URSA.Web.Http
         /// <summary>Initializes a new instance of the <see cref="StringResponseInfo" /> class.</summary>
         /// <param name="content">String content.</param>
         /// <param name="request">Request details.</param>
+        [ExcludeFromCodeCoverage]
         public StringResponseInfo(string content, RequestInfo request) : this(Encoding.UTF8, content, request)
         {
         }
@@ -20,6 +22,7 @@ namespace URSA.Web.Http
         /// <param name="encoding">Text encoding of the response.</param>
         /// <param name="content">String content.</param>
         /// <param name="request">Request details.</param>
+        [ExcludeFromCodeCoverage]
         public StringResponseInfo(Encoding encoding, string content, RequestInfo request) : base(encoding, request)
         {
             if (content != null)
@@ -43,19 +46,23 @@ namespace URSA.Web.Http
         public sealed override Stream Body { get; protected set; }
 
         /// <inheritdoc />
+        [ExcludeFromCodeCoverage]
         public sealed override void Dispose()
         {
             Dispose(true);
             GC.SuppressFinalize(this);
         }
 
+        [ExcludeFromCodeCoverage]
         protected virtual void Dispose(bool disposing)
         {
-            if (disposing)
+            if (!disposing)
             {
-                _body.Dispose();
-                _body = null;
+                return;
             }
+
+            _body.Dispose();
+            _body = null;
         }
     }
 }
