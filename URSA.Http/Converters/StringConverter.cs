@@ -145,7 +145,7 @@ namespace URSA.Web.Http.Converters
             responseInfo.Headers.ContentType = TextPlain;
             if (instance != null)
             {
-                if (!givenType.IsAssignableFrom(instance.GetType()))
+                if (!givenType.IsInstanceOfType(instance))
                 {
                     throw new InvalidOperationException(String.Format("Instance type '{0}' mismatch from the given '{1}'.", instance.GetType(), givenType));
                 }
@@ -169,6 +169,7 @@ namespace URSA.Web.Http.Converters
                 using (var writer = new StreamWriter(responseInfo.Body))
                 {
                     writer.Write(content);
+                    writer.Flush();
                 }
             }
         }

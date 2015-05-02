@@ -2,6 +2,7 @@
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Linq;
+using URSA.Web.Converters;
 using URSA.Web.Http.Converters;
 using URSA.Web.Http.Testing;
 
@@ -9,27 +10,51 @@ namespace Given_instance_of_the.converter_of
 {
     [ExcludeFromCodeCoverage]
     [TestClass]
-    public class BinaryConverter_class : ConverterTest<BinaryConverter>
+    public class BinaryConverter_class : ConverterTest<BinaryConverter, byte>
     {
-        [TestMethod]
-        public void it_should_deserialize_message_as_an_array_of_bytes()
-        {
-            byte[] body = new byte[] { 1, 2 };
-            var result = ConvertTo<byte[]>("POST", "PostString", "text/plain", System.Convert.ToBase64String(body));
+        private const string ContentType = "application/octet-stream";
+        private const byte Entity = default(byte);
+        private static readonly byte[] Entities = { 0x01, 0x02 };
 
-            result.Should().NotBeNull();
-            result.Should().HaveCount(body.Length);
-            result.First().Should().Be(body.First());
-            result.Last().Should().Be(body.Last());
+        protected override string SingleEntityContentType { get { return ContentType; } }
+
+        protected override string MultipleEntitiesContentType { get { return ContentType; } }
+
+        protected override byte SingleEntity { get { return Entity; } }
+
+        protected override byte[] MultipleEntities { get { return Entities; } }
+
+        protected override string MultipleEntitiesBody { get { return System.Convert.ToBase64String(Entities); } }
+
+        [TestMethod]
+        public override void it_should_test_deserialization_compatibility()
+        {
+            var result = CanConvertTo<byte[]>("POST", OperationName, MultipleEntitiesContentType, MultipleEntitiesBody);
+
+            result.Should().NotBe(CompatibilityLevel.None);
         }
 
         [TestMethod]
-        public void it_should_serialize_array_of_bytes_to_message()
+        public override void it_should_test_serialization_compatibility()
         {
-            byte[] body = new byte[] { 1, 2 };
-            var content = ConvertFrom<byte[]>("POST", "PostStrings", "text/plain", body);
+            var result = CanConvertFrom("POST", OperationName, MultipleEntitiesContentType, MultipleEntities);
 
-            content.Should().Be(System.Convert.ToBase64String(body));
+            result.Should().NotBe(CompatibilityLevel.None);
+        }
+
+        [TestMethod]
+        public override void it_should_deserialize_message_as_an_entity()
+        {
+        }
+
+        [TestMethod]
+        public override void it_should_serialize_an_entity_to_message()
+        {
+        }
+
+        [TestMethod]
+        public override void it_should_deserialize_message_body_as_an_entity()
+        {
         }
     }
 }

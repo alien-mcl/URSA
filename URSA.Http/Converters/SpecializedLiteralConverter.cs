@@ -52,23 +52,25 @@ namespace URSA.Web.Http.Converters
 
             var result = CompatibilityLevel.ExactTypeMatch;
             var contentType = requestInfo.Headers[Header.ContentType];
-            if ((contentType != null) && (contentType.Values.Any(value => value == StringConverter.TextPlain)))
+            if ((contentType == null) || (!contentType.Values.Any(value => value == StringConverter.TextPlain)))
             {
-                var itemType = expectedType.GetItemType();
-                using (var reader = new StreamReader(request.Body))
-                {
-                    string content = reader.ReadToEnd();
-                    if (String.IsNullOrEmpty(content))
-                    {
-                        return result;
-                    }
+                return result;
+            }
 
-                    object value = ParseValue(itemType, content);
-                    request.Body.Seek(0, SeekOrigin.Begin);
-                    if (value != null)
-                    {
-                        result |= CompatibilityLevel.ProtocolMatch;
-                    }
+            var itemType = expectedType.GetItemType();
+            using (var reader = new StreamReader(request.Body))
+            {
+                string content = reader.ReadToEnd();
+                if (String.IsNullOrEmpty(content))
+                {
+                    return result;
+                }
+
+                object value = ParseValue(itemType, content);
+                request.Body.Seek(0, SeekOrigin.Begin);
+                if (value != null)
+                {
+                    result |= CompatibilityLevel.ProtocolMatch;
                 }
             }
 
@@ -216,6 +218,7 @@ namespace URSA.Web.Http.Converters
                 using (var writer = new StreamWriter(responseInfo.Body))
                 {
                     writer.Write(content);
+                    writer.Flush();
                 }
             }
         }

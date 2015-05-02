@@ -142,6 +142,7 @@ namespace URSA.Web.Http.Converters
             using (var writer = new StreamWriter(responseInfo.Body))
             {
                 writer.Write(JsonConvert.SerializeObject(instance));
+                writer.Flush();
             }
         }
     }

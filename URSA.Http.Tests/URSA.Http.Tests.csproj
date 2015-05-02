@@ -40,11 +40,13 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="FluentAssertions">
-      <HintPath>..\packages\FluentAssertions.3.2.2\lib\net45\FluentAssertions.dll</HintPath>
+    <Reference Include="FluentAssertions, Version=3.3.0.0, Culture=neutral, PublicKeyToken=33f2691a05b67b6a, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\FluentAssertions.3.3.0\lib\net45\FluentAssertions.dll</HintPath>
     </Reference>
-    <Reference Include="FluentAssertions.Core">
-      <HintPath>..\packages\FluentAssertions.3.2.2\lib\net45\FluentAssertions.Core.dll</HintPath>
+    <Reference Include="FluentAssertions.Core, Version=3.3.0.0, Culture=neutral, PublicKeyToken=33f2691a05b67b6a, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\FluentAssertions.3.3.0\lib\net45\FluentAssertions.Core.dll</HintPath>
     </Reference>
     <Reference Include="Moq, Version=4.2.1502.911, Culture=neutral, PublicKeyToken=69f491c39445e920, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -81,6 +83,8 @@
     <Compile Include="Given_instance_of_the\binder\FromUriArgumentBinder_class.cs" />
     <Compile Include="Given_instance_of_the\ControllerDescriptionBuilder_class\when_having_standard_controller.cs" />
     <Compile Include="Given_instance_of_the\ControllerDescriptionBuilder_class\when_having_dependent_route_controller.cs" />
+    <Compile Include="Given_instance_of_the\converter_of\DecimalConverter_class.cs" />
+    <Compile Include="Given_instance_of_the\converter_of\DoubleConverter_class.cs" />
     <Compile Include="Given_instance_of_the\HeaderValue_class\when_integer_specialized_instance_is_given.cs" />
     <Compile Include="Given_instance_of_the\RequestHandler_class.cs" />
     <Compile Include="Given_instance_of_the\RequestInfo_class.cs" />
@@ -99,10 +103,11 @@
     <Compile Include="Given_instance_of_the\HeaderCollection_class.cs" />
     <Compile Include="Given_instance_of_the\Header_class.cs" />
     <Compile Include="Given_instance_of_the\converter_of\BooleanConverter_class.cs" />
-    <Compile Include="Given_instance_of_the\converter_of\NumberConverter_class.cs" />
+    <Compile Include="Given_instance_of_the\converter_of\IntegerConverter_class.cs" />
     <Compile Include="Given_instance_of_the\converter_of\UriConverter_class.cs" />
     <Compile Include="Given_instance_of_the\converter_of\StringConverter_class.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Testing\ComplexTypeConverterTest.cs" />
     <Compile Include="Testing\ConverterTest.cs" />
     <Compile Include="Web\AnotherTestController.cs" />
     <Compile Include="Web\TestController.cs" />

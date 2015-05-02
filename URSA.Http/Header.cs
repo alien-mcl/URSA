@@ -278,7 +278,7 @@ namespace URSA.Web.Http
     /// <typeparam name="T">Type of the value.</typeparam>
     public class Header<T> : Header
     {
-        private ObservableCollection<HeaderValue<T>> _parsedValues;
+        private readonly ObservableCollection<HeaderValue<T>> _parsedValues;
 
         /// <summary>Initializes a new instance of the <see cref="Header" /> class.</summary>
         /// <param name="name">Name of the header.</param>
@@ -294,12 +294,13 @@ namespace URSA.Web.Http
             name, 
             ((typeof(T).IsValueType) && (!values.Any()) ? new HeaderValue<T>[] { new HeaderValue<T>(default(T)) } : values.Cast<HeaderValue>()))
         {
-            (_parsedValues = new ObservableCollection<HeaderValue<T>>()).CollectionChanged += OnParsedValuesCollectionChanged;
+            (_parsedValues = new ObservableCollection<HeaderValue<T>>()).AddRange(values);
+            _parsedValues.CollectionChanged += OnParsedValuesCollectionChanged;
             ValuesCollection.CollectionChanged += OnValuesCollectionChanged;
         }
 
         /// <summary>Gets the header values.</summary>
-        public new ICollection<HeaderValue<T>> Values { get; private set; }
+        public new ICollection<HeaderValue<T>> Values { get { return _parsedValues; } }
 
         private void OnValuesCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {

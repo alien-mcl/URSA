@@ -159,6 +159,7 @@ namespace URSA.Web.Http.Converters
                 using (var writer = new StreamWriter(responseInfo.Body))
                 {
                     writer.Write(Convert.ToBase64String((byte[])instance));
+                    writer.Flush();
                 }
             }
         }

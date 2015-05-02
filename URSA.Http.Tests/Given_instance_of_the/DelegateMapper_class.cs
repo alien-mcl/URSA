@@ -41,12 +41,12 @@ namespace Given_instance_of_the
             var method = typeof(TestController).GetMethod("Add");
             _request = new RequestInfo(Verb.GET, new Uri("http://temp.uri/api/test/add?operandA=1&operandB=2"), new MemoryStream());
             _controller = new TestController();
-            _operation = new OperationInfo<RequestInfo>(
+            _operation = new OperationInfo<Verb>(
                 method,
                 new Uri("add", UriKind.Relative),
                 "add?{?operandA}&{?operandB}",
-                new Regex("add?operandA=[^&]+?&operandB=[^&]"),
-                _request,
+                new Regex(".*"),
+                Verb.GET,
                 method.GetParameters().Select(parameter => (ValueInfo)new ArgumentInfo(parameter, FromQueryStringAttribute.For(parameter), "add?{?" + parameter.Name + "}", parameter.Name)).ToArray());
             var controllerInfo = new ControllerInfo<TestController>(new Uri("api/test", UriKind.Relative), _operation);
             Mock<IHttpControllerDescriptionBuilder> controllerDescriptionBuilder = new Mock<IHttpControllerDescriptionBuilder>(MockBehavior.Strict);

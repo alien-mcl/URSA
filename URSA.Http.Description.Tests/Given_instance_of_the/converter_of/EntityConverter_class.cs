@@ -12,8 +12,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Runtime.Remoting.Messaging;
-using System.Runtime.Remoting.Proxies;
 using URSA.Web.Http.Converters;
 using URSA.Web.Http.Description.Hydra;
 using URSA.Web.Http.Description.Testing;
@@ -26,36 +24,75 @@ namespace Given_instance_of_the.converter_of
 {
     [ExcludeFromCodeCoverage]
     [TestClass]
-    public class EntityConverter_class : ConverterTest<EntityConverter>
+    public class EntityConverter_class : ConverterTest<EntityConverter, IOperation>
     {
+        private const string ContentType = "application/ld+json";
         private const string ClassId = "class";
-        private const string OperationId = "operation";
         private const string Method = "GET";
         private const string BodyPattern = "[{{ \"@id\":\"{0}{2}\", \"@type\":\"{1}Operation\", \"{1}method\":\"GET\", \"{1}returns\":{{ \"@id\":\"{0}{3}\" }} }},{{ \"@id\":\"{0}{3}\", \"@type\":\"{1}Class\" }}]";
         private static readonly Uri Hydra = new Uri("http://www.w3.org/ns/hydra/core#");
-        private static readonly string Body = String.Format(BodyPattern, BaseUri, Hydra, OperationId, ClassId);
+        private static readonly string Body = String.Format(BodyPattern, BaseUri, Hydra, OperationName, ClassId);
         private Mock<IEntityContext> _context;
 
-        [TestMethod]
-        public void it_should_deserialize_message_as_an_IOperation()
-        {
-            var result = ConvertTo<IOperation>("POST", OperationId, "application/ld+json", Body);
+        protected override string SingleEntityContentType { get { return ContentType; } }
 
+        protected override string MultipleEntitiesContentType { get { return ContentType; } }
+
+        protected override string SingleEntityBody { get { return Body; } }
+
+        protected override string MultipleEntitiesBody { get { return null; } }
+
+        protected override IOperation SingleEntity { get { return CreateOperationMock().Object; } }
+
+        protected override IOperation[] MultipleEntities { get { return new IOperation[0]; } }
+
+        [TestMethod]
+        public override void it_should_test_deserialization_compatibility()
+        {
+            base.it_should_test_deserialization_compatibility();
+        }
+
+        [TestMethod]
+        public override void it_should_deserialize_message_as_an_array_of_entities()
+        {
+        }
+
+        [TestMethod]
+        public override void it_should_serialize_array_of_entities_to_message()
+        {
+        }
+
+        [TestMethod]
+        public override void it_should_test_serialization_compatibility()
+        {
+            base.it_should_test_serialization_compatibility();
+        }
+
+        [TestMethod]
+        public override void it_should_deserialize_message_as_an_entity()
+        {
+            base.it_should_deserialize_message_as_an_entity();
+        }
+
+        [TestMethod]
+        public override void it_should_serialize_an_entity_to_message()
+        {
+            base.it_should_serialize_an_entity_to_message();
+        }
+
+        protected override void AssertSingleEntity(IOperation result)
+        {
             result.Should().NotBeNull();
-            result.Id.ToString().Should().Be(new Uri(BaseUri, OperationId).ToString());
+            result.Id.ToString().Should().Be(new Uri(BaseUri, OperationName).ToString());
             result.Method.Should().HaveCount(1);
             result.Method.First().Should().Be(Method);
             result.Returns.Should().HaveCount(1);
             result.Returns.First().Id.ToString().Should().Be(new Uri(BaseUri, ClassId).ToString());
         }
 
-        [TestMethod]
-        public void it_should_serialize_an_IOperation_to_message()
+        protected override void AssertSingleEntityMessage(string result)
         {
-            var content = ConvertFrom<IOperation>("POST", "PostStrings", "application/ld+json", CreateOperationMock().Object);
-
-            JsonLdProcessor.Expand(JToken.Parse(content)).ToString()
-                .Should().Be(JsonLdProcessor.Expand(JToken.Parse(Body)).ToString());
+            JsonLdProcessor.Expand(JToken.Parse(result)).ToString().Should().Be(JsonLdProcessor.Expand(JToken.Parse(Body)).ToString());
         }
 
         protected override EntityConverter CreateInstance()
@@ -65,7 +102,7 @@ namespace Given_instance_of_the.converter_of
             _context.Setup(instance => instance.Load<IOperation>(It.IsAny<EntityId>())).Returns<EntityId>(id => CreateOperationMock(tripleStore, id).Object);
             Mock<IEntityContextFactory> entityContextFactory = new Mock<IEntityContextFactory>();
             entityContextFactory.Setup(instance => instance.CreateContext()).Returns(_context.Object);
-            entityContextFactory.As<IComponentRegistryFacade>().Setup(instance => instance.Register<ITripleStore>(It.IsAny<ITripleStore>()))
+            entityContextFactory.As<IComponentRegistryFacade>().Setup(instance => instance.Register(It.IsAny<ITripleStore>()))
                 .Callback<ITripleStore>(store => tripleStore = store);
             return new EntityConverter(entityContextFactory.Object);
         }
@@ -75,13 +112,13 @@ namespace Given_instance_of_the.converter_of
             var mock = MockHelpers.MockEntity<IOperation>(_context.Object, id);
             var method = (from triple in tripleStore.Triples
                           where (triple.Subject is IUriNode) && (((IUriNode)triple.Subject).Uri.ToString() == id.ToString()) &&
-                            (triple.Predicate is IUriNode) && (((IUriNode)triple.Predicate).Uri.ToString() == Hydra.ToString() + "method") &&
+                            (triple.Predicate is IUriNode) && (((IUriNode)triple.Predicate).Uri.ToString() == Hydra + "method") &&
                             (triple.Object is ILiteralNode)
                           select ((ILiteralNode)triple.Object).Value).ToList();
             mock.SetupGet(instance => instance.Method).Returns(method);
             var returns = (from triple in tripleStore.Triples
                            where (triple.Subject is IUriNode) && (((IUriNode)triple.Subject).Uri.ToString() == id.ToString()) &&
-                             (triple.Predicate is IUriNode) && (((IUriNode)triple.Predicate).Uri.ToString() == Hydra.ToString() + "returns") &&
+                             (triple.Predicate is IUriNode) && (((IUriNode)triple.Predicate).Uri.ToString() == Hydra + "returns") &&
                              (triple.Object is IUriNode)
                            select MockHelpers.MockEntity<IClass>(_context.Object, new EntityId(((IUriNode)triple.Object).Uri))).First();
             mock.SetupGet(instance => instance.Returns).Returns(new IClass[] { returns.Object });
@@ -90,7 +127,7 @@ namespace Given_instance_of_the.converter_of
 
         private Mock<IOperation> CreateOperationMock()
         {
-            var operationUri = new Uri(BaseUri, OperationId);
+            var operationUri = new Uri(BaseUri, OperationName);
             var operationId = new EntityId(operationUri);
             var classUri = new Uri(BaseUri, ClassId);
             var classId = new EntityId(classUri);
