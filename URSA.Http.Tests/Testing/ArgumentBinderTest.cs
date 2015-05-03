@@ -76,7 +76,7 @@ namespace URSA.Web.Http.Testing
                 MethodUri.ToString(),
                 new Regex(".*"),
                 httpVerb,
-                method.GetParameters().Select(item => new URSA.Web.Description.ArgumentInfo(item, new I(), "test={?test}", "test")).ToArray());
+                method.GetParameters().Select(item => new ArgumentInfo(item, new I(), "test={?test}", "test")).ToArray());
             return (ArgumentBindingContext<I>)typeof(ArgumentBindingContext<I>)
                 .GetConstructors(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
                 .First()

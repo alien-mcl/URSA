@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 namespace System.Linq
 {
@@ -9,14 +10,17 @@ namespace System.Linq
         /// <typeparam name="T">Type of items in the enumeration.</typeparam>
         /// <param name="items">Items to be iterated through.</param>
         /// <param name="action">Action to be applied.</param>
+        [ExcludeFromCodeCoverage]
         public static void ForEach<T>(this IEnumerable<T> items, Action<T> action)
         {
-            if ((items != null) && (action != null))
+            if ((items == null) || (action == null))
             {
-                foreach (T item in items)
-                {
-                    action(item);
-                }
+                return;
+            }
+
+            foreach (T item in items)
+            {
+                action(item);
             }
         }
 
@@ -24,6 +28,7 @@ namespace System.Linq
         /// <typeparam name="T">Type of items in the collection.</typeparam>
         /// <param name="items">Collection to add to.</param>
         /// <param name="newItem">Item to be added.</param>
+        [ExcludeFromCodeCoverage]
         public static void AddUnique<T>(this ICollection<T> items, T newItem)
         {
             if (items == null)
@@ -47,6 +52,7 @@ namespace System.Linq
         /// <param name="items">Collection to add to.</param>
         /// <param name="newItem">Item to be added.</param>
         /// <param name="comparer">Comparer to be used when comparing items.</param>
+        [ExcludeFromCodeCoverage]
         public static void AddUnique<T>(this ICollection<T> items, T newItem, IEqualityComparer<T> comparer)
         {
             if (items == null)
@@ -69,6 +75,7 @@ namespace System.Linq
         /// <typeparam name="T">Type of items in the collection.</typeparam>
         /// <param name="items">Collection to add to.</param>
         /// <param name="newItems">Items to be added.</param>
+        [ExcludeFromCodeCoverage]
         public static void AddRange<T>(this ICollection<T> items, IEnumerable<T> newItems)
         {
             if (items == null)

@@ -91,6 +91,11 @@ namespace URSA.Web.Http.Converters
                 throw new ArgumentNullException("expectedType");
             }
 
+            if (request == null)
+            {
+                throw new ArgumentNullException("request");
+            }
+
             string content = null;
             using (var reader = new StreamReader(request.Body))
             {
@@ -109,6 +114,10 @@ namespace URSA.Web.Http.Converters
         /// <inheritdoc />
         public virtual object ConvertTo(Type expectedType, string body)
         {
+            if (expectedType == null)
+            {
+                throw new ArgumentNullException("expectedType");
+            }
 
             if (String.IsNullOrEmpty(body))
             {
@@ -185,41 +194,48 @@ namespace URSA.Web.Http.Converters
         /// <inheritdoc />
         public virtual void ConvertFrom(Type givenType, object instance, IResponseInfo response)
         {
-            var responseInfo = (ResponseInfo)response;
-            responseInfo.Headers.ContentType = StringConverter.TextPlain;
+            if (givenType == null)
+            {
+                throw new ArgumentNullException("givenType");
+            }
+
             if (response == null)
             {
                 throw new ArgumentNullException("response");
             }
 
-            if (instance != null)
+            var responseInfo = (ResponseInfo)response;
+            responseInfo.Headers.ContentType = StringConverter.TextPlain;
+            if (instance == null)
             {
-                if (!givenType.IsInstanceOfType(instance))
+                return;
+            }
+
+            if (!givenType.IsInstanceOfType(instance))
+            {
+                throw new InvalidOperationException(String.Format("Instance type '{0}' mismatch from the given '{1}'.", instance.GetType(), givenType));
+            }
+
+            string content = null;
+            if (!givenType.IsEnumerable())
+            {
+                content = String.Format(CultureInfo.InvariantCulture, "{0}", instance);
+            }
+            else
+            {
+                var builder = new StringBuilder(1024);
+                foreach (var item in (IEnumerable)instance)
                 {
-                    throw new InvalidOperationException(String.Format("Instance type '{0}' mismatch from the given '{1}'.", instance.GetType(), givenType));
+                    builder.AppendFormat(CultureInfo.InvariantCulture, "{0}\r\n", item);
                 }
 
-                string content = null;
-                if (!givenType.IsEnumerable())
-                {
-                    content = String.Format(CultureInfo.InvariantCulture, "{0}", instance);
-                }
-                else
-                {
-                    var builder = new StringBuilder(1024);
-                    foreach (var item in (IEnumerable)instance)
-                    {
-                        builder.AppendFormat(CultureInfo.InvariantCulture, "{0}\r\n", item);
-                    }
+                content = builder.ToString().TrimEnd('\r', '\n');
+            }
 
-                    content = builder.ToString().TrimEnd('\r', '\n');
-                }
-
-                using (var writer = new StreamWriter(responseInfo.Body))
-                {
-                    writer.Write(content);
-                    writer.Flush();
-                }
+            using (var writer = new StreamWriter(responseInfo.Body))
+            {
+                writer.Write(content);
+                writer.Flush();
             }
         }
 

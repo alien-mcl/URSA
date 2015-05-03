@@ -53,7 +53,7 @@ namespace URSA.CodeGen
             var includes = new StringBuilder(256);
             var properties = AnalyzeProperties(supportedClass);
             var operations = AnalyzeOperations(supportedClass, @namespace + "." + name, result);
-            result[name + ".cs"] = String.Format(EntityClassTemplate, @namespace, name, properties, properties.Replace("        public ", "        "));
+            result[name + ".cs"] = String.Format(EntityClassTemplate, @namespace, name, properties.Replace("public new ", "public "), properties.Replace("        public ", "        "));
             result[name + "Client.cs"] = String.Format(ClientClassTemplate, @namespace, name, operations);
             return result;
         }

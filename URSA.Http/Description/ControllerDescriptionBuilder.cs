@@ -225,7 +225,6 @@ namespace URSA.Web.Description.Http
                 if (verb != null)
                 {
                     verbs.Add(verb);
-                    verb = null;
                 }
             }
 

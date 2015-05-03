@@ -57,11 +57,7 @@ namespace URSA.Web.Http
                     throw new InvalidOperationException(String.Format("Parameter name '{0}' and actual parameter '{1}' mismatch.", parameter, value.Name));
                 }
 
-                Remove(parameter);
-                if (value != null)
-                {
-                    Set(value);
-                }
+                Add(value);
             }
         }
 
@@ -103,36 +99,6 @@ namespace URSA.Web.Http
             Add(new HeaderParameter(parameter, value));
         }
 
-        /// <summary>Sets the parameter to the collection.</summary>
-        /// <remarks>If the parameter already exists, it's replaced with the new one.</remarks>
-        /// <param name="parameter">Parameter to be set.</param>
-        public void Set(HeaderParameter parameter)
-        {
-            if (parameter == null)
-            {
-                throw new ArgumentNullException("parameter");
-            }
-
-            _parameters[parameter.Name] = parameter;
-        }
-
-        /// <summary>Sets the parameter to the collection.</summary>
-        /// <remarks>If the parameter already exists, it's value is updated with the <b>null</b> value.</remarks>
-        /// <param name="parameter">Parameter to be set.</param>
-        public void Set(string parameter)
-        {
-            Set(parameter, null);
-        }
-
-        /// <summary>Sets the parameter to the collection.</summary>
-        /// <remarks>If the parameter already exists, it's replaced with the new one.</remarks>
-        /// <param name="parameter">Parameter to be set.</param>
-        /// <param name="value">Value of the parameter.</param>
-        public void Set(string parameter, object value)
-        {
-            Set(new HeaderParameter(parameter, value));
-        }
-
         /// <summary>Removes a parameter.</summary>
         /// <param name="parameter">Parameter to be removed.</param>
         /// <returns><b>true</b> if the parameter was removed;, otherwise <b>false</b>.</returns>
@@ -162,6 +128,7 @@ namespace URSA.Web.Http
         }
 
         /// <summary>Clears the parameters collection.</summary>
+        [ExcludeFromCodeCoverage]
         public void Clear()
         {
             _parameters.Clear();

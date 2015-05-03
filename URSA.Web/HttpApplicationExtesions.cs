@@ -22,28 +22,25 @@ namespace URSA.Web
         /// <param name="application">Application to work with.</param>
         public static void RegisterApis<P>(this HttpApplication application) where P : IRequestInfo
         {
-            var assemblies = UrsaConfigurationSection.GetInstallerAssemblies()
-                .Concat(new Assembly[] { Assembly.GetExecutingAssembly() });
+            var assemblies = UrsaConfigurationSection.GetInstallerAssemblies().Concat(new Assembly[] { Assembly.GetExecutingAssembly() });
             var container = UrsaConfigurationSection.InitializeComponentProvider();
             container.RegisterAll<IController>(assemblies);
             var controllers = container.ResolveAllTypes<IController>();
             IDictionary<string, Route> routes = new Dictionary<string, Route>();
-            foreach (var controller in controllers)
+            foreach (var controller in controllers.Where(controller => (!controller.IsGenericType) || 
+                ((controller.IsGenericType) && (!typeof(DescriptionController<>).IsAssignableFrom(controller.GetGenericTypeDefinition())))))
             {
-                if ((!controller.IsGenericType) || ((controller.IsGenericType) && (!typeof(DescriptionController<>).IsAssignableFrom(controller.GetGenericTypeDefinition()))))
-                {
-                    ((IDictionary<string, Route>)typeof(HttpApplicationExtesions).GetMethods(BindingFlags.NonPublic | BindingFlags.Static)
-                        .Where(method => (method.Name == "RegisterApi") && (method.IsGenericMethodDefinition))
-                        .Select(method => method.MakeGenericMethod(typeof(P), controller))
-                        .First()
-                        .Invoke(null, new object[] { container })).ForEach(route =>
-                            {
-                                if (!routes.ContainsKey(route.Key))
-                                {
-                                    routes.Add(route.Key, route.Value);
-                                }
-                            });
-                }
+                ((IDictionary<string, Route>)typeof(HttpApplicationExtesions).GetMethods(BindingFlags.NonPublic | BindingFlags.Static)
+                    .Where(method => (method.Name == "RegisterApi") && (method.IsGenericMethodDefinition))
+                    .Select(method => method.MakeGenericMethod(typeof(P), controller))
+                    .First()
+                    .Invoke(null, new object[] { container })).ForEach(route =>
+                    {
+                        if (!routes.ContainsKey(route.Key))
+                        {
+                            routes.Add(route.Key, route.Value);
+                        }
+                    });
             }
 
             routes.ForEach(route => RouteTable.Routes.Add(route.Key, route.Value));
@@ -73,7 +70,7 @@ namespace URSA.Web
             routes[typeof(T).FullName + "PropertyIcon"] = new Route(EntityConverter.PropertyIcon, handler);
             routes[typeof(T).FullName + "MethodIcon"] = new Route(EntityConverter.MethodIcon, handler);
             routes[typeof(T).FullName] = new Route(description.Uri.ToString().Substring(1), handler);
-            foreach (var operation in description.Operations.Cast<OperationInfo>())
+            foreach (var operation in description.Operations)
             {
                 string routeTemplate = (operation.UriTemplate ?? operation.Uri.ToString()).Substring(1).Replace("{?", "{");
                 int indexOf = routeTemplate.IndexOf('?');

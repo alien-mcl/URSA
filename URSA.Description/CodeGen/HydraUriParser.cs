@@ -10,8 +10,6 @@ namespace URSA.Web.Http.Description.CodeGen
     /// <summary>Parses URN based <see cref="Uri" />s.</summary>
     public class HydraUriParser : IUriParser
     {
-        internal const string HyDrA = "http://www.w3.org/ns/hydra/core#";
-
         /// <inheritdoc />
         public UriParserCompatibility IsApplicable(Uri uri)
         {

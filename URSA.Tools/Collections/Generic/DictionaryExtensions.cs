@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -16,6 +17,7 @@ namespace System.Collections.Generic
         /// <param name="key">The key.</param>
         /// <param name="defaultValue">The default value.</param>
         /// <returns>Value under <paramref name="key" />.</returns>
+        [ExcludeFromCodeCoverage]
         public static TValue GetOrCreate<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key, Func<TValue> defaultValue)
         {
             if (dictionary == null)
@@ -23,7 +25,7 @@ namespace System.Collections.Generic
                 throw new ArgumentNullException("dictionary");
             }
 
-            if ((!typeof(TKey).IsValueType) && ((object)key == null))
+            if ((!typeof(TKey).IsValueType) && (key == null))
             {
                 throw new ArgumentOutOfRangeException("key");
             }

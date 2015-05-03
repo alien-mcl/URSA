@@ -3,6 +3,7 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Linq;
 using VDS.RDF.Parsing.Handlers;
 
 namespace VDS.RDF.Parsing
@@ -66,17 +67,10 @@ namespace VDS.RDF.Parsing
                             return;
                         }
 
-                        foreach (JProperty property in subjectJObject.Properties())
+                        if (subjectJObject.Properties().Where(property => (property.Name != "@id") && (property.Name != "@type"))
+                            .Any(property => !HandleProperty(property, handler, subject)))
                         {
-                            if ((property.Name == "@id") || (property.Name == "@type"))
-                            {
-                                continue;
-                            }
-
-                            if (!HandleProperty(property, handler, subject))
-                            {
-                                return;
-                            }
+                            return;
                         }
                     }
                 }
@@ -99,6 +93,56 @@ namespace VDS.RDF.Parsing
             }
         }
 
+        private static bool HandleType(JToken type, IRdfHandler handler, string subject)
+        {
+            if (type is JArray)
+            {
+                return ((JArray)type).All(t => HandleTriple(handler, subject, "http://www.w3.org/1999/02/22-rdf-syntax-ns#type", t.ToString(), null, false));
+            }
+
+            return HandleTriple(handler, subject, "http://www.w3.org/1999/02/22-rdf-syntax-ns#type", type.ToString(), null, false);
+        }
+
+        private static bool HandleTriple(IRdfHandler handler, string subject, string predicate, string obj, string datatype, bool isLiteral)
+        {
+            INode subjectNode;
+            if (subject.StartsWith("_"))
+            {
+                string nodeId = subject.Substring(subject.IndexOf(":") + 1);
+                subjectNode = handler.CreateBlankNode(nodeId);
+            }
+            else
+            {
+                subjectNode = handler.CreateUriNode(new Uri(subject));
+            }
+
+            INode predicateNode = handler.CreateUriNode(new Uri(predicate));
+            INode objNode;
+            if (isLiteral)
+            {
+                if (datatype == "http://www.w3.org/2001/XMLSchema#boolean")
+                {
+                    obj = obj.ToLowerInvariant();
+                }
+
+                objNode = (datatype == null) ? handler.CreateLiteralNode(obj) : handler.CreateLiteralNode(obj, new Uri(datatype));
+            }
+            else
+            {
+                if (obj.StartsWith("_"))
+                {
+                    string nodeId = obj.Substring(obj.IndexOf(":") + 1);
+                    objNode = handler.CreateBlankNode(nodeId);
+                }
+                else
+                {
+                    objNode = handler.CreateUriNode(new Uri(obj));
+                }
+            }
+
+            return handler.HandleTriple(new Triple(subjectNode, predicateNode, objNode));
+        }
+
         private bool HandleProperty(JProperty property, IRdfHandler handler, string subject)
         {
             foreach (JObject objectJObject in property.Value)
@@ -114,17 +158,9 @@ namespace VDS.RDF.Parsing
                 }
                 else if (objectJObject.TryGetValue("@value", out value))
                 {
-                    string datatype = null;
+                    string datatype;
                     JToken datatypeJToken;
-                    if (objectJObject.TryGetValue("@type", out datatypeJToken))
-                    {
-                        datatype = datatypeJToken.ToString();
-                    }
-                    else
-                    {
-                        datatype = MapType(value.Type);
-                    }
-
+                    datatype = (objectJObject.TryGetValue("@type", out datatypeJToken) ? datatypeJToken.ToString() : MapType(value.Type));
                     if (!HandleTriple(handler, subject, property.Name, value.ToString(), datatype, true))
                     {
                         return false;
@@ -155,69 +191,6 @@ namespace VDS.RDF.Parsing
             }
 
             return null;
-        }
-
-        private bool HandleType(JToken type, IRdfHandler handler, string subject)
-        {
-            if (type is JArray)
-            {
-                foreach (JToken t in (JArray)type)
-                {
-                    if (!HandleTriple(handler, subject, "http://www.w3.org/1999/02/22-rdf-syntax-ns#type", t.ToString(), null, false))
-                    {
-                        return false;
-                    }
-                }
-            }
-            else
-            {
-                if (!HandleTriple(handler, subject, "http://www.w3.org/1999/02/22-rdf-syntax-ns#type", type.ToString(), null, false))
-                {
-                    return false;
-                }
-            }
-
-            return true;
-        }
-
-        private bool HandleTriple(IRdfHandler handler, string subject, string predicate, string obj, string datatype, bool isLiteral)
-        {
-            INode subjectNode;
-            if (subject.StartsWith("_"))
-            {
-                string nodeId = subject.Substring(subject.IndexOf(":") + 1);
-                subjectNode = handler.CreateBlankNode(nodeId);
-            }
-            else
-            {
-                subjectNode = handler.CreateUriNode(new Uri(subject));
-            }
-
-            INode predicateNode = handler.CreateUriNode(new Uri(predicate));
-            INode objNode;
-            if (isLiteral)
-            {
-                if (datatype == "http://www.w3.org/2001/XMLSchema#boolean")
-                {
-                    obj = ((string)obj).ToLowerInvariant();
-                }
-
-                objNode = (datatype == null) ? handler.CreateLiteralNode((string)obj) : handler.CreateLiteralNode((string)obj, new Uri(datatype));
-            }
-            else
-            {
-                if (obj.StartsWith("_"))
-                {
-                    string nodeId = obj.Substring(obj.IndexOf(":") + 1);
-                    objNode = handler.CreateBlankNode(nodeId);
-                }
-                else
-                {
-                    objNode = handler.CreateUriNode(new Uri(obj));
-                }
-            }
-
-            return handler.HandleTriple(new Triple(subjectNode, predicateNode, objNode));
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
@@ -15,6 +16,7 @@ namespace URSA.Web.Http.Mapping
 
         /// <summary>Initializes a new instance of the <see cref="FromQueryStringArgumentBinder" /> class.</summary>
         /// <param name="converterProvider">Converters provider</param>
+        [ExcludeFromCodeCoverage]
         internal FromQueryStringArgumentBinder(IConverterProvider converterProvider)
         {
             if (converterProvider == null)

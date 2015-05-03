@@ -1,14 +1,16 @@
 ﻿using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 namespace System
 {
     /// <summary>Compares <see cref="Uri" />s literally.</summary>
+    [ExcludeFromCodeCoverage]
     public class LiteralUriComparer : IEqualityComparer<Uri>
     {
         /// <summary>Defines an singleton instance of the <see cref="LiteralUriComparer"/>.</summary>
         public static readonly LiteralUriComparer Instance = new LiteralUriComparer();
 
-        private IEqualityComparer<string> _comparer = StringComparer.OrdinalIgnoreCase;
+        private readonly IEqualityComparer<string> _comparer = StringComparer.OrdinalIgnoreCase;
 
         private LiteralUriComparer()
         {

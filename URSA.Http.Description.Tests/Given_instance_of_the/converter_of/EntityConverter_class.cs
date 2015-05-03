@@ -53,6 +53,30 @@ namespace Given_instance_of_the.converter_of
         }
 
         [TestMethod]
+        public override void it_should_throw_when_no_expected_type_is_provided_for_deserialization_compatibility_test()
+        {
+            base.it_should_throw_when_no_expected_type_is_provided_for_deserialization_compatibility_test();
+        }
+
+        [TestMethod]
+        public override void it_should_throw_when_no_request_is_provided_for_deserialization_compatibility_test()
+        {
+            base.it_should_throw_when_no_request_is_provided_for_deserialization_compatibility_test();
+        }
+
+        [TestMethod]
+        public override void it_should_throw_when_no_request_is_provided_for_deserialization()
+        {
+            base.it_should_throw_when_no_request_is_provided_for_deserialization();
+        }
+
+        [TestMethod]
+        public override void it_should_throw_when_no_expected_type_is_provided_for_deserialization()
+        {
+            base.it_should_throw_when_no_expected_type_is_provided_for_deserialization();
+        }
+
+        [TestMethod]
         public override void it_should_deserialize_message_as_an_array_of_entities()
         {
         }
@@ -66,6 +90,30 @@ namespace Given_instance_of_the.converter_of
         public override void it_should_test_serialization_compatibility()
         {
             base.it_should_test_serialization_compatibility();
+        }
+
+        [TestMethod]
+        public override void it_should_throw_when_no_given_type_is_provided_for_serialization_compatibility_test()
+        {
+            base.it_should_throw_when_no_given_type_is_provided_for_serialization_compatibility_test();
+        }
+
+        [TestMethod]
+        public override void it_should_throw_when_no_response_is_provided_for_serialization_compatibility_test()
+        {
+            base.it_should_throw_when_no_response_is_provided_for_serialization_compatibility_test();
+        }
+
+        [TestMethod]
+        public override void it_should_throw_when_no_response_is_provided_for_serialization()
+        {
+            base.it_should_throw_when_no_response_is_provided_for_serialization();
+        }
+
+        [TestMethod]
+        public override void it_should_throw_when_no_given_type_is_provided_for_deserialization()
+        {
+            base.it_should_throw_when_no_given_type_is_provided_for_deserialization();
         }
 
         [TestMethod]

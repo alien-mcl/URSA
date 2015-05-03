@@ -17,7 +17,7 @@ namespace VDS.RDF.Writing
         private const string Rest = "http://www.w3.org/1999/02/22-rdf-syntax-ns#rest";
         private const string Nil = "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil";
 
-        private JToken _context = null;
+        private readonly JToken _context = null;
 
         /// <summary>Initializes a new instance of the <see cref="JsonLdWriter" /> class.</summary>
         public JsonLdWriter()
@@ -81,7 +81,7 @@ namespace VDS.RDF.Writing
                 {
                     list.Add(iterator.Object);
                     IEnumerable<Triple> restTriples = graph.GetTriplesWithPredicateObject(rest, iterator.Subject);
-                    if (restTriples.Count() == 0)
+                    if (restTriples.Any())
                     {
                         break;
                     }
@@ -100,7 +100,7 @@ namespace VDS.RDF.Writing
         private static bool IsListNode(INode subject, IGraph graph)
         {
             INode rest = graph.CreateUriNode(new Uri(Rest));
-            return (graph.GetTriplesWithSubjectPredicate(subject, rest).Count() > 0);
+            return (graph.GetTriplesWithSubjectPredicate(subject, rest).Any());
         }
 
         private static JToken MakeList(List<INode> nodes)
@@ -116,14 +116,13 @@ namespace VDS.RDF.Writing
             {
                 return new JObject { { "@id", node.ToString() } };
             }
-            else if (node is IBlankNode)
+            
+            if (node is IBlankNode)
             {
                 return new JObject { { "@id", node.ToString() } };
             }
-            else
-            {
-                return MakeLiteralObject((ILiteralNode)node);
-            }
+
+            return MakeLiteralObject((ILiteralNode)node);
         }
 
         private static JObject MakeLiteralObject(ILiteralNode node)
@@ -132,32 +131,30 @@ namespace VDS.RDF.Writing
             {
                 return new JObject { { "@value", node.Value } };
             }
-            else
+
+            string dataType = node.DataType.ToString();
+            switch (dataType)
             {
-                string dataType = node.DataType.ToString();
-                switch (dataType)
-                {
-                    case "http://www.w3.org/2001/XMLSchema#integer":
-                        return new JObject { { "@value", int.Parse(node.Value) } };
-                    case "http://www.w3.org/2001/XMLSchema#boolean":
-                        return new JObject { { "@value", bool.Parse(node.Value) } };
-                    case "http://www.w3.org/2001/XMLSchema#decimal":
-                        return new JObject { { "@value", decimal.Parse(node.Value) } };
-                    case "http://www.w3.org/2001/XMLSchema#long":
-                        return new JObject { { "@value", long.Parse(node.Value) } };
-                    case "http://www.w3.org/2001/XMLSchema#short":
-                        return new JObject { { "@value", short.Parse(node.Value) } };
-                    case "http://www.w3.org/2001/XMLSchema#float":
-                        return new JObject { { "@value", float.Parse(node.Value) } };
-                    case "http://www.w3.org/2001/XMLSchema#double":
-                        return new JObject { { "@value", double.Parse(node.Value) } };
-                    default:
-                        return new JObject { { "@value", node.Value }, { "@type", dataType } };
-                }
+                case "http://www.w3.org/2001/XMLSchema#integer":
+                    return new JObject { { "@value", int.Parse(node.Value) } };
+                case "http://www.w3.org/2001/XMLSchema#boolean":
+                    return new JObject { { "@value", bool.Parse(node.Value) } };
+                case "http://www.w3.org/2001/XMLSchema#decimal":
+                    return new JObject { { "@value", decimal.Parse(node.Value) } };
+                case "http://www.w3.org/2001/XMLSchema#long":
+                    return new JObject { { "@value", long.Parse(node.Value) } };
+                case "http://www.w3.org/2001/XMLSchema#short":
+                    return new JObject { { "@value", short.Parse(node.Value) } };
+                case "http://www.w3.org/2001/XMLSchema#float":
+                    return new JObject { { "@value", float.Parse(node.Value) } };
+                case "http://www.w3.org/2001/XMLSchema#double":
+                    return new JObject { { "@value", double.Parse(node.Value) } };
+                default:
+                    return new JObject { { "@value", node.Value }, { "@type", dataType } };
             }
         }
 
-        private JToken MakeExpandedForm(IGraph graph)
+        private static JToken MakeExpandedForm(IGraph graph)
         {
             IDictionary<INode, List<INode>> lists = GetLists(graph);
             IDictionary<string, JObject> subjects = new Dictionary<string, JObject>();
@@ -195,14 +192,7 @@ namespace VDS.RDF.Writing
                 }
                 else
                 {
-                    if (lists.ContainsKey(triple.Object))
-                    {
-                        objects.Add(MakeList(lists[triple.Object]));
-                    }
-                    else
-                    {
-                        objects.Add(MakeObject(triple.Object));
-                    }
+                    objects.Add(lists.ContainsKey(triple.Object) ? MakeList(lists[triple.Object]) : MakeObject(triple.Object));
                 }
             }
 

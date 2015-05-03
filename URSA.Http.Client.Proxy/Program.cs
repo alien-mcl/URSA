@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Configuration;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
@@ -18,28 +19,32 @@ using URSA.Web.Http.Description.Hydra;
 
 namespace URSA.Web.Http.Client.Proxy
 {
-    [ExcludeFromCodeCoverage]
     public class Program
     {
+        private const string Method = "OPTIONS";
         private static IComponentProvider _container;
 
         public static void Main(string[] args)
         {
             if (args.Length < 2)
             {
-                Console.Write(String.Format("Usage{0}\tURSAHttpClientProxyGenerator http://my.api/rest/service target-directory", Environment.NewLine));
+                Console.Write("Usage{0}\tURSAHttpClientProxyGenerator http://my.api/rest/service target-directory", Environment.NewLine);
             }
 
+            Process(args[0], args[1]);
+        }
+
+        private static void Process(string uri, string targetDirectory)
+        {
             Uri url;
-            string targetDirectory = args[1];
-            if (args[0] == null)
+            if (uri == null)
             {
-                throw new ArgumentNullException("url");
+                throw new ArgumentNullException("uri");
             }
 
-            if (args[0].Length == 0)
+            if (uri.Length == 0)
             {
-                throw new ArgumentOutOfRangeException("url");
+                throw new ArgumentOutOfRangeException("uri");
             }
 
             if (targetDirectory == null)
@@ -52,10 +57,10 @@ namespace URSA.Web.Http.Client.Proxy
                 throw new ArgumentOutOfRangeException("targetDirectory");
             }
 
-            url = new Uri(args[0]);
+            url = new Uri(uri);
             if (!url.Scheme.StartsWith("http"))
             {
-                throw new ArgumentOutOfRangeException("url");
+                throw new ArgumentOutOfRangeException("uri");
             }
 
             if (!Directory.Exists(targetDirectory))
@@ -70,8 +75,7 @@ namespace URSA.Web.Http.Client.Proxy
         private static IApiDocumentation GetApiDocumentation(Uri url)
         {
             string contentType;
-            const string method = "OPTIONS";
-            var responseStream = new UnclosableStream(GetResponse(method, url, out contentType));
+            var responseStream = new UnclosableStream(GetResponse(Method, url, out contentType));
             var container = UrsaConfigurationSection.InitializeComponentProvider();
             var headers = new HeaderCollection();
             if (!String.IsNullOrEmpty(contentType))
@@ -80,7 +84,7 @@ namespace URSA.Web.Http.Client.Proxy
                 ((IDictionary<string, string>)headers)[Header.ContentType] = contentType;
             }
 
-            var httpRequest = new RequestInfo(Verb.Parse(method), new Uri(url.ToString() + "/#"), responseStream, headers);
+            var httpRequest = new RequestInfo(Verb.Parse(Method), new Uri(url + "/#"), responseStream, headers);
             var converterProvider = container.Resolve<IConverterProvider>();
             var converter = converterProvider.FindBestInputConverter<IApiDocumentation>(httpRequest);
             if (converter == null)
@@ -116,13 +120,9 @@ namespace URSA.Web.Http.Client.Proxy
             }
 
             var generator = _container.Resolve<IClassGenerator>();
-            foreach (var supportedClass in apiDocumentation.SupportedClasses)
+            foreach (var @class in apiDocumentation.SupportedClasses.Select(supportedClass => generator.CreateCode(supportedClass)).SelectMany(classes => classes))
             {
-                var classes = generator.CreateCode(supportedClass);
-                foreach (var @class in classes)
-                {
-                    File.WriteAllText(Path.Combine(targetDirectory, @class.Key), @class.Value);
-                }
+                File.WriteAllText(Path.Combine(targetDirectory, @class.Key), @class.Value);
             }
         }
     }

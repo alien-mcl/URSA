@@ -44,6 +44,46 @@ namespace Given_instance_of_the
             apiDocumentation.SupportedClasses.First().SupportedOperations.First().Method.First().Should().Be("POST");
         }
 
+        private static OperationInfo<Verb> CreateOperation(MethodInfo method, Verb verb)
+        {
+            string queryString = String.Empty;
+            string uriTemplate = null;
+            IList<ArgumentInfo> arguments = new List<ArgumentInfo>();
+            foreach (var parameter in method.GetParameters())
+            {
+                if (parameter.IsOut)
+                {
+                    continue;
+                }
+
+                string parameterTemplate = null;
+                ParameterSourceAttribute source = null;
+                if (parameter.ParameterType == typeof(Guid))
+                {
+                    source = FromUriAttribute.For(parameter);
+                    uriTemplate += (parameterTemplate = "/" + parameter.Name + "/{?value}");
+                }
+                else if (parameter.ParameterType.IsValueType)
+                {
+                    source = FromQueryStringAttribute.For(parameter);
+                    queryString += (parameterTemplate = "&" + parameter.Name + "={?value}");
+                }
+                else if (!parameter.ParameterType.IsValueType)
+                {
+                    source = FromBodyAttribute.For(parameter);
+                }
+
+                arguments.Add(new ArgumentInfo(parameter, source, parameterTemplate, (parameterTemplate != null ? parameter.Name : null)));
+            }
+
+            if (queryString.Length > 0)
+            {
+                uriTemplate += "?" + queryString.Substring(1);
+            }
+
+            return new OperationInfo<Verb>(method, new Uri("/", UriKind.Relative), uriTemplate, new Regex(".*"), verb, arguments.ToArray());
+        }
+
         private IHttpControllerDescriptionBuilder<TestController> SetupInfrastucture(out IApiDocumentation apiDocumentationInstance, out IXmlDocProvider xmlDocProvider)
         {
             var xmlDocProviderMock = new Mock<IXmlDocProvider>(MockBehavior.Strict);
@@ -87,44 +127,6 @@ namespace Given_instance_of_the
             var apiDocumentation = MockHelpers.MockEntity<IApiDocumentation>(factory.CreateContext(), new EntityId(new Uri(baseUri, "api")));
             apiDocumentationInstance = apiDocumentation.Object;
             return descriptionBuilder.Object;
-        }
-
-        private OperationInfo<Verb> CreateOperation(MethodInfo method, Verb verb)
-        {
-            string queryString = String.Empty;
-            string uriTemplate = null;
-            IList<ArgumentInfo> arguments = new List<ArgumentInfo>();
-            foreach (var parameter in method.GetParameters())
-            {
-                if (!parameter.IsOut)
-                {
-                    string parameterTemplate = null;
-                    ParameterSourceAttribute source = null;
-                    if (parameter.ParameterType == typeof(Guid))
-                    {
-                        source = FromUriAttribute.For(parameter);
-                        uriTemplate += (parameterTemplate = "/" + parameter.Name + "/{?value}");
-                    }
-                    else if (parameter.ParameterType.IsValueType)
-                    {
-                        source = FromQueryStringAttribute.For(parameter);
-                        queryString += (parameterTemplate = "&" + parameter.Name + "={?value}");
-                    }
-                    else if (!parameter.ParameterType.IsValueType)
-                    {
-                        source = FromBodyAttribute.For(parameter);
-                    }
-
-                    arguments.Add(new ArgumentInfo(parameter, source, parameterTemplate, (parameterTemplate != null ? parameter.Name : null)));
-                }
-            }
-
-            if (queryString.Length > 0)
-            {
-                uriTemplate += "?" + queryString.Substring(1);
-            }
-
-            return new OperationInfo<Verb>(method, new Uri("/", UriKind.Relative), uriTemplate, new Regex(".*"), verb, arguments.ToArray());
         }
     }
 }

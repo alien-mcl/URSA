@@ -20,12 +20,7 @@ namespace URSA.Web.Http.Description.CodeGen
                 throw new ArgumentNullException("uri");
             }
 
-            if (TypeDescriptions.Any(item => item.Value.ToString() == uri.ToString()))
-            {
-                return UriParserCompatibility.ExactMatch;
-            }
-
-            return UriParserCompatibility.None;
+            return (TypeDescriptions.Any(item => item.Value.ToString() == uri.ToString()) ? UriParserCompatibility.ExactMatch : UriParserCompatibility.None);
         }
 
         /// <inheritdoc />

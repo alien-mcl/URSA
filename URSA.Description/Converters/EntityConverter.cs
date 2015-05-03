@@ -49,7 +49,7 @@ namespace URSA.Web.Http.Converters
         /// <summary>Defines the supported media types.</summary>
         public static readonly string[] MediaTypes = new[] { TextTurtle, ApplicationRdfXml, ApplicationOwlXml, ApplicationLdJson };
 
-        private static readonly Uri Hydra = new Uri("http://www.w3.org/ns/hydra/core#");
+        internal static readonly Uri Hydra = new Uri("http://www.w3.org/ns/hydra/core#");
         private static readonly string Context = String.Format(
             @"{{
                 ""rdfs"": ""{0}"",
@@ -81,7 +81,7 @@ namespace URSA.Web.Http.Converters
             Rdfs.BaseUri,
             Hydra);
 
-        private IEntityContextFactory _entityContextFactory;
+        private readonly IEntityContextFactory _entityContextFactory;
 
         /// <summary>Initializes a new instance of the <see cref="EntityConverter" /> class.</summary>
         /// <param name="entityContextFactory">Entity context factory.</param>
@@ -111,7 +111,7 @@ namespace URSA.Web.Http.Converters
 
             if (request == null)
             {
-                throw new ArgumentOutOfRangeException("request");
+                throw new ArgumentNullException("request");
             }
 
             if (!typeof(IEntity).IsAssignableFrom(expectedType))
@@ -153,7 +153,7 @@ namespace URSA.Web.Http.Converters
 
             if (request == null)
             {
-                throw new ArgumentOutOfRangeException("request");
+                throw new ArgumentNullException("request");
             }
 
             var requestInfo = (RequestInfo)request;

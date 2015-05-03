@@ -59,7 +59,7 @@ namespace URSA.Web.Description.Http
 
         private static ResultTargetAttribute GetDefaultResultTarget(ParameterInfo parameter)
         {
-            if ((typeof(Guid) == parameter.ParameterType) || (typeof(DateTime) == parameter.ParameterType) ||
+            if ((typeof(Guid).MakeByRefType() == parameter.ParameterType) || (typeof(DateTime).MakeByRefType() == parameter.ParameterType) ||
                 ((IsIdentity(parameter.ParameterType)) &&
                 (PopularIdentifierPropertyNames.Contains(parameter.Name, StringComparer.OrdinalIgnoreCase))))
             {
@@ -71,7 +71,8 @@ namespace URSA.Web.Description.Http
 
         private static bool IsIdentity(Type type)
         {
-            return ((typeof(Int32) == type) || (typeof(UInt32) == type) || (typeof(Int64) == type) || (typeof(UInt64) == type));
+            return ((typeof(Int32) == type) || (typeof(UInt32) == type) || (typeof(Int64) == type) || (typeof(UInt64) == type) ||
+                (typeof(Int32).MakeByRefType() == type) || (typeof(UInt32).MakeByRefType() == type) || (typeof(Int64).MakeByRefType() == type) || (typeof(UInt64).MakeByRefType() == type));
         }
 
         private static bool IsNumber(Type type)

@@ -1,4 +1,6 @@
-﻿namespace URSA.Web.Http.Description.Mapping
+﻿using System.Diagnostics.CodeAnalysis;
+
+namespace URSA.Web.Http.Description.Mapping
 {
     /// <summary>Describes supported LINQ operation behaviors.</summary>
     public enum LinqOperations
@@ -11,6 +13,7 @@
     }
 
     /// <summary>Marks as a LINQ based operation behavior.</summary>
+    [ExcludeFromCodeCoverage]
     public class LinqServerBehaviorAttribute : ServerBehaviorAttribute
     {
         /// <summary>Initializes a new instance of the <see cref="LinqServerBehaviorAttribute"/> class.</summary>

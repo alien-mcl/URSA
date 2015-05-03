@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
 namespace System.Reflection
@@ -6,11 +8,14 @@ namespace System.Reflection
     /// <summary>Provides useful <see cref="Assembly" /> related extension methods.</summary>
     public static class AssemblyExtensions
     {
+        private static readonly IDictionary<string, object> EnumCache = new ConcurrentDictionary<string, object>();
+
         /// <summary>Searches types in assemblies for an enumeration value that has string representation of the given <paramref name="value" />.</summary>
         /// <remarks>This method uses <see cref="StringComparer.OrdinalIgnoreCase" /> to compare string representations.</remarks>
         /// <param name="assemblies">Assemblies to be searched through.</param>
         /// <param name="value">Value to be searched for.</param>
         /// <returns>Instance of the enumeration value if matched; otherwise <b>null</b>.</returns>
+        [ExcludeFromCodeCoverage]
         public static object FindEnumValue(this IEnumerable<Assembly> assemblies, string value)
         {
             if (assemblies == null)
@@ -28,7 +33,12 @@ namespace System.Reflection
                 throw new ArgumentOutOfRangeException("value");
             }
 
-            object result = null;
+            object result;
+            if (EnumCache.TryGetValue(value, out result))
+            {
+                return result;
+            }
+
             foreach (var assembly in assemblies)
             {
                 try
@@ -38,10 +48,13 @@ namespace System.Reflection
                               from enumValue in Enum.GetValues(type).Cast<object>()
                               where StringComparer.OrdinalIgnoreCase.Equals(enumValue.ToString(), value)
                               select enumValue).FirstOrDefault();
-                    if (result != null)
+                    if (result == null)
                     {
-                        break;
+                        continue;
                     }
+
+                    EnumCache[value] = result;
+                    break;
                 }
                 catch
                 {

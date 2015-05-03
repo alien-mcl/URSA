@@ -84,12 +84,9 @@ namespace URSA.Web.Http.Converters
                 throw new ArgumentNullException("expectedType");
             }
 
-            if (body == null)
-            {
-                return null;
-            }
-
-            return ConvertTo(expectedType, new MemoryStream(Encoding.UTF8.GetBytes(body)));
+            return (body == null ?
+                (expectedType.IsValueType ? Activator.CreateInstance(expectedType) : null) :
+                ConvertTo(expectedType, new MemoryStream(Encoding.UTF8.GetBytes(body))));
         }
 
         /// <inheritdoc />
@@ -131,6 +128,11 @@ namespace URSA.Web.Http.Converters
         /// <inheritdoc />
         public void ConvertFrom(Type givenType, object instance, IResponseInfo response)
         {
+            if (givenType == null)
+            {
+                throw new ArgumentNullException("givenType");
+            }
+
             if (response == null)
             {
                 throw new ArgumentNullException("response");

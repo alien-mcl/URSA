@@ -1,10 +1,12 @@
-﻿using System.Runtime.Remoting;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Runtime.Remoting;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace System.IO
 {
     /// <summary>Wraps streams so they cannot be closed.</summary>
+    [ExcludeFromCodeCoverage]
     public class UnclosableStream : Stream, IDisposable
     {
         private readonly Stream _stream;

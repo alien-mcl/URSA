@@ -1,8 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using RomanticWeb;
 using VDS.RDF;
 
@@ -77,12 +74,13 @@ namespace URSA.Web.Http.Description.VDS.RDF
         private static IGraph FindOrCreate(this ITripleStore tripleStore, Uri uri)
         {
             var graph = tripleStore.Graphs.FirstOrDefault(item => AbsoluteUriComparer.Default.Equals(item.BaseUri, uri));
-            if (graph == null)
+            if (graph != null)
             {
-                graph = new Graph() { BaseUri = uri };
-                tripleStore.Add(graph);
+                return graph;
             }
 
+            graph = new Graph() { BaseUri = uri };
+            tripleStore.Add(graph);
             return graph;
         }
     }

@@ -52,6 +52,11 @@ namespace URSA.Web.Http.Converters
         /// <inheritdoc />
         public object ConvertTo(Type expectedType, IRequestInfo request)
         {
+            if (expectedType == null)
+            {
+                throw new ArgumentNullException("expectedType");
+            }
+
             if (request == null)
             {
                 throw new ArgumentNullException("request");
@@ -80,12 +85,9 @@ namespace URSA.Web.Http.Converters
                 throw new ArgumentNullException("expectedType");
             }
 
-            if (body == null)
-            {
-                return null;
-            }
-
-            return JsonConvert.DeserializeObject(body, expectedType);
+            return (body == null ?
+                (expectedType.IsValueType ? Activator.CreateInstance(expectedType) : null) :
+                JsonConvert.DeserializeObject(body, expectedType));
         }
 
         /// <inheritdoc />
@@ -130,6 +132,11 @@ namespace URSA.Web.Http.Converters
             if (givenType == null)
             {
                 throw new ArgumentNullException("givenType");
+            }
+
+            if (response == null)
+            {
+                throw new ArgumentNullException("response");
             }
 
             var responseInfo = (ResponseInfo)response;

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Reflection;
 using System.Text.RegularExpressions;
@@ -15,6 +16,7 @@ namespace URSA.Web.Http
 
         /// <summary>Initializes a new instance of the <see cref="HeaderParameter" /> class.</summary>
         /// <param name="name">Name of the parameter.</param>
+        [ExcludeFromCodeCoverage]
         public HeaderParameter(string name) : this(name, null)
         {
         }
@@ -22,6 +24,7 @@ namespace URSA.Web.Http
         /// <summary>Initializes a new instance of the <see cref="HeaderParameter" /> class.</summary>
         /// <param name="name">Name of the parameter.</param>
         /// <param name="value">Value of the parameter.</param>
+        [ExcludeFromCodeCoverage]
         public HeaderParameter(string name, object value)
         {
             if (name == null)

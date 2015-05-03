@@ -67,6 +67,7 @@
     <Compile Include="Converters\UriConverter.cs" />
     <Compile Include="Description\DefaultValueRelationSelector.cs" />
     <Compile Include="Description\IDefaultValueRelationSelector.cs" />
+    <Compile Include="Description\OptionsController.cs" />
     <Compile Include="ExceptionExtensions.cs" />
     <Compile Include="DelegateMapper.cs" />
     <Compile Include="Header.cs" />
@@ -83,12 +84,16 @@
     <Compile Include="Mapping\FromQueryStringArgumentBinder.cs" />
     <Compile Include="Mapping\FromUriArgumentBinder.cs" />
     <Compile Include="Mapping\IParameterSourceArgumentBinder.cs" />
+    <Compile Include="Mapping\OnHeadAttribute.cs" />
+    <Compile Include="Mapping\OnDeleteAttribute.cs" />
+    <Compile Include="Mapping\OnPutAttribute.cs" />
     <Compile Include="Mapping\OnOptionsAttribute.cs" />
     <Compile Include="Mapping\OnGetAttribute.cs" />
     <Compile Include="Mapping\OnPostAttribute.cs" />
     <Compile Include="Mapping\OnVerbAttribute.cs" />
     <None Include="Description\OperationInfo.cs" />
     <Compile Include="MultiObjectResponseInfo.cs" />
+    <Compile Include="OptionsRequestMapping.cs" />
     <Compile Include="StringResponseInfo.cs" />
     <Compile Include="ExceptionResponseInfo.cs" />
     <Compile Include="ObjectResponseInfo.cs" />

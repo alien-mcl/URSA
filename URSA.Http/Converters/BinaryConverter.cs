@@ -55,6 +55,11 @@ namespace URSA.Web.Http.Converters
         /// <inheritdoc />
         public object ConvertTo(Type expectedType, IRequestInfo request)
         {
+            if (expectedType == null)
+            {
+                throw new ArgumentNullException("expectedType");
+            }
+
             if (request == null)
             {
                 throw new ArgumentNullException("request");
@@ -83,12 +88,7 @@ namespace URSA.Web.Http.Converters
                 throw new ArgumentNullException("expectedType");
             }
 
-            if (body == null)
-            {
-                return null;
-            }
-
-            return System.Convert.FromBase64String(body);
+            return (body == null ? null : System.Convert.FromBase64String(body));
         }
 
         /// <inheritdoc />
@@ -142,6 +142,16 @@ namespace URSA.Web.Http.Converters
         /// <inheritdoc />
         public void ConvertFrom(Type givenType, object instance, IResponseInfo response)
         {
+            if (givenType == null)
+            {
+                throw new ArgumentNullException("givenType");
+            }
+
+            if (response == null)
+            {
+                throw new ArgumentNullException("response");
+            }
+
             var responseInfo = (ResponseInfo)response;
             responseInfo.Headers.ContentType = ApplicationOctetStream;
             if (response == null)

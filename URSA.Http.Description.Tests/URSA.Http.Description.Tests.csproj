@@ -106,13 +106,16 @@
     <Compile Include="Data\Person.cs" />
     <Compile Include="Given_instance_of_the\ApiDescriptionBuilder_class.cs" />
     <Compile Include="Given_instance_of_the\converter_of\EntityConverter_class.cs" />
+    <Compile Include="Given_instance_of_the\HydraClassGenerator_class\when_building_class_code.cs" />
     <Compile Include="Given_instance_of_the\OGuidUriParser_class.cs" />
     <Compile Include="Given_instance_of_the\XmlDocProvider_class.cs" />
     <Compile Include="Given_instance_of_the\XsdUriParser_class.cs" />
     <Compile Include="Given_instance_of_the\GenericUriParser_class.cs" />
-    <Compile Include="Given_instance_of_the\HydraClassGenerator_class.cs" />
+    <Compile Include="Given_instance_of_the\HydraClassGenerator_class\in_simple_name_and_namespace_scenario.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Testing\MockHelpers.cs" />
+    <EmbeddedResource Include="Testing\Templates\Type.cs" />
+    <EmbeddedResource Include="Testing\Templates\TypeClient.cs" />
     <Compile Include="Web\TestController.cs" />
   </ItemGroup>
   <ItemGroup>

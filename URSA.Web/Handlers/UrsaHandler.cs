@@ -15,7 +15,7 @@ namespace URSA.Web.Handlers
     /// <typeparam name="T">Type of controller exposed.</typeparam>
     public class UrsaHandler<T> : IHttpHandler, IRouteHandler where T : IController
     {
-        private RequestHandler _requestHandler;
+        private readonly RequestHandler _requestHandler;
 
         /// <summary>Initializes a new instance of the <see cref="UrsaHandler{T}" /> class.</summary>
         public UrsaHandler()
@@ -53,6 +53,11 @@ namespace URSA.Web.Handlers
                 }
             }
 
+            HandleReuqest(context);
+        }
+
+        private void HandleReuqest(HttpContext context)
+        {
             var headers = new HeaderCollection();
             foreach (string headerName in context.Request.Headers)
             {

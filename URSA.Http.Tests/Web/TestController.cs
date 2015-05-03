@@ -81,5 +81,20 @@ namespace URSA.Web.Tests
         public void Upload([FromBody] string fileName, [FromBody] byte[] data)
         {
         }
+
+        public void GetByGuid(Guid id, out Guid newId)
+        {
+            newId = default(Guid);
+        }
+
+        public void GetBySomeId(int id, out int key)
+        {
+            key = default(int);
+        }
+
+        public object GetSomething(object instance)
+        {
+            return null;
+        }
     }
 }

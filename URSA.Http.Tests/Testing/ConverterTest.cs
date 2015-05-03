@@ -42,6 +42,30 @@ namespace URSA.Web.Http.Testing
         }
 
         [TestMethod]
+        public virtual void it_should_throw_when_no_expected_type_is_provided_for_deserialization_compatibility_test()
+        {
+            Converter.Invoking(converter => converter.CanConvertTo(null, null)).ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("expectedType");
+        }
+
+        [TestMethod]
+        public virtual void it_should_throw_when_no_request_is_provided_for_deserialization_compatibility_test()
+        {
+            Converter.Invoking(converter => converter.CanConvertTo(typeof(TI), null)).ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("request");
+        }
+
+        [TestMethod]
+        public virtual void it_should_throw_when_no_request_is_provided_for_deserialization()
+        {
+            Converter.Invoking(converter => converter.ConvertTo<TI>((IRequestInfo)null)).ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("request");
+        }
+
+        [TestMethod]
+        public virtual void it_should_throw_when_no_expected_type_is_provided_for_deserialization()
+        {
+            Converter.Invoking(converter => converter.ConvertTo(null, (IRequestInfo)null)).ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("expectedType");
+        }
+
+        [TestMethod]
         public virtual void it_should_deserialize_message_body_as_an_entity()
         {
             var result = ConvertBodyTo<TI>("POST", OperationName, SingleEntityContentType, SingleEntityBody);
@@ -75,6 +99,30 @@ namespace URSA.Web.Http.Testing
             var result = CanConvertFrom("POST", OperationName, SingleEntityContentType, SingleEntity);
             
             result.Should().NotBe(CompatibilityLevel.None);
+        }
+
+        [TestMethod]
+        public virtual void it_should_throw_when_no_given_type_is_provided_for_serialization_compatibility_test()
+        {
+            Converter.Invoking(converter => converter.CanConvertFrom(null, null)).ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("givenType");
+        }
+
+        [TestMethod]
+        public virtual void it_should_throw_when_no_response_is_provided_for_serialization_compatibility_test()
+        {
+            Converter.Invoking(converter => converter.CanConvertFrom(typeof(TI), null)).ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("response");
+        }
+
+        [TestMethod]
+        public virtual void it_should_throw_when_no_response_is_provided_for_serialization()
+        {
+            Converter.Invoking(converter => converter.ConvertFrom<TI>(SingleEntity, null)).ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("response");
+        }
+
+        [TestMethod]
+        public virtual void it_should_throw_when_no_given_type_is_provided_for_deserialization()
+        {
+            Converter.Invoking(converter => converter.ConvertFrom(null, SingleEntity, null)).ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("givenType");
         }
 
         [TestMethod]
@@ -133,30 +181,30 @@ namespace URSA.Web.Http.Testing
 
         protected CompatibilityLevel CanConvertFrom<TT>(string method, string handler, string mediaType, TT body)
         {
-            return Converter.CanConvertFrom(typeof(TT), MakeResponse(MakeRequest(method, handler, mediaType)));
+            return Converter.CanConvertFrom<TT>(MakeResponse(MakeRequest(method, handler, mediaType)));
         }
 
         protected string ConvertFrom<TT>(string method, string handler, string mediaType, TT body)
         {
             var response = MakeResponse(MakeRequest(method, handler, mediaType));
-            Converter.ConvertFrom(typeof(TT), body, response);
+            Converter.ConvertFrom(body, response);
             response.Body.Seek(0, SeekOrigin.Begin);
             return new StreamReader(response.Body).ReadToEnd();
         }
 
         protected TT ConvertBodyTo<TT>(string method, string handler, string mediaType, string body)
         {
-            return (TT)Converter.ConvertTo(typeof(TT), body);
+            return Converter.ConvertTo<TT>(body);
         }
 
         protected TT ConvertTo<TT>(string method, string handler, string mediaType, string body)
         {
-            return (TT)Converter.ConvertTo(typeof(TT), MakeRequest(method, handler, mediaType, body));
+            return Converter.ConvertTo<TT>(MakeRequest(method, handler, mediaType, body));
         }
 
         protected CompatibilityLevel CanConvertTo<TT>(string method, string handler, string mediaType, string body)
         {
-            return Converter.CanConvertTo(typeof(TT), MakeRequest(method, handler, mediaType, body));
+            return Converter.CanConvertTo<TT>(MakeRequest(method, handler, mediaType, body));
         }
 
         protected RequestInfo MakeRequest(string method, string handler, string mediaType, string body = null)

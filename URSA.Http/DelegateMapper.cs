@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using URSA.Web.Description;
 using URSA.Web.Description.Http;
+using URSA.Web.Http.Description;
 
 namespace URSA.Web.Http
 {
@@ -51,12 +52,31 @@ namespace URSA.Web.Http
         public IRequestMapping MapRequest(RequestInfo request)
         {
             string requestUri = request.Uri.ToRelativeUri().ToString();
-            return (from controller in _controllerDescriptors.Value
-                    from operation in controller.Operations.Cast<OperationInfo<Verb>>()
-                    where (request.Method == operation.ProtocolSpecificCommand) && (operation.TemplateRegex.IsMatch(requestUri))
-                    let controllerType = controller.GetType().GetGenericArguments()[0]
-                    select new RequestMapping(_controllerActivator.CreateInstance(controllerType), operation, operation.Uri))
-                   .FirstOrDefault();
+            var allowedOptions = new List<OperationInfo<Verb>>();
+            foreach (var controller in _controllerDescriptors.Value)
+            {
+                foreach (var operation in controller.Operations.Cast<OperationInfo<Verb>>().Where(operation => operation.TemplateRegex.IsMatch(requestUri)))
+                {
+                    allowedOptions.Add(operation);
+                    if (request.Method != operation.ProtocolSpecificCommand)
+                    {
+                        continue;
+                    }
+
+                    return new RequestMapping(_controllerActivator.CreateInstance(controller.GetType().GetGenericArguments()[0]), operation, operation.Uri);
+                }
+            }
+
+            if (allowedOptions.Count <= 0)
+            {
+                return null;
+            }
+
+            var option = allowedOptions.First();
+            return new OptionsRequestMapping(
+                OptionsController.CreateOperationInfo(option),
+                option.Uri,
+                allowedOptions.Select(item => item.ProtocolSpecificCommand.ToString()).ToArray());
         }
 
         private IEnumerable<ControllerInfo> BuildControllerDescriptors()

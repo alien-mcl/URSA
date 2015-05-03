@@ -30,7 +30,7 @@ namespace Given_instance_of_the.binder
         [TestMethod]
         public void it_should_not_call_converter()
         {
-            Binder.GetArgumentValue(GetContext());
+            Binder.GetArgumentValue((ArgumentBindingContext)GetContext());
 
             Converter.Verify(instance => instance.ConvertTo(It.IsAny<Type>(), "1"), Times.Never);
         }

@@ -56,6 +56,11 @@ namespace URSA.Web.Http.Converters
         /// <inheritdoc />
         public object ConvertTo(Type expectedType, IRequestInfo request)
         {
+            if (expectedType == null)
+            {
+                throw new ArgumentNullException("expectedType");
+            }
+
             if (request == null)
             {
                 throw new ArgumentNullException("request");
@@ -89,7 +94,7 @@ namespace URSA.Web.Http.Converters
                 return (expectedType.IsValueType ? Activator.CreateInstance(expectedType) : null);
             }
 
-            return (expectedType.IsEnumerable() ? Regex.Split(body, "\r\n").MakeInstance(expectedType, typeof(string)) : (object)body);
+            return (expectedType.IsEnumerable() ? Regex.Split(body, "\r\n").MakeInstance(expectedType, typeof(string)) : body);
         }
 
         /// <inheritdoc />
@@ -136,6 +141,11 @@ namespace URSA.Web.Http.Converters
         /// <inheritdoc />
         public void ConvertFrom(Type givenType, object instance, IResponseInfo response)
         {
+            if (givenType == null)
+            {
+                throw new ArgumentNullException("givenType");
+            }
+
             if (response == null)
             {
                 throw new ArgumentNullException("response");

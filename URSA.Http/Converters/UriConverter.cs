@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -65,6 +66,11 @@ namespace URSA.Web.Http.Converters
         /// <inheritdoc />
         public override object ConvertTo(Type expectedType, IRequestInfo request)
         {
+            if (expectedType == null)
+            {
+                throw new ArgumentNullException("expectedType");
+            }
+
             if (request == null)
             {
                 throw new ArgumentNullException("request");
@@ -136,6 +142,16 @@ namespace URSA.Web.Http.Converters
         /// <inheritdoc />
         public override void ConvertFrom(Type givenType, object instance, IResponseInfo response)
         {
+            if (givenType == null)
+            {
+                throw new ArgumentNullException("givenType");
+            }
+
+            if (response == null)
+            {
+                throw new ArgumentNullException("response");
+            }
+
             var responseInfo = (ResponseInfo)response;
             var contentType = responseInfo.Request.Headers[Header.ContentType];
             if ((contentType != null) && (contentType.Values.Any(value => value.Value == TextUriList)))

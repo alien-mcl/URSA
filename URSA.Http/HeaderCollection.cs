@@ -229,6 +229,7 @@ namespace URSA.Web.Http
         }
 
         /// <summary>Clears the collection.</summary>
+        [ExcludeFromCodeCoverage]
         public void Clear()
         {
             _headers.Clear();

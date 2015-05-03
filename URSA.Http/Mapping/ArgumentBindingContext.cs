@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using URSA.Web.Mapping;
 
 namespace URSA.Web.Http.Mapping
 {
+    /// <summary>Describes an argument binding context.</summary>
+    [ExcludeFromCodeCoverage]
     public abstract class ArgumentBindingContext
     {
         internal ArgumentBindingContext(RequestInfo request, RequestMapping requestMapping, ParameterInfo parameter, int index, IDictionary<RequestInfo, RequestInfo[]> multipartBodies)
@@ -49,6 +52,8 @@ namespace URSA.Web.Http.Mapping
         internal bool Success { get; set; }
     }
 
+    /// <summary>Describes an argument binding in specific parameter source context.</summary>
+    [ExcludeFromCodeCoverage]
     public class ArgumentBindingContext<T> : ArgumentBindingContext where T : ParameterSourceAttribute
     {
         internal ArgumentBindingContext(RequestInfo request, RequestMapping requestMapping, ParameterInfo parameter, int index, T parameterSource, IDictionary<RequestInfo, RequestInfo[]> multipartBodies) :
