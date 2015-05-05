@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using URSA.Web.Description;
 
@@ -25,7 +26,8 @@ namespace URSA.Web.Http.Description
                 sourceOperation.Uri,
                 sourceOperation.UriTemplate,
                 sourceOperation.TemplateRegex,
-                Verb.OPTIONS);
+                Verb.OPTIONS,
+                sourceOperation.Arguments.ToArray());
         }
 
         private void Allow()

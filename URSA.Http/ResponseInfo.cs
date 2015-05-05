@@ -16,7 +16,7 @@ namespace URSA.Web.Http
         /// <summary>Initialies a new instance of the <see cref="ResponseInfo" /> class.</summary>
         /// <param name="request">Corresponding request.</param>
         /// <param name="headers">Headers of the response.</param>
-        protected ResponseInfo(RequestInfo request, params Header[] headers) : this(Encoding.UTF8, request, headers)
+        public ResponseInfo(RequestInfo request, params Header[] headers) : this(Encoding.UTF8, request, headers)
         {
         }
 
@@ -24,7 +24,7 @@ namespace URSA.Web.Http
         /// <param name="encoding">Text encoding of the response.</param>
         /// <param name="request">Corresponding request.</param>
         /// <param name="headers">Headers of the response.</param>
-        protected ResponseInfo(Encoding encoding, RequestInfo request, params Header[] headers)
+        public ResponseInfo(Encoding encoding, RequestInfo request, params Header[] headers)
         {
             if (encoding == null)
             {
@@ -45,7 +45,7 @@ namespace URSA.Web.Http
         /// <summary>Initialies a new instance of the <see cref="ResponseInfo" /> class.</summary>
         /// <param name="request">Corresponding request.</param>
         /// <param name="headers">Headers of the response.</param>
-        protected ResponseInfo(RequestInfo request, HeaderCollection headers) : this(Encoding.UTF8, request, headers)
+        public ResponseInfo(RequestInfo request, HeaderCollection headers) : this(Encoding.UTF8, request, headers)
         {
         }
 
@@ -53,7 +53,7 @@ namespace URSA.Web.Http
         /// <param name="encoding">Text encoding of the response.</param>
         /// <param name="request">Corresponding request.</param>
         /// <param name="headers">Headers of the response.</param>
-        protected ResponseInfo(Encoding encoding, RequestInfo request, HeaderCollection headers)
+        public ResponseInfo(Encoding encoding, RequestInfo request, HeaderCollection headers)
         {
             if (encoding == null)
             {

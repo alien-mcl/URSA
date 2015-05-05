@@ -79,23 +79,25 @@ namespace URSA.Web.Http.Converters
                 throw new ArgumentNullException("givenType");
             }
 
-            if (instance != null)
+            if (instance == null)
             {
-                if (!givenType.IsAssignableFrom(instance.GetType()))
-                {
-                    throw new InvalidOperationException(String.Format("Instance type '{0}' mismatch from the given '{1}'.", instance.GetType(), givenType));
-                }
-
-                ProtocolException exception = ((Exception)instance).AsHttpException();
-                ResponseInfo responseInfo = (ResponseInfo)response;
-                var message = String.Format(
-                    "{0:000} {1} \"{2}\"",
-                    (uint)exception.HResult % 999,
-                    exception.Source ?? responseInfo.Request.Uri.Host,
-                    System.Web.HttpUtility.JavaScriptStringEncode(exception.Message));
-                responseInfo.Headers.Add(new Header(Header.Warning, message));
-                responseInfo.Status = exception.Status;
+                return;
             }
+
+            if (!givenType.IsInstanceOfType(instance))
+            {
+                throw new InvalidOperationException(String.Format("Instance type '{0}' mismatch from the given '{1}'.", instance.GetType(), givenType));
+            }
+
+            ProtocolException exception = ((Exception)instance).AsHttpException();
+            ResponseInfo responseInfo = (ResponseInfo)response;
+            var message = String.Format(
+                "{0:000} {1} \"{2}\"",
+                (uint)exception.HResult % 999,
+                exception.Source ?? responseInfo.Request.Uri.Host,
+                System.Web.HttpUtility.JavaScriptStringEncode(exception.Message));
+            responseInfo.Headers.Add(new Header(Header.Warning, message));
+            responseInfo.Status = exception.Status;
         }
     }
 }

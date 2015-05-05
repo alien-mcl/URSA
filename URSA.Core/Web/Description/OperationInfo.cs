@@ -67,14 +67,8 @@ namespace URSA.Web.Description
             var results = new List<ResultInfo>();
             Arguments = arguments;
             Results = results;
-            var parameters = UnderlyingMethod.GetParameters();
             foreach (var value in values)
             {
-                if ((!parameters.Contains(value.Parameter)) && (UnderlyingMethod.ReturnParameter != value.Parameter))
-                {
-                    throw new ArgumentOutOfRangeException("values");
-                }
-
                 value.Method = UnderlyingMethod;
                 if (value is ResultInfo)
                 {

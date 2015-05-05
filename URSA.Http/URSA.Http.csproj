@@ -48,6 +48,10 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Serialization" />
+    <Reference Include="URSA.Http, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\URSA.Example.WebApplication\Bin\URSA.Http.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Client.cs" />
@@ -76,6 +80,7 @@
     <Compile Include="HeaderParameterCollection.cs" />
     <Compile Include="HeaderValue.cs" />
     <Compile Include="IHttpControllerDescriptionBuilder.cs" />
+    <Compile Include="IWebRequestProvider.cs" />
     <Compile Include="Mapping\ArgumentBinder.cs" />
     <Compile Include="Mapping\ArgumentBindingContext.cs" />
     <Compile Include="Mapping\AsMediaTypeAttribute.cs" />
@@ -91,6 +96,7 @@
     <Compile Include="Mapping\OnGetAttribute.cs" />
     <Compile Include="Mapping\OnPostAttribute.cs" />
     <Compile Include="Mapping\OnVerbAttribute.cs" />
+    <Compile Include="WebRequestProvider.cs" />
     <None Include="Description\OperationInfo.cs" />
     <Compile Include="MultiObjectResponseInfo.cs" />
     <Compile Include="OptionsRequestMapping.cs" />
