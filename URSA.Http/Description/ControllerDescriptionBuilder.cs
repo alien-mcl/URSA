@@ -171,7 +171,7 @@ namespace URSA.Web.Description.Http
                 optional++;
             }
         }
-
+        
         private static void CreateParameterTemplateRegex(FromQueryStringAttribute fromQueryString, ParameterInfo parameter, out string parameterUriTemplate, out string parameterTemplateRegex)
         {
             string result = (fromQueryString.UriTemplate == FromQueryStringAttribute.Default ? FromQueryStringAttribute.For(parameter).UriTemplate : fromQueryString.UriTemplate);

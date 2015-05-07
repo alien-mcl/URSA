@@ -95,8 +95,7 @@ namespace Given_instance_of_the
             container.Setup(instance => instance.ResolveAll<IConverter>()).Returns(new IConverter[] { converter.Object });
             container.Setup(instance => instance.ResolveAllTypes<IController>()).Returns(new Type[] { typeof(TestController) });
             container.Setup(instance => instance.Resolve(typeof(IHttpControllerDescriptionBuilder<>).MakeGenericType(typeof(TestController)))).Returns(builder.Object);
-            typeof(UrsaConfigurationSection).GetProperty("ComponentProvider", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic)
-                .SetValue(null, container.Object);
+            UrsaConfigurationSection.ComponentProvider = container.Object;
         }
 
         private OperationInfo<Verb> CreateOperation()

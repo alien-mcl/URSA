@@ -74,13 +74,13 @@ namespace URSA.Web.Http
         {
             RequestInfo fakeRequest;
             var uri = BuildUri(url, uriArguments);
-            var request = (HttpWebRequest)_webRequestProvider.CreateRequest(uri);
+            var accept = String.Join("; ", mediaTypes);
+            WebRequest request = _webRequestProvider.CreateRequest(uri, new Dictionary<string, string>() { { Header.Accept, accept } });
             request.Method = verb.ToString();
-            request.Accept = String.Join("; ", mediaTypes);
             if ((bodyArguments != null) && (bodyArguments.Length > 0))
             {
-                fakeRequest = new RequestInfo(verb, uri, new MemoryStream(), new Header(Header.Accept, request.Accept));
-                var fakeResponse = (bodyArguments.Length > 1 ?
+                fakeRequest = new RequestInfo(verb, uri, new MemoryStream(), new Header(Header.Accept, accept));
+                var fakeResponse = (bodyArguments.Length == 1 ?
                     ObjectResponseInfo<object>.CreateInstance(Encoding.UTF8, fakeRequest, bodyArguments[0].GetType(), bodyArguments[0], _converterProvider) :
                     new MultiObjectResponseInfo(Encoding.UTF8, fakeRequest, bodyArguments, _converterProvider));
                 using (var target = request.GetRequestStream())
@@ -126,13 +126,13 @@ namespace URSA.Web.Http
         /// <param name="uriArguments">The URI template arguments.</param>
         /// <param name="bodyArguments">The body arguments.</param>
         /// <returns>Result of the call.</returns>
-        protected T Call<T>(Verb verb, string url, IEnumerable<string> mediaTypes, dynamic uriArguments, params object[] bodyArguments)
+        internal protected T Call<T>(Verb verb, string url, IEnumerable<string> mediaTypes, dynamic uriArguments, params object[] bodyArguments)
         {
             var result = Call(verb, url, mediaTypes, typeof(T), uriArguments, bodyArguments);
             return (result == null ? default(T) : Convert.ChangeType(result, typeof(T)));
         }
 
-        private Uri BuildUri(string url, dynamic uriArguments)
+        internal Uri BuildUri(string url, dynamic uriArguments)
         {
             foreach (KeyValuePair<string, object> argument in uriArguments)
             {

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Net;
 
 namespace URSA.Web.Http
@@ -11,7 +12,8 @@ namespace URSA.Web.Http
 
         /// <summary>Creates the web request.</summary>
         /// <param name="uri">The target Uri of the request.</param>
+        /// <param name="headers">Headers of the request.</param>
         /// <returns>Instance of the <paramref name="uri" /> corresponding web request.</returns>
-        WebRequest CreateRequest(Uri uri);
+        WebRequest CreateRequest(Uri uri, IDictionary<string, string> headers);
     }
 }

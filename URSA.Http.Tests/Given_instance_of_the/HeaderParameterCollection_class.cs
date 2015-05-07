@@ -1,8 +1,9 @@
 ﻿using System;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using URSA.Web.Http;
 
-namespace URSA.Web.Http.Tests.Given_instance_of_the
+namespace Given_instance_of_the
 {
     [TestClass]
     public class HeaderParameterCollection_class

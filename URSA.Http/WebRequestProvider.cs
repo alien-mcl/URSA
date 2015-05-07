@@ -17,8 +17,9 @@ namespace URSA.Web.Http
 
         /// <summary>Creates the HTTP request.</summary>
         /// <param name="uri">The target Uri of the request.</param>
+        /// <param name="headers">Headers of the request.</param>
         /// <returns>Instance of the <see cref="HttpWebRequest" />.</returns>
-        public HttpWebRequest CreateRequest(Uri uri)
+        public HttpWebRequest CreateRequest(Uri uri, IDictionary<string, string> headers)
         {
             if (uri == null)
             {
@@ -31,13 +32,26 @@ namespace URSA.Web.Http
             }
 
             var result = (HttpWebRequest)WebRequest.Create(uri);
+            foreach (var entry in headers)
+            {
+                switch (entry.Key)
+                {
+                    case Header.Accept:
+                        result.Accept = entry.Value;
+                        break;
+                    default:
+                        result.Headers.Add(Header.AcceptLanguage, entry.Value);
+                        break;
+                }
+            }
+
             return result;
         }
 
         /// <inheritdoc />
-        WebRequest IWebRequestProvider.CreateRequest(Uri uri)
+        WebRequest IWebRequestProvider.CreateRequest(Uri uri, IDictionary<string, string> headers)
         {
-            return CreateRequest(uri);
+            return CreateRequest(uri, headers);
         }
     }
 }
