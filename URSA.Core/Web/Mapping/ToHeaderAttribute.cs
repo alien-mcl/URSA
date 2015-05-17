@@ -7,11 +7,6 @@ namespace URSA.Web.Mapping
     [ExcludeFromCodeCoverage]
     public class ToHeaderAttribute : ResultTargetAttribute
     {
-        /// <summary>Initializes a new instance of the <see cref="ToHeaderAttribute"/> class.</summary>
-        public ToHeaderAttribute() : this("Location")
-        {
-        }
-
         /// <summary>Initializes a new instance of the <see cref="ToHeaderAttribute" /> class.</summary>
         /// <param name="name">Name of the header to be used.</param>
         public ToHeaderAttribute(string name)

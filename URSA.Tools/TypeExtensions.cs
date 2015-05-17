@@ -134,21 +134,19 @@ namespace System.Reflection
                 throw new ArgumentNullException("targetType");
             }
 
-            if (values != null)
+            if (values == null)
             {
-                if (!targetType.IsEnumerable())
-                {
-                    return ((targetType.IsGenericType) && (targetType.GetGenericTypeDefinition() == typeof(Nullable<>)) ?
-                        typeof(Nullable<>).MakeGenericType(itemType).GetConstructor(new[] { itemType }).Invoke(new[] { Convert.ChangeType(values.First(), itemType) }) :
-                        Convert.ChangeType(values.First(), targetType));
-                }
-                else
-                {
-                    return CreateEnumerable(values, targetType, itemType ?? typeof(object));
-                }
+                return null;
             }
 
-            return null;
+            if (!targetType.IsEnumerable())
+            {
+                return ((targetType.IsGenericType) && (targetType.GetGenericTypeDefinition() == typeof(Nullable<>)) ?
+                    typeof(Nullable<>).MakeGenericType(itemType).GetConstructor(new[] { itemType }).Invoke(new[] { Convert.ChangeType(values.First(), itemType) }) :
+                    Convert.ChangeType(values.First(), targetType));
+            }
+
+            return CreateEnumerable(values, targetType, itemType ?? typeof(object));
         }
 
         private static IEnumerable CreateEnumerable(IEnumerable<object> values, Type type, Type itemType)

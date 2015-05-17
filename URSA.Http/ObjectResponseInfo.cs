@@ -74,6 +74,44 @@ namespace URSA.Web.Http
         /// <param name="converterProvider">The converter provider.</param>
         /// <param name="headers">Optional headers.</param>
         /// <returns>Instance of the <see cref="ObjectResponseInfo{T}" />.</returns>
+        public static ResponseInfo CreateInstance(Encoding encoding, RequestInfo request, Type valueType, object value, IConverterProvider converterProvider, HeaderCollection headers)
+        {
+            if (valueType == null)
+            {
+                throw new ArgumentNullException("valueType");
+            }
+
+            if ((value != null) && (!valueType.IsInstanceOfType(value)))
+            {
+                throw new ArgumentOutOfRangeException("value");
+            }
+
+            return (ResponseInfo)typeof(ObjectResponseInfo<>).MakeGenericType(valueType)
+                .GetConstructor(new[] { typeof(Encoding), typeof(RequestInfo), valueType, typeof(IConverterProvider), typeof(HeaderCollection) })
+                .Invoke(new object[] { encoding, request, value, converterProvider, headers });
+        }
+
+        /// <summary>Creates the instance of the <see cref="ObjectResponseInfo{TTarget}" /> class.</summary>
+        /// <typeparam name="TTarget">The type of the value.</typeparam>
+        /// <param name="encoding">The encoding.</param>
+        /// <param name="request">The request.</param>
+        /// <param name="value">The value.</param>
+        /// <param name="converterProvider">The converter provider.</param>
+        /// <param name="headers">Optional headers.</param>
+        /// <returns>Instance of the <see cref="ObjectResponseInfo{TTarget}" />.</returns>
+        public static ObjectResponseInfo<TTarget> CreateInstance<TTarget>(Encoding encoding, RequestInfo request, TTarget value, IConverterProvider converterProvider, HeaderCollection headers)
+        {
+            return (ObjectResponseInfo<TTarget>)CreateInstance(encoding, request, typeof(TTarget), value, converterProvider, headers);
+        }
+
+        /// <summary>Creates the instance of the <see cref="ObjectResponseInfo{T}" /> class.</summary>
+        /// <param name="encoding">The encoding.</param>
+        /// <param name="request">The request.</param>
+        /// <param name="valueType">The type of the value.</param>
+        /// <param name="value">The value.</param>
+        /// <param name="converterProvider">The converter provider.</param>
+        /// <param name="headers">Optional headers.</param>
+        /// <returns>Instance of the <see cref="ObjectResponseInfo{T}" />.</returns>
         public static ResponseInfo CreateInstance(Encoding encoding, RequestInfo request, Type valueType, object value, IConverterProvider converterProvider, params Header[] headers)
         {
             if (valueType == null)
@@ -139,7 +177,7 @@ namespace URSA.Web.Http
 
             _body = new MemoryStream();
             Body = new UnclosableStream(_body);
-            converter.ConvertFrom<T>(Value = value, this);
+            converter.ConvertFrom(Value = value, this);
             _body.Flush();
             _body.Seek(0, SeekOrigin.Begin);
         }

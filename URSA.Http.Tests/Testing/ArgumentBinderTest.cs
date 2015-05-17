@@ -91,7 +91,7 @@ namespace URSA.Web.Http.Testing
                     });
         }
 
-        private T CreateBinderInstance(IConverterProvider converterProvider)
+        private static T CreateBinderInstance(IConverterProvider converterProvider)
         {
             return (T)typeof(T)
                 .GetConstructors(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)

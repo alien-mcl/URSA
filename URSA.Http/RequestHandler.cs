@@ -94,6 +94,7 @@ namespace URSA.Web.Http
             }
         }
 
+        //// TODO: Introduce a ResponseComposer that will transform result of the execution into a well configured response.
         private ResponseInfo HandleRequestInternal(IRequestMapping requestMapping, object output, object[] arguments)
         {
             ResponseInfo response = (ResponseInfo)requestMapping.Target.Response;

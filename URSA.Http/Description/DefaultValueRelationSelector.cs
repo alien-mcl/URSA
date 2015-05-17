@@ -63,7 +63,7 @@ namespace URSA.Web.Description.Http
                 ((IsIdentity(parameter.ParameterType)) &&
                 (PopularIdentifierPropertyNames.Contains(parameter.Name, StringComparer.OrdinalIgnoreCase))))
             {
-                return new ToHeaderAttribute();
+                return new ToHeaderAttribute(Header.Location);
             }
 
             return new ToBodyAttribute();

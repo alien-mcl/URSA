@@ -12,7 +12,6 @@ namespace URSA.Web.Http
     /// <summary>Provides a default implementation of the <see cref="IDelegateMapper{RequestInfo}"/> interface.</summary>
     public class DelegateMapper : IDelegateMapper<RequestInfo>
     {
-        private readonly IEnumerable<IHttpControllerDescriptionBuilder> _httpControllerDescriptionBuilders;
         private readonly Lazy<IEnumerable<ControllerInfo>> _controllerDescriptors;
         private readonly IControllerActivator _controllerActivator;
 
@@ -32,9 +31,8 @@ namespace URSA.Web.Http
                 throw new ArgumentNullException("controllerActivator");
             }
 
-            _httpControllerDescriptionBuilders = httpControllerDescriptionBuilders;
             _controllerActivator = controllerActivator;
-            _controllerDescriptors = new Lazy<IEnumerable<ControllerInfo>>(BuildControllerDescriptors);
+            _controllerDescriptors = new Lazy<IEnumerable<ControllerInfo>>(() => httpControllerDescriptionBuilders.Select(item => item.BuildDescriptor()));
         }
 
         /// <inheritdoc />
@@ -77,11 +75,6 @@ namespace URSA.Web.Http
                 OptionsController.CreateOperationInfo(option),
                 option.Uri,
                 allowedOptions.Select(item => item.ProtocolSpecificCommand.ToString()).ToArray());
-        }
-
-        private IEnumerable<ControllerInfo> BuildControllerDescriptors()
-        {
-            return _httpControllerDescriptionBuilders.Select(item => item.BuildDescriptor());
         }
     }
 }

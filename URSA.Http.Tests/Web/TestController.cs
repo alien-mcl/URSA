@@ -96,5 +96,12 @@ namespace URSA.Web.Tests
         {
             return null;
         }
+
+        public int Whatever(out int another, out int key)
+        {
+            another = 1;
+            key = 2;
+            return 3;
+        }
     }
 }

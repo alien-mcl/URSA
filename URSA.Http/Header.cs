@@ -35,6 +35,9 @@ namespace URSA.Web.Http
         /// <summary>Defines the 'Accept-Language' header name.</summary>
         public const string AcceptLanguage = "Accept-Language";
 
+        /// <summary>Defines the 'Location' header name.</summary>
+        public const string Location = "Location";
+
         /// <summary>Initializes a new instance of the <see cref="Header" /> class.</summary>
         /// <param name="name">Name of the header.</param>
         /// <param name="values">Value of the header.</param>

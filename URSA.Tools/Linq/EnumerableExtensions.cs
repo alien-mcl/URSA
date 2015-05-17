@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 
 namespace System.Linq
@@ -6,6 +7,42 @@ namespace System.Linq
     /// <summary>Provides useful <see cref="IEnumerable{T}" /> extension methods.</summary>
     public static class EnumerableExtensions
     {
+        /// <summary>Applies the given <paramref name="action" /> on each of the <see cref="items" />.</summary>
+        /// <param name="items">Items to be iterated through.</param>
+        /// <param name="action">Action to be applied.</param>
+        [ExcludeFromCodeCoverage]
+        public static void ForEach(this IEnumerable items, Action<object> action)
+        {
+            if ((items == null) || (action == null))
+            {
+                return;
+            }
+
+            foreach (var item in items)
+            {
+                action(item);
+            }
+        }
+
+        /// <summary>Applies the given <paramref name="action" /> on each of the <see cref="items" />.</summary>
+        /// <param name="items">Items to be iterated through.</param>
+        /// <param name="action">Action to be applied.</param>
+        [ExcludeFromCodeCoverage]
+        public static void ForEach(this IEnumerable items, Action<object, int> action)
+        {
+            if ((items == null) || (action == null))
+            {
+                return;
+            }
+
+            int index = 0;
+            foreach (var item in items)
+            {
+                action(item, index);
+                index++;
+            }
+        }
+
         /// <summary>Applies the given <paramref name="action" /> on each of the <see cref="items" />.</summary>
         /// <typeparam name="T">Type of items in the enumeration.</typeparam>
         /// <param name="items">Items to be iterated through.</param>
@@ -21,6 +58,26 @@ namespace System.Linq
             foreach (T item in items)
             {
                 action(item);
+            }
+        }
+
+        /// <summary>Applies the given <paramref name="action" /> on each of the <see cref="items" />.</summary>
+        /// <typeparam name="T">Type of items in the enumeration.</typeparam>
+        /// <param name="items">Items to be iterated through.</param>
+        /// <param name="action">Action to be applied.</param>
+        [ExcludeFromCodeCoverage]
+        public static void ForEach<T>(this IEnumerable<T> items, Action<T, int> action)
+        {
+            if ((items == null) || (action == null))
+            {
+                return;
+            }
+
+            int index = 0;
+            foreach (T item in items)
+            {
+                action(item, index);
+                index++;
             }
         }
 

@@ -52,6 +52,7 @@
   <ItemGroup>
     <Compile Include="Client.cs" />
     <Compile Include="Configuration\HttpConfigurationSection.cs" />
+    <Compile Include="Converters\ConverterExtensions.cs" />
     <Compile Include="Converters\GuidConverter.cs" />
     <Compile Include="Description\ControllerDescriptionBuilder.cs" />
     <Compile Include="Converters\BooleanConverter.cs" />
@@ -76,6 +77,7 @@
     <Compile Include="HeaderParameterCollection.cs" />
     <Compile Include="HeaderValue.cs" />
     <Compile Include="IHttpControllerDescriptionBuilder.cs" />
+    <Compile Include="IResponseComposer.cs" />
     <Compile Include="IWebRequestProvider.cs" />
     <Compile Include="Mapping\ArgumentBinder.cs" />
     <Compile Include="Mapping\ArgumentBindingContext.cs" />
@@ -92,6 +94,7 @@
     <Compile Include="Mapping\OnGetAttribute.cs" />
     <Compile Include="Mapping\OnPostAttribute.cs" />
     <Compile Include="Mapping\OnVerbAttribute.cs" />
+    <Compile Include="ResponseComposer.cs" />
     <Compile Include="WebRequestProvider.cs" />
     <None Include="Description\OperationInfo.cs" />
     <Compile Include="MultiObjectResponseInfo.cs" />

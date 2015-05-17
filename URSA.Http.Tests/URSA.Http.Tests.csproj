@@ -96,6 +96,7 @@
     <Compile Include="Given_instance_of_the\DefaultValueRelationSelector_class\when_handlig_request.cs" />
     <Compile Include="Given_instance_of_the\HeaderParameterCollection_class.cs" />
     <Compile Include="Given_instance_of_the\Client_class.cs" />
+    <Compile Include="Given_instance_of_the\ResponseComposer_class.cs" />
     <Compile Include="Given_instance_of_the\Verb_class.cs" />
     <Compile Include="Testing\ArgumentBinderTest.cs" />
     <Compile Include="Given_instance_of_the\converter_of\BinaryConverter_class.cs" />
@@ -114,6 +115,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Testing\ComplexTypeConverterTest.cs" />
     <Compile Include="Testing\ConverterTest.cs" />
+    <Compile Include="Testing\MethodInfoExtensions.cs" />
     <Compile Include="Web\AnotherTestController.cs" />
     <Compile Include="Web\TestController.cs" />
   </ItemGroup>

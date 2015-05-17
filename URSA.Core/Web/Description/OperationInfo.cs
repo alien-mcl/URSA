@@ -127,5 +127,53 @@ namespace URSA.Web.Description
 
         /// <summary>Gets the protocol specific command.</summary>
         public T ProtocolSpecificCommand { get; private set; }
+
+        /// <summary>Implements the operator equality.</summary>
+        /// <param name="operandA">Left operand.</param>
+        /// <param name="operandB">Right operand.</param>
+        /// <returns>The result of the operator.</returns>
+        public static bool operator ==(OperationInfo<T> operandA, OperationInfo<T> operandB)
+        {
+            return ((Equals(operandA, null)) && (Equals(operandB, null))) || ((!Equals(operandA, null)) && (!Equals(operandB, null)) &&
+                (operandA.UnderlyingMethod.Equals(operandB.UnderlyingMethod)) && (operandA.ProtocolSpecificCommand.Equals(operandB.ProtocolSpecificCommand)) &&
+                (operandA.Uri.ToString().Equals(operandB.Uri.ToString())));
+        }
+
+        /// <summary>Implements the operator inequality operator.</summary>
+        /// <param name="operandA">Left operand.</param>
+        /// <param name="operandB">Right operand.</param>
+        /// <returns>The result of the operator.</returns>
+        public static bool operator !=(OperationInfo<T> operandA, OperationInfo<T> operandB)
+        {
+            return ((Equals(operandA, null)) && (!Equals(operandB, null))) ||
+                ((!Equals(operandA, null)) && (Equals(operandB, null))) || 
+                ((!Equals(operandA, null)) && (!Equals(operandB, null)) &&
+                ((!operandA.UnderlyingMethod.Equals(operandB.UnderlyingMethod)) || (!operandA.ProtocolSpecificCommand.Equals(operandB.ProtocolSpecificCommand)) ||
+                (!operandA.Uri.ToString().Equals(operandB.Uri.ToString()))));
+        }
+
+        /// <inheritdoc />
+        public override int GetHashCode()
+        {
+            return UnderlyingMethod.GetHashCode() ^ Uri.ToString().GetHashCode();
+        }
+
+        /// <inheritdoc />
+        public override bool Equals(object obj)
+        {
+            if ((Equals(obj, null)) || (obj.GetType() != typeof(OperationInfo<T>)))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            var operation = (OperationInfo<T>)obj;
+            return (UnderlyingMethod.Equals(operation.UnderlyingMethod)) && (ProtocolSpecificCommand.Equals(operation.ProtocolSpecificCommand)) &&
+                (Uri.ToString().Equals(operation.Uri.ToString()));
+        }
     }
 }

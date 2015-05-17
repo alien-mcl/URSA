@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using URSA.Web.Converters;
+using URSA.Web.Http.Converters;
 using URSA.Web.Mapping;
 
 namespace URSA.Web.Http.Mapping
@@ -50,46 +51,8 @@ namespace URSA.Web.Http.Mapping
                 .Replace(FromQueryStringAttribute.Value, "(?<Value>[^&]+)")
                 .Replace(FromQueryStringAttribute.Key, "&" + context.Parameter.Name + "=");
             MatchCollection matches = Regex.Matches("&" + context.Request.Uri.Query.Substring(1), template);
-            if (matches.Count == 0)
-            {
-                return null;
-            }
-
-            Type itemType = context.Parameter.ParameterType.GetItemType();
-            bool success;
-            object result = ConvertUsingTypeConverters(context, matches, itemType, out success);
-            if (!success)
-            {
-                result = ConvertUsingCustomConverters(context, matches, itemType);
-            }
-
-            return result;
-        }
-
-        private object ConvertUsingTypeConverters(ArgumentBindingContext<FromQueryStringAttribute> context, MatchCollection matches, Type itemType, out bool success)
-        {
-            success = false;
-            var converter = TypeDescriptor.GetConverter(itemType);
-            if ((converter == null) || (!converter.CanConvertFrom(typeof(string))))
-            {
-                return null;
-            }
-
-            success = true;
-            var values = matches.Cast<Match>().Select(match => converter.ConvertFromInvariantString(match.Groups["Value"].Value));
-            return values.MakeInstance(context.Parameter.ParameterType, itemType);
-        }
-
-        private object ConvertUsingCustomConverters(ArgumentBindingContext<FromQueryStringAttribute> context, MatchCollection matches, Type itemType)
-        {
-            var converter = _converterProvider.FindBestInputConverter(context.Parameter.ParameterType, context.Request, true);
-            if (converter == null)
-            {
-                return null;
-            }
-
-            var values = matches.Cast<Match>().Select(match => converter.ConvertTo(itemType, match.Groups["Value"].Value));
-            return values.MakeInstance(context.Parameter.ParameterType, itemType);
+            return (matches.Count == 0 ? null : 
+                _converterProvider.ConvertToCollection(matches.Cast<Match>().Select(match => match.Groups["Value"].Value), context.Parameter.ParameterType, context.Request));
         }
     }
 }
