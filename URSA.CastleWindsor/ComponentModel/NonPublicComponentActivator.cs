@@ -14,7 +14,7 @@ namespace URSA.CastleWindsor.ComponentModel
     /// <summary>Provides non-public constructors for Castle Windsor DI.</summary>
     public class NonPublicComponentActivator : DefaultComponentActivator
     {
-        private readonly List<Type> loadedTypes = new List<Type>();
+        private readonly List<Type> _loadedTypes = new List<Type>();
 
         /// <summary>Initializes a new instance of the <see cref="NonPublicComponentActivator" /> class.</summary>
         /// <param name="model">Component model.</param>
@@ -29,12 +29,12 @@ namespace URSA.CastleWindsor.ComponentModel
         /// <inheritdoc />
         protected override ConstructorCandidate SelectEligibleConstructor(CreationContext context)
         {
-            lock (loadedTypes)
+            lock (_loadedTypes)
             {
-                if (!loadedTypes.Contains(context.RequestedType))
+                if (!_loadedTypes.Contains(Model.Implementation))
                 {
-                    loadedTypes.Add(context.RequestedType);
-                    var ctors = context.Handler.ComponentModel.Implementation.GetConstructors(BindingFlags.NonPublic | BindingFlags.Instance);
+                    _loadedTypes.Add(Model.Implementation);
+                    var ctors = Model.Implementation.GetConstructors(BindingFlags.NonPublic | BindingFlags.Instance);
                     foreach (var ctor in ctors)
                     {
                         var parameters = ctor.GetParameters().Select(pi => new ConstructorDependencyModel(pi)).ToArray();

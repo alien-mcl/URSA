@@ -79,6 +79,8 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ComponentModel\AutoClosingCollectionResolver.cs" />
+    <Compile Include="ComponentModel\HandlerEqualityComparer.cs" />
     <Compile Include="ComponentModel\NonPublicComponentActivator.cs" />
     <Compile Include="ComponentModel\DefaultGenericImplementationMatchingStrategy.cs" />
     <Compile Include="ComponentModel\WindsorComponentProvider.cs" />
@@ -105,6 +107,10 @@
     <ProjectReference Include="..\URSA.Tools\URSA.Tools.csproj">
       <Project>{60fc7ac8-8f27-4b1c-83d7-ce4daef5b070}</Project>
       <Name>URSA.Tools</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\URSA.Web\URSA.Web.csproj">
+      <Project>{f64a1231-96cd-49b0-b34e-ae751b471348}</Project>
+      <Name>URSA.Web</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

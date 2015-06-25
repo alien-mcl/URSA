@@ -9,7 +9,7 @@ namespace URSA.Example.WebApplication
     {
         protected void Application_Start(object sender, EventArgs e)
         {
-            this.RegisterApis<RequestInfo>();
+            this.RegisterApis();
         }
 
         protected void Session_Start(object sender, EventArgs e)

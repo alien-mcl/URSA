@@ -47,7 +47,7 @@ namespace URSA.Web.Converters
 
             return (from item in _converters
                     let level = item.CanConvertTo(expectedType, request)
-                    where ((ignoreProtocol) || ((!ignoreProtocol) && 
+                    where ((ignoreProtocol) || ((!ignoreProtocol) &&
                         ((level & CompatibilityLevel.ProtocolMatch) == CompatibilityLevel.ProtocolMatch))) &&
                         ((level & CompatibilityLevel.TypeMatch) == CompatibilityLevel.TypeMatch)
                     let value = (ignoreProtocol ? level & ~CompatibilityLevel.ExactProtocolMatch : level)
@@ -80,13 +80,27 @@ namespace URSA.Web.Converters
                 throw new ArgumentNullException("response");
             }
 
-            return (from item in _converters
-                    let level = item.CanConvertFrom(expectedType, response)
-                    where ((level & CompatibilityLevel.ProtocolMatch) == CompatibilityLevel.ProtocolMatch) &&
-                        ((level & CompatibilityLevel.TypeMatch) == CompatibilityLevel.TypeMatch)
-                    orderby level descending
-                    orderby (expectedType.GetItemType() != typeof(string) ? 1 : 0) descending
-                    select item).FirstOrDefault();
+            var result = (from item in _converters
+                          let level = item.CanConvertFrom(expectedType, response)
+                          where ((level & CompatibilityLevel.ProtocolMatch) == CompatibilityLevel.ProtocolMatch) &&
+                              ((level & CompatibilityLevel.TypeMatch) == CompatibilityLevel.TypeMatch)
+                          orderby level descending
+                          orderby (expectedType.GetItemType() != typeof(string) ? 1 : 0) descending
+                          select item).FirstOrDefault();
+            if (result != null)
+            {
+                return result;
+            }
+
+            if (response.Request.OutputNeutral)
+            {
+                return (from item in _converters
+                        let level = item.CanConvertTo(expectedType, response.Request)
+                        orderby level descending
+                        select item).FirstOrDefault();
+            }
+
+            return null;
         }
     }
 }

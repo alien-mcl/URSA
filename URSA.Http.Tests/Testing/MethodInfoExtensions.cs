@@ -23,7 +23,8 @@ namespace URSA.Web.Http.Tests.Testing
         public static OperationInfo<T> ToOperationInfo<T>(this MethodInfo method, string baseUri, T verb, out string callUri, params object[] values)
         {
             var methodUri = method.GetCustomAttributes<RouteAttribute>().Select(attribute => attribute.Uri.ToString()).FirstOrDefault() ?? method.Name.ToLower();
-            var actualCallUri = baseUri + methodUri;
+            var actualCallUri = "/" + baseUri.Trim('/') + "/" + methodUri.TrimStart('/');
+            var targetUriTemplate = actualCallUri;
             var queryString = String.Empty;
             var arguments = method.GetParameters()
                 .Where(parameter => !parameter.IsOut)
@@ -33,8 +34,10 @@ namespace URSA.Web.Http.Tests.Testing
                     var target = parameter.GetParameterTarget();
                     if (target is FromUriAttribute)
                     {
-                        uriTemplate = (methodUri += String.Format("/{0}/{{?{0}}}", parameter.Name));
-                        actualCallUri += String.Format("/{0}/{1}", parameter.Name, values[index]);
+                        var temp = String.Format("/{0}/{{?{0}}}", parameter.Name);
+                        uriTemplate = (methodUri += temp);
+                        targetUriTemplate += temp;
+                        actualCallUri += temp;
                     }
                     else if (target is FromQueryStringAttribute)
                     {
@@ -42,7 +45,7 @@ namespace URSA.Web.Http.Tests.Testing
                         uriTemplate = methodUri + queryString;
                     }
 
-                    return (ValueInfo)new ArgumentInfo(parameter, target, uriTemplate, parameter.Name);
+                    return (ValueInfo)new ArgumentInfo(parameter, target, uriTemplate, (target is FromBodyAttribute ? null : parameter.Name));
                 })
                 .Concat(method.GetParameters()
                 .Where(parameter => parameter.IsOut)
@@ -52,10 +55,12 @@ namespace URSA.Web.Http.Tests.Testing
                 arguments = arguments.Concat(new[] { new ResultInfo(method.ReturnParameter, method.ReturnParameter.GetResultTarget(), null, null) });
             }
 
+            arguments = arguments.ToArray();
             callUri = actualCallUri + queryString;
+            targetUriTemplate += queryString;
             var queryStringParameters = Regex.Matches(callUri, "[?&]([^=]+)=[^&]+").Cast<Match>();
             var queryStringRegex = (queryStringParameters.Any() ? "[?&](" + String.Join("|", queryStringParameters.Select(item => item.Groups[1].Value)) + ")=[^&]+" : String.Empty);
-            return new OperationInfo<T>(method, new Uri(methodUri, UriKind.RelativeOrAbsolute), callUri, new Regex("^" + methodUri + queryStringRegex + "$"), verb, arguments.ToArray());
+            return new OperationInfo<T>(method, new Uri(methodUri, UriKind.RelativeOrAbsolute), targetUriTemplate, new Regex("^" + methodUri + queryStringRegex + "$"), verb, (ValueInfo[])arguments);
         }
 
         private static ParameterSourceAttribute GetParameterTarget(this ParameterInfo parameter)

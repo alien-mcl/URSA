@@ -13,11 +13,11 @@ namespace URSA.Web.Http.Converters
     /// <summary>Provides useful <see cref="IConverter" /> helpers.</summary>
     public static class ConverterExtensions
     {
-        /// <summary>Converts string to given itemType.</summary>
+        /// <summary>Converts string to given type.</summary>
         /// <param name="converterProvider">The converter provider.</param>
         /// <param name="request">The request.</param>
         /// <param name="value">The value.</param>
-        /// <param name="type">The target itemType.</param>
+        /// <param name="type">The target type.</param>
         /// <returns>Instance of the <paramref name="type" />.</returns>
         public static object ConvertTo(this IConverterProvider converterProvider, string value, Type type, IRequestInfo request = null)
         {

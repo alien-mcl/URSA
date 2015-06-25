@@ -17,6 +17,7 @@ using URSA.Configuration;
 using URSA.Web;
 using URSA.Web.Description;
 using URSA.Web.Description.Http;
+using URSA.Web.Handlers;
 using URSA.Web.Http;
 using URSA.Web.Http.Converters;
 using URSA.Web.Http.Description;
@@ -48,12 +49,10 @@ namespace URSA.CastleWindsor
                 configuration.DefaultValueRelationSelectorType :
                 typeof(DefaultValueRelationSelector));
 
+            container.Register(Component.For<IControllerActivator>().UsingFactoryMethod((kernel, context) => new DefaultControllerActivator(UrsaConfigurationSection.InitializeComponentProvider())).LifestyleSingleton());
             container.Register(Component.For<IEntityContext>().UsingFactoryMethod(CreateEntityContext).LifestylePerWebRequest());
             container.Register(Component.For<IEntityContextFactory>().Instance(_entityContextFactory.Value).LifestyleSingleton());
             container.Register(Component.For<IDefaultValueRelationSelector>().ImplementedBy(sourceSelectorType).LifestyleSingleton());
-            container.Register(Component.For(typeof(IControllerDescriptionBuilder<>)).Forward(typeof(IHttpControllerDescriptionBuilder<>))
-                .Forward<IControllerDescriptionBuilder>().Forward<IHttpControllerDescriptionBuilder>()
-                .ImplementedBy(typeof(ControllerDescriptionBuilder<>), componentProvider.GenericImplementationMatchingStrategy).LifestyleTransient());
             container.Register(Component.For(typeof(DescriptionController<>)).Forward<IController>()
                 .ImplementedBy(typeof(DescriptionController<>), componentProvider.GenericImplementationMatchingStrategy).LifestyleTransient());
             container.Register(Component.For<IParameterSourceArgumentBinder>().ImplementedBy<FromQueryStringArgumentBinder>().Activator<NonPublicComponentActivator>().LifestyleSingleton());
@@ -66,6 +65,10 @@ namespace URSA.CastleWindsor
             container.Register(Component.For<IUriParser>().ImplementedBy<OGuidUriParser>().LifestyleSingleton().Named(typeof(OGuidUriParser).FullName));
             container.Register(Component.For<IXmlDocProvider>().ImplementedBy<XmlDocProvider>().LifestyleSingleton());
             container.Register(Component.For<IWebRequestProvider>().ImplementedBy<WebRequestProvider>().LifestyleSingleton());
+            container.Register(Component.For<IRequestHandler<RequestInfo, ResponseInfo>>().ImplementedBy<RequestHandler>().LifestyleSingleton());
+            container.Register(Component.For<IResponseComposer>().ImplementedBy<ResponseComposer>().LifestyleSingleton());
+            container.Register(Component.For<IDelegateMapper<RequestInfo>>().ImplementedBy<DelegateMapper>().LifestyleSingleton());
+            container.Register(Component.For<IArgumentBinder<RequestInfo>>().ImplementedBy<ArgumentBinder>().LifestyleSingleton());
         }
 
         private IEntityContext CreateEntityContext(IKernel kernel, CreationContext context)

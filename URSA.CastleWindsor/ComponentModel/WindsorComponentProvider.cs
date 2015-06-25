@@ -24,6 +24,7 @@ namespace URSA.ComponentModel
         public WindsorComponentProvider()
         {
             _container = new WindsorContainer();
+            _container.Kernel.Resolver.AddSubResolver(new AutoClosingCollectionResolver(_container.Kernel));
             _container.Kernel.Resolver.AddSubResolver(new CollectionResolver(_container.Kernel, true));
             _container.Register(Component.For<WindsorComponentProvider>().Instance(this));
             _genericImplementationMatchingStrategy = new DefaultGenericImplementationMatchingStrategy(this);

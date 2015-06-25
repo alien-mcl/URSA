@@ -11,6 +11,7 @@ namespace URSA.Web.Http
     /// <summary>Describes an HTTP request.</summary>
     public sealed class RequestInfo : IRequestInfo, IDisposable
     {
+        private const string AnyAny = "*/*";
         private readonly Stream _stream;
 
         /// <summary>Initializes a new instance of the <see cref="RequestInfo"/> class.</summary>
@@ -83,6 +84,9 @@ namespace URSA.Web.Http
 
         /// <summary>Gets the request headers.</summary>
         public HeaderCollection Headers { get; private set; }
+
+        /// <inheritdoc />
+        public bool OutputNeutral { get { return (Headers.Accept.IndexOf(AnyAny) != -1); } }
 
         /// <inheritdoc />
         IDictionary<string, string> IRequestInfo.Headers { get { return Headers; } }

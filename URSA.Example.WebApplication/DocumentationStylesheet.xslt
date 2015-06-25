@@ -69,7 +69,7 @@
                     }
                     else {
                         returns = this.mapType(supportedOperation.returns[0]);
-                        if (returns === this.mapType(supportedClass["@id"])) {
+                        if (returns.replace(/\[\]$/, "") === this.mapType(supportedClass["@id"])) {
                             returns = supportedClass.label;
                         }
                     }
@@ -152,7 +152,7 @@
                 "supportedProperties": [<xsl:for-each select="$class/hydra:supportedProperties">
                     <xsl:variable name="id" select="@rdf:resource" />
                     <xsl:variable name="supportedProperty" select="/rdf:RDF/hydra:SupportedProperty[@rdf:about = $id]|/rdf:RDF/*[rdf:type/@rdf:resource = 'http://www.w3.org/ns/hydra/core#SupportedProperty' and @rdf:about = $id]" />
-                    <xsl:variable name="property" select="/rdf:RDF/rdfs:Property[@rdf:about = $supportedProperty/hydra:property/@rdf:resource]|/rdf:RDF/*[rdf:type/@rdf:resource = 'http://www.w3.org/2000/01/rdf-schema#Property' and @rdf:about = $supportedProperty/hydra:property/@rdf:resource]" />
+                    <xsl:variable name="property" select="/rdf:RDF/rdf:Property[@rdf:about = $supportedProperty/hydra:property/@rdf:resource]|/rdf:RDF/*[rdf:type/@rdf:resource = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#Property' and @rdf:about = $supportedProperty/hydra:property/@rdf:resource]" />
                     <xsl:variable name="isEnumerable">
                         <xsl:choose>
                             <xsl:when test="/rdf:RDF/owl:Restriction[owl:onProperty[@rdf:resource = $property/@rdf:about] and owl:maxCardinality[text() = '1']]">false</xsl:when>
@@ -192,12 +192,12 @@
     <xsl:template name="hydra-SupportedProperty">
         <xsl:param name="supportedProperty" />
         <xsl:param name="isEnumerable" />
-        <xsl:variable name="property" select="/rdf:RDF/rdfs:Property[@rdf:about = $supportedProperty/hydra:property/@rdf:resource]|/rdf:RDF/*[rdf:type/@rdf:resource = 'http://www.w3.org/2000/01/rdf-schema#Property' and @rdf:about = $supportedProperty/hydra:property/@rdf:resource]" />
+        <xsl:variable name="property" select="/rdf:RDF/rdf:Property[@rdf:about = $supportedProperty/hydra:property/@rdf:resource]|/rdf:RDF/*[rdf:type/@rdf:resource = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#Property' and @rdf:about = $supportedProperty/hydra:property/@rdf:resource]" />
                     {
                         "@id": "<xsl:value-of select="$supportedProperty/@rdf:about" />",
                         "label": "<xsl:value-of select="$property/rdfs:label" />",<xsl:if test="$supportedProperty/rdfs:comment">
                         "description": "<xsl:value-of select="$supportedProperty/rdfs:comment/text()"/>",</xsl:if>
-                        "type": "<xsl:call-template name="type"><xsl:with-param name="type" select="$property/rdfs:range/@rdf:resource" /><xsl:with-param name="isEnumerable" select="$isEnumerable" /></xsl:call-template>",
+                        "type": "<xsl:call-template name="type"><xsl:with-param name="type" select="$property/rdfs:range/@rdf:resource" /><xsl:with-param name="isEnumerable" select="isEnumerable" /></xsl:call-template>",
                         "property": "<xsl:value-of select="$property/@rdf:about" />",
                         "readonly": <xsl:choose><xsl:when test="$supportedProperty/hydra:readonly"><xsl:value-of select="$supportedProperty/hydra:readonly"/></xsl:when><xsl:otherwise>false</xsl:otherwise></xsl:choose>,
                         "writeonly": <xsl:choose><xsl:when test="$supportedProperty/hydra:writeonly"><xsl:value-of select="$supportedProperty/hydra:writeonly"/></xsl:when><xsl:otherwise>false</xsl:otherwise></xsl:choose>
@@ -206,12 +206,18 @@
     <xsl:template name="hydra-SupportedOperation">
         <xsl:param name="supportedOperation" />
         <xsl:param name="template" />
+        <xsl:variable name="isEnumerable">
+            <xsl:choose>
+                <xsl:when test="/rdf:RDF/rdf:Property[@rdf:about = /rdf:RDF/hydra:IriTemplateMapping[@rdf:about = $template/hydra:mapping/@rdf:resource]/hydra:property/@rdf:resource and rdf:type/@rdf:resource = 'http://www.w3.org/2002/07/owl#InverseFunctionalProperty']">false</xsl:when>
+                <xsl:otherwise>true</xsl:otherwise>
+            </xsl:choose>
+        </xsl:variable>
                     {
                         "@id": "<xsl:value-of select="$supportedOperation/@rdf:about" />",
                         "label": "<xsl:value-of select="$supportedOperation/rdfs:label" />",<xsl:if test="$template">
                         "template": "<xsl:value-of select="$template/hydra:template" />",</xsl:if><xsl:if test="$supportedOperation/rdfs:comment">
                         "description": "<xsl:value-of select="$supportedOperation/rdfs:comment/text()"/>",</xsl:if>
-                        "returns": [<xsl:for-each select="$supportedOperation/hydra:returns">"<xsl:value-of select="./@rdf:resource" />"<xsl:if test="position() != last()">, </xsl:if></xsl:for-each>],
+                        "returns": [<xsl:for-each select="$supportedOperation/hydra:returns">"<xsl:call-template name="type"><xsl:with-param name="type" select="./@rdf:resource" /><xsl:with-param name="isEnumerable" select="$isEnumerable" /></xsl:call-template>"<xsl:if test="position() != last()">, </xsl:if></xsl:for-each>],
                         "expects": [<xsl:for-each select="$supportedOperation/hydra:expects">"<xsl:value-of select="./@rdf:resource" />"<xsl:if test="position() != last()">, </xsl:if></xsl:for-each>],
                         "mappings": [<xsl:for-each select="/rdf:RDF/*[@rdf:about = $template/hydra:mapping/@rdf:resource]">
                             {

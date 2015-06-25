@@ -88,6 +88,11 @@ namespace URSA.Web.Http
                 result.Headers.ContentType = StringConverter.TextPlain;
             }
 
+            if (result.Status == 0)
+            {
+                result.Status = HttpStatusCode.OK;
+            }
+
             return result;
         }
 
@@ -143,7 +148,7 @@ namespace URSA.Web.Http
                     case "GET":
                         return MakeGetResponse(requestMapping, (resultingValues.Count > 0 ? resultingValues[resultingValues.Count - 1] : null));
                     case "POST":
-                        return MakePostResponse(requestMapping, (resultingValues.Count > 0 ? (bool?)resultingValues[resultingValues.Count - 1] : null));
+                        return MakePostResponse(requestMapping, (resultingValues.Count > 0 ? resultingValues[0] : null), (resultingValues.Count > 0 ? (bool?)resultingValues[resultingValues.Count - 1] : null));
                     case "PUT":
                     case "DELETE":
                         return MakeResponse(requestMapping, (resultingValues.Count > 0 ? (bool?)resultingValues[resultingValues.Count - 1] : null));
@@ -190,34 +195,39 @@ namespace URSA.Web.Http
             return result;
         }
 
-        private ResponseInfo MakePostResponse(IRequestMapping requestMapping, bool? operationResult)
+        private ResponseInfo MakePostResponse(IRequestMapping requestMapping, object value, bool? operationResult)
         {
             ResponseInfo result = (ResponseInfo)requestMapping.Target.Response;
-            if (operationResult == null)
+            if ((operationResult == null) || (value == null))
             {
-                result.Status = HttpStatusCode.NotFound;
+                result.Status = HttpStatusCode.BadRequest;
                 return result;
             }
 
             if (!operationResult.Value)
             {
-                result.Status = HttpStatusCode.Found;
+                result.Status = HttpStatusCode.Conflict;
                 return result;
             }
 
+            Type controllerType = null;
             var controllerDescriptor = (from controller in _controllerDescriptors.Value
-                                       from operation in controller.Operations
-                                       where operation.Equals(requestMapping.Operation)
-                                       select controller).FirstOrDefault();
+                                        from operation in controller.Operations
+                                        where operation.Equals(requestMapping.Operation)
+                                        let type = controllerType = operation.UnderlyingMethod.ReflectedType
+                                        select controller).FirstOrDefault();
             if (controllerDescriptor == null)
             {
                 throw new InvalidOperationException(String.Format("Cannot determine the default GET request handler for '{0}'.", requestMapping.Target.GetType()));
             }
 
-            var getMethod = (from operation in controllerDescriptor.Operations
-                             where operation.UnderlyingMethod.ReflectedType.GetInterfaceMap(typeof(IReadController<,>)).TargetMethods.Contains(operation.UnderlyingMethod)
+            var getMethod = (from @interface in controllerType.GetInterfaces()
+                             where (@interface.IsGenericType) && (@interface.GetGenericTypeDefinition() == typeof(IReadController<,>))
+                             from method in controllerType.GetInterfaceMap(@interface).TargetMethods
+                             join operation in controllerDescriptor.Operations on method equals operation.UnderlyingMethod
                              select operation).First();
-            result.Headers.Add(new Header(Header.Location, getMethod.Uri.ToString()));
+            result.Headers.Add(new Header(Header.Location, getMethod.UriTemplate.Replace("{?" + getMethod.Arguments.First().VariableName + "}", value.ToString())));
+            result.Status = HttpStatusCode.Created;
             return result;
         }
 

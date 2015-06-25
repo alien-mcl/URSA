@@ -13,14 +13,21 @@ namespace URSA.Web.Handlers
 {
     /// <summary>Provides a connection between URSA framework and standard ASP.net pipeline.</summary>
     /// <typeparam name="T">Type of controller exposed.</typeparam>
-    public class UrsaHandler<T> : IHttpHandler, IRouteHandler where T : IController
+    public class UrsaHandler<T> : IHttpHandler, IRouteHandler
+        where T : IController
     {
-        private readonly RequestHandler _requestHandler;
+        private readonly IRequestHandler<RequestInfo, ResponseInfo> _requestHandler;
 
         /// <summary>Initializes a new instance of the <see cref="UrsaHandler{T}" /> class.</summary>
-        public UrsaHandler()
+        /// <param name="requestHandler">Request handler.</param>
+        public UrsaHandler(IRequestHandler<RequestInfo, ResponseInfo> requestHandler)
         {
-            _requestHandler = new RequestHandler();
+            if (requestHandler == null)
+            {
+                throw new ArgumentNullException("requestHandler");
+            }
+
+            _requestHandler = requestHandler;
         }
 
         /// <inheritdoc />

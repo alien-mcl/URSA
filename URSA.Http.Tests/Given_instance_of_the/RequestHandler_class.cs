@@ -24,31 +24,41 @@ namespace Given_instance_of_the
     [TestClass]
     public class RequestHandler_class
     {
-        [TestMethod]
-        public void it_should_call_method_on_the_controller()
-        {
-            SetupEnvironment(true);
-            var handler = new RequestHandler();
-            var result = handler.HandleRequest(new RequestInfo(Verb.GET, new Uri("http://temp.uri/api/test"), new MemoryStream()));
+        private Mock<IDelegateMapper<RequestInfo>> _delegateMapper;
+        private Mock<IArgumentBinder<RequestInfo>> _argumentBinder;
+        private Mock<IResponseComposer> _responseComposer;
 
-            result.Status.Should().Be(HttpStatusCode.OK);
-            result.Should().BeOfType<ObjectResponseInfo<int>>();
-            ((ObjectResponseInfo<int>)result).Value.Should().Be(1);
+        [TestMethod]
+        public void it_should_use_a_response_composer_to_return_operation_result()
+        {
+            var handler = SetupEnvironment(true);
+
+            handler.HandleRequest(new RequestInfo(Verb.GET, new Uri("http://temp.uri/api/test"), new MemoryStream()));
+
+            _responseComposer.Verify(instance => instance.ComposeResponse(It.IsAny<IRequestMapping>(), It.IsAny<object>(), It.IsAny<object[]>()), Times.Once);
         }
 
         [TestMethod]
-        public void it_should_return_400_Bad_Request_when_argument_is_missing()
+        public void it_should_use_argument_binder_to_prepare_input_parameters()
         {
-            SetupEnvironment();
-            var handler = new RequestHandler();
-            var result = handler.HandleRequest(new RequestInfo(Verb.GET, new Uri("http://temp.uri/api/test"), new MemoryStream()));
+            var handler = SetupEnvironment(true);
 
-            result.Status.Should().Be(HttpStatusCode.BadRequest);
-            result.Should().BeOfType<ExceptionResponseInfo>();
-            ((ExceptionResponseInfo)result).Value.Should().BeOfType<ArgumentNullException>();
+            handler.HandleRequest(new RequestInfo(Verb.GET, new Uri("http://temp.uri/api/test"), new MemoryStream()));
+
+            _argumentBinder.Verify(instance => instance.BindArguments(It.IsAny<RequestInfo>(), It.IsAny<IRequestMapping>()), Times.Once);
         }
 
-        private void SetupEnvironment(bool useDefaultArguments = false)
+        [TestMethod]
+        public void it_should_use_delegate_mapper_to_call_the_controller_method()
+        {
+            var handler = SetupEnvironment(true);
+
+            handler.HandleRequest(new RequestInfo(Verb.GET, new Uri("http://temp.uri/api/test"), new MemoryStream()));
+
+            _delegateMapper.Verify(instance => instance.MapRequest(It.IsAny<RequestInfo>()), Times.Once);
+        }
+
+        private RequestHandler SetupEnvironment(bool useDefaultArguments = false)
         {
             var operation = CreateOperation();
             var arguments = operation.UnderlyingMethod.GetParameters().Select(parameter =>
@@ -65,11 +75,11 @@ namespace Given_instance_of_the
             mapping.SetupGet(instance => instance.Target).Returns(controller.Object);
             mapping.Setup(instance => instance.Invoke(arguments)).Returns(result);
 
-            Mock<IDelegateMapper<RequestInfo>> delegateMapper = new Mock<IDelegateMapper<RequestInfo>>(MockBehavior.Strict);
-            delegateMapper.As<IDelegateMapper>().Setup(instance => instance.MapRequest(It.IsAny<RequestInfo>())).Returns<RequestInfo>(request => mapping.Object);
+            _delegateMapper = new Mock<IDelegateMapper<RequestInfo>>(MockBehavior.Strict);
+            _delegateMapper.Setup(instance => instance.MapRequest(It.IsAny<RequestInfo>())).Returns<RequestInfo>(request => mapping.Object);
 
-            Mock<IArgumentBinder<RequestInfo>> argumentBinder = new Mock<IArgumentBinder<RequestInfo>>();
-            argumentBinder.As<IArgumentBinder>().Setup(instance => instance.BindArguments(It.IsAny<RequestInfo>(), It.IsAny<IRequestMapping>()))
+            _argumentBinder = new Mock<IArgumentBinder<RequestInfo>>();
+            _argumentBinder.Setup(instance => instance.BindArguments(It.IsAny<RequestInfo>(), It.IsAny<IRequestMapping>()))
                 .Returns<IRequestInfo, IRequestMapping>((request, requestMapping) => arguments);
 
             Mock<IConverter> converter = new Mock<IConverter>(MockBehavior.Strict);
@@ -84,9 +94,9 @@ namespace Given_instance_of_the
 
             Mock<IComponentProvider> container = new Mock<IComponentProvider>(MockBehavior.Strict);
             container.Setup(instance => instance.Resolve<IConverterProvider>()).Returns(converterProvider.Object);
-            container.Setup(instance => instance.Resolve<IDelegateMapper<RequestInfo>>()).Returns(delegateMapper.Object);
+            container.Setup(instance => instance.Resolve<IDelegateMapper<RequestInfo>>()).Returns(_delegateMapper.Object);
             container.Setup(instance => instance.Register<IDelegateMapper<RequestInfo>>(It.IsAny<DelegateMapper>()));
-            container.Setup(instance => instance.Resolve<IArgumentBinder<RequestInfo>>()).Returns(argumentBinder.Object);
+            container.Setup(instance => instance.Resolve<IArgumentBinder<RequestInfo>>()).Returns(_argumentBinder.Object);
             container.Setup(instance => instance.Register<IArgumentBinder<RequestInfo>>(It.IsAny<ArgumentBinder>()));
             container.Setup(instance => instance.Register<IConverterProvider>(It.IsAny<IConverterProvider>()));
             container.Setup(instance => instance.Register<IControllerActivator>(It.IsAny<IControllerActivator>()));
@@ -96,6 +106,10 @@ namespace Given_instance_of_the
             container.Setup(instance => instance.ResolveAllTypes<IController>()).Returns(new Type[] { typeof(TestController) });
             container.Setup(instance => instance.Resolve(typeof(IHttpControllerDescriptionBuilder<>).MakeGenericType(typeof(TestController)))).Returns(builder.Object);
             UrsaConfigurationSection.ComponentProvider = container.Object;
+
+            _responseComposer = new Mock<IResponseComposer>(MockBehavior.Strict);
+            _responseComposer.Setup(instance => instance.ComposeResponse(mapping.Object, result, arguments)).Returns((ResponseInfo)null);
+            return new RequestHandler(_argumentBinder.Object, _delegateMapper.Object, _responseComposer.Object);
         }
 
         private OperationInfo<Verb> CreateOperation()

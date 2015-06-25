@@ -24,55 +24,16 @@ namespace URSA.Web
                 throw new InvalidOperationException(String.Format("Cannot instantiate a '{0}' without a proper '{1}' configuration.", GetType(), typeof(ComponentModel.IComponentProvider)));
             }
 
-            BaseInitialize(
-                UrsaConfigurationSection.InitializeComponentProvider(),
-                configuration.GetProvider<IControllerActivator>(configuration.ControllerActivatorType ?? typeof(DefaultControllerActivator), typeof(IComponentProvider)));
+            var container = UrsaConfigurationSection.InitializeComponentProvider();
+            ConverterProvider = container.Resolve<IConverterProvider>();
+            container.Register((IControllerActivator)configuration.GetProvider<IControllerActivator>(configuration.ControllerActivatorType ?? typeof(DefaultControllerActivator), typeof(IComponentProvider))
+                .Invoke(new object[] { container }));
         }
-
-        /// <summary>Gets or sets the argument binding facility.</summary>
-        protected IArgumentBinder ArgumentBinder { get; set; }
-
-        /// <summary>Gets or sets the handler mapper.</summary>
-        protected IDelegateMapper HandlerMapper { get; set; }
 
         /// <summary>Gets the converters provider.</summary>
         protected IConverterProvider ConverterProvider { get; private set; }
 
-        /// <summary>Gets the dependency injection container.</summary>
-        protected IComponentProvider Container { get; private set; }
-
         /// <inheritdoc />
-        public TR HandleRequest(T request)
-        {
-            var action = HandlerMapper.MapRequest(request);
-            return HandleRequest(request, action);
-        }
-
-        /// <summary>Exposes the request handling routine to the sub classes.</summary>
-        /// <param name="request">Request details.</param>
-        /// <param name="requestMapping">Request mapping.</param>
-        /// <returns>Response descriptor.</returns>
-        protected abstract TR HandleRequest(T request, IRequestMapping requestMapping);
-
-        /// <summary>Initializes the instance of the request handler.</summary>
-        protected abstract void Initialize();
-         
-        private void BaseInitialize(IComponentProvider container, ConstructorInfo controllerActivatorCtor)
-        {
-            Container = container;
-            ConverterProvider = Container.Resolve<IConverterProvider>();
-            var controllerActivator = (IControllerActivator)controllerActivatorCtor.Invoke(new object[] { Container });
-            Container.Register(controllerActivator);
-            Initialize();
-            if (HandlerMapper == null)
-            {
-                HandlerMapper = Container.Resolve<IDelegateMapper<T>>();
-            }
-
-            if (ArgumentBinder == null)
-            {
-                ArgumentBinder = Container.Resolve<IArgumentBinder<T>>();
-            }
-        }
+        public abstract TR HandleRequest(T request);
     }
 }
