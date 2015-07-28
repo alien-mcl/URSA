@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using URSA.Web.Converters;
@@ -13,6 +14,11 @@ namespace URSA.Web.Http.Converters
 
         /// <summary>Defines a 'application/octet-stream' media type.</summary>
         public const string ApplicationOctetStream = "application/octet-stream";
+
+        private static readonly string[] MediaTypes = { ApplicationOctetStream };
+
+        /// <inheritdoc />
+        public IEnumerable<string> SupportedMediaTypes { get { return MediaTypes; } }
 
         /// <inheritdoc />
         public CompatibilityLevel CanConvertTo<T>(IRequestInfo request)

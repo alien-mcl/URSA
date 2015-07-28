@@ -6,6 +6,9 @@ namespace URSA.Web.Converters
     /// <summary>Provides a basic interface for <see cref="IConverter" /> providers.</summary>
     public interface IConverterProvider
     {
+        /// <summary>Gets the supported media types.</summary>
+        IEnumerable<string> SupportedMediaTypes { get; }
+
         /// <summary>Initializes provider with converters.</summary>
         /// <param name="converters">Converters to acknowledge.</param>
         void Initialize(IEnumerable<IConverter> converters);

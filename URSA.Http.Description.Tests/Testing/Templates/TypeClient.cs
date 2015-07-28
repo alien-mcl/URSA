@@ -22,16 +22,18 @@ namespace Test
         public void List()
         {
             dynamic uriArguments = new ExpandoObject();
-            var mediaTypes = new string[0];
-            Call(Verb.GET, "/type/#GET", mediaTypes, uriArguments);
+            var accept = new string[0];
+            var contentType = new string[0];
+            Call(Verb.GET, "/type/#GET", accept, contentType, uriArguments);
         }
 
         public void Get(System.Int32 id)
         {
             dynamic uriArguments = new ExpandoObject();
-            var mediaTypes = new string[0];
+            var accept = new string[0];
+            var contentType = new string[0];
             uriArguments.id = id;
-            Call(Verb.GET, "/type/id/{?id}", mediaTypes, uriArguments);
+            Call(Verb.GET, "/type/id/{?id}", accept, contentType, uriArguments);
         }
     }
 }

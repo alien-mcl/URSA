@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using URSA.Web.Converters;
@@ -11,6 +12,11 @@ namespace URSA.Web.Http.Converters
     {
         /// <summary>Defines an 'application/json' media type.</summary>
         public const string ApplicationJson = "application/json";
+
+        private static readonly string[] MediaTypes = { ApplicationJson };
+
+        /// <inheritdoc />
+        public IEnumerable<string> SupportedMediaTypes { get { return MediaTypes; } }
 
         /// <inheritdoc />
         public CompatibilityLevel CanConvertTo<T>(IRequestInfo request)

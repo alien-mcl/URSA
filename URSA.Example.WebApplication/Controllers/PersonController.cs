@@ -7,7 +7,7 @@ using URSA.Web.Http.Description.Mapping;
 namespace URSA.Example.WebApplication.Controllers
 {
     /// <summary>Provides a basic person handling.</summary>
-    public class PersonController : IReadController<Person, Guid>, IWriteController<Person, Guid>
+    public class PersonController : IWriteController<Person, Guid>
     {
         /// <inheritdoc />
         public IResponseInfo Response { get; set; }
@@ -54,6 +54,13 @@ namespace URSA.Example.WebApplication.Controllers
         public bool? Delete(Guid id)
         {
             return null;
+        }
+
+        /// <summary>Adds the given <paramref name="roles" /> to the user with given <paramref name="id" />.</summary>
+        /// <param name="id">The identifier.</param>
+        /// <param name="roles">The roles.</param>
+        public void SetRoles(Guid id, IEnumerable<string> roles)
+        {
         }
     }
 }

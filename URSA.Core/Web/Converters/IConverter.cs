@@ -29,6 +29,9 @@ namespace URSA.Web.Converters
     /// <summary>Provides a basic value conversion facility.</summary>
     public interface IConverter
     {
+        /// <summary>Gets the supported media types.</summary>
+        IEnumerable<string> SupportedMediaTypes { get; }
+
         /// <summary>Checks if the converter can convert body of the request to the expected type.</summary>
         /// <typeparam name="T">Type of object expected.</typeparam>
         /// <param name="request">Request details.</param>

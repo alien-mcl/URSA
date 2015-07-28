@@ -15,7 +15,6 @@ namespace Test
     [System.CodeDom.Compiler.GeneratedCode("URSA HTTP client proxy generation tool", "1.0")]
     public interface IType : RomanticWeb.Entities.IEntity
     {
-
         new System.Int32 Id { get; set; }
     }
 

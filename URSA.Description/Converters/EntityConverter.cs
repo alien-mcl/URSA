@@ -96,6 +96,9 @@ namespace URSA.Web.Http.Converters
         }
 
         /// <inheritdoc />
+        public IEnumerable<string> SupportedMediaTypes { get { return MediaTypes; } } 
+
+        /// <inheritdoc />
         public CompatibilityLevel CanConvertTo<T>(IRequestInfo request)
         {
             return CanConvertTo(typeof(T), request);
@@ -295,7 +298,7 @@ namespace URSA.Web.Http.Converters
             }
         }
 
-        private IRdfReader CreateReader(string mediaType)
+        private static IRdfReader CreateReader(string mediaType)
         {
             IRdfReader result = null;
             switch (mediaType)
@@ -317,7 +320,7 @@ namespace URSA.Web.Http.Converters
             return result;
         }
 
-        private IRdfWriter CreateWriter(string mediaType)
+        private static IRdfWriter CreateWriter(string mediaType)
         {
             IRdfWriter result = null;
             switch (mediaType)
@@ -336,6 +339,14 @@ namespace URSA.Web.Http.Converters
                     throw new InvalidOperationException(String.Format("Media type '{0}' is not supported.", mediaType));
             }
 
+            if (!(result is INamespaceWriter))
+            {
+                return result;
+            }
+
+            var namespaceWriter = (INamespaceWriter)result;
+            namespaceWriter.DefaultNamespaces.AddNamespace("hydra", Hydra);
+            namespaceWriter.DefaultNamespaces.AddNamespace("ursa", DescriptionController<IController>.VocabularyBaseUri);
             return result;
         }
     }

@@ -263,7 +263,7 @@ namespace URSA.Web.Description.Http
             int totalQueryStringParameters = 0;
             int optionalUriParameters = 0;
             int totalUriParameters = 0;
-            if (method.ReturnParameter != null)
+            if (method.ReturnParameter.ParameterType != typeof(void))
             {
                 result.Add(new ResultInfo(method.ReturnParameter, CreateResultTarget(method.ReturnParameter), null, null));
             }

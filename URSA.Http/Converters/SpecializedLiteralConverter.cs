@@ -16,6 +16,11 @@ namespace URSA.Web.Http.Converters
     /// <typeparam name="TT">Type of the objects this converter can handle.</typeparam>
     public abstract class SpecializedLiteralConverter<TT> : IConverter
     {
+        private static readonly string[] MediaTypes = { StringConverter.TextPlain };
+
+        /// <inheritdoc />
+        public IEnumerable<string> SupportedMediaTypes { get { return MediaTypes; } }
+
         /// <summary>Gets the minimal body length required for the conversion to be possible.</summary>
         /// <remarks>Any negative value or 0 is considered as no limits.</remarks>
         protected abstract int MaxBodyLength { get; }

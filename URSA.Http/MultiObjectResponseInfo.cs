@@ -61,8 +61,11 @@ namespace URSA.Web.Http
             Initialize(encoding, request, values, converterProvider);
         }
 
+        /// <summary>Gets the object responses for each value passed to the constructor.</summary>
+        public IEnumerable<ResponseInfo> ObjectResponses { get; private set; }
+
         /// <summary>Gets the values.</summary>
-        public IEnumerable<object> Values { get; private set; }
+        public IEnumerable<object> Values { get { return ObjectResponses.Select(item => ((ObjectResponseInfo)item).Object); } } 
 
         /// <inheritdoc />
         public override sealed Stream Body { get; protected set; }
@@ -98,12 +101,14 @@ namespace URSA.Web.Http
             Headers.ContentType = String.Format("multipart/mixed; boundary=\"{0}\"", boundary);
             _body = new MemoryStream();
             Body = new UnclosableStream(_body);
+            var valueResponses = new List<ResponseInfo>();
             using (var writer = new StreamWriter(Body))
             {
                 foreach (var value in values.Where(value => value != null))
                 {
                     writer.Write("--{0}\r\n", boundary);
                     var objectResponse = ObjectResponseInfo<object>.CreateInstance(encoding, request, value.GetType(), value, converterProvider);
+                    valueResponses.Add(objectResponse);
                     foreach (var header in objectResponse.Headers)
                     {
                         switch (header.Name)
@@ -129,7 +134,7 @@ namespace URSA.Web.Http
             }
 
             _body.Seek(0, SeekOrigin.Begin);
-            Values = values;
+            ObjectResponses = valueResponses;
         }
     }
 }

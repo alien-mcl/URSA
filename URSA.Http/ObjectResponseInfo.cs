@@ -6,9 +6,33 @@ using URSA.Web.Converters;
 
 namespace URSA.Web.Http
 {
+    public abstract class ObjectResponseInfo : ResponseInfo
+    {
+        /// <summary>Initializes a new instance of the <see cref="ObjectResponseInfo" /> class.</summary>
+        /// <param name="encoding">Text encoding of the response.</param>
+        /// <param name="request">Corresponding request.</param>
+        /// <param name="headers">Headers of the response.</param>
+        [ExcludeFromCodeCoverage]
+        protected ObjectResponseInfo(Encoding encoding, RequestInfo request, params Header[] headers) : base(encoding, request, headers)
+        {
+        }
+
+        /// <summary>Initializes a new instance of the <see cref="ObjectResponseInfo" /> class.</summary>
+        /// <param name="encoding">Text encoding of the response.</param>
+        /// <param name="request">Corresponding request.</param>
+        /// <param name="headers">Headers of the response.</param>
+        [ExcludeFromCodeCoverage]
+        protected ObjectResponseInfo(Encoding encoding, RequestInfo request, HeaderCollection headers) : base(encoding, request, headers)
+        {
+        }
+
+        /// <summary>Gets the value of this object response.</summary>
+        public abstract object Object { get; }
+    }
+
     /// <summary>Describes a response with an object.</summary>
     /// <typeparam name="T">Type of the value.</typeparam>
-    public class ObjectResponseInfo<T> : ResponseInfo
+    public class ObjectResponseInfo<T> : ObjectResponseInfo
     {
         private Stream _body;
 
@@ -62,6 +86,9 @@ namespace URSA.Web.Http
 
         /// <summary>Gets the value object.</summary>
         public T Value { get; private set; }
+
+        /// <inheritdoc />
+        public override object Object { get { return Value; } }
 
         /// <inheritdoc />
         public sealed override Stream Body { get; protected set; }

@@ -4,5 +4,6 @@
         {{
             dynamic uriArguments = new ExpandoObject();
 {10}
-{6}            {8}Call{9}(Verb.{4}, "{5}", mediaTypes, uriArguments{7});
+{11}
+{6}            {8}Call{9}(Verb.{4}, "{5}", accept, contentType, uriArguments{7});
         }}

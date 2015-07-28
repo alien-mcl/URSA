@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.Serialization;
@@ -16,6 +17,11 @@ namespace URSA.Web.Http.Converters
 
         /// <summary>Defines an 'application/xml' media type.</summary>
         public const string ApplicationXml = "application/xml";
+
+        private static readonly string[] MediaTypes = { ApplicationXml, TextXml };
+
+        /// <inheritdoc />
+        public IEnumerable<string> SupportedMediaTypes { get { return MediaTypes; } }
 
         /// <inheritdoc />
         public CompatibilityLevel CanConvertTo<T>(IRequestInfo request)

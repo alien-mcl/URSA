@@ -57,16 +57,12 @@ namespace Given_instance_of_the.HydraClassGenerator_class
             _uriParser = new Mock<IUriParser>(MockBehavior.Strict);
             _uriParser.Setup(instance => instance.IsApplicable(It.IsAny<Uri>())).Returns(UriParserCompatibility.ExactMatch);
             _uriParser.Setup(instance => instance.Parse(It.IsAny<Uri>(), out @namespace)).Returns<Uri, string>((id, ns) => Name);
-            var classMapping = new Mock<IClassMapping>(MockBehavior.Strict);
-            classMapping.SetupGet(instance => instance.Uri).Returns(new Uri(DescriptionController<IController>.VocabularyBaseUri.AbsoluteUri + "DatatypeDefinition"));
-            var mapping = new Mock<IEntityMapping>(MockBehavior.Strict);
-            mapping.SetupGet(instance => instance.Classes).Returns(new[] { classMapping.Object });
             var mappings = new Mock<IMappingsRepository>(MockBehavior.Strict);
-            mappings.Setup(instance => instance.MappingFor<IDatatypeDefinition>()).Returns(mapping.Object);
             var context = new Mock<IEntityContext>(MockBehavior.Strict);
             context.SetupGet(instance => instance.Mappings).Returns(mappings.Object);
             _resource = new Mock<IResource>(MockBehavior.Strict);
             _resource.SetupGet(instance => instance.Id).Returns(uri);
+            _resource.SetupGet(instance => instance.Type).Returns((IResource)null);
             _resource.As<ITypedEntity>().SetupGet(instance => instance.Types).Returns(new EntityId[0]);
             _resource.As<IEntity>().SetupGet(instance => instance.Context).Returns(context.Object);
             _generator = new HydraClassGenerator(new IUriParser[] { _uriParser.Object });

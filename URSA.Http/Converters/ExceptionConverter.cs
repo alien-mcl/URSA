@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using URSA.Web.Converters;
 
 namespace URSA.Web.Http.Converters
@@ -6,6 +7,11 @@ namespace URSA.Web.Http.Converters
     /// <summary>Converts exceptions into an HTTP message.</summary>
     public class ExceptionConverter : IConverter
     {
+        private static readonly string[] MediaTypes = new string[0];
+
+        /// <inheritdoc />
+        public IEnumerable<string> SupportedMediaTypes { get { return MediaTypes; } }
+
         /// <inheritdoc />
         public CompatibilityLevel CanConvertTo<T>(IRequestInfo request)
         {

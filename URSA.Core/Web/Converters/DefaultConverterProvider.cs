@@ -11,6 +11,9 @@ namespace URSA.Web.Converters
         private IEnumerable<IConverter> _converters;
 
         /// <inheritdoc />
+        public IEnumerable<string> SupportedMediaTypes { get { return _converters.SelectMany(item => item.SupportedMediaTypes); } } 
+
+        /// <inheritdoc />
         public void Initialize(IEnumerable<IConverter> converters)
         {
             if (converters == null)

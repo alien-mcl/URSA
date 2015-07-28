@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using RomanticWeb;
 using RomanticWeb.Entities;
 using RomanticWeb.Vocabularies;
@@ -31,6 +32,7 @@ namespace URSA.CodeGen
         private static readonly IDictionary<IResource, string> Names = new ConcurrentDictionary<IResource, string>();
 
         private readonly IEnumerable<IUriParser> _uriParsers;
+        private readonly IUriParser _hydraUriParser;
 
         /// <summary>Initializes a new instance of the <see cref="HydraClassGenerator"/> class.</summary>
         /// <param name="uriParsers">The URI parsers.</param>
@@ -41,7 +43,7 @@ namespace URSA.CodeGen
                 throw new ArgumentNullException("uriParsers");
             }
 
-            _uriParsers = uriParsers;
+            _hydraUriParser = (_uriParsers = uriParsers).FirstOrDefault(parser => parser is HydraUriParser);
         }
 
         /// <inheritdoc />
@@ -50,10 +52,17 @@ namespace URSA.CodeGen
             var @namespace = CreateNamespace(supportedClass);
             var name = CreateName(supportedClass);
             var result = new Dictionary<string, string>();
-            var includes = new StringBuilder(256);
-            var properties = AnalyzeProperties(supportedClass);
+            var properties = AnalyzeProperties(supportedClass).Replace("\r\n        \r\n", "\r\n");
             var operations = AnalyzeOperations(supportedClass, @namespace + "." + name, result);
-            result[name + ".cs"] = String.Format(EntityClassTemplate, @namespace, name, properties.Replace("public new ", "public "), properties.Replace("        public ", "        "));
+            var mapping = String.Empty;
+            if ((_hydraUriParser != null) && (_hydraUriParser.IsApplicable(supportedClass.Id.Uri) == UriParserCompatibility.None))
+            {
+                mapping = String.Format("\r\n    [RomanticWeb.Mapping.Attributes.Class(\"{0}\")]", supportedClass.Id);
+            }
+
+            var classProperties = Regex.Replace(properties.Replace("public new ", "public "), "\\[[^\\]]+\\]\r\n        ", String.Empty);
+            var interfaceProperties = properties.Replace("        public ", "        ");
+            result[name + ".cs"] = String.Format(EntityClassTemplate, @namespace, name, classProperties, interfaceProperties, mapping).Replace("{\r\n\r\n", "{\r\n");
             result[name + "Client.cs"] = String.Format(ClientClassTemplate, @namespace, name, operations);
             return result;
         }
@@ -61,9 +70,9 @@ namespace URSA.CodeGen
         /// <inheritdoc />
         public string CreateNamespace(IResource resource)
         {
-            if (resource.GetTypes().Any(type => type.Uri.AbsoluteUri == resource.Context.Mappings.MappingFor<IDatatypeDefinition>().Classes.First().Uri.AbsoluteUri))
+            if (resource.Type != null)
             {
-                resource = resource.AsEntity<IDatatypeDefinition>().Datatype;
+                resource = resource.Type;
             }
 
             string result;
@@ -79,9 +88,9 @@ namespace URSA.CodeGen
         /// <inheritdoc />
         public string CreateName(IResource resource)
         {
-            if (resource.GetTypes().Any(type => type.Uri.AbsoluteUri == resource.Context.Mappings.MappingFor<IDatatypeDefinition>().Classes.First().Uri.AbsoluteUri))
+            if (resource.Type != null)
             {
-                resource = resource.AsEntity<IDatatypeDefinition>().Datatype;
+                resource = resource.Type;
             }
 
             string result;
@@ -156,11 +165,19 @@ namespace URSA.CodeGen
                     propertyTypeName = CreateName(propertyType);
                 }
 
+                var singleValue = true;
                 var typeName = String.Format("{0}.{1}", propertyTypeNamespace, propertyTypeName);
                 var restriction = supportedClass.SubClassOf.OfType<IRestriction>().FirstOrDefault(item => item.OnProperty.Id == property.Property.Id);
                 if (restriction == null)
                 {
+                    singleValue = false;
                     typeName = String.Format("System.Collections.Generic.IEnumerable<{0}>", typeName);
+                }
+
+                var mapping = String.Empty;
+                if ((_hydraUriParser != null) && (_hydraUriParser.IsApplicable(property.Property.Id.Uri) == UriParserCompatibility.None))
+                {
+                    mapping = String.Format("[RomanticWeb.Mapping.Attributes.{0}(\"{1}\")]", (singleValue ? "Property" : "Collection"), property.Property.Id);
                 }
 
                 properties.AppendFormat(
@@ -169,7 +186,8 @@ namespace URSA.CodeGen
                     property.WriteOnly ? String.Empty : " get" + (property.ReadOnly ? " " : String.Empty) + ";",
                     property.ReadOnly ? String.Empty : " set; ",
                     typeName,
-                    (propertyName == "Id" ? "new " : String.Empty));
+                    (propertyName == "Id" ? "new " : String.Empty),
+                    mapping);
             }
 
             return properties.ToString();
@@ -178,8 +196,9 @@ namespace URSA.CodeGen
         private string AnalyzeOperations(IClass supportedClass, string supportedClassFullName, IDictionary<string, string> classes)
         {
             var operations = new StringBuilder(1024);
-            var supportedOperations = (from operation in supportedClass.SupportedOperations
-                                       select new KeyValuePair<IOperation, IIriTemplate>(operation, null))
+            var supportedOperations = (
+                    from operation in supportedClass.SupportedOperations
+                    select new KeyValuePair<IOperation, IIriTemplate>(operation, null))
                 .Union(
                     from quad in supportedClass.Context.Store.Quads.ToList()
                     where (quad.Subject.IsUri) && (quad.Object.IsUri) && (AbsoluteUriComparer.Default.Equals(quad.Subject.Uri, supportedClass.Id.Uri)) &&
@@ -203,7 +222,8 @@ namespace URSA.CodeGen
                 var bodyArguments = new StringBuilder(256);
                 var uriArguments = new StringBuilder(256);
                 var parameters = new StringBuilder(256);
-                var mediaTypes = new StringBuilder(256);
+                var accept = new StringBuilder(256);
+                var contentType = new StringBuilder(256);
                 var returns = "void";
                 var operationName = CreateName(operation, method);
                 var uri = operation.Id.Uri.ToRelativeUri().ToString();
@@ -215,14 +235,8 @@ namespace URSA.CodeGen
                     AnalyzeTemplate(template.Mappings, parameters, uriArguments, out singleValueExpected);
                 }
 
-                singleValueExpected |= (method == Verb.POST.ToString()) && (operation.Returns.Count() == 1) &&
-                    (operation.Expects.Count() == 1) && (operation.Expects.First().Id == supportedClass.Id) &&
-                    (operation.Returns.Join(
-                        supportedClass.GetUniqueIdentifierType(), 
-                        outer => (outer.Is(supportedClass.Context.Mappings.MappingFor<IDatatypeDefinition>().Classes.First().Uri) ? outer.AsEntity<IDatatypeDefinition>().Datatype.Id : outer.Id),
-                        inner => (inner.Is(supportedClass.Context.Mappings.MappingFor<IDatatypeDefinition>().Classes.First().Uri) ? inner.AsEntity<IDatatypeDefinition>().Datatype.Id : inner.Id), 
-                        (outer, inner) => inner).Any());
-                AnalyzeBody(supportedClassFullName, operation.Expects, parameters, bodyArguments);
+                singleValueExpected |= operation.Is(supportedClass.Context.Mappings.MappingFor<ICreateResourceOperation>().Classes.Select(item => item.Uri).First());
+                AnalyzeBody(supportedClassFullName, operation.Expects, parameters, bodyArguments, contentType);
                 if (parameters.Length > 2)
                 {
                     parameters.Remove(parameters.Length - 2, 2);
@@ -231,23 +245,22 @@ namespace URSA.CodeGen
                 if (operation.Returns.Any())
                 {
                     isReturns = "return ";
-                    returns = AnalyzeResult(supportedClassFullName, operationName, operation.Returns, classes, singleValueExpected);
+                    returns = AnalyzeResult(supportedClassFullName, operationName, operation.Returns, classes, singleValueExpected, accept);
                     returnedType = String.Format("<{0}>", returns);
                 }
 
-                if (operation.MediaTypes.Any())
+                if (accept.Length == 0)
                 {
-                    mediaTypes.AppendFormat(
-                        "            var mediaTypes = new string[] {{\r\n                {0}}};",
-                        String.Join(",\r\n                ", operation.MediaTypes.Select(mediaType => String.Format("\"{0}\"", mediaType))));
+                    accept.Append("            var accept = new string[0];");
                 }
-                else
+
+                if (contentType.Length == 0)
                 {
-                    mediaTypes.Append("            var mediaTypes = new string[0];");
+                    contentType.Append("            var contentType = new string[0];");
                 }
 
                 var isStatic = ((operation.Expects.Any(expected => expected == supportedClass)) && (method == "POST") ? " static" : String.Empty);
-                operations.AppendFormat(OperationTemplate, isStatic, returns, operationName, parameters, method, uri, uriArguments, bodyArguments, isReturns, returnedType, mediaTypes);
+                operations.AppendFormat(OperationTemplate, isStatic, returns, operationName, parameters, method, uri, uriArguments, bodyArguments, isReturns, returnedType, accept, contentType);
             }
         }
 
@@ -278,45 +291,59 @@ namespace URSA.CodeGen
             }
         }
 
-        private void AnalyzeBody(string supportedClassFullName, IEnumerable<IResource> expects, StringBuilder parameters, StringBuilder bodyArguments)
+        private void AnalyzeBody(string supportedClassFullName, IEnumerable<IResource> expects, StringBuilder parameters, StringBuilder bodyArguments, StringBuilder contentType)
         {
+            var validMediaTypes = new List<string>();
             foreach (var expected in expects)
             {
                 string variableName = expected.Label.ToLowerCamelCase();
                 string @namespace;
-                string name = AnalyzeType(supportedClassFullName, expected, out @namespace);
-                parameters.AppendFormat("{0}.{1} {2}, ", @namespace, name, variableName);
+                string name = AnalyzeType(supportedClassFullName, expected, out @namespace, validMediaTypes);
+                parameters.AppendFormat(
+                    "{3}{0}.{1}{4} {2}, ",
+                    @namespace,
+                    name,
+                    variableName,
+                    (expected.SingleValue != null) && ((bool)expected.SingleValue) ? String.Empty : String.Format("System.Collections.Generic.IEnumerable<"),
+                    (expected.SingleValue != null) && ((bool)expected.SingleValue) ? String.Empty : ">");
                 bodyArguments.AppendFormat(", {0}", variableName);
+            }
+
+            if (validMediaTypes.Count > 0)
+            {
+                contentType.AppendFormat(
+                    "            var contentType = new string[] {{\r\n                {0} }};",
+                    String.Join(",\r\n                ", validMediaTypes.Select(mediaType => String.Format("\"{0}\"", mediaType))));
             }
         }
 
-        private string AnalyzeResult(string supportedClassFullName, string operationName, IEnumerable<IResource> returns, IDictionary<string, string> classes, bool singleValueExpected)
+        private string AnalyzeResult(string supportedClassFullName, string operationName, IEnumerable<IResource> returns, IDictionary<string, string> classes, bool singleValueExpected, StringBuilder accept)
         {
             string result;
             string @namespace;
             string name;
+            var validMediaTypes = new List<string>();
+
             if (returns.Count() > 1)
             {
                 StringBuilder includes = new StringBuilder();
                 result = String.Format("{0}Result", operationName);
-                if (includes.ToString().IndexOf(result) != -1)
+                if (includes.ToString().IndexOf(result) == -1)
                 {
-                    return result;
-                }
+                    var properties = new StringBuilder(256);
+                    foreach (var returned in returns)
+                    {
+                        name = AnalyzeType(supportedClassFullName, returned, out @namespace, validMediaTypes);
+                        properties.AppendFormat(PropertyTemplate, name, " get;", String.Empty, @namespace, name);
+                    }
 
-                var properties = new StringBuilder(256);
-                foreach (var returned in returns)
-                {
-                    name = AnalyzeType(supportedClassFullName, returned, out @namespace);
-                    properties.AppendFormat(PropertyTemplate, name, " get;", String.Empty, @namespace, name);
+                    includes.AppendFormat(ResponseClassTemplate, result, properties);
+                    classes[result + ".cs"] = includes.ToString();
                 }
-
-                includes.AppendFormat(ResponseClassTemplate, result, properties);
-                classes[result + ".cs"] = includes.ToString();
             }
             else
             {
-                name = AnalyzeType(supportedClassFullName, returns.First(), out @namespace);
+                name = AnalyzeType(supportedClassFullName, returns.First(), out @namespace, validMediaTypes);
                 result = String.Format("{0}.{1}", @namespace, name);
                 if (!singleValueExpected)
                 {
@@ -324,11 +351,25 @@ namespace URSA.CodeGen
                 }
             }
 
+            if (validMediaTypes.Count > 0)
+            {
+                accept.AppendFormat(
+                    "            var accept = new string[] {{\r\n                {0} }};",
+                    String.Join(",\r\n                ", validMediaTypes.Select(mediaType => String.Format("\"{0}\"", mediaType))));
+            }
+
             return result;
         }
 
-        private string AnalyzeType(string supportedClassFullName, IResource type, out string @namespace)
+        private string AnalyzeType(string supportedClassFullName, IResource type, out string @namespace, IList<string> validMediaTypes = null)
         {
+            if (validMediaTypes != null)
+            {
+                validMediaTypes.AddRange(type.MediaTypes);
+            }
+
+            type = type.Type ?? type;
+
             IClass @class = (type.Is(Rdfs.Class) ? type.AsEntity<IClass>() : null);
             if (@class == null)
             {

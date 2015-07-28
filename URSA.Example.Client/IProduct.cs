@@ -10,22 +10,24 @@ using System;
 using System.Dynamic;
 using URSA.Web.Http;
 
-namespace URSA.Example.WebApplication.Data
+namespace Vocab
 {
     [System.CodeDom.Compiler.GeneratedCode("URSA HTTP client proxy generation tool", "1.0")]
-    public interface IPerson : RomanticWeb.Entities.IEntity
+    [RomanticWeb.Mapping.Attributes.Class("http://temp.uri/vocab#Product")]
+    public interface IIProduct : RomanticWeb.Entities.IEntity
     {
-        System.String Firstname { get; set; }
+        [RomanticWeb.Mapping.Attributes.Property("http://temp.uri/vocab#name")]
+        System.String Name { get; set; }
 
-        new System.Guid Id { get; set; }
+        [RomanticWeb.Mapping.Attributes.Collection("http://temp.uri/vocab#feature")]
+        System.Collections.Generic.IEnumerable<System.String> Features { get; set; }
 
-        System.Collections.Generic.IEnumerable<System.String> Roles { get; set; }
-
-        System.String Lastname { get; set; }
+        [RomanticWeb.Mapping.Attributes.Property("http://temp.uri/vocab#price")]
+        System.Single Price { get; set; }
     }
 
     [System.CodeDom.Compiler.GeneratedCode("URSA HTTP client proxy generation tool", "1.0")]
-    public partial class Person : IPerson
+    public partial class IProduct : IIProduct
     {
         private RomanticWeb.Entities.EntityId _id = new RomanticWeb.Entities.EntityId(new System.Uri("urn:guid:" + System.Guid.NewGuid()));
 
@@ -33,12 +35,10 @@ namespace URSA.Example.WebApplication.Data
 
         RomanticWeb.Entities.EntityId RomanticWeb.Entities.IEntity.Id { get { return _id; } }
 
-        public System.String Firstname { get; set; }
+        public System.String Name { get; set; }
 
-        public System.Guid Id { get; set; }
+        public System.Collections.Generic.IEnumerable<System.String> Features { get; set; }
 
-        public System.Collections.Generic.IEnumerable<System.String> Roles { get; set; }
-
-        public System.String Lastname { get; set; }
+        public System.Single Price { get; set; }
     }
 }

@@ -56,6 +56,8 @@
   <ItemGroup>
     <Compile Include="Person.cs" />
     <Compile Include="PersonClient.cs" />
+    <Compile Include="IProduct.cs" />
+    <Compile Include="IProductClient.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -103,20 +103,15 @@ namespace System.Reflection
             {
                 return type.GetElementType();
             }
-            else if ((type.IsGenericType) && (type.GetGenericTypeDefinition() == typeof(Nullable<>)))
+            
+            if ((type.IsGenericType) && (type.GetGenericTypeDefinition() == typeof(Nullable<>)))
             {
                 return type.GetGenericArguments().First();
             }
-            else if ((typeof(IEnumerable).IsAssignableFrom(type)) && (type != typeof(string)))
+            
+            if ((typeof(IEnumerable).IsAssignableFrom(type)) && (type != typeof(string)))
             {
-                if (type.IsGenericType)
-                {
-                    return type.GetGenericArguments().First();
-                }
-                else
-                {
-                    return typeof(object);
-                }
+                return (type.IsGenericType ? type.GetGenericArguments().First() : typeof(object));
             }
 
             return type;

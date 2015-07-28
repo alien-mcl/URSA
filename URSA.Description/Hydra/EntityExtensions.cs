@@ -1,6 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using RomanticWeb.Entities;
+using URSA.Web.Description;
 using URSA.Web.Http.Description.Owl;
 
 namespace URSA.Web.Http.Description.Hydra
@@ -36,6 +38,29 @@ namespace URSA.Web.Http.Description.Hydra
                     let property = supportedProperty.Property
                     where property.Is(RomanticWeb.Vocabularies.Owl.InverseFunctionalProperty)
                     select property.Range).FirstOrDefault() ?? new Rdfs.IResource[0];
+        }
+
+        internal static bool IsDeleteOperation(this OperationInfo<Verb> operation)
+        {
+            return (operation.IsWriteControllerOperation()) && (operation.UnderlyingMethod.Name == "Delete");
+        }
+
+        internal static bool IsUpdateOperation(this OperationInfo<Verb> operation)
+        {
+            return (operation.IsWriteControllerOperation()) && (operation.UnderlyingMethod.Name == "Update");
+        }
+
+        internal static bool IsCreateOperation(this OperationInfo<Verb> operation)
+        {
+            return (operation.IsWriteControllerOperation()) && (operation.UnderlyingMethod.Name == "Create");
+        }
+
+        internal static bool IsWriteControllerOperation(this OperationInfo<Verb> operation)
+        {
+            Type type;
+            return (((type = operation.UnderlyingMethod.DeclaringType.GetInterfaces()
+                .FirstOrDefault(@interface => (@interface.IsGenericType) && (typeof(IWriteController<,>).IsAssignableFrom(@interface.GetGenericTypeDefinition())))) != null) &&
+                (operation.UnderlyingMethod.DeclaringType.GetInterfaceMap(type).TargetMethods.Contains(operation.UnderlyingMethod)));
         }
     }
 }

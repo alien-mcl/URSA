@@ -12,7 +12,7 @@ using URSA.Web.Http;
 
 namespace {0}
 {{
-    [System.CodeDom.Compiler.GeneratedCode("URSA HTTP client proxy generation tool", "1.0")]
+    [System.CodeDom.Compiler.GeneratedCode("URSA HTTP client proxy generation tool", "1.0")]{4}
     public interface I{1} : RomanticWeb.Entities.IEntity
     {{{3}
     }}

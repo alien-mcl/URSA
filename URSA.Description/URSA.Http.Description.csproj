@@ -97,9 +97,12 @@
     <Compile Include="CodeGen\IUriParser.cs" />
     <Compile Include="Converters\EntityConverter.cs" />
     <Compile Include="DescriptionController.cs" />
+    <Compile Include="Entities\EntityExtensions.cs" />
     <Compile Include="Hydra\EntityExtensions.cs" />
     <Compile Include="Hydra\IApiDocumentation.cs" />
-    <Compile Include="Hydra\IDatatypeDefinition.cs" />
+    <Compile Include="Hydra\IReplaceResourceOperation.cs" />
+    <Compile Include="Hydra\IDeleteResourceOperation.cs" />
+    <Compile Include="Hydra\ICreateResourceOperation.cs" />
     <Compile Include="IXmlDocProvider.cs" />
     <Compile Include="Mapping\LinqServerBehaviorAttribute.cs" />
     <Compile Include="Mapping\ServerBehaviorAttribute.cs" />

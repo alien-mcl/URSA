@@ -93,6 +93,7 @@ namespace Given_instance_of_the
             _converter.Setup(instance => instance.ConvertFrom(Person, It.IsAny<IResponseInfo>()));
             _converter.Setup(instance => instance.ConvertTo(typeof(Person), It.IsAny<IRequestInfo>())).Returns(Person);
             _converterProvider = new Mock<IConverterProvider>(MockBehavior.Strict);
+            _converterProvider.SetupGet(instance => instance.SupportedMediaTypes).Returns(new[] { "application/json" });
             _converterProvider.Setup(instance => instance.FindBestOutputConverter<Person>(It.IsAny<IResponseInfo>())).Returns(_converter.Object);
             _converterProvider.Setup(instance => instance.FindBestInputConverter(typeof(Person), It.IsAny<IRequestInfo>(), false)).Returns(_converter.Object);
             UrsaConfigurationSection.ComponentProvider = (_container = new Mock<IComponentProvider>(MockBehavior.Strict)).Object;
@@ -112,7 +113,7 @@ namespace Given_instance_of_the
         private Person Call()
         {
             Arguments.id = 1;
-            return _client.Call<Person>(Verb.PUT, RelativeUri, new[] { "application/json" }, Arguments, Person);
+            return _client.Call<Person>(Verb.PUT, RelativeUri, new[] { "application/json" }, new[] { "application/json" }, Arguments, Person);
         }
     }
 }

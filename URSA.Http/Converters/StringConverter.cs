@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -14,6 +15,11 @@ namespace URSA.Web.Http.Converters
     {
         /// <summary>Defines a 'text/plain' media type.</summary>
         public const string TextPlain = "text/plain";
+
+        private static readonly string[] MediaTypes = { TextPlain };
+
+        /// <inheritdoc />
+        public IEnumerable<string> SupportedMediaTypes { get { return MediaTypes; } }
 
         /// <inheritdoc />
         public CompatibilityLevel CanConvertTo<T>(IRequestInfo request)

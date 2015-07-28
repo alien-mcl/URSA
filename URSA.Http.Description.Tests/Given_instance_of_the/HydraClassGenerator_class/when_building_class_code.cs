@@ -110,8 +110,8 @@ namespace Given_instance_of_the.HydraClassGenerator_class
             _context = new Mock<IEntityContext>(MockBehavior.Strict);
             SetupStore();
             _mappingsRepository = new Mock<IMappingsRepository>(MockBehavior.Strict);
-            SetupMapping<IDatatypeDefinition>(DescriptionController<IController>.VocabularyBaseUri);
             SetupMapping<IInverseFunctionalProperty>(new Uri(Owl.BaseUri));
+            SetupMapping<ICreateResourceOperation>(new Uri(EntityConverter.Hydra.AbsoluteUri + "CreateResourceOperation"));
             _context.SetupGet(instance => instance.Mappings).Returns(_mappingsRepository.Object);
         }
 
@@ -119,9 +119,9 @@ namespace Given_instance_of_the.HydraClassGenerator_class
         {
             var rangeType = new Mock<IResource>(MockBehavior.Strict);
             rangeType.SetupGet(instance => instance.Id).Returns(Xsd.Int);
-            var range = new Mock<IDatatypeDefinition>(MockBehavior.Strict);
+            var range = new Mock<IResource>(MockBehavior.Strict);
             range.SetupGet(instance => instance.Id).Returns(new EntityId(new Uri("wrapper:xsd:int")));
-            range.SetupGet(instance => instance.Datatype).Returns(rangeType.Object);
+            range.SetupGet(instance => instance.Type).Returns(rangeType.Object);
             range.SetupGet(instance => instance.Context).Returns(_context.Object);
             range.As<ITypedEntity>().SetupGet(instance => instance.Types).Returns(new[] { new EntityId(UrsaDatatypeDefinition) });
             _property = new Mock<URSA.Web.Http.Description.Rdfs.IProperty>(MockBehavior.Strict);
@@ -143,6 +143,7 @@ namespace Given_instance_of_the.HydraClassGenerator_class
             _class = new Mock<IClass>(MockBehavior.Strict);
             _class.SetupGet(instance => instance.Context).Returns(_context.Object);
             _class.SetupGet(instance => instance.Id).Returns(ClassId);
+            _class.SetupGet(instance => instance.Type).Returns((IResource)null);
             _class.SetupGet(instance => instance.Label).Returns("Type");
             _class.SetupGet(instance => instance.SupportedProperties).Returns(new[] { supportedProperty.Object });
             _class.SetupGet(instance => instance.SubClassOf).Returns(new[] { restriction.Object });
@@ -155,6 +156,7 @@ namespace Given_instance_of_the.HydraClassGenerator_class
         {
             var readOperationId = new EntityId(ReadOperationUri);
             var readOperation = new Mock<IOperation>(MockBehavior.Strict);
+            readOperation.As<ITypedEntity>().SetupGet(instance => instance.Types).Returns(new EntityId[0]);
             readOperation.SetupGet(instance => instance.Id).Returns(readOperationId);
             readOperation.SetupGet(instance => instance.Label).Returns("List");
             readOperation.SetupGet(instance => instance.Method).Returns(new string[] { HttpMethod });
@@ -174,6 +176,7 @@ namespace Given_instance_of_the.HydraClassGenerator_class
             var getOperationUri = new Uri(baseUri.AbsoluteUri);
             var getOperationId = new EntityId(getOperationUri);
             var getOperation = new Mock<IOperation>(MockBehavior.Strict);
+            getOperation.As<ITypedEntity>().SetupGet(instance => instance.Types).Returns(new EntityId[0]);
             getOperation.SetupGet(instance => instance.Id).Returns(getOperationId);
             getOperation.SetupGet(instance => instance.Label).Returns("Get");
             getOperation.SetupGet(instance => instance.Method).Returns(new string[] { HttpMethod });

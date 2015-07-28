@@ -1,5 +1,4 @@
-﻿using RomanticWeb.Entities;
-using RomanticWeb.Mapping.Attributes;
+﻿using RomanticWeb.Mapping.Attributes;
 using System.Collections.Generic;
 
 namespace URSA.Web.Http.Description.Hydra
@@ -14,18 +13,14 @@ namespace URSA.Web.Http.Description.Hydra
 
         /// <summary>Gets classes expected in request body.</summary>
         [Collection("hydra", "expects")]
-        ICollection<IClass> Expects { get; }
+        ICollection<IResource> Expects { get; }
 
         /// <summary>Gets the classes returned in response body.</summary>
         [Collection("hydra", "returns")]
-        ICollection<IClass> Returns { get; }
+        ICollection<IResource> Returns { get; }
 
         /// <summary>Gets the HTTP status codes.</summary>
         [Collection("hydra", "statusCodes")]
         ICollection<int> StatusCodes { get; }
-
-        /// <summary>Gets the media types supported by given operation.</summary>
-        [Collection("ursa", "mediaTypes")]
-        ICollection<string> MediaTypes { get; } 
     }
 }
