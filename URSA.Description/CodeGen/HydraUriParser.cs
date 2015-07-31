@@ -25,10 +25,9 @@ namespace URSA.Web.Http.Description.CodeGen
 
             string segment = null;
             if ((uri.Segments.Length > 0) && ((segment = uri.Segments.First()) != null) &&
-                ((segment.StartsWith(ApiDescriptionBuilder<IController>.DotNetSymbol)) ||
-                 (segment.StartsWith(ApiDescriptionBuilder<IController>.DotNetListSymbol)) ||
-                 (segment.StartsWith(ApiDescriptionBuilder<IController>.DotNetCollectionSymbol)) ||
-                 (segment.StartsWith(ApiDescriptionBuilder<IController>.HydraSymbol))))
+                ((segment.StartsWith(Reflection.TypeExtensions.DotNetSymbol)) ||
+                 (segment.StartsWith(Reflection.TypeExtensions.DotNetListSymbol)) ||
+                 (segment.StartsWith(Reflection.TypeExtensions.HydraSymbol))))
             {
                 return UriParserCompatibility.ExactMatch;
             }
@@ -55,11 +54,10 @@ namespace URSA.Web.Http.Description.CodeGen
 
             switch (language)
             {
-                case ApiDescriptionBuilder<IController>.DotNetListSymbol:
-                case ApiDescriptionBuilder<IController>.DotNetCollectionSymbol:
-                case ApiDescriptionBuilder<IController>.DotNetEnumerableSymbol:
-                case ApiDescriptionBuilder<IController>.DotNetSymbol:
-                case ApiDescriptionBuilder<IController>.HydraSymbol:
+                case Reflection.TypeExtensions.DotNetListSymbol:
+                case Reflection.TypeExtensions.DotNetEnumerableSymbol:
+                case Reflection.TypeExtensions.DotNetSymbol:
+                case Reflection.TypeExtensions.HydraSymbol:
                     break;
                 default:
                     name = Regex.Replace(Regex.Replace(name, "[\\/]", "."), "^a-zA-Z0-9_]", String.Empty);

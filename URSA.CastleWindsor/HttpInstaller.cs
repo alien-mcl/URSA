@@ -69,6 +69,8 @@ namespace URSA.CastleWindsor
             container.Register(Component.For<IResponseComposer>().ImplementedBy<ResponseComposer>().LifestyleSingleton());
             container.Register(Component.For<IDelegateMapper<RequestInfo>>().ImplementedBy<DelegateMapper>().LifestyleSingleton());
             container.Register(Component.For<IArgumentBinder<RequestInfo>>().ImplementedBy<ArgumentBinder>().LifestyleSingleton());
+            container.Register(Component.For<ITypeDescriptionBuilder>().ImplementedBy<TypeDescriptionBuilder>().LifestyleSingleton());
+            container.Register(Component.For(typeof(IApiDescriptionBuilder<>)).ImplementedBy(typeof(ApiDescriptionBuilder<>)).LifestyleSingleton());
         }
 
         private IEntityContext CreateEntityContext(IKernel kernel, CreationContext context)

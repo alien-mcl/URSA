@@ -33,31 +33,26 @@ namespace URSA.Web.Http.Description
         /// <summary>Defines a '<![CDATA[application/xml]]>' media type.</summary>
         private const string ApplicationXml = "application/xml";
 
-        private static ApiDescriptionBuilder<T> _apiDescriptionBuilder;
-
+        private readonly IApiDescriptionBuilder<T> _apiDescriptionBuilder;
         private readonly IEntityContext _entityContext;
 
         /// <summary>Initializes a new instance of the <see cref="DescriptionController{T}" /> class.</summary>
         /// <param name="entityContext">Entity context.</param>
-        /// <param name="descriptionBuilder">Controller description builder.</param>
-        /// <param name="xmlDocProvider">The XML documentation provider.</param>
-        public DescriptionController(IEntityContext entityContext, IHttpControllerDescriptionBuilder<T> descriptionBuilder, IXmlDocProvider xmlDocProvider)
+        /// <param name="apiDescriptionBuilder">API description builder.</param>
+        public DescriptionController(IEntityContext entityContext, IApiDescriptionBuilder<T> apiDescriptionBuilder)
         {
             if (entityContext == null)
             {
                 throw new ArgumentNullException("entityContext");
             }
 
-            if ((_apiDescriptionBuilder == null) && (descriptionBuilder == null))
+            if (apiDescriptionBuilder == null)
             {
-                throw new ArgumentNullException("descriptionBuilder");
+                throw new ArgumentNullException("apiDescriptionBuilder");
             }
 
             _entityContext = entityContext;
-            if (_apiDescriptionBuilder == null)
-            {
-                _apiDescriptionBuilder = new ApiDescriptionBuilder<T>(descriptionBuilder, xmlDocProvider);
-            }
+            _apiDescriptionBuilder = apiDescriptionBuilder;
         }
 
         /// <inheritdoc />

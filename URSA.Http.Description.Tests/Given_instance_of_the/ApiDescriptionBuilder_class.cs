@@ -1,26 +1,28 @@
-﻿#pragma warning disable 1591 
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
-using RomanticWeb;
-using RomanticWeb.DotNetRDF;
-using RomanticWeb.Entities;
+﻿#pragma warning disable 1591
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
+using FluentAssertions;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
+using RomanticWeb;
+using RomanticWeb.Entities;
+using RomanticWeb.Model;
 using URSA.Web.Description;
 using URSA.Web.Description.Http;
 using URSA.Web.Http;
 using URSA.Web.Http.Description;
 using URSA.Web.Http.Description.Hydra;
+using URSA.Web.Http.Description.Rdfs;
 using URSA.Web.Http.Description.Testing;
 using URSA.Web.Http.Description.Tests;
+using URSA.Web.Http.Description.Tests.Data;
 using URSA.Web.Mapping;
-using VDS.RDF;
+using IClass = URSA.Web.Http.Description.Hydra.IClass;
+using IResource = URSA.Web.Http.Description.Hydra.IResource;
 
 namespace Given_instance_of_the
 {
@@ -33,8 +35,9 @@ namespace Given_instance_of_the
         {
             IApiDocumentation apiDocumentation;
             IXmlDocProvider xmlDocProvider;
-            var handlerMapper = SetupInfrastucture(out apiDocumentation, out xmlDocProvider);
-            var apiDescriptionBuilder = new ApiDescriptionBuilder<TestController>(handlerMapper, xmlDocProvider);
+            ITypeDescriptionBuilder typeDescriptionBuilder;
+            var handlerMapper = SetupInfrastucture(out apiDocumentation, out xmlDocProvider, out typeDescriptionBuilder);
+            var apiDescriptionBuilder = new ApiDescriptionBuilder<TestController>(handlerMapper, xmlDocProvider, typeDescriptionBuilder);
             apiDescriptionBuilder.BuildDescription(apiDocumentation);
 
             apiDocumentation.EntryPoints.Should().HaveCount(0);
@@ -42,6 +45,15 @@ namespace Given_instance_of_the
             apiDocumentation.SupportedClasses.First().SupportedOperations.Should().HaveCount(1);
             apiDocumentation.SupportedClasses.First().SupportedOperations.First().Method.Should().HaveCount(1);
             apiDocumentation.SupportedClasses.First().SupportedOperations.First().Method.First().Should().Be("POST");
+        }
+
+        private static IHttpControllerDescriptionBuilder<TestController> SetupInfrastucture(out IApiDocumentation apiDocumentationInstance, out IXmlDocProvider xmlDocProvider, out ITypeDescriptionBuilder typeDescriptionBuilder)
+        {
+            Uri baseUri = new Uri("http://temp.org/");
+            apiDocumentationInstance = MockHelpers.MockEntity<IApiDocumentation>(SetupEntityContext(baseUri), new EntityId(new Uri(baseUri, "api"))).Object;
+            xmlDocProvider = SetupXmlDocProvider();
+            typeDescriptionBuilder = SetupTypeDescriptionBuilder();
+            return SetupHttpControllerDescriptionBuilder();
         }
 
         private static OperationInfo<Verb> CreateOperation(MethodInfo method, Verb verb)
@@ -84,13 +96,17 @@ namespace Given_instance_of_the
             return new OperationInfo<Verb>(method, new Uri("/", UriKind.Relative), uriTemplate, new Regex(".*"), verb, arguments.ToArray());
         }
 
-        private IHttpControllerDescriptionBuilder<TestController> SetupInfrastucture(out IApiDocumentation apiDocumentationInstance, out IXmlDocProvider xmlDocProvider)
+        private static IXmlDocProvider SetupXmlDocProvider()
         {
-            var xmlDocProviderMock = new Mock<IXmlDocProvider>(MockBehavior.Strict);
-            xmlDocProviderMock.Setup(instance => instance.GetDescription(It.IsAny<MethodInfo>())).Returns<MethodInfo>(method => method.Name);
-            xmlDocProviderMock.Setup(instance => instance.GetDescription(It.IsAny<PropertyInfo>())).Returns<PropertyInfo>(property => property.Name);
-            xmlDocProviderMock.Setup(instance => instance.GetDescription(It.IsAny<Type>())).Returns<Type>(type => type.Name);
-            xmlDocProvider = xmlDocProviderMock.Object;
+            var xmlDocProvider = new Mock<IXmlDocProvider>(MockBehavior.Strict);
+            xmlDocProvider.Setup(instance => instance.GetDescription(It.IsAny<MethodInfo>())).Returns<MethodInfo>(method => method.Name);
+            xmlDocProvider.Setup(instance => instance.GetDescription(It.IsAny<PropertyInfo>())).Returns<PropertyInfo>(property => property.Name);
+            xmlDocProvider.Setup(instance => instance.GetDescription(It.IsAny<Type>())).Returns<Type>(type => type.Name);
+            return xmlDocProvider.Object;
+        }
+
+        private static IHttpControllerDescriptionBuilder<TestController> SetupHttpControllerDescriptionBuilder()
+        {
             IDictionary<string, Verb> verbs = new Dictionary<string, Verb>()
             {
                 { "Get", Verb.GET },
@@ -99,7 +115,7 @@ namespace Given_instance_of_the
                 { "Update", Verb.PUT },
                 { "Delete", Verb.DELETE }
             };
-            Uri baseUri = new Uri("http://temp.org/");
+
             var operations = typeof(TestController)
                 .GetMethods(BindingFlags.Public | BindingFlags.Instance)
                 .Where(method => method.DeclaringType != typeof(object))
@@ -107,7 +123,6 @@ namespace Given_instance_of_the
                 .Select(method => CreateOperation(method, verbs[method.Name]));
 
             ControllerInfo<TestController> controllerInfo = new ControllerInfo<TestController>(new Uri("/", UriKind.Relative), operations.ToArray());
-
             Mock<IHttpControllerDescriptionBuilder<TestController>> descriptionBuilder = new Mock<IHttpControllerDescriptionBuilder<TestController>>();
             descriptionBuilder.Setup(instance => instance.BuildDescriptor()).Returns(controllerInfo);
             descriptionBuilder.Setup(instance => instance.GetMethodVerb(It.IsAny<MethodInfo>())).Returns<MethodInfo>(method => verbs[method.Name]);
@@ -118,15 +133,95 @@ namespace Given_instance_of_the
                     .Returns<MethodInfo, IEnumerable<ArgumentInfo>>((method, parameters) => operation.UriTemplate);
             }
 
-            Mock<IBaseUriSelectionPolicy> baseUriSelector = new Mock<IBaseUriSelectionPolicy>();
+            return descriptionBuilder.Object;
+        }
+
+        private static ITypeDescriptionBuilder SetupTypeDescriptionBuilder()
+        {
+            bool requiresRdf;
+            Mock<ITypeDescriptionBuilder> typeDescriptionBuilder = new Mock<ITypeDescriptionBuilder>(MockBehavior.Strict);
+            typeDescriptionBuilder.Setup(instance => instance.BuildTypeDescription(It.IsAny<DescriptionContext>())).Returns<DescriptionContext>(context => CreateDescription(context, out requiresRdf));
+            typeDescriptionBuilder.Setup(instance => instance.BuildTypeDescription(It.IsAny<DescriptionContext>(), out requiresRdf)).Returns<DescriptionContext, bool>((context, rdf) => CreateDescription(context, out rdf));
+            return typeDescriptionBuilder.Object;
+        }
+
+        private static IEntityContext SetupEntityContext(Uri baseUri)
+        {
+            var baseUriSelector = new Mock<IBaseUriSelectionPolicy>();
             baseUriSelector.Setup(instance => instance.SelectBaseUri(It.IsAny<EntityId>())).Returns(baseUri);
 
-            var ontology = new Mock<RomanticWeb.Ontologies.IOntologyProvider>();
-            ontology.Setup(instance => instance.ResolveUri("hydra", It.IsAny<string>())).Returns<string, string>((prefix, term) => new Uri("http://www.w3.org/ns/hydra/core#" + term));
-            var factory = EntityContextFactory.FromConfiguration("http").WithDefaultOntologies().WithDotNetRDF(new TripleStore()).WithBaseUri(policy => policy.Default.Is(baseUri));
-            var apiDocumentation = MockHelpers.MockEntity<IApiDocumentation>(factory.CreateContext(), new EntityId(new Uri(baseUri, "api")));
-            apiDocumentationInstance = apiDocumentation.Object;
-            return descriptionBuilder.Object;
+            var store = new Mock<IEntityStore>(MockBehavior.Strict);
+            store.Setup(instance => instance.ReplacePredicateValues(It.IsAny<EntityId>(), It.IsAny<Node>(), It.IsAny<Func<IEnumerable<Node>>>(), It.IsAny<Uri>()));
+
+            var entityContext = new Mock<IEntityContext>(MockBehavior.Strict);
+            entityContext.SetupGet(instance => instance.BaseUriSelector).Returns(baseUriSelector.Object);
+            entityContext.SetupGet(instance => instance.Store).Returns(store.Object);
+            entityContext.Setup(instance => instance.Create<ICreateResourceOperation>(It.IsAny<EntityId>())).Returns<EntityId>(CreateOperation<ICreateResourceOperation>);
+            entityContext.Setup(instance => instance.Create<IDeleteResourceOperation>(It.IsAny<EntityId>())).Returns<EntityId>(CreateOperation<IDeleteResourceOperation>);
+            entityContext.Setup(instance => instance.Create<IReplaceResourceOperation>(It.IsAny<EntityId>())).Returns<EntityId>(CreateOperation<IReplaceResourceOperation>);
+            entityContext.Setup(instance => instance.Create<IOperation>(It.IsAny<EntityId>())).Returns<EntityId>(CreateOperation<IOperation>);
+            entityContext.Setup(instance => instance.Create<IIriTemplateMapping>(It.IsAny<EntityId>())).Returns<EntityId>(CreateIriTemplateMapping);
+            entityContext.Setup(instance => instance.Create<IIriTemplate>(It.IsAny<EntityId>())).Returns<EntityId>(CreateIriTemplate);
+            entityContext.Setup(instance => instance.Create<ITemplatedLink>(It.IsAny<EntityId>())).Returns<EntityId>(CreateTemplatedLink);
+            return entityContext.Object;
+        }
+
+        private static IResource CreateDescription(DescriptionContext context, out bool requiresRdf)
+        {
+            var result = new Mock<IResource>(MockBehavior.Strict);
+            result.SetupGet(instance => instance.Id).Returns(new EntityId(String.Format("urn:net:" + context.Type.FullName)));
+            result.SetupSet(instance => instance.Label = It.IsAny<string>());
+            result.SetupGet(instance => instance.MediaTypes).Returns(new List<string>());
+            if (context.Type == typeof(Person))
+            {
+                var type = new Mock<IClass>(MockBehavior.Strict);
+                type.SetupGet(instance => instance.SupportedProperties).Returns(new ISupportedProperty[0]);
+                type.SetupGet(instance => instance.Id).Returns(new BlankId("bnode" + new Random().Next()));
+                type.SetupGet(instance => instance.SupportedOperations).Returns(new List<IOperation>());
+                result.SetupGet(instance => instance.Type).Returns(type.Object);
+            }
+
+            context.Describe(result.Object, requiresRdf = false);
+            return result.Object;
+        }
+
+        private static T CreateOperation<T>(EntityId id) where T : class, IOperation
+        {
+            var result = new Mock<T>(MockBehavior.Strict);
+            result.SetupGet(instance => instance.Id).Returns(id);
+            result.SetupGet(instance => instance.Method).Returns(new List<string>());
+            result.SetupSet(instance => instance.Label = It.IsAny<string>());
+            result.SetupSet(instance => instance.Description = It.IsAny<string>());
+            result.SetupGet(instance => instance.Returns).Returns(new List<IResource>());
+            result.SetupGet(instance => instance.Expects).Returns(new List<IResource>());
+            return result.Object;
+        }
+
+        private static IIriTemplateMapping CreateIriTemplateMapping(EntityId id)
+        {
+            var result = new Mock<IIriTemplateMapping>(MockBehavior.Strict);
+            result.SetupGet(instance => instance.Id).Returns(id);
+            result.SetupSet(instance => instance.Variable = It.IsAny<string>());
+            result.SetupSet(instance => instance.Required = It.IsAny<bool>());
+            result.SetupSet(instance => instance.Property = It.IsAny<IProperty>());
+            return result.Object;
+        }
+
+        private static IIriTemplate CreateIriTemplate(EntityId id)
+        {
+            var result = new Mock<IIriTemplate>(MockBehavior.Strict);
+            result.SetupGet(instance => instance.Id).Returns(id);
+            result.SetupSet(instance => instance.Template = It.IsAny<string>());
+            result.SetupGet(instance => instance.Mappings).Returns(new List<IIriTemplateMapping>());
+            return result.Object;
+        }
+
+        private static ITemplatedLink CreateTemplatedLink(EntityId id)
+        {
+            var result = new Mock<ITemplatedLink>(MockBehavior.Strict);
+            result.SetupGet(instance => instance.Id).Returns(id);
+            result.SetupGet(instance => instance.Operations).Returns(new List<IOperation>());
+            return result.Object;
         }
     }
 }

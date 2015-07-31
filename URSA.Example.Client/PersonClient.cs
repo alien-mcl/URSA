@@ -19,18 +19,30 @@ namespace URSA.Example.WebApplication.Data
         {
         }
 
-        public System.Guid Create(URSA.Example.WebApplication.Data.IPerson instance)
+        public System.Guid Create(URSA.Example.WebApplication.Data.IPerson person)
         {
             dynamic uriArguments = new ExpandoObject();
             var accept = new string[] {
-                "text/xml",
                 "application/xml",
-                "application/json" };
+                "application/json",
+                "text/xml" };
             var contentType = new string[] {
                 "application/xml",
-                "text/xml",
-                "application/json" };
-            return Call<System.Guid>(Verb.POST, "/person/#POSTPerson", accept, contentType, uriArguments, instance);
+                "application/json",
+                "text/xml" };
+            return Call<System.Guid>(Verb.POST, "/person/#POSTPerson", accept, contentType, uriArguments, person);
+        }
+
+        public void Update(System.Guid id, URSA.Example.WebApplication.Data.IPerson person)
+        {
+            dynamic uriArguments = new ExpandoObject();
+            var accept = new string[0];
+            var contentType = new string[] {
+                "application/json",
+                "application/xml",
+                "text/xml" };
+            uriArguments.id = id;
+            Call(Verb.PUT, "/person/id/{?id}", accept, contentType, uriArguments, person);
         }
 
         public System.Collections.Generic.IEnumerable<URSA.Example.WebApplication.Data.IPerson> List(System.Int32 skip, System.Int32 take)
@@ -46,39 +58,6 @@ namespace URSA.Example.WebApplication.Data
             return Call<System.Collections.Generic.IEnumerable<URSA.Example.WebApplication.Data.IPerson>>(Verb.GET, "/person?skip={?skip}&take={?take}", accept, contentType, uriArguments);
         }
 
-        public void Delete(System.Guid id)
-        {
-            dynamic uriArguments = new ExpandoObject();
-            var accept = new string[0];
-            var contentType = new string[0];
-            uriArguments.id = id;
-            Call(Verb.DELETE, "/person/id/{?id}", accept, contentType, uriArguments);
-        }
-
-        public void Update(System.Guid id, URSA.Example.WebApplication.Data.IPerson instance)
-        {
-            dynamic uriArguments = new ExpandoObject();
-            var accept = new string[0];
-            var contentType = new string[] {
-                "application/xml",
-                "application/json",
-                "text/xml" };
-            uriArguments.id = id;
-            Call(Verb.PUT, "/person/id/{?id}", accept, contentType, uriArguments, instance);
-        }
-
-        public URSA.Example.WebApplication.Data.IPerson Get(System.Guid id)
-        {
-            dynamic uriArguments = new ExpandoObject();
-            var accept = new string[] {
-                "application/xml",
-                "application/json",
-                "text/xml" };
-            var contentType = new string[0];
-            uriArguments.id = id;
-            return Call<URSA.Example.WebApplication.Data.IPerson>(Verb.GET, "/person/id/{?id}", accept, contentType, uriArguments);
-        }
-
         public void SetRoles(System.Guid id, System.Collections.Generic.IEnumerable<System.String> roles)
         {
             dynamic uriArguments = new ExpandoObject();
@@ -89,6 +68,27 @@ namespace URSA.Example.WebApplication.Data
                 "text/xml" };
             uriArguments.id = id;
             Call(Verb.PUT, "/person/roles/id/{?id}", accept, contentType, uriArguments, roles);
+        }
+
+        public void Delete(System.Guid id)
+        {
+            dynamic uriArguments = new ExpandoObject();
+            var accept = new string[0];
+            var contentType = new string[0];
+            uriArguments.id = id;
+            Call(Verb.DELETE, "/person/id/{?id}", accept, contentType, uriArguments);
+        }
+
+        public URSA.Example.WebApplication.Data.IPerson Get(System.Guid id)
+        {
+            dynamic uriArguments = new ExpandoObject();
+            var accept = new string[] {
+                "application/xml",
+                "text/xml",
+                "application/json" };
+            var contentType = new string[0];
+            uriArguments.id = id;
+            return Call<URSA.Example.WebApplication.Data.IPerson>(Verb.GET, "/person/id/{?id}", accept, contentType, uriArguments);
         }
     }
 }

@@ -9,7 +9,7 @@ namespace URSA.Web.Http.Description.Tests
 {
     [ExcludeFromCodeCoverage]
     [Route("api/person")]
-    public class TestController : IController<Person>, IReadController<Person, Guid>, IWriteController<Person, Guid>
+    public class TestController : IWriteController<Person, Guid>
     {
         public IResponseInfo Response { get; set; }
 

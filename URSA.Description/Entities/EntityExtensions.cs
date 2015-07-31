@@ -1,7 +1,13 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using RomanticWeb.Entities;
 using RomanticWeb.Model;
+using RomanticWeb.Vocabularies;
+using URSA.Web.Http.Description.Owl;
+using URSA.Web.Http.Description.Rdfs;
+using IClass = URSA.Web.Http.Description.Hydra.IClass;
+using IResource = URSA.Web.Http.Description.Hydra.IResource;
 
 namespace URSA.Web.Http.Description.Entities
 {
@@ -34,6 +40,53 @@ namespace URSA.Web.Http.Description.Entities
                         select new EntityQuad(newBlankId, subject, quad.Predicate, quad.Object, quad.Graph);
             result.Context.Store.AssertEntity(result.Id, quads);
             return result;
+        }
+
+        internal static bool IsGenericRdfList(this IClass @class, out IResource itemRestriction)
+        {
+            bool result = false;
+            itemRestriction = null;
+            foreach (var superClass in @class.SubClassOf)
+            {
+                if (superClass.Is(RomanticWeb.Vocabularies.Rdf.List))
+                {
+                    result = true;
+                }
+
+                IRestriction restriction = null;
+                if ((superClass.Is(RomanticWeb.Vocabularies.Owl.Restriction)) &&
+                    ((restriction = superClass.AsEntity<IRestriction>()).OnProperty != null) && (restriction.OnProperty.Id == RomanticWeb.Vocabularies.Rdf.first) &&
+                    (restriction.AllValuesFrom != null) && (restriction.AllValuesFrom.Is(RomanticWeb.Vocabularies.Rdfs.Resource)))
+                {
+                    itemRestriction = restriction.AllValuesFrom.AsEntity<IResource>();
+                }
+            }
+
+            return result;
+        }
+
+        internal static IEnumerable<Rdfs.IResource> GetUniqueIdentifierType(this IClass @class)
+        {
+            return (from supportedProperty in @class.SupportedProperties
+                    let property = supportedProperty.Property
+                    where property.Is(RomanticWeb.Vocabularies.Owl.InverseFunctionalProperty)
+                    select property.Range).FirstOrDefault() ?? new Rdfs.IResource[0];
+        }
+
+        internal static IRestriction CreateRestriction(this IResource resource, Uri onProperty, IEntity allValuesFrom)
+        {
+            var typeConstrain = resource.Context.Create<IRestriction>(resource.CreateBlankId());
+            typeConstrain.OnProperty = resource.Context.Create<IProperty>(new EntityId(onProperty));
+            typeConstrain.AllValuesFrom = allValuesFrom;
+            return typeConstrain;
+        }
+
+        internal static IRestriction CreateRestriction(this IResource resource, IProperty onProperty, uint maxCardinality)
+        {
+            var typeConstrain = resource.Context.Create<IRestriction>(resource.CreateBlankId());
+            typeConstrain.OnProperty = onProperty;
+            typeConstrain.MaxCardinality = maxCardinality;
+            return typeConstrain;
         }
     }
 }
