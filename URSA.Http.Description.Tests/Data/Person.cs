@@ -6,7 +6,7 @@ namespace URSA.Web.Http.Description.Tests.Data
 {
     /// <summary>Describes a person.</summary>
     [ExcludeFromCodeCoverage]
-    public class Person
+    public class Person : IControlledEntity<Guid>
     {
         /// <summary>Gets or sets the person identifier.</summary>
         public Guid Id { get; set; }

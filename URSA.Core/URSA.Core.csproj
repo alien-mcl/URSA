@@ -59,6 +59,7 @@
     <Compile Include="Web\Converters\IConverterProvider.cs" />
     <Compile Include="Web\Converters\IConverter.cs" />
     <Compile Include="Web\Description\IControllerDescriptionBuilder.cs" />
+    <Compile Include="Web\IControlledEntity.cs" />
     <Compile Include="Web\IControllerActivator.cs" />
     <Compile Include="Web\IReadController.cs" />
     <Compile Include="Web\IWriteController.cs" />

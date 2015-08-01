@@ -82,6 +82,7 @@
     <Compile Include="Given_instance_of_the\binder\FromQueryStringArgumentBinder_class.cs" />
     <Compile Include="Given_instance_of_the\binder\FromBodyArgumentBinder_class.cs" />
     <Compile Include="Given_instance_of_the\binder\FromUriArgumentBinder_class.cs" />
+    <Compile Include="Given_instance_of_the\ControllerDescriptionBuilder_class\when_having_a_CRUD_controller.cs" />
     <Compile Include="Given_instance_of_the\ControllerDescriptionBuilder_class\when_having_standard_controller.cs" />
     <Compile Include="Given_instance_of_the\ControllerDescriptionBuilder_class\when_having_dependent_route_controller.cs" />
     <Compile Include="Given_instance_of_the\converter_of\DecimalConverter_class.cs" />

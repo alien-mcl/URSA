@@ -5,7 +5,7 @@ using URSA.Web.Mapping;
 
 namespace URSA.Web.Tests
 {
-    [Route("api/test")]
+    [Route("api/person")]
     public class CrudController : IWriteController<Person, int>
     {
         public IResponseInfo Response { get; set; }
@@ -66,6 +66,10 @@ namespace URSA.Web.Tests
         public IEnumerable<Person> List(int skip = 0, int take = 0)
         {
             return new Person[] { new Person() { Id = 1 } };
+        }
+
+        public void SetRoles(int id, IEnumerable<string> roles)
+        {
         }
     }
 }

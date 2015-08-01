@@ -3,7 +3,7 @@
 namespace URSA.Web.Http.Tests.Data
 {
     [ExcludeFromCodeCoverage]
-    public class Person
+    public class Person : IControlledEntity<int>
     {
         public int Id { get; set; }
 

@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using URSA.Web;
 
 namespace URSA.Example.WebApplication.Data
 {
     /// <summary>Describes a person.</summary>
-    public class Person
+    public class Person : IControlledEntity<Guid>
     {
         /// <summary>Gets or sets the person's identifier.</summary>
         [Key]

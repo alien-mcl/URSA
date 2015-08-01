@@ -69,6 +69,7 @@
     <Compile Include="Description\DefaultValueRelationSelector.cs" />
     <Compile Include="Description\IDefaultValueRelationSelector.cs" />
     <Compile Include="Description\OptionsController.cs" />
+    <Compile Include="Description\UriTemplate.cs" />
     <Compile Include="ExceptionExtensions.cs" />
     <Compile Include="DelegateMapper.cs" />
     <Compile Include="Header.cs" />
@@ -94,6 +95,7 @@
     <Compile Include="Mapping\OnGetAttribute.cs" />
     <Compile Include="Mapping\OnPostAttribute.cs" />
     <Compile Include="Mapping\OnVerbAttribute.cs" />
+    <Compile Include="Reflection\MemberInfoExtensions.cs" />
     <Compile Include="ResponseComposer.cs" />
     <Compile Include="WebRequestProvider.cs" />
     <None Include="Description\OperationInfo.cs" />

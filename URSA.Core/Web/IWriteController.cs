@@ -3,7 +3,7 @@
     /// <summary>Provides write operations of an entity.</summary>
     /// <typeparam name="T">Type of entities.</typeparam>
     /// <typeparam name="I">Type of the identifier of an entity.</typeparam>
-    public interface IWriteController<T, I> : IReadController<T, I>
+    public interface IWriteController<T, I> : IReadController<T, I> where T : IControlledEntity<I>
     {
         /// <summary>Creates a new instance.</summary>
         /// <param name="id">Identifier of newly created entity.</param>

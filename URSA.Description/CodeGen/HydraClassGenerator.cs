@@ -16,6 +16,7 @@ using URSA.Web.Http.Description.Entities;
 using URSA.Web.Http.Description.Hydra;
 using URSA.Web.Http.Description.Model;
 using URSA.Web.Http.Description.Owl;
+using URSA.Web.Http.Reflection;
 using IClass = URSA.Web.Http.Description.Hydra.IClass;
 
 namespace URSA.CodeGen
@@ -122,7 +123,7 @@ namespace URSA.CodeGen
             string result = operation.Label;
             if (operation.Method.Count > 1)
             {
-                result = ControllerDescriptionBuilder<IController>.PopularNameMappings
+                result = MemberInfoExtensions.PopularNameMappings
                     .Where(item => item.Value.ToString() == method).Select(item => item.Key).FirstOrDefault() ?? method.ToUpperCamelCase();
             }
 
