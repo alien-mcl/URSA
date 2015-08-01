@@ -100,6 +100,8 @@
     <Compile Include="Given_instance_of_the\ResponseComposer_class\when_dealing_with_CRUD_controller.cs" />
     <Compile Include="Given_instance_of_the\ResponseComposer_class\ResponseComposerTest.cs" />
     <Compile Include="Given_instance_of_the\ResponseComposer_class\when_dealing_with_normal_controller.cs" />
+    <Compile Include="Given_instance_of_the\QueryStringList_class.cs" />
+    <Compile Include="Given_instance_of_the\SegmentList_class.cs" />
     <Compile Include="Given_instance_of_the\Verb_class.cs" />
     <Compile Include="Testing\ArgumentBinderTest.cs" />
     <Compile Include="Given_instance_of_the\converter_of\BinaryConverter_class.cs" />

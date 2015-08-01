@@ -101,7 +101,7 @@ namespace URSA.Web.Description.Http
             }
         }
 
-        private abstract class UriTemplatePartList : List<UriTemplatePart>
+        internal abstract class UriTemplatePartList : List<UriTemplatePart>
         {
             protected UriTemplatePartList(Type controlledEntityType, bool isRegexMode, IEnumerable<UriTemplatePart> parts = null) : base(parts ?? new UriTemplatePart[0])
             {
@@ -119,7 +119,7 @@ namespace URSA.Web.Description.Http
             }
         }
 
-        private class SegmentList : UriTemplatePartList
+        internal class SegmentList : UriTemplatePartList
         {
             internal SegmentList(Type controlledEntityType, bool isRegexMode, IEnumerable<UriTemplatePart> parts = null) : base(controlledEntityType, isRegexMode, parts)
             {
@@ -168,13 +168,12 @@ namespace URSA.Web.Description.Http
                     return;
                 }
 
-                var temp = this[indexOf - 1];
-                this[indexOf - 1] = this[indexOf];
-                this[indexOf] = temp;
+                this[indexOf] = this[indexOf - 1];
+                this[indexOf - 1] = identifierSegment;
             }
         }
 
-        private class QueryStringList : UriTemplatePartList
+        internal class QueryStringList : UriTemplatePartList
         {
             internal QueryStringList(Type controlledEntityType, bool isRegexMode, IEnumerable<UriTemplatePart> parts = null) : base(controlledEntityType, isRegexMode, parts)
             {
