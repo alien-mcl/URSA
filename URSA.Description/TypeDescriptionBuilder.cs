@@ -85,8 +85,9 @@ namespace URSA.Web.Http.Description
         private static IResource BuildDatatypeDescription(DescriptionContext context, Uri uri)
         {
             var definition = context.ApiDocumentation.Context.Create<IResource>(context.ApiDocumentation.CreateBlankId());
-            definition.Type = context.ApiDocumentation.Context.Create<IResource>(new EntityId(uri));
             definition.SingleValue = !System.Reflection.TypeExtensions.IsEnumerable(context.Type);
+            definition.Type = context.ApiDocumentation.Context.Create<IResource>(new EntityId(uri));
+            definition.Type.Label = (uri.Fragment.Length > 1 ? uri.Fragment.Substring(1) : uri.Segments.Last());
             return definition;
         }
 

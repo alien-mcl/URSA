@@ -82,6 +82,7 @@
       <HintPath>..\packages\RomanticWeb.dotNetRDF.0.3.40.0\Lib\net40\RomanticWeb.dotNetRDF.dll</HintPath>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
@@ -108,6 +109,9 @@
     <Compile Include="Given_instance_of_the\converter_of\EntityConverter_class.cs" />
     <Compile Include="Given_instance_of_the\HydraClassGenerator_class\when_building_class_code.cs" />
     <Compile Include="Given_instance_of_the\OGuidUriParser_class.cs" />
+    <Compile Include="Given_instance_of_the\TypeDescriptionBuilder_class\TypeDescriptionBuilderTest.cs" />
+    <Compile Include="Given_instance_of_the\TypeDescriptionBuilder_class\when_describing_an_Int32_value_type.cs" />
+    <Compile Include="Given_instance_of_the\TypeDescriptionBuilder_class\when_describing_a_Person_reference_type.cs" />
     <Compile Include="Given_instance_of_the\XmlDocProvider_class.cs" />
     <Compile Include="Given_instance_of_the\XsdUriParser_class.cs" />
     <Compile Include="Given_instance_of_the\GenericUriParser_class.cs" />
