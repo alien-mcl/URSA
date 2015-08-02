@@ -322,7 +322,7 @@ namespace URSA.Web.Http.Converters
 
         private static IRdfWriter CreateWriter(string mediaType)
         {
-            IRdfWriter result = null;
+            IRdfWriter result;
             switch (mediaType)
             {
                 case TextTurtle:
@@ -345,6 +345,7 @@ namespace URSA.Web.Http.Converters
             }
 
             var namespaceWriter = (INamespaceWriter)result;
+            namespaceWriter.DefaultNamespaces.AddNamespace("owl", new Uri(Owl.BaseUri));
             namespaceWriter.DefaultNamespaces.AddNamespace("hydra", Hydra);
             namespaceWriter.DefaultNamespaces.AddNamespace("ursa", DescriptionController<IController>.VocabularyBaseUri);
             return result;

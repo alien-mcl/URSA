@@ -30,7 +30,7 @@ namespace URSA.Web.Http.Description.Tests
             return null;
         }
 
-        /// <summary>Creates the specified person.</summary>
+        /// <summary>Creates the specified person which <paramref name="id" /> is returned when created.</summary>
         /// <param name="id">The identifier.</param>
         /// <param name="person">The person.</param>
         /// <returns><b>true</b> if the person was created, <b>false</b> if failed; otherwise <b>null</b>.</returns>

@@ -36,7 +36,7 @@ namespace Given_instance_of_the
         {
             var description = _provider.GetDescription(typeof(TestController).GetMethod("Create"));
 
-            description.Should().Be("Creates the specified person.");
+            description.Should().Be("Creates the specified person which id is returned when created.");
         }
 
         [TestInitialize]

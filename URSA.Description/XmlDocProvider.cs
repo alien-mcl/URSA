@@ -95,7 +95,23 @@ namespace URSA.Web.Http.Description
                 element = element.Descendants("summary").FirstOrDefault();
             }
 
-            return element != null ? element.Value : String.Empty;
+            return (element == null ? null : GetText(element).Trim('\r', '\n', '\t', ' '));
+        }
+
+        private static string GetText(XNode node)
+        {
+            if (node is XText)
+            {
+                return ((XText)node).Value;
+            }
+
+            var element = (XElement)node;
+            if ((element.IsEmpty) && (element.HasAttributes))
+            {
+                return String.Join(" ", element.Attributes().Select(attribute => attribute.Value));
+            }
+
+            return String.Join(String.Empty, element.DescendantNodes().Select(GetText));
         }
 
         private static void EnsureAssemblyDocumentation(Assembly assembly)
