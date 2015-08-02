@@ -89,7 +89,7 @@ namespace URSA.Web.Description.Http
 
         private ControllerInfo<T> BuildDescriptorInternal()
         {
-            Uri uri = typeof(T).GetControllerRoute();
+            var prefix = typeof(T).GetControllerRoute();
             IList<OperationInfo> operations = new List<OperationInfo>();
             var methods = typeof(T).GetMethods(BindingFlags.Public | BindingFlags.Instance)
                 .Except(typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance)
@@ -97,13 +97,13 @@ namespace URSA.Web.Description.Http
                 .Where(item => item.DeclaringType != typeof(object));
             foreach (var method in methods)
             {
-                operations.AddRange(BuildMethodDescriptor(method, uri));
+                operations.AddRange(BuildMethodDescriptor(method, prefix));
             }
 
-            return new ControllerInfo<T>(uri, operations.ToArray());
+            return new ControllerInfo<T>(prefix.Uri, operations.ToArray());
         }
 
-        private IEnumerable<OperationInfo> BuildMethodDescriptor(MethodInfo method, Uri prefix)
+        private IEnumerable<OperationInfo> BuildMethodDescriptor(MethodInfo method, RouteAttribute prefix)
         {
             bool explicitRoute;
             var verbs = new List<OnVerbAttribute>();
@@ -116,7 +116,7 @@ namespace URSA.Web.Description.Http
             }
 
             UriTemplate templateRegex = new UriTemplate(entityType, true);
-            templateRegex.Add(prefix.ToString(), null, typeof(T));
+            templateRegex.Add(prefix.Uri.ToString(), prefix, typeof(T));
             templateRegex.Add(route.Uri.ToString(), route, method);
             Uri uri = new Uri(templateRegex.ToString(), UriKind.RelativeOrAbsolute);
             IList<OperationInfo> result = new List<OperationInfo>();

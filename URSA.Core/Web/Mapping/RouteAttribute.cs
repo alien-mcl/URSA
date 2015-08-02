@@ -6,7 +6,7 @@ namespace URSA.Web.Mapping
     /// <summary>Describes the partial uri associated with the method.</summary>
     [ExcludeFromCodeCoverage]
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Interface | AttributeTargets.Method)]
-    public class RouteAttribute : Attribute
+    public class RouteAttribute : MappingAttribute
     {
         /// <summary>Initializes a new instance of the <see cref="RouteAttribute" /> class.</summary>
         /// <param name="uri">Part of the uri associated with the method.</param>

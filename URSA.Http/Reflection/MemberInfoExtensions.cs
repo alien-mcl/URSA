@@ -29,7 +29,7 @@ namespace URSA.Web.Http.Reflection
             { "Teardown", Verb.DELETE }
         };
 
-        internal static Uri GetControllerRoute(this Type type)
+        internal static RouteAttribute GetControllerRoute(this Type type)
         {
             while (true)
             {
@@ -39,7 +39,7 @@ namespace URSA.Web.Http.Reflection
                 if ((!(route is DependentRouteAttribute)) || (!type.IsGenericType) ||
                     (!type.GetGenericArguments().Any(argument => (typeof(IController).IsAssignableFrom(argument)) && ((genericType = argument) != null))))
                 {
-                    return (route != null ? route.Uri : new Uri("/" + type.BuildControllerName(), UriKind.Relative));
+                    return (route ?? new RouteAttribute("/" + type.BuildControllerName()));
                 }
 
                 type = genericType;

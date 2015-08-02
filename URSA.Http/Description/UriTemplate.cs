@@ -51,7 +51,7 @@ namespace URSA.Web.Description.Http
 
         internal string QueryString { get { return _queryString.ToString(); } }
 
-        internal void Add(string part, Attribute source, ICustomAttributeProvider member, bool hasDefaultValue = false)
+        internal void Add(string part, MappingAttribute source, ICustomAttributeProvider member, bool hasDefaultValue = false)
         {
             part = (_isRegexMode ? ((source is FromQueryStringAttribute) ? part.Replace("=[^&]+", String.Empty) : part) : part).Trim('/');
             if (part.Length == 0)
@@ -78,7 +78,7 @@ namespace URSA.Web.Description.Http
 
         internal class UriTemplatePart
         {
-            internal UriTemplatePart(string part, Attribute source, ICustomAttributeProvider member, bool hasDefaultValue = false)
+            internal UriTemplatePart(string part, MappingAttribute source, ICustomAttributeProvider member, bool hasDefaultValue = false)
             {
                 Part = ((source is FromQueryStringAttribute) && (part[0] == '&') ? part.Substring(1) : part);
                 Source = source;
@@ -88,7 +88,7 @@ namespace URSA.Web.Description.Http
 
             internal string Part { get; private set; }
 
-            internal Attribute Source { get; private set; }
+            internal MappingAttribute Source { get; private set; }
 
             internal ICustomAttributeProvider Member { get; private set; }
 
@@ -113,7 +113,7 @@ namespace URSA.Web.Description.Http
 
             protected bool IsRegexMode { get; private set; }
 
-            internal virtual void Add(string part, Attribute source, ICustomAttributeProvider member, bool hasDefaultValue = false)
+            internal virtual void Add(string part, MappingAttribute source, ICustomAttributeProvider member, bool hasDefaultValue = false)
             {
                 Add(new UriTemplatePart(part, source, member, hasDefaultValue));
             }
@@ -147,7 +147,7 @@ namespace URSA.Web.Description.Http
                 return result.ToString();
             }
 
-            internal override void Add(string part, Attribute source, ICustomAttributeProvider member, bool hasDefaultValue = false)
+            internal override void Add(string part, MappingAttribute source, ICustomAttributeProvider member, bool hasDefaultValue = false)
             {
                 base.Add(part, source, member, hasDefaultValue);
                 if (ControlledEntityType == null)
@@ -163,7 +163,7 @@ namespace URSA.Web.Description.Http
                         (((ParameterInfo)item.Member).ParameterType == implementation.GetProperty("Id").PropertyType) &&
                         ((indexOf = index) != -1))
                     .FirstOrDefault();
-                if ((indexOf == -1) || ((this[0].Source == null) && (indexOf == 1)) || ((this[0].Source != null) && (indexOf == 2)))
+                if ((indexOf <= 1) || ((indexOf > 1) && (!(this[indexOf - 1].Member is MethodInfo))))
                 {
                     return;
                 }
