@@ -71,7 +71,7 @@ namespace URSA.Web.Handlers
                 ((IDictionary<string, string>)headers)[headerName] = context.Request.Headers[headerName];
             }
 
-            var requestInfo = new RequestInfo(Verb.Parse(context.Request.HttpMethod), context.Request.Url, context.Request.InputStream, headers);
+            var requestInfo = new RequestInfo(Verb.Parse(context.Request.HttpMethod), new Uri(context.Request.Url.AbsoluteUri.TrimEnd('/')), context.Request.InputStream, headers);
             var response = _requestHandler.HandleRequest(requestInfo);
             context.Response.ContentEncoding = context.Response.HeaderEncoding = response.Encoding;
             context.Response.StatusCode = (int)response.Status;

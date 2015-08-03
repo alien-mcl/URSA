@@ -57,12 +57,14 @@ namespace URSA.Web.Http.Mapping
             ArrayList result = new ArrayList();
             IDictionary<RequestInfo, RequestInfo[]> multipartBodies = new Dictionary<RequestInfo, RequestInfo[]>();
             int index = 0;
-            foreach (var argument in requestMapping.Operation.Arguments)
+            foreach (var parameter in requestMapping.Operation.UnderlyingMethod.GetParameters())
             {
+                var argument = (ValueInfo)requestMapping.Operation.Results.FirstOrDefault(item => item.Parameter.Equals(parameter)) ??
+                    requestMapping.Operation.Arguments.FirstOrDefault(item => item.Parameter.Equals(parameter));
                 object value;
                 if (!argument.Parameter.IsOut)
                 {
-                    value = BindArgument(request, requestMapping, argument, index, multipartBodies);
+                    value = BindArgument(request, requestMapping, (ArgumentInfo)argument, index, multipartBodies);
                     if ((value == (argument.Parameter.ParameterType.IsValueType ? Activator.CreateInstance(argument.Parameter.ParameterType) : null)) &&
                         (argument.Parameter.DefaultValue != null))
                     {

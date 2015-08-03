@@ -35,8 +35,8 @@ namespace URSA.Example.WebApplication.Controllers
         /// <returns><b>true</b> if the person was created or <b>false</b> if not; otherwise <b>null</b>.</returns>
         public bool? Create(out Guid id, Person person)
         {
-            id = Guid.Empty;
-            return null;
+            id = Guid.NewGuid();
+            return true;
         }
 
         /// <summary>Updates the specified person.</summary>

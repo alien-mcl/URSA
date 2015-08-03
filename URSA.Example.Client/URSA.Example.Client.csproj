@@ -5,7 +5,7 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{433E0693-2669-4DF1-B366-8330CF5AC0CE}</ProjectGuid>
-    <OutputType>Library</OutputType>
+    <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>URSA.Example.Client</RootNamespace>
     <AssemblyName>URSA.Example.Client</AssemblyName>
@@ -34,6 +34,9 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject />
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="NLog">
       <HintPath>..\packages\NLog.3.2.0.0\lib\net45\NLog.dll</HintPath>
@@ -58,9 +61,18 @@
     <Compile Include="PersonClient.cs" />
     <Compile Include="IProduct.cs" />
     <Compile Include="IProductClient.cs" />
+    <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\URSA.CastleWindsor\URSA.CastleWindsor.csproj">
+      <Project>{6bf51dd9-364c-4068-a464-e6276ee43635}</Project>
+      <Name>URSA.CastleWindsor</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\URSA.Core\URSA.Core.csproj">
+      <Project>{643795dc-2ce4-4aa6-a480-92b92023da25}</Project>
+      <Name>URSA.Core</Name>
+    </ProjectReference>
     <ProjectReference Include="..\URSA.Http\URSA.Http.csproj">
       <Project>{322c5bbc-5a06-4059-ab73-8f81487ce00c}</Project>
       <Name>URSA.Http</Name>

@@ -78,12 +78,12 @@ namespace URSA.Web.Http
             var uri = BuildUri(url, uriArguments);
             var validAccept = (!accept.Any() ? _converterProvider.SupportedMediaTypes :
                 _converterProvider.SupportedMediaTypes.Join(accept, outer => outer, inner => inner, (outer, inner) => inner));
-            var accepted = (validAccept.Any() ? String.Join("; ", validAccept) : "*/*");
-            WebRequest request = _webRequestProvider.CreateRequest(uri, new Dictionary<string, string>() { { Header.Accept, accepted } });
+            var accepted = (validAccept.Any() ? validAccept : new[] { "*/*" });
+            WebRequest request = _webRequestProvider.CreateRequest(uri, new Dictionary<string, string>() { { Header.Accept, String.Join(", ", accepted) } });
             request.Method = verb.ToString();
             if ((bodyArguments != null) && (bodyArguments.Length > 0))
             {
-                fakeRequest = new RequestInfo(verb, uri, new MemoryStream(), new Header(Header.Accept, accepted));
+                fakeRequest = new RequestInfo(verb, uri, new MemoryStream(), new Header(Header.Accept, accepted.ToArray()));
                 ResponseInfo fakeResponse = CreateFakeResponseInfo(fakeRequest, contentType, bodyArguments);
                 using (var target = request.GetRequestStream())
                 using (var source = fakeResponse.Body)
@@ -96,6 +96,9 @@ namespace URSA.Web.Http
                     switch (header.Name)
                     {
                         case Header.ContentLength:
+                            break;
+                        case Header.ContentType:
+                            request.ContentType = header.Value;
                             break;
                         default:
                             request.Headers.Add(header.Name, header.Value);
@@ -110,7 +113,8 @@ namespace URSA.Web.Http
                 return null;
             }
 
-            fakeRequest = new RequestInfo(verb, uri, response.GetResponseStream(), response.Headers.AllKeys.Select(key => new Header(key, response.Headers[key])).ToArray());
+            fakeRequest = new RequestInfo(verb, uri, response.GetResponseStream(), HeaderCollection.Parse(response.Headers.ToString()));
+            //// TODO: Detect CRUD results stored in headers. Somethinig similar to ArgumentBinder should work here.
             var converter = _converterProvider.FindBestInputConverter(responseType, fakeRequest);
             if (converter == null)
             {
