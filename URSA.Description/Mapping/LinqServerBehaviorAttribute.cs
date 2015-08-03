@@ -1,4 +1,5 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using System;
+using System.Diagnostics.CodeAnalysis;
 
 namespace URSA.Web.Http.Description.Mapping
 {
@@ -25,5 +26,16 @@ namespace URSA.Web.Http.Description.Mapping
 
         /// <summary>Gets the LINQ operation behavior.</summary>
         public LinqOperations Operation { get; private set; }
+
+        /// <inheritdoc />
+        public override void Accept(IServerBehaviorAttributeVisitor visitor)
+        {
+            if (visitor == null)
+            {
+                throw new ArgumentNullException("visitor");
+            }
+
+            visitor.Visit(this);
+        }
     }
 }

@@ -14,14 +14,14 @@ using URSA.Web.Http.Description.Rdfs;
 using IClass = URSA.Web.Http.Description.Hydra.IClass;
 using IResource = URSA.Web.Http.Description.Hydra.IResource;
 
-namespace Given_instance_of_the.TypeDescriptionBuilder_class
+namespace Given_instance_of_the.HydraCompliantTypeDescriptionBuilder_class
 {
     [TestClass]
-    public class TypeDescriptionBuilderTest<T>
+    public class HydraCompliantTypeDescriptionBuilderTest<T>
     {
         protected IApiDocumentation ApiDocumentation { get; private set; }
 
-        protected TypeDescriptionBuilder Builder { get; private set; }
+        protected HydraCompliantTypeDescriptionBuilder Builder { get; private set; }
 
         [TestInitialize]
         public void Setup()
@@ -31,7 +31,7 @@ namespace Given_instance_of_the.TypeDescriptionBuilder_class
             xmlDocProvider.Setup(instance => instance.GetDescription(It.IsAny<PropertyInfo>())).Returns<PropertyInfo>(property => property.DeclaringType + "." + property.Name);
             xmlDocProvider.Setup(instance => instance.GetDescription(It.IsAny<MethodInfo>())).Returns<MethodInfo>(method => method.DeclaringType + "." + method.Name + "()");
             ApiDocumentation = CreateApiDocumentation();
-            Builder = new TypeDescriptionBuilder(xmlDocProvider.Object);
+            Builder = new HydraCompliantTypeDescriptionBuilder(xmlDocProvider.Object);
         }
 
         [TestCleanup]

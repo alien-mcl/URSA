@@ -17,15 +17,15 @@ using IResource = URSA.Web.Http.Description.Hydra.IResource;
 namespace URSA.Web.Http.Description
 {
     /// <summary>Provides a type description building facility.</summary>
-    public class TypeDescriptionBuilder : ITypeDescriptionBuilder
+    public class HydraCompliantTypeDescriptionBuilder : ITypeDescriptionBuilder
     {
         private static readonly IDictionary<Type, Uri> TypeDescriptions = XsdUriParser.Types.Concat(OGuidUriParser.Types).ToDictionary(item => item.Key, item => item.Value);
 
         private readonly IXmlDocProvider _xmlDocProvider;
 
-        /// <summary>Initializes a new instance of the <see cref="TypeDescriptionBuilder"/> class.</summary>
+        /// <summary>Initializes a new instance of the <see cref="HydraCompliantTypeDescriptionBuilder"/> class.</summary>
         /// <param name="xmlDocProvider">The XML documentation provider.</param>
-        public TypeDescriptionBuilder(IXmlDocProvider xmlDocProvider)
+        public HydraCompliantTypeDescriptionBuilder(IXmlDocProvider xmlDocProvider)
         {
             if (xmlDocProvider == null)
             {

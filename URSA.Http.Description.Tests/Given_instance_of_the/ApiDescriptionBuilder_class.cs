@@ -37,7 +37,7 @@ namespace Given_instance_of_the
             IXmlDocProvider xmlDocProvider;
             ITypeDescriptionBuilder typeDescriptionBuilder;
             var handlerMapper = SetupInfrastucture(out apiDocumentation, out xmlDocProvider, out typeDescriptionBuilder);
-            var apiDescriptionBuilder = new ApiDescriptionBuilder<TestController>(handlerMapper, xmlDocProvider, typeDescriptionBuilder);
+            var apiDescriptionBuilder = new ApiDescriptionBuilder<TestController>(handlerMapper, xmlDocProvider, typeDescriptionBuilder, new Type[0]);
             apiDescriptionBuilder.BuildDescription(apiDocumentation);
 
             apiDocumentation.EntryPoints.Should().HaveCount(0);

@@ -22,6 +22,7 @@ using URSA.Web.Http;
 using URSA.Web.Http.Converters;
 using URSA.Web.Http.Description;
 using URSA.Web.Http.Description.CodeGen;
+using URSA.Web.Http.Description.Mapping;
 using URSA.Web.Http.Mapping;
 using URSA.Web.Mapping;
 using VDS.RDF;
@@ -69,7 +70,8 @@ namespace URSA.CastleWindsor
             container.Register(Component.For<IResponseComposer>().ImplementedBy<ResponseComposer>().LifestyleSingleton());
             container.Register(Component.For<IDelegateMapper<RequestInfo>>().ImplementedBy<DelegateMapper>().LifestyleSingleton());
             container.Register(Component.For<IArgumentBinder<RequestInfo>>().ImplementedBy<ArgumentBinder>().LifestyleSingleton());
-            container.Register(Component.For<ITypeDescriptionBuilder>().ImplementedBy<TypeDescriptionBuilder>().LifestyleSingleton());
+            container.Register(Component.For<ITypeDescriptionBuilder>().ImplementedBy(DescriptionConfigurationSection.Default.TypeDescriptionBuilderType ?? typeof(HydraCompliantTypeDescriptionBuilder)).LifestyleSingleton());
+            container.Register(Component.For<IServerBehaviorAttributeVisitor>().ImplementedBy(typeof(DescriptionBuildingServerBahaviorAttributeVisitor<>)).Named("Hydra"));
             container.Register(Component.For(typeof(IApiDescriptionBuilder<>)).ImplementedBy(typeof(ApiDescriptionBuilder<>)).LifestyleSingleton());
         }
 

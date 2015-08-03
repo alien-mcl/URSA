@@ -251,7 +251,7 @@ namespace URSA.Web.Http.Converters
 
             if (instance != null)
             {
-                if (!givenType.IsAssignableFrom(instance.GetType()))
+                if (!givenType.IsInstanceOfType(instance))
                 {
                     throw new InvalidOperationException(String.Format("Instance type '{0}' mismatch from the given '{1}'.", instance.GetType(), givenType));
                 }
@@ -265,6 +265,7 @@ namespace URSA.Web.Http.Converters
                     responseInfo.Headers.ContentType = mediaType;
                 }
 
+                //// TODO: Add support for graph based serializations.
                 var entity = (IEntity)instance;
                 ITripleStore store = new TripleStore();
                 IGraph graph = new Graph();

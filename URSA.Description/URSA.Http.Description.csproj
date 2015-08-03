@@ -95,6 +95,7 @@
     <Compile Include="CodeGen\HydraUriParser.cs" />
     <Compile Include="CodeGen\IClassGenerator.cs" />
     <Compile Include="CodeGen\IUriParser.cs" />
+    <Compile Include="Configuration\DescriptionConfigurationSection.cs" />
     <Compile Include="Converters\EntityConverter.cs" />
     <Compile Include="DescriptionContext.cs" />
     <Compile Include="DescriptionController.cs" />
@@ -106,6 +107,8 @@
     <Compile Include="IApiDescriptionBuilder.cs" />
     <Compile Include="ITypeDescriptionBuilder.cs" />
     <Compile Include="IXmlDocProvider.cs" />
+    <Compile Include="Mapping\DescriptionBuildingServerBahaviorAttributeVisitor.cs" />
+    <Compile Include="Mapping\IServerBehaviorAttributeVisitor.cs" />
     <Compile Include="Mapping\LinqServerBehaviorAttribute.cs" />
     <Compile Include="Mapping\ServerBehaviorAttribute.cs" />
     <Compile Include="Model\EntityQuadExtensions.cs" />
@@ -127,7 +130,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Rdfs\IResource.cs" />
     <Compile Include="Reflection\TypeExtensions.cs" />
-    <Compile Include="TypeDescriptionBuilder.cs" />
+    <Compile Include="HydraCompliantTypeDescriptionBuilder.cs" />
     <Compile Include="VDS\RDF\TripleStoreExtensions.cs" />
     <Compile Include="Writing\JsonLdWriter.cs" />
     <Compile Include="XmlDocProvider.cs" />

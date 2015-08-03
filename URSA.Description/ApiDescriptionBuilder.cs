@@ -25,13 +25,15 @@ namespace URSA.Web.Http.Description
         private readonly IHttpControllerDescriptionBuilder<T> _descriptionBuilder;
         private readonly IXmlDocProvider _xmlDocProvider;
         private readonly ITypeDescriptionBuilder _typeDescriptionBuilder;
+        private readonly IEnumerable<Type> _serverBehaviorAttributeVisitors;
         private Type _specializationType;
 
         /// <summary>Initializes a new instance of the <see cref="ApiDescriptionBuilder{T}" /> class.</summary>
         /// <param name="descriptionBuilder">Description builder.</param>
         /// <param name="xmlDocProvider">The XML documentation provider.</param>
         /// <param name="typeDescriptionBuilder">Type description builder.</param>
-        public ApiDescriptionBuilder(IHttpControllerDescriptionBuilder<T> descriptionBuilder, IXmlDocProvider xmlDocProvider, ITypeDescriptionBuilder typeDescriptionBuilder)
+        /// <param name="serverBehaviorAttributeVisitors">Server behavior attribute visitors.</param>
+        public ApiDescriptionBuilder(IHttpControllerDescriptionBuilder<T> descriptionBuilder, IXmlDocProvider xmlDocProvider, ITypeDescriptionBuilder typeDescriptionBuilder, IEnumerable<Type> serverBehaviorAttributeVisitors)
         {
             if (descriptionBuilder == null)
             {
@@ -51,6 +53,10 @@ namespace URSA.Web.Http.Description
             _descriptionBuilder = descriptionBuilder;
             _xmlDocProvider = xmlDocProvider;
             _typeDescriptionBuilder = typeDescriptionBuilder;
+            if ((_serverBehaviorAttributeVisitors = (serverBehaviorAttributeVisitors ?? new Type[0])).Any(visitor => visitor.GetConstructor(new Type[0]) == null))
+            {
+                throw new ArgumentOutOfRangeException("serverBehaviorAttributeVisitors");
+            }
         }
 
         private Type SpecializationType
@@ -217,17 +223,21 @@ namespace URSA.Web.Http.Description
             IIriTemplateMapping templateMapping = context.ApiDocumentation.Context.Create<IIriTemplateMapping>(templateUri.AddFragment(mapping.VariableName));
             templateMapping.Variable = mapping.VariableName;
             templateMapping.Required = mapping.Parameter.ParameterType.IsValueType;
-            var linqBehavior = mapping.Parameter.GetCustomAttribute<LinqServerBehaviorAttribute>(true);
-            if (linqBehavior != null)
+            var linqBehaviors = mapping.Parameter.GetCustomAttributes<LinqServerBehaviorAttribute>(true);
+            if (linqBehaviors.Any())
             {
-                //// TODO: Introduce some nice logic like visitor or something here.
-                templateMapping.Property = context.ApiDocumentation.Context.Create<Rdfs.IProperty>(
-                    DescriptionController<IController>.VocabularyBaseUri.AbsoluteUri + linqBehavior.Operation.ToString().ToLowerCamelCase());
                 IResource range = (context.ContainsType(typeof(int)) ? context[typeof(int)] : _typeDescriptionBuilder.BuildTypeDescription(context.ForType(typeof(int))));
                 var resource = templateMapping.AsEntity<IResource>();
                 resource.SingleValue = range.SingleValue;
                 resource.MediaTypes.AddRange(range.MediaTypes);
-                templateMapping.Property.Range.Add(range.Type);
+
+                foreach (var visitorType in _serverBehaviorAttributeVisitors)
+                {
+                    var ctor = (visitorType.IsGenericType ? visitorType.MakeGenericType(typeof(ParameterInfo)) : visitorType).GetConstructor(new Type[0]);
+                    var visitor = (IServerBehaviorAttributeVisitor)ctor.Invoke(null);
+                    linqBehaviors.Accept(visitor);
+                    (templateMapping.Property = (Rdfs.IProperty)visitor.MemberDescription).Range.Add(range.Type);
+                }
             }
             else if (context.Type != typeof(object))
             {
