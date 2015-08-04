@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Configuration;
 using System.Data.SqlClient;
-using URSA.ComponentModel;
 using URSA.Example.WebApplication.Data;
 
 namespace URSA.Example
@@ -14,6 +13,7 @@ namespace URSA.Example
             var person = new Person() { Firstname = "Test", Lastname = "Testing", Roles = new[] { "Role" } };
             person.Id = client.Create(person);
             Console.WriteLine("Created person '{0}'.", person.Id);
+            Console.ReadLine();
         }
     }
 }

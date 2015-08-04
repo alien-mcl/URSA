@@ -10,6 +10,7 @@ using System.Text.RegularExpressions;
 using URSA.ComponentModel;
 using URSA.Configuration;
 using URSA.Web.Converters;
+using URSA.Web.Http.Mapping;
 
 namespace URSA.Web.Http
 {
@@ -20,6 +21,7 @@ namespace URSA.Web.Http
 
         private readonly IWebRequestProvider _webRequestProvider;
         private readonly IConverterProvider _converterProvider;
+        private readonly IResultBinder<RequestInfo> _resultBinder;
 
         /// <summary>Initializes a new instance of the <see cref="Client"/> class.</summary>
         /// <param name="baseUri">The base URI.</param>
@@ -47,6 +49,7 @@ namespace URSA.Web.Http
             }
 
             _converterProvider = container.Resolve<IConverterProvider>();
+            _resultBinder = container.Resolve<IResultBinder<RequestInfo>>();
         }
 
         private Uri BaseUri { get; set; }
@@ -114,14 +117,8 @@ namespace URSA.Web.Http
             }
 
             fakeRequest = new RequestInfo(verb, uri, response.GetResponseStream(), HeaderCollection.Parse(response.Headers.ToString()));
-            //// TODO: Detect CRUD results stored in headers. Somethinig similar to ArgumentBinder should work here.
-            var converter = _converterProvider.FindBestInputConverter(responseType, fakeRequest);
-            if (converter == null)
-            {
-                throw new InvalidOperationException(String.Format("Cannot deserialize response from '{0}'.", uri));
-            }
-
-            return converter.ConvertTo(responseType, fakeRequest);
+            var result = _resultBinder.BindResults(responseType, fakeRequest);
+            return result.FirstOrDefault(responseType.IsInstanceOfType);
         }
 
         /// <summary>Calls the ReST service using specified HTTP verb.</summary>

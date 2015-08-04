@@ -11,8 +11,8 @@ using URSA.Configuration;
 using URSA.Web;
 using URSA.Web.Converters;
 using URSA.Web.Http;
+using URSA.Web.Http.Mapping;
 using URSA.Web.Http.Tests.Data;
-using URSA.Web.Mapping;
 
 namespace Given_instance_of_the
 {
@@ -29,6 +29,7 @@ namespace Given_instance_of_the
         private Mock<IWebRequestProvider> _webRequestProvider;
         private Mock<IConverterProvider> _converterProvider;
         private Mock<IConverter> _converter;
+        private Mock<IResultBinder> _resultBinder;
         private Client _client;
 
         [TestMethod]
@@ -64,8 +65,7 @@ namespace Given_instance_of_the
         {
             Call();
 
-            _converterProvider.Verify(instance => instance.FindBestInputConverter(typeof(Person), It.IsAny<IRequestInfo>(), false), Times.Once);
-            _converter.Verify(instance => instance.ConvertTo(typeof(Person), It.IsAny<IRequestInfo>()), Times.Once);
+            _resultBinder.Verify(instance => instance.BindResults(typeof(Person), It.IsAny<IRequestInfo>()), Times.Once);
         }
 
         [TestMethod]
@@ -96,9 +96,12 @@ namespace Given_instance_of_the
             _converterProvider.SetupGet(instance => instance.SupportedMediaTypes).Returns(new[] { "application/json" });
             _converterProvider.Setup(instance => instance.FindBestOutputConverter<Person>(It.IsAny<IResponseInfo>())).Returns(_converter.Object);
             _converterProvider.Setup(instance => instance.FindBestInputConverter(typeof(Person), It.IsAny<IRequestInfo>(), false)).Returns(_converter.Object);
+            _resultBinder = new Mock<IResultBinder>(MockBehavior.Strict);
+            _resultBinder.Setup(instance => instance.BindResults(It.IsAny<Type>(), It.IsAny<RequestInfo>())).Returns(new object[] { Person });
             UrsaConfigurationSection.ComponentProvider = (_container = new Mock<IComponentProvider>(MockBehavior.Strict)).Object;
             _container.Setup(instance => instance.Resolve<IConverterProvider>()).Returns(_converterProvider.Object);
             _container.Setup(instance => instance.ResolveAll<IWebRequestProvider>()).Returns(new[] { _webRequestProvider.Object });
+            _container.Setup(instance => instance.Resolve<IResultBinder>()).Returns(_resultBinder.Object);
             _client = new Client(CallUri);
         }
 

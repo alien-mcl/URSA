@@ -53,6 +53,13 @@ namespace URSA.Web.Http
             set { Set(Http.Header.ContentDisposition, value); }
         }
 
+        /// <summary>Gets or sets the 'Location' header's value.</summary>
+        public string Location
+        {
+            get { return (this[Http.Header.Location] != null ? String.Join(",", this[Http.Header.Location].Values) : null); }
+            set { Set(Http.Header.Location, value); }
+        }
+
         /// <summary>Gets the count if headers.</summary>
         [ExcludeFromCodeCoverage]
         public int Count { get { return _headers.Count; } }

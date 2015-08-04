@@ -88,6 +88,7 @@
     <Compile Include="Mapping\FromQueryStringArgumentBinder.cs" />
     <Compile Include="Mapping\FromUriArgumentBinder.cs" />
     <Compile Include="Mapping\IParameterSourceArgumentBinder.cs" />
+    <Compile Include="Mapping\IResultBinder.cs" />
     <Compile Include="Mapping\OnHeadAttribute.cs" />
     <Compile Include="Mapping\OnDeleteAttribute.cs" />
     <Compile Include="Mapping\OnPutAttribute.cs" />
@@ -95,6 +96,7 @@
     <Compile Include="Mapping\OnGetAttribute.cs" />
     <Compile Include="Mapping\OnPostAttribute.cs" />
     <Compile Include="Mapping\OnVerbAttribute.cs" />
+    <Compile Include="Mapping\ResultBinder.cs" />
     <Compile Include="Reflection\MemberInfoExtensions.cs" />
     <Compile Include="ResponseComposer.cs" />
     <Compile Include="WebRequestProvider.cs" />
