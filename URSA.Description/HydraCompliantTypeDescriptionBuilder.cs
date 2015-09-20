@@ -6,6 +6,7 @@ using System.Reflection;
 using RomanticWeb.Entities;
 using RomanticWeb.Vocabularies;
 using URSA.Reflection;
+using URSA.Web.Http.Converters;
 using URSA.Web.Http.Description.CodeGen;
 using URSA.Web.Http.Description.Entities;
 using URSA.Web.Http.Description.Hydra;
@@ -21,6 +22,8 @@ namespace URSA.Web.Http.Description
     {
         private static readonly IDictionary<Type, Uri> TypeDescriptions = XsdUriParser.Types.Concat(OGuidUriParser.Types).ToDictionary(item => item.Key, item => item.Value);
 
+        private static readonly Uri[] SupportedMediaTypeProfiles = { EntityConverter.Hydra };
+
         private readonly IXmlDocProvider _xmlDocProvider;
 
         /// <summary>Initializes a new instance of the <see cref="HydraCompliantTypeDescriptionBuilder"/> class.</summary>
@@ -34,6 +37,9 @@ namespace URSA.Web.Http.Description
 
             _xmlDocProvider = xmlDocProvider;
         }
+
+        /// <inheritdoc />
+        public IEnumerable<Uri> SupportedProfiles { get { return SupportedMediaTypeProfiles; } }
 
         /// <inheritdoc />
         public IResource BuildTypeDescription(DescriptionContext context)

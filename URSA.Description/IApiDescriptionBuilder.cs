@@ -1,4 +1,6 @@
-﻿using URSA.Web.Http.Description.Hydra;
+﻿using System;
+using System.Collections.Generic;
+using URSA.Web.Http.Description.Hydra;
 
 namespace URSA.Web.Http.Description
 {
@@ -8,6 +10,7 @@ namespace URSA.Web.Http.Description
     {
         /// <summary>Builds an API description.</summary>
         /// <param name="apiDocumentation">API documentation.</param>
-        void BuildDescription(IApiDocumentation apiDocumentation);
+        /// <param name="profiles">Requested media type profiles if any.</param>
+        void BuildDescription(IApiDocumentation apiDocumentation, IEnumerable<Uri> profiles);
     }
 }

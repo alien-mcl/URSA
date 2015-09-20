@@ -30,8 +30,7 @@ namespace Given_instance_of_the.converter_of
         private const string ClassId = "class";
         private const string Method = "GET";
         private const string BodyPattern = "[{{ \"@id\":\"{0}{2}\", \"@type\":\"{1}Operation\", \"{1}method\":\"GET\", \"{1}returns\":{{ \"@id\":\"{0}{3}\" }} }},{{ \"@id\":\"{0}{3}\", \"@type\":\"{1}Class\" }}]";
-        private static readonly Uri Hydra = new Uri("http://www.w3.org/ns/hydra/core#");
-        private static readonly string Body = String.Format(BodyPattern, BaseUri, Hydra, OperationName, ClassId);
+        private static readonly string Body = String.Format(BodyPattern, BaseUri, EntityConverter.Hydra, OperationName, ClassId);
         private Mock<IEntityContext> _context;
 
         protected override string SingleEntityContentType { get { return ContentType; } }
@@ -160,13 +159,13 @@ namespace Given_instance_of_the.converter_of
             var mock = MockHelpers.MockEntity<IOperation>(_context.Object, id);
             var method = (from triple in tripleStore.Triples
                           where (triple.Subject is IUriNode) && (((IUriNode)triple.Subject).Uri.ToString() == id.ToString()) &&
-                            (triple.Predicate is IUriNode) && (((IUriNode)triple.Predicate).Uri.ToString() == Hydra + "method") &&
+                            (triple.Predicate is IUriNode) && (((IUriNode)triple.Predicate).Uri.ToString() == EntityConverter.Hydra + "method") &&
                             (triple.Object is ILiteralNode)
                           select ((ILiteralNode)triple.Object).Value).ToList();
             mock.SetupGet(instance => instance.Method).Returns(method);
             var returns = (from triple in tripleStore.Triples
                            where (triple.Subject is IUriNode) && (((IUriNode)triple.Subject).Uri.ToString() == id.ToString()) &&
-                             (triple.Predicate is IUriNode) && (((IUriNode)triple.Predicate).Uri.ToString() == Hydra + "returns") &&
+                             (triple.Predicate is IUriNode) && (((IUriNode)triple.Predicate).Uri.ToString() == EntityConverter.Hydra + "returns") &&
                              (triple.Object is IUriNode)
                            select MockHelpers.MockEntity<IClass>(_context.Object, new EntityId(((IUriNode)triple.Object).Uri))).First();
             mock.SetupGet(instance => instance.Returns).Returns(new IClass[] { returns.Object });
@@ -180,10 +179,10 @@ namespace Given_instance_of_the.converter_of
             var classUri = new Uri(BaseUri, ClassId);
             var classId = new EntityId(classUri);
             IList<EntityQuad> quads = new List<EntityQuad>();
-            quads.Add(new EntityQuad(operationId, Node.ForUri(operationUri), Node.ForUri(Rdf.type), Node.ForUri(new Uri(Hydra.ToString() + "Operation"))));
-            quads.Add(new EntityQuad(operationId, Node.ForUri(operationUri), Node.ForUri(new Uri(Hydra.ToString() + "method")), Node.ForLiteral(Method)));
-            quads.Add(new EntityQuad(operationId, Node.ForUri(operationUri), Node.ForUri(new Uri(Hydra.ToString() + "returns")), Node.ForUri(classUri)));
-            quads.Add(new EntityQuad(classId, Node.ForUri(classUri), Node.ForUri(Rdf.type), Node.ForUri(new Uri(Hydra.ToString() + "Class"))));
+            quads.Add(new EntityQuad(operationId, Node.ForUri(operationUri), Node.ForUri(Rdf.type), Node.ForUri(new Uri(EntityConverter.Hydra + "Operation"))));
+            quads.Add(new EntityQuad(operationId, Node.ForUri(operationUri), Node.ForUri(new Uri(EntityConverter.Hydra + "method")), Node.ForLiteral(Method)));
+            quads.Add(new EntityQuad(operationId, Node.ForUri(operationUri), Node.ForUri(new Uri(EntityConverter.Hydra + "returns")), Node.ForUri(classUri)));
+            quads.Add(new EntityQuad(classId, Node.ForUri(classUri), Node.ForUri(Rdf.type), Node.ForUri(new Uri(EntityConverter.Hydra + "Class"))));
             Mock<IEntityStore> store = new Mock<IEntityStore>();
             store.Setup(instance => instance.Quads).Returns(quads);
             Mock<IEntityContext> context = new Mock<IEntityContext>();

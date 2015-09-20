@@ -15,7 +15,7 @@ namespace Given_instance_of_the.HydraCompliantTypeDescriptionBuilder_class
         [TestMethod]
         public void it_should_create_a_resource_description()
         {
-            var result = Builder.BuildTypeDescription(DescriptionContext.ForType(ApiDocumentation, typeof(Person)));
+            var result = DescriptionContext.ForType(ApiDocumentation, typeof(Person), Builder).BuildTypeDescription();
 
             result.SingleValue.Should().HaveValue().And.Subject.Value.Should().BeTrue();
             result.Type.Should().BeAssignableTo<IClass>();
@@ -24,7 +24,7 @@ namespace Given_instance_of_the.HydraCompliantTypeDescriptionBuilder_class
         [TestMethod]
         public void it_should_create_a_type_description()
         {
-            var result = (IClass)Builder.BuildTypeDescription(DescriptionContext.ForType(ApiDocumentation, typeof(Person))).Type;
+            var result = (IClass)DescriptionContext.ForType(ApiDocumentation, typeof(Person), Builder).BuildTypeDescription().Type;
 
             result.Label.Should().Be("Person");
             result.Description.Should().Be(typeof(Person).FullName);
@@ -34,7 +34,7 @@ namespace Given_instance_of_the.HydraCompliantTypeDescriptionBuilder_class
         [TestMethod]
         public void it_should_create_an_Id_property_description()
         {
-            var result = (IClass)Builder.BuildTypeDescription(DescriptionContext.ForType(ApiDocumentation, typeof(Person))).Type;
+            var result = (IClass)DescriptionContext.ForType(ApiDocumentation, typeof(Person), Builder).BuildTypeDescription().Type;
 
             var property = result.SupportedProperties.FirstOrDefault(item => (item.Property != null) && (item.Property.Label == "Id"));
 
@@ -50,7 +50,7 @@ namespace Given_instance_of_the.HydraCompliantTypeDescriptionBuilder_class
         [TestMethod]
         public void it_should_create_an_FirstName_property_description()
         {
-            var result = (IClass)Builder.BuildTypeDescription(DescriptionContext.ForType(ApiDocumentation, typeof(Person))).Type;
+            var result = (IClass)DescriptionContext.ForType(ApiDocumentation, typeof(Person), Builder).BuildTypeDescription().Type;
 
             var property = result.SupportedProperties.FirstOrDefault(item => (item.Property != null) && (item.Property.Label == "FirstName"));
 
@@ -66,7 +66,7 @@ namespace Given_instance_of_the.HydraCompliantTypeDescriptionBuilder_class
         [TestMethod]
         public void it_should_create_an_LastName_property_description()
         {
-            var result = (IClass)Builder.BuildTypeDescription(DescriptionContext.ForType(ApiDocumentation, typeof(Person))).Type;
+            var result = (IClass)DescriptionContext.ForType(ApiDocumentation, typeof(Person), Builder).BuildTypeDescription().Type;
 
             var property = result.SupportedProperties.FirstOrDefault(item => (item.Property != null) && (item.Property.Label == "LastName"));
 
@@ -82,7 +82,7 @@ namespace Given_instance_of_the.HydraCompliantTypeDescriptionBuilder_class
         [TestMethod]
         public void it_should_create_an_Roles_property_description()
         {
-            var result = (IClass)Builder.BuildTypeDescription(DescriptionContext.ForType(ApiDocumentation, typeof(Person))).Type;
+            var result = (IClass)DescriptionContext.ForType(ApiDocumentation, typeof(Person), Builder).BuildTypeDescription().Type;
 
             var property = result.SupportedProperties.FirstOrDefault(item => (item.Property != null) && (item.Property.Label == "Roles"));
 

@@ -38,6 +38,9 @@ namespace URSA.Web.Http
         /// <summary>Defines the 'Location' header name.</summary>
         public const string Location = "Location";
 
+        /// <summary>Defines the 'Link' header name.</summary>
+        public const string Link = "Link";
+
         /// <summary>Initializes a new instance of the <see cref="Header" /> class.</summary>
         /// <param name="name">Name of the header.</param>
         /// <param name="values">Value of the header.</param>

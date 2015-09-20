@@ -131,6 +131,13 @@
     <Compile Include="Rdfs\IResource.cs" />
     <Compile Include="Reflection\TypeExtensions.cs" />
     <Compile Include="HydraCompliantTypeDescriptionBuilder.cs" />
+    <Compile Include="Shacl\IConstraint.cs" />
+    <Compile Include="Shacl\IConstraintTemplate.cs" />
+    <Compile Include="Shacl\IClosedShapeConstraint.cs" />
+    <Compile Include="Shacl\IPropertyConstraint.cs" />
+    <Compile Include="Shacl\INodeKind.cs" />
+    <Compile Include="Shacl\IShape.cs" />
+    <Compile Include="Shacl\IShapeClass.cs" />
     <Compile Include="VDS\RDF\TripleStoreExtensions.cs" />
     <Compile Include="Writing\JsonLdWriter.cs" />
     <Compile Include="XmlDocProvider.cs" />

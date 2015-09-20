@@ -1,6 +1,7 @@
 ﻿#pragma warning disable 1591
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
@@ -14,6 +15,7 @@ using RomanticWeb.Model;
 using URSA.Web.Description;
 using URSA.Web.Description.Http;
 using URSA.Web.Http;
+using URSA.Web.Http.Converters;
 using URSA.Web.Http.Description;
 using URSA.Web.Http.Description.Hydra;
 using URSA.Web.Http.Description.Rdfs;
@@ -37,14 +39,27 @@ namespace Given_instance_of_the
             IXmlDocProvider xmlDocProvider;
             ITypeDescriptionBuilder typeDescriptionBuilder;
             var handlerMapper = SetupInfrastucture(out apiDocumentation, out xmlDocProvider, out typeDescriptionBuilder);
-            var apiDescriptionBuilder = new ApiDescriptionBuilder<TestController>(handlerMapper, xmlDocProvider, typeDescriptionBuilder, new Type[0]);
-            apiDescriptionBuilder.BuildDescription(apiDocumentation);
+            var apiDescriptionBuilder = new ApiDescriptionBuilder<TestController>(handlerMapper, xmlDocProvider, new[] { typeDescriptionBuilder }, new Type[0]);
+            apiDescriptionBuilder.BuildDescription(apiDocumentation, null);
 
             apiDocumentation.EntryPoints.Should().HaveCount(0);
             apiDocumentation.SupportedClasses.Should().HaveCount(1);
             apiDocumentation.SupportedClasses.First().SupportedOperations.Should().HaveCount(1);
             apiDocumentation.SupportedClasses.First().SupportedOperations.First().Method.Should().HaveCount(1);
             apiDocumentation.SupportedClasses.First().SupportedOperations.First().Method.First().Should().Be("POST");
+        }
+
+        [TestMethod]
+        public void it_should_build_the_api_documentation_using_a_Hydra_profile()
+        {
+            IApiDocumentation apiDocumentation;
+            IXmlDocProvider xmlDocProvider;
+            ITypeDescriptionBuilder typeDescriptionBuilder;
+            var handlerMapper = SetupInfrastucture(out apiDocumentation, out xmlDocProvider, out typeDescriptionBuilder);
+            var apiDescriptionBuilder = new ApiDescriptionBuilder<TestController>(handlerMapper, xmlDocProvider, new[] { typeDescriptionBuilder }, new Type[0]);
+            apiDescriptionBuilder.BuildDescription(apiDocumentation, new[] { EntityConverter.Hydra });
+
+            Mock.Get(typeDescriptionBuilder).VerifyGet(instance => instance.SupportedProfiles, Times.Once);
         }
 
         private static IHttpControllerDescriptionBuilder<TestController> SetupInfrastucture(out IApiDocumentation apiDocumentationInstance, out IXmlDocProvider xmlDocProvider, out ITypeDescriptionBuilder typeDescriptionBuilder)
@@ -140,6 +155,7 @@ namespace Given_instance_of_the
         {
             bool requiresRdf;
             Mock<ITypeDescriptionBuilder> typeDescriptionBuilder = new Mock<ITypeDescriptionBuilder>(MockBehavior.Strict);
+            typeDescriptionBuilder.SetupGet(instance => instance.SupportedProfiles).Returns(new[] { EntityConverter.Hydra });
             typeDescriptionBuilder.Setup(instance => instance.BuildTypeDescription(It.IsAny<DescriptionContext>())).Returns<DescriptionContext>(context => CreateDescription(context, out requiresRdf));
             typeDescriptionBuilder.Setup(instance => instance.BuildTypeDescription(It.IsAny<DescriptionContext>(), out requiresRdf)).Returns<DescriptionContext, bool>((context, rdf) => CreateDescription(context, out rdf));
             return typeDescriptionBuilder.Object;

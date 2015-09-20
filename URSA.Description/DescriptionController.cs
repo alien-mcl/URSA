@@ -1,7 +1,8 @@
 ﻿using RomanticWeb;
 using RomanticWeb.Entities;
 using System;
-using URSA.Web.Description.Http;
+using System.Collections.Generic;
+using System.Linq;
 using URSA.Web.Http.Converters;
 using URSA.Web.Http.Description.Hydra;
 using URSA.Web.Http.Mapping;
@@ -58,6 +59,22 @@ namespace URSA.Web.Http.Description
         /// <inheritdoc />
         public IResponseInfo Response { get; set; }
 
+        private IEnumerable<Uri> RequestedMediaTypeProfiles
+        {
+            get
+            {
+                if (!(Response.Request is RequestInfo))
+                {
+                    return new Uri[0];
+                }
+
+                //// TODO: Introduce strongly typed header/parameter parsing routines.
+                RequestInfo request = (RequestInfo)Response.Request;
+                return (from value in request.Headers[Header.Link].Values from parameter in value.Parameters where parameter.Name == "rel" select new Uri(value.Value))
+                    .Union(from value in request.Headers[Header.Accept].Values from parameter in value.Parameters where parameter.Name == "profile" select (Uri)parameter.Value);
+            }
+        }
+
         /// <summary>Gets the API documentation.</summary>
         /// <param name="format">Optional output format.</param>
         /// <returns><see cref="IApiDocumentation" /> instance.</returns>
@@ -66,33 +83,41 @@ namespace URSA.Web.Http.Description
         [OnGet]
         public IApiDocumentation GetApiEntryPointDescription(OutputFormats? format = null)
         {
-            format = format ?? OutputFormats.Turtle;
-            var accept = Response.Request.Headers[Header.Accept];
-            var fileExtension = "txt";
-            if ((accept != null) && (accept.Contains("*/*")))
-            {
-                switch ((OutputFormats)format)
-                {
-                    case OutputFormats.Turtle:
-                        Response.Request.Headers[Header.Accept] = EntityConverter.TextTurtle;
-                        fileExtension = "ttl";
-                        break;
-                    case OutputFormats.Xml:
-                        Response.Request.Headers[Header.Accept] = EntityConverter.ApplicationRdfXml;
-                        Response.Headers[Header.ContentType] = ApplicationXml;
-                        fileExtension = "xml";
-                        break;
-                    case OutputFormats.Rdf:
-                        Response.Request.Headers[Header.Accept] = EntityConverter.ApplicationRdfXml;
-                        fileExtension = "rdf";
-                        break;
-                }
-            }
-
+            var fileExtension = OverrideAcceptedMediaType(format ?? OutputFormats.Turtle);
             ((ResponseInfo)Response).Headers.ContentDisposition = String.Format("inline; filename=\"{0}.{1}\"", typeof(T).Name, fileExtension);
             IApiDocumentation result = _entityContext.Create<IApiDocumentation>(new EntityId(Response.Request.Uri.AddFragment(String.Empty)));
-            _apiDescriptionBuilder.BuildDescription(result);
+            _apiDescriptionBuilder.BuildDescription(result, RequestedMediaTypeProfiles);
             return result;
+        }
+
+        //// TODO: Check the default file name is actually a TXT!
+        private string OverrideAcceptedMediaType(OutputFormats? format)
+        {
+            var accept = Response.Request.Headers[Header.Accept];
+            var fileExtension = "txt";
+            if ((accept == null) || (!accept.Contains("*/*")))
+            {
+                return fileExtension;
+            }
+
+            switch ((OutputFormats)format)
+            {
+                case OutputFormats.Turtle:
+                    Response.Request.Headers[Header.Accept] = EntityConverter.TextTurtle;
+                    fileExtension = "ttl";
+                    break;
+                case OutputFormats.Xml:
+                    Response.Request.Headers[Header.Accept] = EntityConverter.ApplicationRdfXml;
+                    Response.Headers[Header.ContentType] = ApplicationXml;
+                    fileExtension = "xml";
+                    break;
+                case OutputFormats.Rdf:
+                    Response.Request.Headers[Header.Accept] = EntityConverter.ApplicationRdfXml;
+                    fileExtension = "rdf";
+                    break;
+            }
+
+            return fileExtension;
         }
     }
 }

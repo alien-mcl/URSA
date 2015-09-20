@@ -67,7 +67,10 @@ namespace URSA.CastleWindsor
             container.Register(Component.For<IDelegateMapper<RequestInfo>>().ImplementedBy<DelegateMapper>().LifestyleSingleton());
             container.Register(Component.For<IArgumentBinder<RequestInfo>>().ImplementedBy<ArgumentBinder>().LifestyleSingleton());
             container.Register(Component.For<IResultBinder<RequestInfo>>().ImplementedBy<ResultBinder>().LifestyleSingleton());
-            container.Register(Component.For<ITypeDescriptionBuilder>().ImplementedBy(DescriptionConfigurationSection.Default.TypeDescriptionBuilderType ?? typeof(HydraCompliantTypeDescriptionBuilder)).LifestyleSingleton());
+            //// TODO: Introduce a request selectable (i.e. by media type profile) type description builders.
+            //// This will allow remote requests to choose which type serialization to use (i.e. Hydra + Owl, SHACL)
+            container.Register(Component.For<ITypeDescriptionBuilder>().ImplementedBy<HydraCompliantTypeDescriptionBuilder>()
+                .Named(EntityConverter.Hydra.ToString()).IsDefault().LifestyleSingleton());
             container.Register(Component.For<IServerBehaviorAttributeVisitor>().ImplementedBy(typeof(DescriptionBuildingServerBahaviorAttributeVisitor<>)).Named("Hydra"));
             container.Register(Component.For(typeof(IApiDescriptionBuilder<>)).ImplementedBy(typeof(ApiDescriptionBuilder<>)).LifestyleSingleton());
         }

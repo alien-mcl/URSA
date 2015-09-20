@@ -13,7 +13,7 @@ namespace Given_instance_of_the
 {
     [ExcludeFromCodeCoverage]
     [TestClass]
-    public class MultiObjectResponseInfo_class
+    public class MultiObjectResponseInfo_class : IDisposable
     {
         private const string StringBody = "test";
         private const int NumericBody = 1;
@@ -84,6 +84,29 @@ namespace Given_instance_of_the
             _converter = null;
             _converterProvider = null;
             _request = null;
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposing)
+            {
+                return;
+            }
+
+            if (_request != null)
+            {
+                _request.Dispose();
+            }
+
+            if (_response != null)
+            {
+                _response.Dispose();
+            }
         }
     }
 }

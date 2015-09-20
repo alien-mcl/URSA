@@ -48,15 +48,28 @@ namespace URSA.Web.Converters
                 throw new ArgumentNullException("request");
             }
 
-            return (from item in _converters
-                    let level = item.CanConvertTo(expectedType, request)
-                    where ((ignoreProtocol) || ((!ignoreProtocol) &&
-                        ((level & CompatibilityLevel.ProtocolMatch) == CompatibilityLevel.ProtocolMatch))) &&
-                        ((level & CompatibilityLevel.TypeMatch) == CompatibilityLevel.TypeMatch)
-                    let value = (ignoreProtocol ? level & ~CompatibilityLevel.ExactProtocolMatch : level)
-                    orderby value descending
-                    orderby (expectedType.GetItemType() != typeof(string) ? 1 : 0) descending
-                    select item).FirstOrDefault();
+            var converterIndex = -1;
+            IConverter bestConverter = null;
+            foreach (var item in _converters)
+            {
+                var level = item.CanConvertTo(expectedType, request);
+                if (((!ignoreProtocol) && ((ignoreProtocol) || ((level & CompatibilityLevel.ProtocolMatch) != CompatibilityLevel.ProtocolMatch))) || 
+                    ((level & CompatibilityLevel.TypeMatch) != CompatibilityLevel.TypeMatch))
+                {
+                    continue;
+                }
+
+                level = (ignoreProtocol ? level & ~CompatibilityLevel.ExactProtocolMatch : level);
+                if ((bestConverter != null) && ((int)level <= converterIndex))
+                {
+                    continue;
+                }
+
+                converterIndex = (int)level;
+                bestConverter = item;
+            }
+
+            return bestConverter;
         }
 
         /// <inheritdoc />

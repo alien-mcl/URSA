@@ -24,16 +24,16 @@ namespace URSA.Web.Http.Description
 
         private readonly IHttpControllerDescriptionBuilder<T> _descriptionBuilder;
         private readonly IXmlDocProvider _xmlDocProvider;
-        private readonly ITypeDescriptionBuilder _typeDescriptionBuilder;
+        private readonly IEnumerable<ITypeDescriptionBuilder> _typeDescriptionBuilders;
         private readonly IEnumerable<Type> _serverBehaviorAttributeVisitors;
         private Type _specializationType;
 
         /// <summary>Initializes a new instance of the <see cref="ApiDescriptionBuilder{T}" /> class.</summary>
         /// <param name="descriptionBuilder">Description builder.</param>
         /// <param name="xmlDocProvider">The XML documentation provider.</param>
-        /// <param name="typeDescriptionBuilder">Type description builder.</param>
+        /// <param name="typeDescriptionBuilders">Type description builders.</param>
         /// <param name="serverBehaviorAttributeVisitors">Server behavior attribute visitors.</param>
-        public ApiDescriptionBuilder(IHttpControllerDescriptionBuilder<T> descriptionBuilder, IXmlDocProvider xmlDocProvider, ITypeDescriptionBuilder typeDescriptionBuilder, IEnumerable<Type> serverBehaviorAttributeVisitors)
+        public ApiDescriptionBuilder(IHttpControllerDescriptionBuilder<T> descriptionBuilder, IXmlDocProvider xmlDocProvider, IEnumerable<ITypeDescriptionBuilder> typeDescriptionBuilders, IEnumerable<Type> serverBehaviorAttributeVisitors)
         {
             if (descriptionBuilder == null)
             {
@@ -45,14 +45,19 @@ namespace URSA.Web.Http.Description
                 throw new ArgumentNullException("xmlDocProvider");
             }
 
-            if (typeDescriptionBuilder == null)
+            if (typeDescriptionBuilders == null)
             {
-                throw new ArgumentNullException("typeDescriptionBuilder");
+                throw new ArgumentNullException("typeDescriptionBuilders");
+            }
+
+            if (!typeDescriptionBuilders.Any())
+            {
+                throw new ArgumentOutOfRangeException("typeDescriptionBuilders");
             }
 
             _descriptionBuilder = descriptionBuilder;
             _xmlDocProvider = xmlDocProvider;
-            _typeDescriptionBuilder = typeDescriptionBuilder;
+            _typeDescriptionBuilders = typeDescriptionBuilders;
             if ((_serverBehaviorAttributeVisitors = (serverBehaviorAttributeVisitors ?? new Type[0])).Any(visitor => visitor.GetConstructor(new Type[0]) == null))
             {
                 throw new ArgumentOutOfRangeException("serverBehaviorAttributeVisitors");
@@ -73,7 +78,8 @@ namespace URSA.Web.Http.Description
 
         /// <summary>Builds an API description.</summary>
         /// <param name="apiDocumentation">API documentation.</param>
-        public void BuildDescription(IApiDocumentation apiDocumentation)
+        /// <param name="profiles">Requested media type profiles.</param>
+        public void BuildDescription(IApiDocumentation apiDocumentation, IEnumerable<Uri> profiles)
         {
             if (apiDocumentation == null)
             {
@@ -85,8 +91,9 @@ namespace URSA.Web.Http.Description
                 return;
             }
 
-            var context = DescriptionContext.ForType(apiDocumentation, SpecializationType);
-            IResource specializationType = _typeDescriptionBuilder.BuildTypeDescription(context);
+            var typeDescriptionBuilder = GetTypeDescriptionBuilder(profiles);
+            var context = DescriptionContext.ForType(apiDocumentation, SpecializationType, typeDescriptionBuilder);
+            IResource specializationType = context.BuildTypeDescription();
             if (!(specializationType.Type is IClass))
             {
                 return;
@@ -128,6 +135,27 @@ namespace URSA.Web.Http.Description
             }
 
             return null;
+        }
+
+        private ITypeDescriptionBuilder GetTypeDescriptionBuilder(IEnumerable<Uri> profiles)
+        {
+            if ((profiles == null) || (!profiles.Any()))
+            {
+                return _typeDescriptionBuilders.FirstOrDefault();
+            }
+
+            var result = (from descriptionBuilder in _typeDescriptionBuilders
+                          from supportedProfile in descriptionBuilder.SupportedProfiles
+                          join requestedProfile in profiles on supportedProfile equals requestedProfile into matchingProfiles
+                          orderby matchingProfiles.Count() descending
+                          select descriptionBuilder).FirstOrDefault();
+
+            if (result == null)
+            {
+                throw new InvalidOperationException(String.Format("No matching profile ({0}) type description builder found.", String.Join("', '", profiles)));
+            }
+
+            return result;
         }
 
         private void BuildDescription(DescriptionContext context, IResource specializationType)
@@ -175,7 +203,7 @@ namespace URSA.Web.Http.Description
 
             foreach (var value in arguments)
             {
-                var expected = _typeDescriptionBuilder.BuildTypeDescription(context.ForType(value.ParameterType), out isRdfRequired);
+                var expected = context.TypeDescriptionBuilder.BuildTypeDescription(context.ForType(value.ParameterType), out isRdfRequired);
                 expected.Label = value.Name ?? "instance";
                 result.Expects.Add(expected);
                 requiresRdf |= isRdfRequired;
@@ -183,7 +211,7 @@ namespace URSA.Web.Http.Description
 
             foreach (var value in results)
             {
-                result.Returns.Add(_typeDescriptionBuilder.BuildTypeDescription(context.ForType(value.ParameterType), out isRdfRequired));
+                result.Returns.Add(context.TypeDescriptionBuilder.BuildTypeDescription(context.ForType(value.ParameterType), out isRdfRequired));
                 requiresRdf |= isRdfRequired;
             }
 
@@ -226,7 +254,7 @@ namespace URSA.Web.Http.Description
             var linqBehaviors = mapping.Parameter.GetCustomAttributes<LinqServerBehaviorAttribute>(true);
             if (linqBehaviors.Any())
             {
-                IResource range = (context.ContainsType(typeof(int)) ? context[typeof(int)] : _typeDescriptionBuilder.BuildTypeDescription(context.ForType(typeof(int))));
+                IResource range = (context.ContainsType(typeof(int)) ? context[typeof(int)] : context.TypeDescriptionBuilder.BuildTypeDescription(context.ForType(typeof(int))));
                 var resource = templateMapping.AsEntity<IResource>();
                 resource.SingleValue = range.SingleValue;
                 resource.MediaTypes.AddRange(range.MediaTypes);

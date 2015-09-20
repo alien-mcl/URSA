@@ -140,6 +140,10 @@ namespace URSA.Web.Http
             {
                 result.Value = Regex.Unescape(rest.Trim('"'));
             }
+            else if ((rest.Length > 2) && (rest[0] == '<') && (rest[rest.Length - 1] == '>'))
+            {
+                result.Value = new Uri(Regex.Unescape(rest.Trim('"')));
+            }
             else
             {
                 double numericValue;

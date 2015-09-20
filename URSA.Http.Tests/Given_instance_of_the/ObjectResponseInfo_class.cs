@@ -12,7 +12,7 @@ namespace Given_instance_of_the
 {
     [ExcludeFromCodeCoverage]
     [TestClass]
-    public class ObjectResponseInfo_class
+    public class ObjectResponseInfo_class : IDisposable
     {
         private const string Body = "test";
         private Mock<IConverter> _converter;
@@ -64,6 +64,29 @@ namespace Given_instance_of_the
             _converter = null;
             _converterProvider = null;
             _request = null;
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposing)
+            {
+                return;
+            }
+
+            if (_request != null)
+            {
+                _request.Dispose();
+            }
+
+            if (_response != null)
+            {
+                _response.Dispose();
+            }
         }
     }
 }

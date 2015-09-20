@@ -16,13 +16,20 @@ namespace URSA.Web.Http.Description
 
         /// <summary>Initializes a new instance of the <see cref="DescriptionContext"/> class.</summary>
         /// <param name="apiDocumentation">The API documentation.</param>
+        /// <param name="typeDescriptionBuilder">Type description builder.</param>
         /// <param name="type">The type.</param>
         /// <param name="typeDefinitions">The type definitions.</param>
-        private DescriptionContext(IApiDocumentation apiDocumentation, Type type, IDictionary<Type, Tuple<IResource, bool>> typeDefinitions)
+        [ExcludeFromCodeCoverage]
+        private DescriptionContext(IApiDocumentation apiDocumentation, ITypeDescriptionBuilder typeDescriptionBuilder, Type type, IDictionary<Type, Tuple<IResource, bool>> typeDefinitions)
         {
             if (apiDocumentation == null)
             {
                 throw new ArgumentNullException("apiDocumentation");
+            }
+
+            if (typeDescriptionBuilder == null)
+            {
+                throw new ArgumentNullException("typeDescriptionBuilder");
             }
 
             if (type == null)
@@ -36,12 +43,16 @@ namespace URSA.Web.Http.Description
             }
 
             ApiDocumentation = apiDocumentation;
+            TypeDescriptionBuilder = typeDescriptionBuilder;
             Type = type;
             _typeDefinitions = typeDefinitions;
         }
 
         /// <summary>Gets the API documentation.</summary>
         public IApiDocumentation ApiDocumentation { get; private set; }
+
+        /// <summary>Gets the type description builder.</summary>
+        public ITypeDescriptionBuilder TypeDescriptionBuilder { get; private set; }
 
         /// <summary>Gets the type.</summary>
         public Type Type { get; private set; }
@@ -54,12 +65,19 @@ namespace URSA.Web.Http.Description
         /// <summary>Creates a copy of the context for different type.</summary>
         /// <param name="apiDocumentation">The API documentation.</param>
         /// <param name="type">The type.</param>
+        /// <param name="typeDescriptionBuilder">Type description builder.</param>
         /// <returns>Instance of the <see cref="DescriptionContext" /> for given <paramref name="type" />.</returns>
-        public static DescriptionContext ForType(IApiDocumentation apiDocumentation, Type type)
+        [ExcludeFromCodeCoverage]
+        public static DescriptionContext ForType(IApiDocumentation apiDocumentation, Type type, ITypeDescriptionBuilder typeDescriptionBuilder)
         {
             if (apiDocumentation == null)
             {
                 throw new ArgumentNullException("apiDocumentation");
+            }
+
+            if (typeDescriptionBuilder == null)
+            {
+                throw new ArgumentNullException("typeDescriptionBuilder");
             }
 
             if (type == null)
@@ -67,12 +85,13 @@ namespace URSA.Web.Http.Description
                 throw new ArgumentNullException("type");
             }
 
-            return new DescriptionContext(apiDocumentation, type, new Dictionary<Type, Tuple<IResource, bool>>());
+            return new DescriptionContext(apiDocumentation, typeDescriptionBuilder, type, new Dictionary<Type, Tuple<IResource, bool>>());
         }
 
         /// <summary>Creates a copy of the context for different type.</summary>
         /// <param name="type">The type.</param>
         /// <returns>Instance of the <see cref="DescriptionContext" /> for given <paramref name="type" />.</returns>
+        [ExcludeFromCodeCoverage]
         public DescriptionContext ForType(Type type)
         {
             if (type == null)
@@ -80,7 +99,14 @@ namespace URSA.Web.Http.Description
                 throw new ArgumentNullException("type");
             }
 
-            return (type == Type ? this : new DescriptionContext(ApiDocumentation, type, _typeDefinitions));
+            return (type == Type ? this : new DescriptionContext(ApiDocumentation, TypeDescriptionBuilder, type, _typeDefinitions));
+        }
+
+        /// <summary>Builds the type description.</summary>
+        /// <returns>Description of the type.</returns>
+        public IResource BuildTypeDescription()
+        {
+            return TypeDescriptionBuilder.BuildTypeDescription(this);
         }
 
         /// <summary> Determines whether the given <paramref name="type" /> is already described and available in the context.</summary>
