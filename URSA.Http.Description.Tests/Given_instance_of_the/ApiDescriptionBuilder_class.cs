@@ -54,12 +54,31 @@ namespace Given_instance_of_the
         {
             IApiDocumentation apiDocumentation;
             IXmlDocProvider xmlDocProvider;
-            ITypeDescriptionBuilder typeDescriptionBuilder;
-            var handlerMapper = SetupInfrastucture(out apiDocumentation, out xmlDocProvider, out typeDescriptionBuilder);
-            var apiDescriptionBuilder = new ApiDescriptionBuilder<TestController>(handlerMapper, xmlDocProvider, new[] { typeDescriptionBuilder }, new Type[0]);
+            ITypeDescriptionBuilder shaclTypeDescriptionBuilder = SetupTypeDescriptionBuilder(EntityConverter.Shacl);
+            ITypeDescriptionBuilder hydraTypeDescriptionBuilder;
+            var handlerMapper = SetupInfrastucture(out apiDocumentation, out xmlDocProvider, out hydraTypeDescriptionBuilder);
+            var apiDescriptionBuilder = new ApiDescriptionBuilder<TestController>(handlerMapper, xmlDocProvider, new[] { hydraTypeDescriptionBuilder, shaclTypeDescriptionBuilder }, new Type[0]);
             apiDescriptionBuilder.BuildDescription(apiDocumentation, new[] { EntityConverter.Hydra });
 
-            Mock.Get(typeDescriptionBuilder).VerifyGet(instance => instance.SupportedProfiles, Times.Once);
+            Mock.Get(hydraTypeDescriptionBuilder).VerifyGet(instance => instance.SupportedProfiles, Times.Once);
+            Mock.Get(shaclTypeDescriptionBuilder).VerifyGet(instance => instance.SupportedProfiles, Times.Once);
+            Mock.Get(shaclTypeDescriptionBuilder).Verify(instance => instance.BuildTypeDescription(It.IsAny<DescriptionContext>()), Times.Never);
+        }
+
+        [TestMethod]
+        public void it_should_build_the_api_documentation_using_a_Shacl_profile()
+        {
+            IApiDocumentation apiDocumentation;
+            IXmlDocProvider xmlDocProvider;
+            ITypeDescriptionBuilder shaclTypeDescriptionBuilder = SetupTypeDescriptionBuilder(EntityConverter.Shacl);
+            ITypeDescriptionBuilder hydraTypeDescriptionBuilder;
+            var handlerMapper = SetupInfrastucture(out apiDocumentation, out xmlDocProvider, out hydraTypeDescriptionBuilder);
+            var apiDescriptionBuilder = new ApiDescriptionBuilder<TestController>(handlerMapper, xmlDocProvider, new[] { hydraTypeDescriptionBuilder, shaclTypeDescriptionBuilder }, new Type[0]);
+            apiDescriptionBuilder.BuildDescription(apiDocumentation, new[] { EntityConverter.Shacl });
+
+            Mock.Get(hydraTypeDescriptionBuilder).VerifyGet(instance => instance.SupportedProfiles, Times.Once);
+            Mock.Get(shaclTypeDescriptionBuilder).VerifyGet(instance => instance.SupportedProfiles, Times.Once);
+            Mock.Get(hydraTypeDescriptionBuilder).Verify(instance => instance.BuildTypeDescription(It.IsAny<DescriptionContext>()), Times.Never);
         }
 
         private static IHttpControllerDescriptionBuilder<TestController> SetupInfrastucture(out IApiDocumentation apiDocumentationInstance, out IXmlDocProvider xmlDocProvider, out ITypeDescriptionBuilder typeDescriptionBuilder)
@@ -151,11 +170,11 @@ namespace Given_instance_of_the
             return descriptionBuilder.Object;
         }
 
-        private static ITypeDescriptionBuilder SetupTypeDescriptionBuilder()
+        private static ITypeDescriptionBuilder SetupTypeDescriptionBuilder(Uri supportedProfile = null)
         {
             bool requiresRdf;
             Mock<ITypeDescriptionBuilder> typeDescriptionBuilder = new Mock<ITypeDescriptionBuilder>(MockBehavior.Strict);
-            typeDescriptionBuilder.SetupGet(instance => instance.SupportedProfiles).Returns(new[] { EntityConverter.Hydra });
+            typeDescriptionBuilder.SetupGet(instance => instance.SupportedProfiles).Returns(new[] { supportedProfile ?? EntityConverter.Hydra });
             typeDescriptionBuilder.Setup(instance => instance.BuildTypeDescription(It.IsAny<DescriptionContext>())).Returns<DescriptionContext>(context => CreateDescription(context, out requiresRdf));
             typeDescriptionBuilder.Setup(instance => instance.BuildTypeDescription(It.IsAny<DescriptionContext>(), out requiresRdf)).Returns<DescriptionContext, bool>((context, rdf) => CreateDescription(context, out rdf));
             return typeDescriptionBuilder.Object;

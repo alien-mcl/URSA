@@ -4,6 +4,7 @@ using RomanticWeb.DotNetRDF;
 using RomanticWeb.Entities;
 using RomanticWeb.Vocabularies;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -49,8 +50,14 @@ namespace URSA.Web.Http.Converters
         /// <summary>Defines the supported media types.</summary>
         public static readonly string[] MediaTypes = new[] { TextTurtle, ApplicationRdfXml, ApplicationOwlXml, ApplicationLdJson };
 
+        /// <summary>Gets the media type file format mapping.</summary>
+        public static readonly IDictionary<string, string> MediaTypeFileFormats = new ConcurrentDictionary<string, string>();
+
         /// <summary>Defines a <![CDATA[HYpermedia DRiven Application (HYDRA)]]> vocabulary Uri.</summary>
         public static readonly Uri Hydra = new Uri("http://www.w3.org/ns/hydra/core#");
+
+        /// <summary>Defines a <![CDATA[SHApes Constraints Language (SHACL)]]> vocabulary Uri.</summary>
+        public static readonly Uri Shacl = new Uri("http://www.w3.org/ns/shacl#");
 
         private static readonly string Context = String.Format(
             @"{{
@@ -84,6 +91,14 @@ namespace URSA.Web.Http.Converters
             Hydra);
 
         private readonly IEntityContextFactory _entityContextFactory;
+
+        static EntityConverter()
+        {
+            MediaTypeFileFormats[TextTurtle] = "ttl";
+            MediaTypeFileFormats[ApplicationRdfXml] = "rdf";
+            MediaTypeFileFormats[ApplicationOwlXml] = "owl";
+            MediaTypeFileFormats[ApplicationLdJson] = "jsonld";
+        }
 
         /// <summary>Initializes a new instance of the <see cref="EntityConverter" /> class.</summary>
         /// <param name="entityContextFactory">Entity context factory.</param>

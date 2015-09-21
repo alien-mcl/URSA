@@ -19,8 +19,14 @@ namespace URSA.Web.Http.Description
         /// <summary>RDF/XML format.</summary>
         Rdf,
 
-        /// <summary>XML format.</summary>
-        Xml
+        /// <summary>OWL/XML format.</summary>
+        Owl,
+
+        /// <summary>XML alias for RDF/XML format.</summary>
+        Xml,
+
+        /// <summary>JSON-LD format.</summary>
+        JsonLd
     }
 
     /// <summary>Provides a ReST description facility.</summary>
@@ -70,8 +76,21 @@ namespace URSA.Web.Http.Description
 
                 //// TODO: Introduce strongly typed header/parameter parsing routines.
                 RequestInfo request = (RequestInfo)Response.Request;
-                return (from value in request.Headers[Header.Link].Values from parameter in value.Parameters where parameter.Name == "rel" select new Uri(value.Value))
-                    .Union(from value in request.Headers[Header.Accept].Values from parameter in value.Parameters where parameter.Name == "profile" select (Uri)parameter.Value);
+                IEnumerable<Uri> result = null;
+                var accept = request.Headers[Header.Accept];
+                if (accept != null)
+                {
+                    result = from value in accept.Values from parameter in value.Parameters where parameter.Name == "profile" select (Uri)parameter.Value;
+                }
+
+                var link = request.Headers[Header.Link];
+                if (link == null)
+                {
+                    return result;
+                }
+
+                var linkProfile = from value in link.Values from parameter in value.Parameters where parameter.Name == "rel" select new Uri(value.Value);
+                return (result == null ? linkProfile : result.Union(linkProfile));
             }
         }
 
@@ -83,7 +102,7 @@ namespace URSA.Web.Http.Description
         [OnGet]
         public IApiDocumentation GetApiEntryPointDescription(OutputFormats? format = null)
         {
-            var fileExtension = OverrideAcceptedMediaType(format ?? OutputFormats.Turtle);
+            var fileExtension = OverrideAcceptedMediaType(format);
             ((ResponseInfo)Response).Headers.ContentDisposition = String.Format("inline; filename=\"{0}.{1}\"", typeof(T).Name, fileExtension);
             IApiDocumentation result = _entityContext.Create<IApiDocumentation>(new EntityId(Response.Request.Uri.AddFragment(String.Empty)));
             _apiDescriptionBuilder.BuildDescription(result, RequestedMediaTypeProfiles);
@@ -93,6 +112,21 @@ namespace URSA.Web.Http.Description
         //// TODO: Check the default file name is actually a TXT!
         private string OverrideAcceptedMediaType(OutputFormats? format)
         {
+            switch ((OutputFormats)format)
+            {
+                case OutputFormats.JsonLd:
+                    return EntityConverter.MediaTypeFileFormats[Response.Request.Headers[Header.Accept] = EntityConverter.ApplicationLdJson];
+                case OutputFormats.Turtle:
+                    return EntityConverter.MediaTypeFileFormats[Response.Request.Headers[Header.Accept] = EntityConverter.TextTurtle];
+                case OutputFormats.Xml:
+                    Response.Headers[Header.ContentType] = ApplicationXml;
+                    return EntityConverter.MediaTypeFileFormats[Response.Request.Headers[Header.Accept] = EntityConverter.ApplicationRdfXml];
+                case OutputFormats.Rdf:
+                    return EntityConverter.MediaTypeFileFormats[Response.Request.Headers[Header.Accept] = EntityConverter.ApplicationRdfXml];
+                case OutputFormats.Owl:
+                    return EntityConverter.MediaTypeFileFormats[Response.Request.Headers[Header.Accept] = EntityConverter.ApplicationRdfXml];
+            }
+
             var accept = Response.Request.Headers[Header.Accept];
             var fileExtension = "txt";
             if ((accept == null) || (!accept.Contains("*/*")))
@@ -100,24 +134,10 @@ namespace URSA.Web.Http.Description
                 return fileExtension;
             }
 
-            switch ((OutputFormats)format)
-            {
-                case OutputFormats.Turtle:
-                    Response.Request.Headers[Header.Accept] = EntityConverter.TextTurtle;
-                    fileExtension = "ttl";
-                    break;
-                case OutputFormats.Xml:
-                    Response.Request.Headers[Header.Accept] = EntityConverter.ApplicationRdfXml;
-                    Response.Headers[Header.ContentType] = ApplicationXml;
-                    fileExtension = "xml";
-                    break;
-                case OutputFormats.Rdf:
-                    Response.Request.Headers[Header.Accept] = EntityConverter.ApplicationRdfXml;
-                    fileExtension = "rdf";
-                    break;
-            }
-
-            return fileExtension;
+            var resultingMediaType = ((RequestInfo)Response.Request).Headers[Header.Accept].Values
+                .Join(EntityConverter.MediaTypes, outer => outer.Value, inner => inner, (outer, inner) => inner)
+                .FirstOrDefault();
+            return (EntityConverter.MediaTypeFileFormats.ContainsKey(resultingMediaType) ? EntityConverter.MediaTypeFileFormats[resultingMediaType] : "txt");
         }
     }
 }
