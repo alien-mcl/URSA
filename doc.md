@@ -71,11 +71,11 @@ In order to have everything setup, all you need to do is to add:
 using URSA.Web;
 
 public class Global : System.Web.HttpApplication
-    {
-        protected void Application_Start(object sender, EventArgs e)
-        {
-            this.RegisterApis();
-        }
+	{
+		protected void Application_Start(object sender, EventArgs e)
+		{
+			this.RegisterApis();
+		}
 	}
 }
 {% endhighlight %}
