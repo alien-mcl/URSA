@@ -41,12 +41,6 @@
     <Reference Include="HtmlAgilityPack">
       <HintPath>..\packages\HtmlAgilityPack.1.4.6\lib\Net45\HtmlAgilityPack.dll</HintPath>
     </Reference>
-    <Reference Include="Jolt">
-      <HintPath>..\packages\Jolt.0.4\Jolt.dll</HintPath>
-    </Reference>
-    <Reference Include="Jolt.Testing.GeneratedTypes">
-      <HintPath>..\packages\Jolt.0.4\Jolt.Testing.GeneratedTypes.dll</HintPath>
-    </Reference>
     <Reference Include="JsonLD">
       <HintPath>..\packages\json-ld.net.1.0.4\lib\net40-Client\JsonLD.dll</HintPath>
     </Reference>
