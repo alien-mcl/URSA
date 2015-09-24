@@ -50,16 +50,7 @@ namespace VDS.RDF.Writing
         /// <inheritdoc />
         public void Save(IGraph graph, TextWriter output)
         {
-            JToken data = null;
-            if (_context != null)
-            {
-                data = JsonLdProcessor.Compact(MakeExpandedForm(graph), _context, new JsonLdOptions());
-            }
-            else
-            {
-                data = MakeExpandedForm(graph);
-            }
-
+            JToken data = (_context != null ? JsonLdProcessor.Compact(MakeExpandedForm(graph), _context, new JsonLdOptions()) : MakeExpandedForm(graph));
             output.Write(data.ToString());
             output.Flush();
         }

@@ -13,14 +13,14 @@ namespace URSA.Web.Http
     {
         private readonly HeaderCollection _headers;
 
-        /// <summary>Initialies a new instance of the <see cref="ResponseInfo" /> class.</summary>
+        /// <summary>Initializes a new instance of the <see cref="ResponseInfo" /> class.</summary>
         /// <param name="request">Corresponding request.</param>
         /// <param name="headers">Headers of the response.</param>
         public ResponseInfo(RequestInfo request, params Header[] headers) : this(Encoding.UTF8, request, headers)
         {
         }
 
-        /// <summary>Initialies a new instance of the <see cref="ResponseInfo" /> class.</summary>
+        /// <summary>Initializes a new instance of the <see cref="ResponseInfo" /> class.</summary>
         /// <param name="encoding">Text encoding of the response.</param>
         /// <param name="request">Corresponding request.</param>
         /// <param name="headers">Headers of the response.</param>
@@ -42,14 +42,14 @@ namespace URSA.Web.Http
             headers.ForEach(header => _headers.Add(header));
         }
 
-        /// <summary>Initialies a new instance of the <see cref="ResponseInfo" /> class.</summary>
+        /// <summary>Initializes a new instance of the <see cref="ResponseInfo" /> class.</summary>
         /// <param name="request">Corresponding request.</param>
         /// <param name="headers">Headers of the response.</param>
         public ResponseInfo(RequestInfo request, HeaderCollection headers) : this(Encoding.UTF8, request, headers)
         {
         }
 
-        /// <summary>Initialies a new instance of the <see cref="ResponseInfo" /> class.</summary>
+        /// <summary>Initializes a new instance of the <see cref="ResponseInfo" /> class.</summary>
         /// <param name="encoding">Text encoding of the response.</param>
         /// <param name="request">Corresponding request.</param>
         /// <param name="headers">Headers of the response.</param>

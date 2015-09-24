@@ -15,9 +15,9 @@ namespace URSA.Web.Http.Converters
     {
         /// <summary>Converts string to given type.</summary>
         /// <param name="converterProvider">The converter provider.</param>
-        /// <param name="request">The request.</param>
         /// <param name="value">The value.</param>
         /// <param name="type">The target type.</param>
+        /// <param name="request">The request.</param>
         /// <returns>Instance of the <paramref name="type" />.</returns>
         public static object ConvertTo(this IConverterProvider converterProvider, string value, Type type, IRequestInfo request = null)
         {
@@ -46,6 +46,11 @@ namespace URSA.Web.Http.Converters
             return ConvertUsingCustomConverters(converterProvider, request, value, type);
         }
 
+        /// <summary>Converts an object into a string response body.</summary>
+        /// <param name="converterProvider">Converter provider.</param>
+        /// <param name="value">The value.</param>
+        /// <param name="response">Optional response.</param>
+        /// <returns>String representation of the given <paramref name="value" />.</returns>
         public static string ConvertFrom(this IConverterProvider converterProvider, object value, IResponseInfo response = null)
         {
             if (value == null)
@@ -70,9 +75,9 @@ namespace URSA.Web.Http.Converters
 
         /// <summary>Converts string values to given collection.</summary>
         /// <param name="converterProvider">The converter provider.</param>
-        /// <param name="request">The request.</param>
         /// <param name="values">The values.</param>
         /// <param name="collectionType">The collection type.</param>
+        /// <param name="request">The request.</param>
         /// <returns>Instance of the <paramref name="collectionType" />.</returns>
         public static object ConvertToCollection(this IConverterProvider converterProvider, IEnumerable<string> values, Type collectionType, IRequestInfo request = null)
         {

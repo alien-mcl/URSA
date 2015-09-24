@@ -8,13 +8,13 @@ namespace URSA.Web.Http.Mapping
         /// <summary>Binds the results.</summary>
         /// <typeparam name="TResult">Type of the primary result object expected.</typeparam>
         /// <param name="request">The request.</param>
-        /// <returns>Array of objects beeing a result of a given response.</returns>
+        /// <returns>Array of objects being a result of a given response.</returns>
         object[] BindResults<TResult>(IRequestInfo request);
 
         /// <summary>Binds the results.</summary>
         /// <param name="primaryResultType">Type of the primary result object expected.</param>
         /// <param name="request">The request.</param>
-        /// <returns>Array of objects beeing a result of a given response.</returns>
+        /// <returns>Array of objects being a result of a given response.</returns>
         object[] BindResults(Type primaryResultType, IRequestInfo request);
     }
 
@@ -25,13 +25,13 @@ namespace URSA.Web.Http.Mapping
         /// <summary>Binds the results.</summary>
         /// <typeparam name="TResult">Type of the primary result object expected.</typeparam>
         /// <param name="requestInfo">The request.</param>
-        /// <returns>Array of objects beeing a result of a given response.</returns>
+        /// <returns>Array of objects being a result of a given response.</returns>
         object[] BindResults<TResult>(T requestInfo);
 
         /// <summary>Binds the results.</summary>
         /// <param name="primaryResultType">Type of the primary result object expected.</param>
         /// <param name="requestInfo">The request.</param>
-        /// <returns>Array of objects beeing a result of a given response.</returns>
+        /// <returns>Array of objects being a result of a given response.</returns>
         object[] BindResults(Type primaryResultType, T requestInfo);
     }
 }

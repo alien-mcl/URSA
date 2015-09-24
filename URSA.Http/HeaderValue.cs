@@ -43,7 +43,7 @@ namespace URSA.Web.Http
             Parameters = parameters ?? new HeaderParameterCollection();
         }
 
-        /// <summary>Gets the actual value.</summary>
+        /// <summary>Gets or sets the actual value.</summary>
         public string Value { get; protected set; }
 
         /// <summary>Gets the parameters.</summary>
@@ -258,11 +258,12 @@ namespace URSA.Web.Http
 
     /// <summary>Represents a header value that is provided in a native type.</summary>
     /// <typeparam name="T">Type of the value</typeparam>
+    [SuppressMessage("StyleCop.CSharp.MaintainabilityRules", "SA1402:FileMayOnlyContainASingleClass", Justification = "Suppression is OK - generic and non-generic class.")]
     public class HeaderValue<T> : HeaderValue
     {
         private readonly TypeConverter _typeConverter;
 
-        /// <summary>Initializes a new instance of the <see cref="HeaderValue" /> class.</summary>
+        /// <summary>Initializes a new instance of the <see cref="HeaderValue{T}" /> class.</summary>
         /// <param name="value">Actual value.</param>
         /// <param name="parameters">Optional parameters.</param>
         [ExcludeFromCodeCoverage]
@@ -275,7 +276,7 @@ namespace URSA.Web.Http
             }
         }
 
-        /// <summary>Initializes a new instance of the <see cref="HeaderValue" /> class.</summary>
+        /// <summary>Initializes a new instance of the <see cref="HeaderValue{T}" /> class.</summary>
         /// <param name="value">Actual value.</param>
         /// <param name="parameters">Optional parameters.</param>
         [ExcludeFromCodeCoverage]
@@ -288,7 +289,7 @@ namespace URSA.Web.Http
             }
         }
 
-        /// <summary>Gets or sets the native value of type <typeparam name="T" />.</summary>
+        /// <summary>Gets or sets the native value of type <typeparamref name="T" />.</summary>
         public new T Value
         {
             get { return (T)(base.Value.Length > 0 ? _typeConverter.ConvertFromInvariantString(base.Value) : default(T)); }

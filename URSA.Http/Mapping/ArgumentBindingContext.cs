@@ -53,6 +53,8 @@ namespace URSA.Web.Http.Mapping
     }
 
     /// <summary>Describes an argument binding in specific parameter source context.</summary>
+    /// <typeparam name="T">Type of the parameter source.</typeparam>
+    [SuppressMessage("StyleCop.CSharp.MaintainabilityRules", "SA1402:FileMayOnlyContainASingleClass", Justification = "Suppression is OK - generic and non-generic class.")]
     [ExcludeFromCodeCoverage]
     public class ArgumentBindingContext<T> : ArgumentBindingContext where T : ParameterSourceAttribute
     {

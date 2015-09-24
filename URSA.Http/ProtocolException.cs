@@ -46,7 +46,7 @@ namespace URSA.Web.Http
         public HttpStatusCode Status { get; private set; }
 
         /// <inheritdoc />
-        public virtual void GetObjectData(SerializationInfo serializationInfo, StreamingContext streamingContext)
+        public override void GetObjectData(SerializationInfo serializationInfo, StreamingContext streamingContext)
         {
             base.GetObjectData(serializationInfo, streamingContext);
             serializationInfo.AddValue("Status", Status);

@@ -246,7 +246,7 @@ namespace URSA.Web.Http.Converters
 
         /// <summary>Checks if it is possible to convert to given type.</summary>
         /// <param name="expectedType">Expected type.</param>
-        /// <returns><b>true</b> if the converter actually can return given <typeparamref name="T" />; otherwise <b>false</b>.</returns>
+        /// <returns><b>true</b> if the converter actually can return given <typeparamref name="TT" />; otherwise <b>false</b>.</returns>
         protected abstract bool CanConvert(Type expectedType);
 
         /// <summary>Parses given value into an literal.</summary>

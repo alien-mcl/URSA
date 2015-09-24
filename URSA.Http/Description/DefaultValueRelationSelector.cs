@@ -6,7 +6,7 @@ using URSA.Web.Mapping;
 
 namespace URSA.Web.Description.Http
 {
-    /// <summary></summary>
+    /// <summary>Provides a default source or target of a parameter.</summary>
     public class DefaultValueRelationSelector : IDefaultValueRelationSelector
     {
         private static readonly string[] PopularIdentifierPropertyNames = new string[]

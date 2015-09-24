@@ -97,17 +97,20 @@ namespace URSA.Web.Http.Mapping
                 return null;
             }
 
+            var arguments = new object[]
+            {
+                request,
+                (RequestMapping)requestMapping,
+                parameter.Parameter,
+                index,
+                parameter.Source,
+                multipartBodies
+            };
             ArgumentBindingContext context = (ArgumentBindingContext)typeof(ArgumentBindingContext<>)
                 .MakeGenericType(parameter.Source.GetType())
                 .GetConstructors(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
                 .First()
-                .Invoke(new object[] {
-                    (RequestInfo)request,
-                    (RequestMapping)requestMapping,
-                    parameter.Parameter,
-                    index,
-                    parameter.Source,
-                    multipartBodies });
+                .Invoke(arguments);
             return argumentBinder.GetArgumentValue(context);
         }
     }

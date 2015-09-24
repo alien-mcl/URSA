@@ -14,7 +14,7 @@ namespace URSA.Web.Http.Mapping
     {
         private readonly IConverterProvider _converterProvider;
 
-        /// <summary>Initializes a new instance of the <see cref="FromQueryStringArgumentBinder" /> class.</summary>
+        /// <summary>Initializes a new instance of the <see cref="FromBodyArgumentBinder" /> class.</summary>
         /// <param name="converterProvider">Converters provider</param>
         [ExcludeFromCodeCoverage]
         internal FromBodyArgumentBinder(IConverterProvider converterProvider)

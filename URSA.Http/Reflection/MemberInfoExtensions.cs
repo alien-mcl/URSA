@@ -11,6 +11,7 @@ using URSA.Web.Mapping;
 
 namespace URSA.Web.Http.Reflection
 {
+    /// <summary>Provides useful reflection member extensions.</summary>
     public static class MemberInfoExtensions
     {
         /// <summary>Exposes popular names - HTTP verb mappings.</summary>
@@ -44,12 +45,6 @@ namespace URSA.Web.Http.Reflection
 
                 type = genericType;
             }
-        }
-
-        [ExcludeFromCodeCoverage]
-        private static string BuildControllerName(this Type type)
-        {
-            return Regex.Replace(type.Name, "Controller", String.Empty, RegexOptions.IgnoreCase).ToLower();
         }
 
         internal static RouteAttribute GetDefaults(this MethodInfo method, ICollection<OnVerbAttribute> verbs, out bool explicitRoute)
@@ -91,6 +86,30 @@ namespace URSA.Web.Http.Reflection
             return route;
         }
 
+        internal static bool CreateParameterTemplateRegex(this ParameterInfo parameter, ParameterSourceAttribute parameterSource, out string parameterUriTemplate, out string parameterTemplateRegex)
+        {
+            parameterUriTemplate = null;
+            parameterTemplateRegex = null;
+            var methodInfo = typeof(MemberInfoExtensions).GetMethods(BindingFlags.Static | BindingFlags.NonPublic)
+                .FirstOrDefault(item => (item.Name == "CreateParameterTemplateRegex") && (item.GetParameters().Length > 1) && (item.GetParameters()[1].ParameterType == parameterSource.GetType()));
+            if (methodInfo == null)
+            {
+                return false;
+            }
+
+            var arguments = new object[] { parameter, parameterSource, parameterUriTemplate, parameterTemplateRegex };
+            methodInfo.Invoke(null, arguments);
+            parameterUriTemplate = (string)arguments[2];
+            parameterTemplateRegex = (string)arguments[3];
+            return true;
+        }
+
+        [ExcludeFromCodeCoverage]
+        private static string BuildControllerName(this Type type)
+        {
+            return Regex.Replace(type.Name, "Controller", String.Empty, RegexOptions.IgnoreCase).ToLower();
+        }
+
         private static void ObtainMethodDetailsFromVerbs(this MethodInfo method, ref RouteAttribute route, ref OnVerbAttribute verb)
         {
             string methodNameWithoutVerb = null;
@@ -123,24 +142,6 @@ namespace URSA.Web.Http.Reflection
             {
                 verb = new OnVerbAttribute(detectedVerb);
             }
-        }
-
-        internal static bool CreateParameterTemplateRegex(this ParameterInfo parameter, ParameterSourceAttribute parameterSource, out string parameterUriTemplate, out string parameterTemplateRegex)
-        {
-            parameterUriTemplate = null;
-            parameterTemplateRegex = null;
-            var methodInfo = typeof(MemberInfoExtensions).GetMethods(BindingFlags.Static | BindingFlags.NonPublic)
-                .FirstOrDefault(item => (item.Name == "CreateParameterTemplateRegex") && (item.GetParameters().Length > 1) && (item.GetParameters()[1].ParameterType == parameterSource.GetType()));
-            if (methodInfo == null)
-            {
-                return false;
-            }
-
-            var arguments = new object[] { parameter, parameterSource, parameterUriTemplate, parameterTemplateRegex };
-            methodInfo.Invoke(null, arguments);
-            parameterUriTemplate = (string)arguments[2];
-            parameterTemplateRegex = (string)arguments[3];
-            return true;
         }
 
         private static void CreateParameterTemplateRegex(this ParameterInfo parameter, FromQueryStringAttribute fromQueryString, out string parameterUriTemplate, out string parameterTemplateRegex)

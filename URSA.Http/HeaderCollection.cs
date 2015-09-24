@@ -17,7 +17,11 @@ namespace URSA.Web.Http
         /// <remarks>If the header does not exist, value of 0 is returned.</remarks>
         public int ContentLength
         {
-            get { return (this[Http.Header.ContentLength] != null ? ((Header<int>)this[Http.Header.ContentLength]).Values.First().Value : default(int)); }
+            get
+            {
+                return (this[Http.Header.ContentLength] != null ? ((Header<int>)this[Http.Header.ContentLength]).Values.First().Value : default(int));
+            }
+
             set
             {
                 Header<int> contentLength = (Header<int>)this[Http.Header.ContentLength];

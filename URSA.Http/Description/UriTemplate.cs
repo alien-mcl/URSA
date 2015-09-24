@@ -28,6 +28,10 @@ namespace URSA.Web.Description.Http
             _queryString = queryString;
         }
 
+        internal string Segments { get { return _segments.ToString(); } }
+
+        internal string QueryString { get { return _queryString.ToString(); } }
+
         /// <summary>Performs an implicit conversion from <see cref="UriTemplate"/> to <see cref="String"/>.</summary>
         /// <param name="uriTemplate">The URI template.</param>
         /// <returns>The result of the conversion.</returns>
@@ -42,14 +46,19 @@ namespace URSA.Web.Description.Http
             return String.Format("{0}{1}{2}", (_isRegexMode ? String.Empty : "/"), Segments, QueryString);
         }
 
+        /// <summary>Returns a <see cref="System.String" /> that represents this instance.</summary>
+        /// <param name="withQueryString">If set to <c>true</c> with query string; otherwise without.</param>
+        /// <returns>A <see cref="System.String" /> that represents this instance.</returns>
         public string ToString(bool withQueryString)
         {
             return (withQueryString ? ToString() : String.Format("{0}{1}", (_isRegexMode ? String.Empty : "/"), Segments));
         }
 
-        internal string Segments { get { return _segments.ToString(); } }
-
-        internal string QueryString { get { return _queryString.ToString(); } }
+        /// <inheritdoc />
+        object ICloneable.Clone()
+        {
+            return Clone();
+        }
 
         internal void Add(string part, MappingAttribute source, ICustomAttributeProvider member, bool hasDefaultValue = false)
         {
@@ -69,11 +78,6 @@ namespace URSA.Web.Description.Http
                 new QueryStringList(_controlledEntityType, isRegexMode ?? _isRegexMode, _queryString),
                 _controlledEntityType,
                 isRegexMode ?? _isRegexMode);
-        }
-
-        object ICloneable.Clone()
-        {
-            return Clone();
         }
 
         internal class UriTemplatePart

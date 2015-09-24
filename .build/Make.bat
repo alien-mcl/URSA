@@ -1,0 +1,1 @@
+MSBuild "%CD%\..\URSA.sln" /p:Configuration=Release

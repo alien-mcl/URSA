@@ -15,7 +15,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "URSA.Http", "URSA.Http\URSA
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "URSA.Http.Tests", "URSA.Http.Tests\URSA.Http.Tests.csproj", "{37AC0656-C4D0-41C7-99CD-9FDB1A2A086D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "URSA.Http.Description", "URSA.Description\URSA.Http.Description.csproj", "{1CC21D3A-C56C-468D-B78D-D61758531D3F}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "URSA.Http.Description", "URSA.Http.Description\URSA.Http.Description.csproj", "{1CC21D3A-C56C-468D-B78D-D61758531D3F}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "URSA.Http.Description.Tests", "URSA.Http.Description.Tests\URSA.Http.Description.Tests.csproj", "{9382CA46-59EA-4E58-9269-8FFB7BCD9BED}"
 EndProject
@@ -32,6 +32,15 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{8F3DC0
 		.nuget\NuGet.Config = .nuget\NuGet.Config
 		.nuget\NuGet.exe = .nuget\NuGet.exe
 		.nuget\NuGet.targets = .nuget\NuGet.targets
+		NuGetBuild\URSA.CastleWindsor\URSA.CastleWindsor.nuspec = NuGetBuild\URSA.CastleWindsor\URSA.CastleWindsor.nuspec
+		NuGetBuild\URSA\URSA.nuspec = NuGetBuild\URSA\URSA.nuspec
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".build", ".build", "{51605562-D2FE-498F-9D18-6F7B30796842}"
+	ProjectSection(SolutionItems) = preProject
+		after.URSA.sln.targets = after.URSA.sln.targets
+		before.URSA.sln.targets = before.URSA.sln.targets
+		NuGetBuild\NugetBuild.targets = NuGetBuild\NugetBuild.targets
 	EndProjectSection
 EndProject
 Global

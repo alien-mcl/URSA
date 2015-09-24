@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <Import Project="$(MSBuildProjectDirectory)\..\packages\PepitaPackage.1.21.4\build\PepitaPackage.targets" />
+
+    <PropertyGroup>
+        <BuildNuGetPackage Condition="'$(BuildNuGetPackage)'==''">true</BuildNuGetPackage>
+        <SolutionDir>$(MSBuildProjectDirectory)\..</SolutionDir>
+        <DestinationFolder Condition="'$(DestinationFolder)' == ''">Lib\net40</DestinationFolder>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <CoreOutputFiles Include="$(SolutionDir)\URSA.Core\bin\Release\URSA.Core.xml" />
+        <CoreOutputFiles Include="$(SolutionDir)\URSA.Core\bin\Release\URSA.Core.pdb" />
+        <CoreOutputFiles Include="$(SolutionDir)\URSA.Core\bin\Release\URSA.Core.dll" />
+        <CoreOutputFiles Include="$(SolutionDir)\URSA.Http\bin\Release\URSA.Http.xml" />
+        <CoreOutputFiles Include="$(SolutionDir)\URSA.Http\bin\Release\URSA.Http.pdb" />
+        <CoreOutputFiles Include="$(SolutionDir)\URSA.Http\bin\Release\URSA.Http.dll" />
+        <CoreOutputFiles Include="$(SolutionDir)\URSA.Http.Description\bin\Release\URSA.Http.Description.xml" />
+        <CoreOutputFiles Include="$(SolutionDir)\URSA.Http.Description\bin\Release\URSA.Http.Description.pdb" />
+        <CoreOutputFiles Include="$(SolutionDir)\URSA.Http.Description\bin\Release\URSA.Http.Description.dll" />
+        <CoreOutputFiles Include="$(SolutionDir)\URSA.Tools\bin\Release\URSA.Tools.xml" />
+        <CoreOutputFiles Include="$(SolutionDir)\URSA.Tools\bin\Release\URSA.Tools.pdb" />
+        <CoreOutputFiles Include="$(SolutionDir)\URSA.Tools\bin\Release\URSA.Tools.dll" />
+        <CoreOutputFiles Include="$(SolutionDir)\URSA.Web\bin\Release\URSA.Web.xml" />
+        <CoreOutputFiles Include="$(SolutionDir)\URSA.Web\bin\Release\URSA.Web.pdb" />
+        <CoreOutputFiles Include="$(SolutionDir)\URSA.Web\bin\Release\URSA.Web.dll" />
+        <CoreBinariesToClean Include="$(MSBuildProjectDirectory)\URSA\Lib\**\*.*" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <CastleWindsorOutputFiles Include="$(SolutionDir)\URSA.CastleWindsor\bin\Release\URSA.CastleWindsor.xml" />
+        <CastleWindsorOutputFiles Include="$(SolutionDir)\URSA.CastleWindsor\bin\Release\URSA.CastleWindsor.pdb" />
+        <CastleWindsorOutputFiles Include="$(SolutionDir)\URSA.CastleWindsor\bin\Release\URSA.CastleWindsor.dll" />
+        <CastleWindsorBinariesToClean Include="$(MSBuildProjectDirectory)\URSA.CastleWindsor\Lib\**\*.*" />
+    </ItemGroup>
+
+    <Target Name="CopyCoreBinaries">
+        <Copy SourceFiles="@(CoreOutputFiles)" ContinueOnError="true" DestinationFolder="$(MSBuildProjectDirectory)\URSA\$(DestinationFolder)" />
+        <Copy SourceFiles="@(CoreOutputFiles)" ContinueOnError="true" DestinationFolder="$(MSBuildProjectDirectory)\URSA\$(DestinationFolder)" />
+        <Copy SourceFiles="@(CoreOutputFiles)" ContinueOnError="true" DestinationFolder="$(MSBuildProjectDirectory)\URSA\$(DestinationFolder)" />
+        <Copy SourceFiles="@(CoreOutputFiles)" ContinueOnError="true" DestinationFolder="$(MSBuildProjectDirectory)\URSA\$(DestinationFolder)" />
+        <Copy SourceFiles="@(CoreOutputFiles)" ContinueOnError="true" DestinationFolder="$(MSBuildProjectDirectory)\URSA\$(DestinationFolder)" />
+    </Target>
+
+    <Target Name="CopyCastleWindsorBinaries">
+        <Copy SourceFiles="@(CastleWindsorOutputFiles)" ContinueOnError="true" DestinationFolder="$(MSBuildProjectDirectory)\URSA.CastleWindsor\$(DestinationFolder)" />
+    </Target>
+
+    <Target Name="PackageCore" Condition="'$(BuildNuGetPackage)' != 'false'">
+        <PepitaPackage.CreatePackageTask NuGetBuildDirectory="$(MSBuildProjectDirectory)\URSA" MetadataAssembly="$([System.IO.Path]::GetFullPath('$(SolutionDir)\URSA.Core\bin\Release\URSA.Core.dll'))" />
+    </Target>
+
+    <Target Name="PackageCastleWindsor" Condition="'$(BuildNuGetPackage)' != 'false'">
+        <PepitaPackage.CreatePackageTask NuGetBuildDirectory="$(MSBuildProjectDirectory)\URSA.CastleWindsor" MetadataAssembly="$([System.IO.Path]::GetFullPath('$(SolutionDir)\URSA.CastleWindsor\bin\Release\URSA.CastleWindsor.dll'))" />
+    </Target>
+
+    <Target Name="Clean core binaries" BeforeTargets="CopyCoreBinaries">
+        <Delete Files="@(CoreBinariesToClean)" />
+    </Target>
+
+    <Target Name="Clean Castle Windsor binaries" BeforeTargets="CopyCastleWindsorBinaries">
+        <Delete Files="@(CastleWindsorBinariesToClean)" />
+    </Target>
+</Project>

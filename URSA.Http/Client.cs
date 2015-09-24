@@ -54,6 +54,45 @@ namespace URSA.Web.Http
 
         private Uri BaseUri { get; set; }
 
+        internal Uri BuildUri(string url, dynamic uriArguments)
+        {
+            foreach (KeyValuePair<string, object> argument in uriArguments)
+            {
+                string value = String.Empty;
+                if (argument.Value != null)
+                {
+                    TypeConverter typeConverter = TypeDescriptor.GetConverter(argument.Value.GetType());
+                    if ((typeConverter != null) && (typeConverter.CanConvertTo(typeof(string))))
+                    {
+                        value = typeConverter.ConvertToInvariantString(argument.Value) ?? String.Empty;
+                    }
+                    else
+                    {
+                        value = argument.Value.ToString();
+                    }
+                }
+
+                url = Regex.Replace(url, String.Format("{{\\?{0}}}", argument.Key), value);
+            }
+
+            return new Uri(BaseUri, url);
+        }
+
+        /// <summary>Calls the ReST service using specified HTTP verb.</summary>
+        /// <typeparam name="T">Type of the result.</typeparam>
+        /// <param name="verb">The HTTP verb.</param>
+        /// <param name="url">Relative URL of the service to call.</param>
+        /// <param name="mediaTypes">Enumeration of accepted media types.</param>
+        /// <param name="contentType">Enumeration of possible content type media types.</param>
+        /// <param name="uriArguments">The URI template arguments.</param>
+        /// <param name="bodyArguments">The body arguments.</param>
+        /// <returns>Result of the call.</returns>
+        protected internal T Call<T>(Verb verb, string url, IEnumerable<string> mediaTypes, IEnumerable<string> contentType, dynamic uriArguments, params object[] bodyArguments)
+        {
+            var result = Call(verb, url, mediaTypes, contentType, typeof(T), uriArguments, bodyArguments);
+            return (result == null ? default(T) : Convert.ChangeType(result, typeof(T)));
+        }
+
         /// <summary>Calls the ReST service using specified HTTP verb.</summary>
         /// <param name="verb">The HTTP verb.</param>
         /// <param name="url">Relative URL of the service to call.</param>
@@ -119,45 +158,6 @@ namespace URSA.Web.Http
             fakeRequest = new RequestInfo(verb, uri, response.GetResponseStream(), HeaderCollection.Parse(response.Headers.ToString()));
             var result = _resultBinder.BindResults(responseType, fakeRequest);
             return result.FirstOrDefault(responseType.IsInstanceOfType);
-        }
-
-        /// <summary>Calls the ReST service using specified HTTP verb.</summary>
-        /// <typeparam name="T">Type of the result.</typeparam>
-        /// <param name="verb">The HTTP verb.</param>
-        /// <param name="url">Relative URL of the service to call.</param>
-        /// <param name="mediaTypes">Enumeration of accepted media types.</param>
-        /// <param name="contentType">Enumeration of possible content type media types.</param>
-        /// <param name="uriArguments">The URI template arguments.</param>
-        /// <param name="bodyArguments">The body arguments.</param>
-        /// <returns>Result of the call.</returns>
-        internal protected T Call<T>(Verb verb, string url, IEnumerable<string> mediaTypes, IEnumerable<string> contentType, dynamic uriArguments, params object[] bodyArguments)
-        {
-            var result = Call(verb, url, mediaTypes, contentType, typeof(T), uriArguments, bodyArguments);
-            return (result == null ? default(T) : Convert.ChangeType(result, typeof(T)));
-        }
-
-        internal Uri BuildUri(string url, dynamic uriArguments)
-        {
-            foreach (KeyValuePair<string, object> argument in uriArguments)
-            {
-                string value = String.Empty;
-                if (argument.Value != null)
-                {
-                    TypeConverter typeConverter = TypeDescriptor.GetConverter(argument.Value.GetType());
-                    if ((typeConverter != null) && (typeConverter.CanConvertTo(typeof(string))))
-                    {
-                        value = typeConverter.ConvertToInvariantString(argument.Value) ?? String.Empty;
-                    }
-                    else
-                    {
-                        value = argument.Value.ToString();
-                    }
-                }
-
-                url = Regex.Replace(url, String.Format("{{\\?{0}}}", argument.Key), value);
-            }
-
-            return new Uri(BaseUri, url);
         }
 
         private ResponseInfo CreateFakeResponseInfo(RequestInfo fakeRequest, IEnumerable<string> contentType, params object[] bodyArguments)

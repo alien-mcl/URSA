@@ -136,7 +136,7 @@ namespace URSA.Web.Http.Description
         }
 
         /// <summary>Describes the current type.</summary>
-        /// <param name="resource">The resource describing <paramref name="type"/>.</param>
+        /// <param name="resource">The resource describing a type.</param>
         /// <param name="requiresRdf">Flag determining whether the type requires RDF approach.</param>
         public void Describe(IResource resource, bool requiresRdf)
         {

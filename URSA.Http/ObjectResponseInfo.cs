@@ -6,6 +6,7 @@ using URSA.Web.Converters;
 
 namespace URSA.Web.Http
 {
+    /// <summary>Abstract of an strongly typed object response.</summary>
     public abstract class ObjectResponseInfo : ResponseInfo
     {
         /// <summary>Initializes a new instance of the <see cref="ObjectResponseInfo" /> class.</summary>
@@ -32,6 +33,7 @@ namespace URSA.Web.Http
 
     /// <summary>Describes a response with an object.</summary>
     /// <typeparam name="T">Type of the value.</typeparam>
+    [SuppressMessage("StyleCop.CSharp.MaintainabilityRules", "SA1402:FileMayOnlyContainASingleClass", Justification = "Suppression is OK - generic and non-generic class.")]
     public class ObjectResponseInfo<T> : ObjectResponseInfo
     {
         private Stream _body;
@@ -177,6 +179,8 @@ namespace URSA.Web.Http
             GC.SuppressFinalize(this);
         }
 
+        /// <summary>Releases unmanaged and - optionally - managed resources.</summary>
+        /// <param name="disposing"><c>true</c> to release both managed and unmanaged resources; <c>false</c> to release only unmanaged resources.</param>
         [ExcludeFromCodeCoverage]
         protected virtual void Dispose(bool disposing)
         {

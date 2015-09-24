@@ -19,6 +19,10 @@ namespace URSA.Web.Http
         private readonly IArgumentBinder<RequestInfo> _argumentBinder;
         private readonly IDelegateMapper<RequestInfo> _handlerMapper;
 
+        /// <summary>Initializes a new instance of the <see cref="RequestHandler"/> class.</summary>
+        /// <param name="argumentBinder">Argument binder.</param>
+        /// <param name="delegateMapper">Delegate mapper.</param>
+        /// <param name="responseComposer">Response composer.</param>
         public RequestHandler(IArgumentBinder<RequestInfo> argumentBinder, IDelegateMapper<RequestInfo> delegateMapper, IResponseComposer responseComposer)
         {
             if (argumentBinder == null)
@@ -62,7 +66,7 @@ namespace URSA.Web.Http
 
         private static void ValidateArguments(ParameterInfo[] parameters, object[] arguments)
         {
-            for (int index = 0; index <parameters.Length; index++)
+            for (int index = 0; index < parameters.Length; index++)
             {
                 var parameter = parameters[index];
                 if ((!parameter.IsOut) && (!parameter.HasDefaultValue) && (arguments[index] == null))

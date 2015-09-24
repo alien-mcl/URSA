@@ -1,0 +1,781 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>URSA.Http.Description</name>
+    </assembly>
+    <members>
+        <member name="T:URSA.Web.Http.Description.ApiDescriptionBuilder`1">
+            <summary>Builds API description.</summary>
+            <typeparam name="T">Type of the API to describe</typeparam>
+        </member>
+        <member name="T:URSA.Web.Http.Description.IApiDescriptionBuilder`1">
+            <summary>Provides a contract of the API description building facility.</summary>
+            <typeparam name="T">Type of the controller being described.</typeparam>
+        </member>
+        <member name="M:URSA.Web.Http.Description.IApiDescriptionBuilder`1.BuildDescription(URSA.Web.Http.Description.Hydra.IApiDocumentation,System.Collections.Generic.IEnumerable{System.Uri})">
+            <summary>Builds an API description.</summary>
+            <param name="apiDocumentation">API documentation.</param>
+            <param name="profiles">Requested media type profiles if any.</param>
+        </member>
+        <member name="M:URSA.Web.Http.Description.ApiDescriptionBuilder`1.#ctor(URSA.Web.Description.Http.IHttpControllerDescriptionBuilder{`0},URSA.Web.Http.Description.IXmlDocProvider,System.Collections.Generic.IEnumerable{URSA.Web.Http.Description.ITypeDescriptionBuilder},System.Collections.Generic.IEnumerable{System.Type})">
+            <summary>Initializes a new instance of the <see cref="T:URSA.Web.Http.Description.ApiDescriptionBuilder`1"/> class.</summary>
+            <param name="descriptionBuilder">Description builder.</param>
+            <param name="xmlDocProvider">The XML documentation provider.</param>
+            <param name="typeDescriptionBuilders">Type description builders.</param>
+            <param name="serverBehaviorAttributeVisitors">Server behavior attribute visitors.</param>
+        </member>
+        <member name="M:URSA.Web.Http.Description.ApiDescriptionBuilder`1.BuildDescription(URSA.Web.Http.Description.Hydra.IApiDocumentation,System.Collections.Generic.IEnumerable{System.Uri})">
+            <summary>Builds an API description.</summary>
+            <param name="apiDocumentation">API documentation.</param>
+            <param name="profiles">Requested media type profiles.</param>
+        </member>
+        <member name="T:URSA.CodeGen.HydraClassGenerator">
+            <summary>Provides a basic implementation of the <see cref="T:URSA.CodeGen.IClassGenerator"/>.</summary>
+        </member>
+        <member name="T:URSA.CodeGen.IClassGenerator">
+            <summary>Provides a contract for class code generator.</summary>
+        </member>
+        <member name="M:URSA.CodeGen.IClassGenerator.CreateCode(URSA.Web.Http.Description.Hydra.IClass)">
+            <summary>Creates a code the given <paramref name="supportedClass" />.</summary>
+            <param name="supportedClass">The supported class.</param>
+            <returns>Map of file names with corresponding code.</returns>
+        </member>
+        <member name="M:URSA.CodeGen.IClassGenerator.CreateNamespace(URSA.Web.Http.Description.Hydra.IResource)">
+            <summary>Creates the namespace of the given <paramref name="resource" />.</summary>
+            <param name="resource">The resource.</param>
+            <returns>String with namespace.</returns>
+        </member>
+        <member name="M:URSA.CodeGen.IClassGenerator.CreateName(URSA.Web.Http.Description.Hydra.IResource)">
+            <summary>Creates the name of the given <paramref name="resource" />.</summary>
+            <param name="resource">The resource.</param>
+            <returns>String with name.</returns>
+        </member>
+        <member name="M:URSA.CodeGen.HydraClassGenerator.#ctor(System.Collections.Generic.IEnumerable{URSA.Web.Http.Description.CodeGen.IUriParser})">
+            <summary>Initializes a new instance of the <see cref="T:URSA.CodeGen.HydraClassGenerator"/> class.</summary>
+            <param name="uriParsers">The URI parsers.</param>
+        </member>
+        <member name="M:URSA.CodeGen.HydraClassGenerator.CreateCode(URSA.Web.Http.Description.Hydra.IClass)">
+            <inheritdoc />
+        </member>
+        <member name="M:URSA.CodeGen.HydraClassGenerator.CreateNamespace(URSA.Web.Http.Description.Hydra.IResource)">
+            <inheritdoc />
+        </member>
+        <member name="M:URSA.CodeGen.HydraClassGenerator.CreateName(URSA.Web.Http.Description.Hydra.IResource)">
+            <inheritdoc />
+        </member>
+        <member name="M:URSA.CodeGen.HydraClassGenerator.CreateName(URSA.Web.Http.Description.Hydra.IOperation,System.String)">
+            <inheritdoc />
+        </member>
+        <member name="T:URSA.Web.Http.Description.CodeGen.GenericUriParser">
+            <summary>Parses <see cref="T:System.Uri"/>s.</summary>
+        </member>
+        <member name="T:URSA.Web.Http.Description.CodeGen.IUriParser">
+            <summary>Provides a basic <see cref="T:System.Uri"/> to name-namespace parsing facility contract.</summary>
+        </member>
+        <member name="M:URSA.Web.Http.Description.CodeGen.IUriParser.IsApplicable(System.Uri)">
+            <summary>Checks if the parser is applicable for given <paramref name="uri"/>.</summary>
+            <param name="uri">Uri to check against.</param>
+            <returns>Compatibility level.</returns>
+        </member>
+        <member name="M:URSA.Web.Http.Description.CodeGen.IUriParser.Parse(System.Uri,System.String@)">
+            <summary>Parses the specified URI for name and namespace.</summary>
+            <param name="uri">The URI to be parsed.</param>
+            <param name="namespace">The resulting namespace.</param>
+            <returns>Name of the element.</returns>
+        </member>
+        <member name="M:URSA.Web.Http.Description.CodeGen.GenericUriParser.IsApplicable(System.Uri)">
+            <inheritdoc />
+        </member>
+        <member name="M:URSA.Web.Http.Description.CodeGen.GenericUriParser.Parse(System.Uri,System.String@)">
+            <inheritdoc />
+        </member>
+        <member name="T:URSA.Web.Http.Description.CodeGen.OGuidUriParser">
+            <summary>Parses <![CDATA[Open Guid]]> based <see cref="T:System.Uri"/>s.</summary>
+        </member>
+        <member name="T:URSA.Web.Http.Description.CodeGen.SpecializedUriParser">
+            <summary>Provides an abstract infrastructure for uri-specific parsers.</summary>
+        </member>
+        <member name="M:URSA.Web.Http.Description.CodeGen.SpecializedUriParser.IsApplicable(System.Uri)">
+            <inheritdoc />
+        </member>
+        <member name="M:URSA.Web.Http.Description.CodeGen.SpecializedUriParser.Parse(System.Uri,System.String@)">
+            <inheritdoc />
+        </member>
+        <member name="P:URSA.Web.Http.Description.CodeGen.SpecializedUriParser.TypeDescriptions">
+            <summary>Gets the type descriptions.</summary>
+        </member>
+        <member name="P:URSA.Web.Http.Description.CodeGen.OGuidUriParser.TypeDescriptions">
+            <inheritdoc />
+        </member>
+        <member name="T:URSA.Web.Http.Description.CodeGen.XsdUriParser">
+            <summary>Parses XSD based <see cref="T:System.Uri"/>s.</summary>
+        </member>
+        <member name="P:URSA.Web.Http.Description.CodeGen.XsdUriParser.TypeDescriptions">
+            <inheritdoc />
+        </member>
+        <member name="T:URSA.Web.Http.Description.CodeGen.HydraUriParser">
+            <summary>Parses URN based <see cref="T:System.Uri"/>s.</summary>
+        </member>
+        <member name="M:URSA.Web.Http.Description.CodeGen.HydraUriParser.IsApplicable(System.Uri)">
+            <inheritdoc />
+        </member>
+        <member name="M:URSA.Web.Http.Description.CodeGen.HydraUriParser.Parse(System.Uri,System.String@)">
+            <inheritdoc />
+        </member>
+        <member name="T:URSA.Web.Http.Description.CodeGen.UriParserCompatibility">
+            <summary>Enumerates all <see cref="T:URSA.Web.Http.Description.CodeGen.IUriParser"/> compatibility types.</summary>
+        </member>
+        <member name="F:URSA.Web.Http.Description.CodeGen.UriParserCompatibility.None">
+            <summary>Defines a lack of compatibility.</summary>
+        </member>
+        <member name="F:URSA.Web.Http.Description.CodeGen.UriParserCompatibility.SchemeMatch">
+            <summary>Defines a scheme compatibility.</summary>
+        </member>
+        <member name="F:URSA.Web.Http.Description.CodeGen.UriParserCompatibility.ExactMatch">
+            <summary>Defines an exact match compatibility.</summary>
+        </member>
+        <member name="T:URSA.Configuration.DescriptionConfigurationSection">
+            <summary>Describes the description configuration section.</summary>
+        </member>
+        <member name="P:URSA.Configuration.DescriptionConfigurationSection.Default">
+            <summary>Gets the default configuration.</summary>
+        </member>
+        <member name="P:URSA.Configuration.DescriptionConfigurationSection.TypeDescriptionBuilderType">
+            <summary>Gets or sets the type description builder type name.</summary>
+        </member>
+        <member name="T:URSA.Web.Http.Converters.EntityConverter">
+            <summary>Converts entities from and to RDF serialization.</summary>
+        </member>
+        <member name="F:URSA.Web.Http.Converters.EntityConverter.DefaultEntityContextFactoryName">
+            <summary>The default entity context factory name.</summary>
+        </member>
+        <member name="F:URSA.Web.Http.Converters.EntityConverter.DocumentationStylesheet">
+            <summary>Defines a document name for <![CDATA[XML/XSLT]]> documentation style-sheet.</summary>
+        </member>
+        <member name="F:URSA.Web.Http.Converters.EntityConverter.PropertyIcon">
+            <summary>Defines a document name for documentation's property icon.</summary>
+        </member>
+        <member name="F:URSA.Web.Http.Converters.EntityConverter.MethodIcon">
+            <summary>Defines a document name for documentation's method icon.</summary>
+        </member>
+        <member name="F:URSA.Web.Http.Converters.EntityConverter.TextTurtle">
+            <summary>Defines a '<![CDATA[text/turtle]]>' media type.</summary>
+        </member>
+        <member name="F:URSA.Web.Http.Converters.EntityConverter.ApplicationRdfXml">
+            <summary>Defines a '<![CDATA[application/rdf+xml]]>' media type.</summary>
+        </member>
+        <member name="F:URSA.Web.Http.Converters.EntityConverter.ApplicationOwlXml">
+            <summary>Defines a '<![CDATA[application/owl+xml]]>' media type.</summary>
+        </member>
+        <member name="F:URSA.Web.Http.Converters.EntityConverter.ApplicationLdJson">
+            <summary>Defines a '<![CDATA[application/ld+json]]>' media type.</summary>
+        </member>
+        <member name="F:URSA.Web.Http.Converters.EntityConverter.MediaTypes">
+            <summary>Defines the supported media types.</summary>
+        </member>
+        <member name="F:URSA.Web.Http.Converters.EntityConverter.MediaTypeFileFormats">
+            <summary>Gets the media type file format mapping.</summary>
+        </member>
+        <member name="F:URSA.Web.Http.Converters.EntityConverter.Hydra">
+            <summary>Defines a <![CDATA[HYpermedia DRiven Application (HYDRA)]]> vocabulary Uri.</summary>
+        </member>
+        <member name="F:URSA.Web.Http.Converters.EntityConverter.Shacl">
+            <summary>Defines a <![CDATA[SHApes Constraints Language (SHACL)]]> vocabulary Uri.</summary>
+        </member>
+        <member name="M:URSA.Web.Http.Converters.EntityConverter.#ctor(RomanticWeb.IEntityContextFactory)">
+            <summary>Initializes a new instance of the <see cref="T:URSA.Web.Http.Converters.EntityConverter"/> class.</summary>
+            <param name="entityContextFactory">Entity context factory.</param>
+        </member>
+        <member name="M:URSA.Web.Http.Converters.EntityConverter.CanConvertTo``1(URSA.Web.IRequestInfo)">
+            <inheritdoc />
+        </member>
+        <member name="M:URSA.Web.Http.Converters.EntityConverter.CanConvertTo(System.Type,URSA.Web.IRequestInfo)">
+            <inheritdoc />
+        </member>
+        <member name="M:URSA.Web.Http.Converters.EntityConverter.ConvertTo``1(URSA.Web.IRequestInfo)">
+            <inheritdoc />
+        </member>
+        <member name="M:URSA.Web.Http.Converters.EntityConverter.ConvertTo(System.Type,URSA.Web.IRequestInfo)">
+            <inheritdoc />
+        </member>
+        <member name="M:URSA.Web.Http.Converters.EntityConverter.ConvertTo``1(System.String)">
+            <inheritdoc />
+        </member>
+        <member name="M:URSA.Web.Http.Converters.EntityConverter.ConvertTo(System.Type,System.String)">
+            <inheritdoc />
+        </member>
+        <member name="M:URSA.Web.Http.Converters.EntityConverter.CanConvertFrom``1(URSA.Web.IResponseInfo)">
+            <inheritdoc />
+        </member>
+        <member name="M:URSA.Web.Http.Converters.EntityConverter.CanConvertFrom(System.Type,URSA.Web.IResponseInfo)">
+            <inheritdoc />
+        </member>
+        <member name="M:URSA.Web.Http.Converters.EntityConverter.ConvertFrom``1(``0,URSA.Web.IResponseInfo)">
+            <inheritdoc />
+        </member>
+        <member name="M:URSA.Web.Http.Converters.EntityConverter.ConvertFrom(System.Type,System.Object,URSA.Web.IResponseInfo)">
+            <inheritdoc />
+        </member>
+        <member name="P:URSA.Web.Http.Converters.EntityConverter.SupportedMediaTypes">
+            <inheritdoc />
+        </member>
+        <member name="T:URSA.Web.Http.Description.DescriptionContext">
+            <summary>Provides a description context.</summary>
+        </member>
+        <member name="M:URSA.Web.Http.Description.DescriptionContext.#ctor(URSA.Web.Http.Description.Hydra.IApiDocumentation,URSA.Web.Http.Description.ITypeDescriptionBuilder,System.Type,System.Collections.Generic.IDictionary{System.Type,System.Tuple{URSA.Web.Http.Description.Hydra.IResource,System.Boolean}})">
+            <summary>Initializes a new instance of the <see cref="T:URSA.Web.Http.Description.DescriptionContext"/> class.</summary>
+            <param name="apiDocumentation">The API documentation.</param>
+            <param name="typeDescriptionBuilder">Type description builder.</param>
+            <param name="type">The type.</param>
+            <param name="typeDefinitions">The type definitions.</param>
+        </member>
+        <member name="M:URSA.Web.Http.Description.DescriptionContext.ForType(URSA.Web.Http.Description.Hydra.IApiDocumentation,System.Type,URSA.Web.Http.Description.ITypeDescriptionBuilder)">
+            <summary>Creates a copy of the context for different type.</summary>
+            <param name="apiDocumentation">The API documentation.</param>
+            <param name="type">The type.</param>
+            <param name="typeDescriptionBuilder">Type description builder.</param>
+            <returns>Instance of the <see cref="T:URSA.Web.Http.Description.DescriptionContext"/> for given <paramref name="type"/>.</returns>
+        </member>
+        <member name="M:URSA.Web.Http.Description.DescriptionContext.ForType(System.Type)">
+            <summary>Creates a copy of the context for different type.</summary>
+            <param name="type">The type.</param>
+            <returns>Instance of the <see cref="T:URSA.Web.Http.Description.DescriptionContext"/> for given <paramref name="type"/>.</returns>
+        </member>
+        <member name="M:URSA.Web.Http.Description.DescriptionContext.BuildTypeDescription">
+            <summary>Builds the type description.</summary>
+            <returns>Description of the type.</returns>
+        </member>
+        <member name="M:URSA.Web.Http.Description.DescriptionContext.ContainsType(System.Type)">
+            <summary> Determines whether the given <paramref name="type" /> is already described and available in the context.</summary>
+            <param name="type">The type to check for existence.</param>
+            <returns><b>true</b> if the type is already available in the context; otherwise <b>false</b>.</returns>
+        </member>
+        <member name="M:URSA.Web.Http.Description.DescriptionContext.RequiresRdf(System.Type)">
+            <summary>Checks whether the given <paramref name="type"/> requires an RDF approach.</summary>
+            <param name="type">The type to check.</param>
+            <returns><b>true</b> if the type requires RDF approach; otherwise <b>false</b>.</returns>
+        </member>
+        <member name="M:URSA.Web.Http.Description.DescriptionContext.Describe(URSA.Web.Http.Description.Hydra.IResource,System.Boolean)">
+            <summary>Describes the current type.</summary>
+            <param name="resource">The resource describing a type.</param>
+            <param name="requiresRdf">Flag determining whether the type requires RDF approach.</param>
+        </member>
+        <member name="P:URSA.Web.Http.Description.DescriptionContext.ApiDocumentation">
+            <summary>Gets the API documentation.</summary>
+        </member>
+        <member name="P:URSA.Web.Http.Description.DescriptionContext.TypeDescriptionBuilder">
+            <summary>Gets the type description builder.</summary>
+        </member>
+        <member name="P:URSA.Web.Http.Description.DescriptionContext.Type">
+            <summary>Gets the type.</summary>
+        </member>
+        <member name="P:URSA.Web.Http.Description.DescriptionContext.Item(System.Type)">
+            <summary>Gets the description for given <paramref name="type"/>.</summary>
+            <param name="type">The type for which to obtain the description.</param>
+            <returns>Instance of the <see cref="T:URSA.Web.Http.Description.Hydra.IResource"/> containing the description of given <paramref name="type"/>.</returns>
+        </member>
+        <member name="T:URSA.Web.Http.Description.OutputFormats">
+            <summary>Defines possible documentation output formats.</summary>
+        </member>
+        <member name="F:URSA.Web.Http.Description.OutputFormats.Turtle">
+            <summary>Turtle format.</summary>
+        </member>
+        <member name="F:URSA.Web.Http.Description.OutputFormats.Rdf">
+            <summary>RDF/XML format.</summary>
+        </member>
+        <member name="F:URSA.Web.Http.Description.OutputFormats.Owl">
+            <summary>OWL/XML format.</summary>
+        </member>
+        <member name="F:URSA.Web.Http.Description.OutputFormats.Xml">
+            <summary>XML alias for RDF/XML format.</summary>
+        </member>
+        <member name="F:URSA.Web.Http.Description.OutputFormats.JsonLd">
+            <summary>JSON-LD format.</summary>
+        </member>
+        <member name="T:URSA.Web.Http.Description.DescriptionController`1">
+            <summary>Provides a ReST description facility.</summary>
+            <typeparam name="T">Type of the controller to generate documentation for.</typeparam>
+        </member>
+        <member name="F:URSA.Web.Http.Description.DescriptionController`1.ApplicationXml">
+            <summary>Defines a '<![CDATA[application/xml]]>' media type.</summary>
+        </member>
+        <member name="F:URSA.Web.Http.Description.DescriptionController`1.VocabularyBaseUri">
+            <summary>Defines an URSA vocabulary base URI.</summary>
+        </member>
+        <member name="M:URSA.Web.Http.Description.DescriptionController`1.#ctor(RomanticWeb.IEntityContext,URSA.Web.Http.Description.IApiDescriptionBuilder{`0})">
+            <summary>Initializes a new instance of the <see cref="T:URSA.Web.Http.Description.DescriptionController`1"/> class.</summary>
+            <param name="entityContext">Entity context.</param>
+            <param name="apiDescriptionBuilder">API description builder.</param>
+        </member>
+        <member name="M:URSA.Web.Http.Description.DescriptionController`1.GetApiEntryPointDescription(System.Nullable{URSA.Web.Http.Description.OutputFormats})">
+            <summary>Gets the API documentation.</summary>
+            <param name="format">Optional output format.</param>
+            <returns><see cref="T:URSA.Web.Http.Description.Hydra.IApiDocumentation"/> instance.</returns>
+        </member>
+        <member name="P:URSA.Web.Http.Description.DescriptionController`1.Response">
+            <inheritdoc />
+        </member>
+        <member name="T:URSA.Web.Http.Description.Entities.EntityExtensions">
+            <summary>Provides useful <see cref="T:RomanticWeb.Entities.IEntity"/> extensions.</summary>
+        </member>
+        <member name="M:URSA.Web.Http.Description.Entities.EntityExtensions.Clone``1(``0)">
+            <summary>Clones a given blank node.</summary>
+            <remarks>This method expect <paramref name="source" /> to be a blank node. If it's not the case, original instance will be returned.</remarks>
+            <typeparam name="T">Type of the entity being cloned.</typeparam>
+            <param name="source">The source entity.</param>
+            <returns>New copy of the given <paramref name="source" />.</returns>
+        </member>
+        <member name="T:URSA.Web.Http.Description.Hydra.IApiDocumentation">
+            <summary>Describes an API documentation</summary>
+        </member>
+        <member name="P:URSA.Web.Http.Description.Hydra.IApiDocumentation.Title">
+            <summary>Gets or sets the title of the documentation.</summary>
+        </member>
+        <member name="P:URSA.Web.Http.Description.Hydra.IApiDocumentation.Description">
+            <summary>Gets or sets the description of the documentation.</summary>
+        </member>
+        <member name="P:URSA.Web.Http.Description.Hydra.IApiDocumentation.SupportedClasses">
+            <summary>Gets the APIs supported classes.</summary>
+        </member>
+        <member name="P:URSA.Web.Http.Description.Hydra.IApiDocumentation.StatusCodes">
+            <summary>Gets the APIs status codes.</summary>
+        </member>
+        <member name="P:URSA.Web.Http.Description.Hydra.IApiDocumentation.EntryPoints">
+            <summary>Gets the APIs entry points.</summary>
+            <remarks>
+            In theory, a bone ReST-ful service should have only a single entry point.
+            Unfortunately, it's not the case in many circumstances and approaches.
+            URSA will treat each of the methods defined in a controller as an entry point.
+            </remarks>
+        </member>
+        <member name="T:URSA.Web.Http.Description.Hydra.IReplaceResourceOperation">
+            <summary>Describes an replace resource operation.</summary>
+        </member>
+        <member name="T:URSA.Web.Http.Description.Hydra.IOperation">
+            <summary>Describes an operation.</summary>
+        </member>
+        <member name="T:URSA.Web.Http.Description.Hydra.IResource">
+            <summary>Represents an <![CDATA[HyDrA]]> resource.</summary>
+        </member>
+        <member name="T:URSA.Web.Http.Description.Rdfs.IResource">
+            <summary>Represents an resource.</summary>
+        </member>
+        <member name="P:URSA.Web.Http.Description.Rdfs.IResource.Label">
+            <summary>Gets or sets the label.</summary>
+        </member>
+        <member name="P:URSA.Web.Http.Description.Rdfs.IResource.Description">
+            <summary>Gets or sets the description.</summary>
+        </member>
+        <member name="P:URSA.Web.Http.Description.Hydra.IResource.Operations">
+            <summary>Gets the resource operations.</summary>
+        </member>
+        <member name="P:URSA.Web.Http.Description.Hydra.IResource.Type">
+            <summary>Gets or sets the type of the resource.</summary>
+        </member>
+        <member name="P:URSA.Web.Http.Description.Hydra.IResource.SingleValue">
+            <summary>Gets or sets a flag indicating whether the resource is a single value or not.</summary>
+        </member>
+        <member name="P:URSA.Web.Http.Description.Hydra.IResource.MediaTypes">
+            <summary>Gets the media types supported by given operation.</summary>
+        </member>
+        <member name="P:URSA.Web.Http.Description.Hydra.IOperation.Method">
+            <summary>Gets the HTTP methods.</summary>
+        </member>
+        <member name="P:URSA.Web.Http.Description.Hydra.IOperation.Expects">
+            <summary>Gets classes expected in request body.</summary>
+        </member>
+        <member name="P:URSA.Web.Http.Description.Hydra.IOperation.Returns">
+            <summary>Gets the classes returned in response body.</summary>
+        </member>
+        <member name="P:URSA.Web.Http.Description.Hydra.IOperation.StatusCodes">
+            <summary>Gets the HTTP status codes.</summary>
+        </member>
+        <member name="T:URSA.Web.Http.Description.Hydra.IDeleteResourceOperation">
+            <summary>Describes a delete resource operation.</summary>
+        </member>
+        <member name="T:URSA.Web.Http.Description.Hydra.ICreateResourceOperation">
+            <summary>Describes a create resource operation.</summary>
+        </member>
+        <member name="T:URSA.Web.Http.Description.ITypeDescriptionBuilder">
+            <summary>Provides a description of the facility for type description builders.</summary>
+        </member>
+        <member name="M:URSA.Web.Http.Description.ITypeDescriptionBuilder.BuildTypeDescription(URSA.Web.Http.Description.DescriptionContext)">
+            <summary>Builds the type description.</summary>
+            <param name="context">The context.</param>
+            <returns>Context's type description</returns>
+        </member>
+        <member name="M:URSA.Web.Http.Description.ITypeDescriptionBuilder.BuildTypeDescription(URSA.Web.Http.Description.DescriptionContext,System.Boolean@)">
+            <summary>Builds the type description.</summary>
+            <param name="context">The context.</param>
+            <param name="requiresRdf">Flag determining whether the context's type requires an RDF approach.</param>
+            <returns>Context's type description</returns>
+        </member>
+        <member name="P:URSA.Web.Http.Description.ITypeDescriptionBuilder.SupportedProfiles">
+            <summary>Gets the supported media type profiles.</summary>
+        </member>
+        <member name="T:URSA.Web.Http.Description.IXmlDocProvider">
+            <summary>Provides a contract for XML documentation provider.</summary>
+        </member>
+        <member name="M:URSA.Web.Http.Description.IXmlDocProvider.GetDescription(System.Type)">
+            <summary>Gets the type description.</summary>
+            <param name="type">Type to get description for.</param>
+            <returns>Description of the given <paramref name="type" />.</returns>
+        </member>
+        <member name="M:URSA.Web.Http.Description.IXmlDocProvider.GetDescription(System.Reflection.MethodInfo)">
+            <summary>Gets the type description.</summary>
+            <param name="method">odMeth to get description for.</param>
+            <returns>Description of the given <paramref name="method" />.</returns>
+        </member>
+        <member name="M:URSA.Web.Http.Description.IXmlDocProvider.GetDescription(System.Reflection.PropertyInfo)">
+            <summary>Gets the type description.</summary>
+            <param name="property">Property to get description for.</param>
+            <returns>Description of the given <paramref name="property" />.</returns>
+        </member>
+        <member name="T:URSA.Web.Http.Description.Mapping.DescriptionBuildingServerBahaviorAttributeVisitor`1">
+            <summary>Visits server behavior attributes and builds the API description.</summary>
+            <typeparam name="T">Type of the member of which the attributes should be visited.</typeparam>
+        </member>
+        <member name="T:URSA.Web.Http.Description.Mapping.IServerBehaviorAttributeVisitor">
+            <summary>Provides a description of the <see cref="T:URSA.Web.Http.Description.Mapping.ServerBehaviorAttribute"/> visitor facility.</summary>
+        </member>
+        <member name="M:URSA.Web.Http.Description.Mapping.IServerBehaviorAttributeVisitor.Visit(URSA.Web.Http.Description.Mapping.LinqServerBehaviorAttribute)">
+            <summary>Visits the LINQ behavior attribute.</summary>
+            <param name="behaviorAttribute">The behavior attribute.</param>
+        </member>
+        <member name="P:URSA.Web.Http.Description.Mapping.IServerBehaviorAttributeVisitor.ApiDocumentation">
+            <summary>Gets or sets the API documentation.</summary>
+            <value>The API documentation.</value>
+        </member>
+        <member name="P:URSA.Web.Http.Description.Mapping.IServerBehaviorAttributeVisitor.MemberDescription">
+            <summary>Gets the member description.</summary>
+        </member>
+        <member name="M:URSA.Web.Http.Description.Mapping.DescriptionBuildingServerBahaviorAttributeVisitor`1.#ctor">
+            <summary>Initializes a new instance of the <see cref="T:URSA.Web.Http.Description.Mapping.DescriptionBuildingServerBahaviorAttributeVisitor`1"/> class.</summary>
+        </member>
+        <member name="M:URSA.Web.Http.Description.Mapping.DescriptionBuildingServerBahaviorAttributeVisitor`1.Visit(URSA.Web.Http.Description.Mapping.LinqServerBehaviorAttribute)">
+            <inheritdoc />
+        </member>
+        <member name="P:URSA.Web.Http.Description.Mapping.DescriptionBuildingServerBahaviorAttributeVisitor`1.ApiDocumentation">
+            <inheritdoc />
+        </member>
+        <member name="P:URSA.Web.Http.Description.Mapping.DescriptionBuildingServerBahaviorAttributeVisitor`1.MemberDescription">
+            <inheritdoc />
+        </member>
+        <member name="T:URSA.Web.Http.Description.Mapping.ServerBahaviorAttributeExtensions">
+            <summary>Provides a simple visitor hookup routine.</summary>
+        </member>
+        <member name="M:URSA.Web.Http.Description.Mapping.ServerBahaviorAttributeExtensions.Accept(System.Collections.Generic.IEnumerable{URSA.Web.Http.Description.Mapping.ServerBehaviorAttribute},URSA.Web.Http.Description.Mapping.IServerBehaviorAttributeVisitor)">
+            <summary>Accepts the specified visitor.</summary>
+            <param name="attributes">The attributes to be visited.</param>
+            <param name="visitor">The visitor.</param>
+        </member>
+        <member name="T:URSA.Web.Http.Description.Mapping.LinqOperations">
+            <summary>Describes supported LINQ operation behaviors.</summary>
+        </member>
+        <member name="F:URSA.Web.Http.Description.Mapping.LinqOperations.Take">
+            <summary>Defines the Take top N elements operation.</summary>
+        </member>
+        <member name="F:URSA.Web.Http.Description.Mapping.LinqOperations.Skip">
+            <summary>Defines the Skip n elements operation.</summary>
+        </member>
+        <member name="T:URSA.Web.Http.Description.Mapping.LinqServerBehaviorAttribute">
+            <summary>Marks as a LINQ based operation behavior.</summary>
+        </member>
+        <member name="T:URSA.Web.Http.Description.Mapping.ServerBehaviorAttribute">
+            <summary>Represents a server-side parameter behavior.</summary>
+        </member>
+        <member name="M:URSA.Web.Http.Description.Mapping.ServerBehaviorAttribute.Accept(URSA.Web.Http.Description.Mapping.IServerBehaviorAttributeVisitor)">
+            <summary>Accepts the specified visitor.</summary>
+            <param name="visitor">The visitor.</param>
+        </member>
+        <member name="M:URSA.Web.Http.Description.Mapping.LinqServerBehaviorAttribute.#ctor(URSA.Web.Http.Description.Mapping.LinqOperations)">
+            <summary>Initializes a new instance of the <see cref="T:URSA.Web.Http.Description.Mapping.LinqServerBehaviorAttribute"/> class.</summary>
+            <param name="linqOperation">The LINQ operation.</param>
+        </member>
+        <member name="M:URSA.Web.Http.Description.Mapping.LinqServerBehaviorAttribute.Accept(URSA.Web.Http.Description.Mapping.IServerBehaviorAttributeVisitor)">
+            <inheritdoc />
+        </member>
+        <member name="P:URSA.Web.Http.Description.Mapping.LinqServerBehaviorAttribute.Operation">
+            <summary>Gets the LINQ operation behavior.</summary>
+        </member>
+        <member name="T:URSA.Web.Http.Description.Owl.IClass">
+            <summary>Describes an OWL class.</summary>
+        </member>
+        <member name="T:URSA.Web.Http.Description.Rdfs.IClass">
+            <summary>Describes a class.</summary>
+        </member>
+        <member name="P:URSA.Web.Http.Description.Rdfs.IClass.SubClassOf">
+            <summary>Gets the ancestor classes.</summary>
+        </member>
+        <member name="T:URSA.Web.Http.Description.Owl.IInverseFunctionalProperty">
+            <summary>Describes an inverse functional property.</summary>
+        </member>
+        <member name="T:URSA.Web.Http.Description.Rdfs.IProperty">
+            <summary>Describes a property.</summary>
+        </member>
+        <member name="P:URSA.Web.Http.Description.Rdfs.IProperty.Range">
+            <summary>Gets the range.</summary>
+        </member>
+        <member name="P:URSA.Web.Http.Description.Rdfs.IProperty.Domain">
+            <summary>Gets the domain.</summary>
+        </member>
+        <member name="T:URSA.Web.Http.Description.Owl.IRestriction">
+            <summary>Describes a restriction.</summary>
+        </member>
+        <member name="P:URSA.Web.Http.Description.Owl.IRestriction.OnProperty">
+            <summary>Gets or sets the property onto which the restriction is put.</summary>
+        </member>
+        <member name="P:URSA.Web.Http.Description.Owl.IRestriction.AllValuesFrom">
+            <summary>Gets or sets a type of which all the values are.</summary>
+        </member>
+        <member name="P:URSA.Web.Http.Description.Owl.IRestriction.MaxCardinality">
+            <summary>Gets or sets the maximum cardinality.</summary>
+        </member>
+        <member name="T:URSA.Web.Http.Description.Hydra.IClass">
+            <summary>Describes a class.</summary>
+        </member>
+        <member name="P:URSA.Web.Http.Description.Hydra.IClass.SupportedProperties">
+            <summary>Gets the class supported properties.</summary>
+        </member>
+        <member name="P:URSA.Web.Http.Description.Hydra.IClass.SupportedOperations">
+            <summary>Gets the class supported operations.</summary>
+        </member>
+        <member name="T:URSA.Web.Http.Description.Hydra.IIriTemplate">
+            <summary>Describes an IRI template.</summary>
+        </member>
+        <member name="P:URSA.Web.Http.Description.Hydra.IIriTemplate.Template">
+            <summary>Gets or sets the IRI template string.</summary>
+        </member>
+        <member name="P:URSA.Web.Http.Description.Hydra.IIriTemplate.Mappings">
+            <summary>Gets the IRI template mappings.</summary>
+        </member>
+        <member name="T:URSA.Web.Http.Description.Hydra.IIriTemplateMapping">
+            <summary>Describes an IRI template mapping.</summary>
+        </member>
+        <member name="P:URSA.Web.Http.Description.Hydra.IIriTemplateMapping.Variable">
+            <summary>Gets or sets the variable name.</summary>
+        </member>
+        <member name="P:URSA.Web.Http.Description.Hydra.IIriTemplateMapping.Property">
+            <summary>Gets or sets the target property of the mapping.</summary>
+        </member>
+        <member name="P:URSA.Web.Http.Description.Hydra.IIriTemplateMapping.Required">
+            <summary>Gets or sets a value indicating whether the mapping is required.</summary>
+        </member>
+        <member name="T:URSA.Web.Http.Description.Hydra.ILink">
+            <summary>Represents a hyperlink.</summary>
+        </member>
+        <member name="T:URSA.Web.Http.Description.Hydra.ITemplatedLink">
+            <summary>Describes a template link.</summary>
+        </member>
+        <member name="T:URSA.Web.Http.Description.Hydra.ISupportedProperty">
+            <summary>Describes a supported property.</summary>
+        </member>
+        <member name="P:URSA.Web.Http.Description.Hydra.ISupportedProperty.Property">
+            <summary>Gets or sets an RDF property description.</summary>
+        </member>
+        <member name="P:URSA.Web.Http.Description.Hydra.ISupportedProperty.Required">
+            <summary>Gets or sets a value indicating whether the property is required in the request body.</summary>
+        </member>
+        <member name="P:URSA.Web.Http.Description.Hydra.ISupportedProperty.ReadOnly">
+            <summary>Gets or sets a value indicating whether the property is read-only.</summary>
+        </member>
+        <member name="P:URSA.Web.Http.Description.Hydra.ISupportedProperty.WriteOnly">
+            <summary>Gets or sets a value indicating whether the property is write-only.</summary>
+        </member>
+        <member name="T:VDS.RDF.Parsing.JsonLdParser">
+            <summary>Provides a JSON-LD dotNetRDF parsing integration.</summary>
+            <remarks>This code is based on <![CDATA[https://github.com/NuGet/NuGet.Services.Metadata/tree/master/src/Catalog/JsonLdIntegration]]>.</remarks>
+        </member>
+        <member name="M:VDS.RDF.Parsing.JsonLdParser.Load(VDS.RDF.IRdfHandler,System.String)">
+            <inheritdoc />
+        </member>
+        <member name="M:VDS.RDF.Parsing.JsonLdParser.Load(VDS.RDF.IRdfHandler,System.IO.StreamReader)">
+            <inheritdoc />
+        </member>
+        <member name="M:VDS.RDF.Parsing.JsonLdParser.Load(VDS.RDF.IGraph,System.String)">
+            <inheritdoc />
+        </member>
+        <member name="M:VDS.RDF.Parsing.JsonLdParser.Load(VDS.RDF.IGraph,System.IO.TextReader)">
+            <inheritdoc />
+        </member>
+        <member name="M:VDS.RDF.Parsing.JsonLdParser.Load(VDS.RDF.IGraph,System.IO.StreamReader)">
+            <inheritdoc />
+        </member>
+        <member name="M:VDS.RDF.Parsing.JsonLdParser.Load(VDS.RDF.IRdfHandler,System.IO.TextReader)">
+            <inheritdoc />
+        </member>
+        <member name="E:VDS.RDF.Parsing.JsonLdParser.Warning">
+            <inheritdoc />
+        </member>
+        <member name="T:URSA.Web.Http.Description.HydraCompliantTypeDescriptionBuilder">
+            <summary>Provides a type description building facility.</summary>
+        </member>
+        <member name="M:URSA.Web.Http.Description.HydraCompliantTypeDescriptionBuilder.#ctor(URSA.Web.Http.Description.IXmlDocProvider)">
+            <summary>Initializes a new instance of the <see cref="T:URSA.Web.Http.Description.HydraCompliantTypeDescriptionBuilder"/> class.</summary>
+            <param name="xmlDocProvider">The XML documentation provider.</param>
+        </member>
+        <member name="M:URSA.Web.Http.Description.HydraCompliantTypeDescriptionBuilder.BuildTypeDescription(URSA.Web.Http.Description.DescriptionContext)">
+            <inheritdoc />
+        </member>
+        <member name="M:URSA.Web.Http.Description.HydraCompliantTypeDescriptionBuilder.BuildTypeDescription(URSA.Web.Http.Description.DescriptionContext,System.Boolean@)">
+            <inheritdoc />
+        </member>
+        <member name="P:URSA.Web.Http.Description.HydraCompliantTypeDescriptionBuilder.SupportedProfiles">
+            <inheritdoc />
+        </member>
+        <member name="T:URSA.Web.Http.Description.Shacl.IConstraint">
+            <summary>Describes a constraint.</summary>
+        </member>
+        <member name="T:URSA.Web.Http.Description.Shacl.IShapeClass">
+            <summary>Describes a class shape.</summary>
+        </member>
+        <member name="T:URSA.Web.Http.Description.Shacl.IShape">
+            <summary>Describes a data shape.</summary>
+        </member>
+        <member name="P:URSA.Web.Http.Description.Shacl.IShape.Properties">
+            <summary>Gets the properties of a given shape.</summary>
+        </member>
+        <member name="P:URSA.Web.Http.Description.Shacl.IShape.Constraints">
+            <summary>Gets the constraints.</summary>
+        </member>
+        <member name="P:URSA.Web.Http.Description.Shacl.IShape.FilterShapes">
+            <summary>Gets the filter shapes.</summary>
+        </member>
+        <member name="T:URSA.Web.Http.Description.Shacl.IConstraintTemplate">
+            <summary>Describes a constraint template.</summary>
+        </member>
+        <member name="T:URSA.Web.Http.Description.Shacl.IClosedShapeConstraint">
+            <summary>Describes a closed shape constraint.</summary>
+        </member>
+        <member name="P:URSA.Web.Http.Description.Shacl.IClosedShapeConstraint.IgnoredProperties">
+            <summary>Gets the ignored properties.</summary>
+        </member>
+        <member name="T:URSA.Web.Http.Description.Shacl.IPropertyConstraint">
+            <summary>Describes a property constraint.</summary>
+        </member>
+        <member name="P:URSA.Web.Http.Description.Shacl.IPropertyConstraint.Predicate">
+            <summary>Gets or sets the predicate.</summary>
+        </member>
+        <member name="P:URSA.Web.Http.Description.Shacl.IPropertyConstraint.DefaultValue">
+            <summary>Gets or sets the default value.</summary>
+        </member>
+        <member name="P:URSA.Web.Http.Description.Shacl.IPropertyConstraint.AllowedValues">
+            <summary>Gets the allowed values.</summary>
+        </member>
+        <member name="P:URSA.Web.Http.Description.Shacl.IPropertyConstraint.Datatype">
+            <summary>Gets or sets the data type.</summary>
+        </member>
+        <member name="P:URSA.Web.Http.Description.Shacl.IPropertyConstraint.ValueShape">
+            <summary>Gets or sets the value shape.</summary>
+        </member>
+        <member name="P:URSA.Web.Http.Description.Shacl.IPropertyConstraint.QualifiedValueShape">
+            <summary>Gets or sets the qualified value shape.</summary>
+        </member>
+        <member name="P:URSA.Web.Http.Description.Shacl.IPropertyConstraint.QualifiedMinCount">
+            <summary>Gets or sets the qualified minimum count.</summary>
+        </member>
+        <member name="P:URSA.Web.Http.Description.Shacl.IPropertyConstraint.QualifiedMaxCount">
+            <summary>Gets or sets the qualified maximum count.</summary>
+        </member>
+        <member name="P:URSA.Web.Http.Description.Shacl.IPropertyConstraint.DirectValueType">
+            <summary>Gets or sets the direct type of all values.</summary>
+        </member>
+        <member name="P:URSA.Web.Http.Description.Shacl.IPropertyConstraint.ValueClass">
+            <summary>Gets or sets the class of all values.</summary>
+        </member>
+        <member name="P:URSA.Web.Http.Description.Shacl.IPropertyConstraint.Value">
+            <summary>Gets or sets the value.</summary>
+        </member>
+        <member name="P:URSA.Web.Http.Description.Shacl.IPropertyConstraint.MinCount">
+            <summary>Gets or sets the minimum count.</summary>
+        </member>
+        <member name="P:URSA.Web.Http.Description.Shacl.IPropertyConstraint.MaxCount">
+            <summary>Gets or sets the maximum count.</summary>
+        </member>
+        <member name="P:URSA.Web.Http.Description.Shacl.IPropertyConstraint.MinExclusive">
+            <summary>Gets or sets the minimum exclusive count.</summary>
+        </member>
+        <member name="P:URSA.Web.Http.Description.Shacl.IPropertyConstraint.MaxExclusive">
+            <summary>Gets or sets the maximum exclusive count.</summary>
+        </member>
+        <member name="P:URSA.Web.Http.Description.Shacl.IPropertyConstraint.MinInclusive">
+            <summary>Gets or sets the minimum inclusive count.</summary>
+        </member>
+        <member name="P:URSA.Web.Http.Description.Shacl.IPropertyConstraint.MaxInclusive">
+            <summary>Gets or sets the maximum inclusive count.</summary>
+        </member>
+        <member name="P:URSA.Web.Http.Description.Shacl.IPropertyConstraint.MinLength">
+            <summary>Gets or sets the minimum string length.</summary>
+        </member>
+        <member name="P:URSA.Web.Http.Description.Shacl.IPropertyConstraint.MaxLength">
+            <summary>Gets or sets the maximum string length.</summary>
+        </member>
+        <member name="P:URSA.Web.Http.Description.Shacl.IPropertyConstraint.NodeKind">
+            <summary>Gets or sets the kind of the node.</summary>
+        </member>
+        <member name="P:URSA.Web.Http.Description.Shacl.IPropertyConstraint.Pattern">
+            <summary>Gets or sets the pattern.</summary>
+        </member>
+        <member name="T:URSA.Web.Http.Description.Shacl.INodeKind">
+            <summary>Describes a RDF node kind.</summary>
+        </member>
+        <member name="T:URSA.Web.Http.Description.Shacl.NodeKinds">
+            <summary>Provides methods for accessing <see cref="T:URSA.Web.Http.Description.Shacl.INodeKind"/> named instances.</summary>
+        </member>
+        <member name="M:URSA.Web.Http.Description.Shacl.NodeKinds.BlankNode(RomanticWeb.IEntityContext)">
+            <summary>Obtains the BlankNode node kind.</summary>
+            <param name="entityContext">The entity context.</param>
+            <returns>Instance of the <see cref="T:URSA.Web.Http.Description.Shacl.INodeKind"/>.</returns>
+        </member>
+        <member name="M:URSA.Web.Http.Description.Shacl.NodeKinds.IRI(RomanticWeb.IEntityContext)">
+            <summary>Obtains the IRI node kind.</summary>
+            <param name="entityContext">The entity context.</param>
+            <returns>Instance of the <see cref="T:URSA.Web.Http.Description.Shacl.INodeKind"/>.</returns>
+        </member>
+        <member name="M:URSA.Web.Http.Description.Shacl.NodeKinds.Literal(RomanticWeb.IEntityContext)">
+            <summary>Obtains the Literal node kind.</summary>
+            <param name="entityContext">The entity context.</param>
+            <returns>Instance of the <see cref="T:URSA.Web.Http.Description.Shacl.INodeKind"/>.</returns>
+        </member>
+        <member name="T:URSA.Web.Http.Description.VDS.RDF.TripleStoreExtensions">
+            <summary>Provides useful dotNetRDF extensions to make it easier to push third party triples to RomanticWeb.</summary>
+        </member>
+        <member name="M:URSA.Web.Http.Description.VDS.RDF.TripleStoreExtensions.MapToMetaGraph(VDS.RDF.ITripleStore,System.Uri)">
+            <summary>Maps all triples from default graph to their respective graphs and adds a proper statement to RomanticWeb's meta graph.</summary>
+            <param name="tripleStore">The triple store.</param>
+            <param name="metaGraphUri">The meta graph URI.</param>
+        </member>
+        <member name="T:VDS.RDF.Writing.JsonLdWriter">
+            <summary>Provides a JSON-LD doNetRDF writing integration.</summary>
+            <remarks>This code is based on <![CDATA[https://github.com/NuGet/NuGet.Services.Metadata/tree/master/src/Catalog/JsonLdIntegration]]>.</remarks>
+        </member>
+        <member name="M:VDS.RDF.Writing.JsonLdWriter.#ctor">
+            <summary>Initializes a new instance of the <see cref="T:VDS.RDF.Writing.JsonLdWriter"/> class.</summary>
+        </member>
+        <member name="M:VDS.RDF.Writing.JsonLdWriter.#ctor(System.String)">
+            <summary>Initializes a new instance of the <see cref="T:VDS.RDF.Writing.JsonLdWriter"/> class.</summary>
+            <param name="context">Optional JSON-LD context to use for serialization.</param>
+        </member>
+        <member name="M:VDS.RDF.Writing.JsonLdWriter.Save(VDS.RDF.IGraph,System.String)">
+            <inheritdoc />
+        </member>
+        <member name="M:VDS.RDF.Writing.JsonLdWriter.Save(VDS.RDF.IGraph,System.IO.TextWriter)">
+            <inheritdoc />
+        </member>
+        <member name="E:VDS.RDF.Writing.JsonLdWriter.Warning">
+            <inheritdoc />
+        </member>
+        <member name="T:URSA.Web.Http.Description.XmlDocProvider">
+            <summary>Provides an XML documentation based on <![CDATA[Jolt]]>.</summary>
+        </member>
+        <member name="M:URSA.Web.Http.Description.XmlDocProvider.GetDescription(System.Type)">
+            <inheritdoc />
+        </member>
+        <member name="M:URSA.Web.Http.Description.XmlDocProvider.GetDescription(System.Reflection.MethodInfo)">
+            <inheritdoc />
+        </member>
+        <member name="M:URSA.Web.Http.Description.XmlDocProvider.GetDescription(System.Reflection.PropertyInfo)">
+            <inheritdoc />
+        </member>
+    </members>
+</doc>

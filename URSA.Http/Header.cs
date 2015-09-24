@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 
@@ -10,10 +11,6 @@ namespace URSA.Web.Http
     /// <summary>Describes an HTTP header.</summary>
     public class Header
     {
-        private static readonly string[] UnparsableHeaders = new string[] { "User-Agent" };
-
-        internal static readonly IEqualityComparer<string> Comparer = StringComparer.OrdinalIgnoreCase;
-
         /// <summary>Defines the 'Warning' header name.</summary>
         public const string Warning = "Warning";
 
@@ -40,6 +37,10 @@ namespace URSA.Web.Http
 
         /// <summary>Defines the 'Link' header name.</summary>
         public const string Link = "Link";
+
+        internal static readonly IEqualityComparer<string> Comparer = StringComparer.OrdinalIgnoreCase;
+
+        private static readonly string[] UnparsableHeaders = new string[] { "User-Agent" };
 
         /// <summary>Initializes a new instance of the <see cref="Header" /> class.</summary>
         /// <param name="name">Name of the header.</param>
@@ -282,18 +283,19 @@ namespace URSA.Web.Http
 
     /// <summary>Represents a header with a value provided in a native type.</summary>
     /// <typeparam name="T">Type of the value.</typeparam>
+    [SuppressMessage("StyleCop.CSharp.MaintainabilityRules", "SA1402:FileMayOnlyContainASingleClass", Justification = "Suppression is OK - generic and non-generic class.")]
     public class Header<T> : Header
     {
         private readonly ObservableCollection<HeaderValue<T>> _parsedValues;
 
-        /// <summary>Initializes a new instance of the <see cref="Header" /> class.</summary>
+        /// <summary>Initializes a new instance of the <see cref="Header{T}" /> class.</summary>
         /// <param name="name">Name of the header.</param>
         /// <param name="values">Value of the header.</param>
         public Header(string name, params T[] values) : this(name, values.Select(value => new HeaderValue<T>(value)).ToArray())
         {
         }
 
-        /// <summary>Initializes a new instance of the <see cref="Header" /> class.</summary>
+        /// <summary>Initializes a new instance of the <see cref="Header{T}" /> class.</summary>
         /// <param name="name">Name of the header.</param>
         /// <param name="values">Value of the header.</param>
         public Header(string name, IEnumerable<HeaderValue<T>> values) : base(

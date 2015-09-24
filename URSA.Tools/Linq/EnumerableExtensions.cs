@@ -7,7 +7,7 @@ namespace System.Linq
     /// <summary>Provides useful <see cref="IEnumerable{T}" /> extension methods.</summary>
     public static class EnumerableExtensions
     {
-        /// <summary>Applies the given <paramref name="action" /> on each of the <see cref="items" />.</summary>
+        /// <summary>Applies the given <paramref name="action" /> on each of the <paramref name="items" />.</summary>
         /// <param name="items">Items to be iterated through.</param>
         /// <param name="action">Action to be applied.</param>
         [ExcludeFromCodeCoverage]
@@ -24,7 +24,7 @@ namespace System.Linq
             }
         }
 
-        /// <summary>Applies the given <paramref name="action" /> on each of the <see cref="items" />.</summary>
+        /// <summary>Applies the given <paramref name="action" /> on each of the <paramref name="items" />.</summary>
         /// <param name="items">Items to be iterated through.</param>
         /// <param name="action">Action to be applied.</param>
         [ExcludeFromCodeCoverage]
@@ -43,7 +43,7 @@ namespace System.Linq
             }
         }
 
-        /// <summary>Applies the given <paramref name="action" /> on each of the <see cref="items" />.</summary>
+        /// <summary>Applies the given <paramref name="action" /> on each of the <paramref name="items" />.</summary>
         /// <typeparam name="T">Type of items in the enumeration.</typeparam>
         /// <param name="items">Items to be iterated through.</param>
         /// <param name="action">Action to be applied.</param>
@@ -61,7 +61,7 @@ namespace System.Linq
             }
         }
 
-        /// <summary>Applies the given <paramref name="action" /> on each of the <see cref="items" />.</summary>
+        /// <summary>Applies the given <paramref name="action" /> on each of the <paramref name="items" />.</summary>
         /// <typeparam name="T">Type of items in the enumeration.</typeparam>
         /// <param name="items">Items to be iterated through.</param>
         /// <param name="action">Action to be applied.</param>

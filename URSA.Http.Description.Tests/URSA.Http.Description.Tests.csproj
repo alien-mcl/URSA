@@ -129,7 +129,7 @@
       <Project>{643795dc-2ce4-4aa6-a480-92b92023da25}</Project>
       <Name>URSA.Core</Name>
     </ProjectReference>
-    <ProjectReference Include="..\URSA.Description\URSA.Http.Description.csproj">
+    <ProjectReference Include="..\URSA.Http.Description\URSA.Http.Description.csproj">
       <Project>{1cc21d3a-c56c-468d-b78d-d61758531d3f}</Project>
       <Name>URSA.Http.Description</Name>
     </ProjectReference>

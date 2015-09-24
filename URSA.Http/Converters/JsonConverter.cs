@@ -10,7 +10,7 @@ namespace URSA.Web.Http.Converters
     /// <summary>Converts JSON messages into objects</summary>
     public class JsonConverter : IConverter
     {
-        /// <summary>Defines an 'application/json' media type.</summary>
+        /// <summary>Defines an <![CDATA[application/json]]> media type.</summary>
         public const string ApplicationJson = "application/json";
 
         private static readonly string[] MediaTypes = { ApplicationJson };

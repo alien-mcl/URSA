@@ -13,8 +13,8 @@ using URSA.Web.Mapping;
 
 namespace URSA.Web.Description.Http
 {
-    /// <summary>Procides an HTTP controller description building facility.</summary>
-    /// <typeparam name="T"></typeparam>
+    /// <summary>Provides an HTTP controller description building facility.</summary>
+    /// <typeparam name="T">Type of the controller being described.</typeparam>
     public class ControllerDescriptionBuilder<T> : IHttpControllerDescriptionBuilder<T> where T : IController
     {
         private readonly Lazy<ControllerInfo<T>> _description;

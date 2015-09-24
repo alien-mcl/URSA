@@ -16,6 +16,7 @@ namespace URSA.Web.Http.Converters
         /// <summary>Defines a 'text/uri-list' media type.</summary>
         public const string TextUriList = "text/uri-list";
 
+        /// <inheritdoc />
         protected override int MaxBodyLength { get { return 4096; } }
 
         /// <inheritdoc />

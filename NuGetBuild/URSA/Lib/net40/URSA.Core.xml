@@ -1,0 +1,777 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>URSA.Core</name>
+    </assembly>
+    <members>
+        <member name="T:URSA.ComponentModel.Lifestyles">
+            <summary>Defines component lifestyles.</summary>
+        </member>
+        <member name="F:URSA.ComponentModel.Lifestyles.Singleton">
+            <summary>Singleton lifestyle.</summary>
+        </member>
+        <member name="F:URSA.ComponentModel.Lifestyles.Transient">
+            <summary>Transient lifestyle.</summary>
+        </member>
+        <member name="T:URSA.ComponentModel.IComponentProvider">
+            <summary>Provides a basic service provider facility interface.</summary>
+        </member>
+        <member name="M:URSA.ComponentModel.IComponentProvider.Install(System.Collections.Generic.IEnumerable{System.Reflection.Assembly})">
+            <summary>Installs the component provider.</summary>
+            <param name="assemblies">Assemblies to look for installers.</param>
+        </member>
+        <member name="M:URSA.ComponentModel.IComponentProvider.Register``2(System.String,URSA.ComponentModel.Lifestyles)">
+            <summary>Registers a component <typeparamref name="T"/> implemented by <typeparamref name="I"/>.</summary>
+            <typeparam name="T">Type of the component to be registered.</typeparam>
+            <typeparam name="I">Type implementing the component.</typeparam>
+            <param name="name">Name of the implementation.</param>
+            <param name="lifestyle">Lifestyle of the registration.</param>
+        </member>
+        <member name="M:URSA.ComponentModel.IComponentProvider.Register(System.Type,System.Type,System.String,URSA.ComponentModel.Lifestyles)">
+            <summary>Registers a component <paramref name="serviceType"/> implemented by <paramref name="implementationType"/>.</summary>
+            <param name="serviceType">Type of the component to be registered.</param>
+            <param name="implementationType">Type implementing the component.</param>
+            <param name="name">Name of the implementation.</param>
+            <param name="lifestyle">Lifestyle of the registration.</param>
+        </member>
+        <member name="M:URSA.ComponentModel.IComponentProvider.Register``1(System.String,``0)">
+            <summary>Registers an instance of the component implementing <typeparamref name="T" />.</summary>
+            <typeparam name="T">Type of the component.</typeparam>
+            <param name="name">Name of the implementation.</param>
+            <param name="instance">Instance to be registered.</param>
+        </member>
+        <member name="M:URSA.ComponentModel.IComponentProvider.Register(System.Type,System.String,System.Object)">
+            <summary>Registers an instance of the component implementing <paramref name="serviceType" />.</summary>
+            <param name="serviceType">Type of the component.</param>
+            <param name="name">Name of the implementation.</param>
+            <param name="instance">Instance to be registered.</param>
+        </member>
+        <member name="M:URSA.ComponentModel.IComponentProvider.Register``2(URSA.ComponentModel.Lifestyles)">
+            <summary>Registers a component <typeparamref name="T"/> implemented by <typeparamref name="I"/>.</summary>
+            <typeparam name="T">Type of the component to be registered.</typeparam>
+            <typeparam name="I">Type implementing the component.</typeparam>
+            <param name="lifestyle">Lifestyle of the registration.</param>
+        </member>
+        <member name="M:URSA.ComponentModel.IComponentProvider.Register(System.Type,System.Type,URSA.ComponentModel.Lifestyles)">
+            <summary>Registers a component <paramref name="serviceType"/> implemented by <paramref name="implementationType"/>.</summary>
+            <param name="serviceType">Type of the component to be registered.</param>
+            <param name="implementationType">Type implementing the component.</param>
+            <param name="lifestyle">Lifestyle of the registration.</param>
+        </member>
+        <member name="M:URSA.ComponentModel.IComponentProvider.Register``1(``0)">
+            <summary>Registers an instance of the component implementing <typeparamref name="T" />.</summary>
+            <typeparam name="T">Type of the component.</typeparam>
+            <param name="instance">Instance to be registered.</param>
+        </member>
+        <member name="M:URSA.ComponentModel.IComponentProvider.Register(System.Type,System.Object)">
+            <summary>Registers an instance of the component implementing <paramref name="serviceType" />.</summary>
+            <param name="serviceType">Type of the component.</param>
+            <param name="instance">Instance to be registered.</param>
+        </member>
+        <member name="M:URSA.ComponentModel.IComponentProvider.RegisterAll``1(System.Collections.Generic.IEnumerable{System.Reflection.Assembly},URSA.ComponentModel.Lifestyles)">
+            <summary>Registers all components <typeparamref name="T"/>  found in given assemblies.</summary>
+            <typeparam name="T">Type of the component to be registered.</typeparam>
+            <param name="assemblies">Assemblies to scan.</param>
+            <param name="lifestyle">Lifestyle of the registration.</param>
+        </member>
+        <member name="M:URSA.ComponentModel.IComponentProvider.RegisterAll(System.Type,System.Collections.Generic.IEnumerable{System.Reflection.Assembly},URSA.ComponentModel.Lifestyles)">
+            <summary>Registers all components <paramref name="serviceType"/> found in given assemblies.</summary>
+            <param name="serviceType">Type of the component to be registered.</param>
+            <param name="assemblies">Assemblies to scan.</param>
+            <param name="lifestyle">Lifestyle of the registration.</param>
+        </member>
+        <member name="M:URSA.ComponentModel.IComponentProvider.CanResolve``1">
+            <summary>Determines whether it is possible to resolve the instance of type <typeparamref name="T" />.</summary>
+            <typeparam name="T">Type of instance to resolve.</typeparam>
+            <returns><b>true</b> if it is possible to resolve the instance; otherwise <b>false</b>.</returns>
+        </member>
+        <member name="M:URSA.ComponentModel.IComponentProvider.CanResolve(System.Type)">
+            <summary>Determines whether it is possible to resolve the instance of type <paramref name="type" />.</summary>
+            <param name="type">Type of instance to resolve.</param>
+            <returns><b>true</b> if it is possible to resolve the instance; otherwise <b>false</b>.</returns>
+        </member>
+        <member name="M:URSA.ComponentModel.IComponentProvider.Resolve``1(System.Object[])">
+            <summary>Resolves the component.</summary>
+            <typeparam name="T">Type of the component to be resolved.</typeparam>
+            <param name="arguments">Optional arguments to be passed for the resolved instance.</param>
+            <returns>Implementation of the given <typeparamref name="T"/>.</returns>
+        </member>
+        <member name="M:URSA.ComponentModel.IComponentProvider.Resolve(System.Type,System.Object[])">
+            <summary>Resolves the component.</summary>
+            <param name="type">Type of the component to be resolved.</param>
+            <param name="arguments">Optional arguments to be passed for the resolved instance.</param>
+            <returns>Implementation of the given <paramref name="type"/>.</returns>
+        </member>
+        <member name="M:URSA.ComponentModel.IComponentProvider.Resolve``1(System.String,System.Object[])">
+            <summary>Resolves the component.</summary>
+            <typeparam name="T">Type of the component to be resolved.</typeparam>
+            <param name="name">Name of the implementation.</param>
+            <param name="arguments">Optional arguments to be passed for the resolved instance.</param>
+            <returns>Implementation of the given <typeparamref name="T"/>.</returns>
+        </member>
+        <member name="M:URSA.ComponentModel.IComponentProvider.Resolve(System.Type,System.String,System.Object[])">
+            <summary>Resolves the component.</summary>
+            <param name="type">Type of the component to be resolved.</param>
+            <param name="name">Name of the implementation.</param>
+            <param name="arguments">Optional arguments to be passed for the resolved instance.</param>
+            <returns>Implementation of the given <paramref name="type"/>.</returns>
+        </member>
+        <member name="M:URSA.ComponentModel.IComponentProvider.ResolveAll``1(System.Object[])">
+            <summary>Resolves components based on given type.</summary>
+            <typeparam name="T">Type of the components.</typeparam>
+            <param name="arguments">Optional arguments to be passed for the resolved instance.</param>
+            <returns>Enumeration of instances of types registered.</returns>
+        </member>
+        <member name="M:URSA.ComponentModel.IComponentProvider.ResolveAll(System.Type,System.Object[])">
+            <summary>Resolves components based on given type.</summary>
+            <param name="type">Type of the components.</param>
+            <param name="arguments">Optional arguments to be passed for the resolved instance.</param>
+            <returns>Enumeration of instances of types registered.</returns>
+        </member>
+        <member name="M:URSA.ComponentModel.IComponentProvider.ResolveType``1">
+            <summary>Resolves type of the component.</summary>
+            <remarks>This method should return only resolvable, generic closed types.</remarks>
+            <typeparam name="T">Type of the component to be resolved.</typeparam>
+            <returns>Type of the implementation.</returns>
+        </member>
+        <member name="M:URSA.ComponentModel.IComponentProvider.ResolveAllTypes``1">
+            <summary>Resolves type of components based on given type.</summary>
+            <remarks>This method should return only resolvable, generic closed types.</remarks>
+            <typeparam name="T">Type of the components.</typeparam>
+            <returns>Enumeration of types registered.</returns>
+        </member>
+        <member name="M:URSA.ComponentModel.IComponentProvider.ResolveType(System.Type)">
+            <summary>Resolves type of the component.</summary>
+            <remarks>This method should return only resolvable, generic closed types.</remarks>
+            <param name="serviceType">Type of the component to be resolved.</param>
+            <returns>Type of the implementation.</returns>
+        </member>
+        <member name="M:URSA.ComponentModel.IComponentProvider.ResolveAllTypes(System.Type)">
+            <summary>Resolves type of components based on given type.</summary>
+            <remarks>This method should return only resolvable, generic closed types.</remarks>
+            <param name="serviceType">Type of the components.</param>
+            <returns>Enumeration of types registered.</returns>
+        </member>
+        <member name="T:URSA.Configuration.ConfigurationSectionExtensions">
+            <summary>Provides useful configuration section extension methods.</summary>
+        </member>
+        <member name="M:URSA.Configuration.ConfigurationSectionExtensions.GetProvider``1(System.Configuration.ConfigurationElement,System.Type,System.Type[])">
+            <summary>Gets the constructor of the given type.</summary>
+            <typeparam name="T">Type of the interface to be implemented.</typeparam>
+            <param name="configSection">Config section.</param>
+            <param name="type">Type of the provider implementing <typeparamref name="T" /> to get constructor for.</param>
+            <param name="parameterTypes">Optional constructor parameter types.</param>
+            <returns>Default constructor.</returns>
+        </member>
+        <member name="T:URSA.Configuration.UrsaConfigurationSection">
+            <summary>Describes the base URSA configuration section.</summary>
+        </member>
+        <member name="F:URSA.Configuration.UrsaConfigurationSection.ConfigurationSectionGroupName">
+            <summary>Defines a configuration section group name for URSA framework.</summary>
+        </member>
+        <member name="M:URSA.Configuration.UrsaConfigurationSection.InitializeComponentProvider">
+            <summary>Initializes the component provider configured.</summary>
+            <returns>Implementation of the <see cref="T:URSA.ComponentModel.IComponentProvider"/> pointed in the configuration with installers loaded.</returns>
+        </member>
+        <member name="P:URSA.Configuration.UrsaConfigurationSection.InstallerAssemblyNameMask">
+            <summary>Gets or sets the installer assembly name mask.</summary>
+        </member>
+        <member name="P:URSA.Configuration.UrsaConfigurationSection.ServiceProviderType">
+            <summary>Gets or sets the service provider type.</summary>
+        </member>
+        <member name="P:URSA.Configuration.UrsaConfigurationSection.ConverterProviderType">
+            <summary>Gets or sets the converter provider type.</summary>
+        </member>
+        <member name="P:URSA.Configuration.UrsaConfigurationSection.ControllerActivatorType">
+            <summary>Gets or sets the controller activator type.</summary>
+        </member>
+        <member name="P:URSA.Configuration.UrsaConfigurationSection.ComponentProvider">
+            <summary>Gets or sets the component provider.</summary>
+        </member>
+        <member name="T:URSA.Web.DefaultControllerActivator">
+            <summary>Default implementation of the <see cref="T:URSA.Web.IControllerActivator"/>.</summary>
+        </member>
+        <member name="T:URSA.Web.IControllerActivator">
+            <summary>Provides a basic description of controller creation facility.</summary>
+        </member>
+        <member name="M:URSA.Web.IControllerActivator.CreateInstance(System.Type)">
+            <summary>Creates an instance of the controller of type <paramref name="type" />.</summary>
+            <param name="type">Type of the controller to create.</param>
+            <returns>Instance of the controller.</returns>
+        </member>
+        <member name="M:URSA.Web.DefaultControllerActivator.#ctor(URSA.ComponentModel.IComponentProvider)">
+            <summary>Initializes a new instance of the <see cref="T:URSA.Web.DefaultControllerActivator"/> class.</summary>
+            <param name="container">Dependency injection container.</param>
+        </member>
+        <member name="M:URSA.Web.DefaultControllerActivator.CreateInstance(System.Type)">
+            <inheritdoc />
+        </member>
+        <member name="T:URSA.Web.Description.ValueInfo">
+            <summary>Describes a parameter.</summary>
+        </member>
+        <member name="M:URSA.Web.Description.ValueInfo.#ctor(System.Reflection.ParameterInfo,System.String,System.String)">
+            <summary>Initializes a new instance of the <see cref="T:URSA.Web.Description.ValueInfo"/> class.</summary>
+            <param name="parameter">Actual underlying parameter.</param>
+            <param name="uriTemplate">Relative uri template of this value.</param>
+            <param name="variableName">Variable name in the template for given value</param>
+        </member>
+        <member name="P:URSA.Web.Description.ValueInfo.Parameter">
+            <summary>Gets the underlying parameter.</summary>
+        </member>
+        <member name="P:URSA.Web.Description.ValueInfo.UriTemplate">
+            <summary>Gets the relative uri template of this value.</summary>
+        </member>
+        <member name="P:URSA.Web.Description.ValueInfo.VariableName">
+            <summary>Gets the variable name in the template for given value.</summary>
+        </member>
+        <member name="P:URSA.Web.Description.ValueInfo.Method">
+            <summary>Gets or sets the owning method.</summary>
+        </member>
+        <member name="T:URSA.Web.Description.ResultInfo">
+            <summary>Describes a parameter.</summary>
+        </member>
+        <member name="M:URSA.Web.Description.ResultInfo.#ctor(System.Reflection.ParameterInfo,URSA.Web.Mapping.ResultTargetAttribute,System.String,System.String)">
+            <summary>Initializes a new instance of the <see cref="T:URSA.Web.Description.ResultInfo"/> class.</summary>
+            <param name="parameter">Actual underlying parameter.</param>
+            <param name="target">Result target.</param>
+            <param name="uriTemplate">Relative uri template of this result.</param>
+            <param name="variableName">Variable name in the template for given result</param>
+        </member>
+        <member name="P:URSA.Web.Description.ResultInfo.Target">
+            <summary>Gets the result target.</summary>
+        </member>
+        <member name="T:URSA.Web.Description.ArgumentInfo">
+            <summary>Describes a parameter.</summary>
+        </member>
+        <member name="M:URSA.Web.Description.ArgumentInfo.#ctor(System.Reflection.ParameterInfo,URSA.Web.Mapping.ParameterSourceAttribute,System.String,System.String)">
+            <summary>Initializes a new instance of the <see cref="T:URSA.Web.Description.ArgumentInfo"/> class.</summary>
+            <param name="parameter">Actual underlying parameter.</param>
+            <param name="source">Parameter source.</param>
+            <param name="uriTemplate">Relative uri template of this parameter.</param>
+            <param name="variableName">Variable name in the template for given argument</param>
+        </member>
+        <member name="P:URSA.Web.Description.ArgumentInfo.Source">
+            <summary>Gets the parameter source.</summary>
+        </member>
+        <member name="T:URSA.Web.Description.ControllerInfo">
+            <summary>Describes a controller.</summary>
+        </member>
+        <member name="M:URSA.Web.Description.ControllerInfo.#ctor(System.Uri,URSA.Web.Description.OperationInfo[])">
+            <summary>Initializes a new instance of the <see cref="T:URSA.Web.Description.ControllerInfo"/> class.</summary>
+            <param name="uri">Base uri of the controller.</param>
+            <param name="operations">Operation details.</param>
+        </member>
+        <member name="P:URSA.Web.Description.ControllerInfo.Uri">
+            <summary>Gets the base uri of the controller.</summary>
+        </member>
+        <member name="P:URSA.Web.Description.ControllerInfo.Operations">
+            <summary>Gets the operation descriptors.</summary>
+        </member>
+        <member name="T:URSA.Web.Description.ControllerInfo`1">
+            <summary>Describes a controller.</summary>
+            <typeparam name="T">Type of the controller.</typeparam>
+        </member>
+        <member name="M:URSA.Web.Description.ControllerInfo`1.#ctor(System.Uri,URSA.Web.Description.OperationInfo[])">
+            <summary>Initializes a new instance of the <see cref="T:URSA.Web.Description.ControllerInfo`1"/> class.</summary>
+            <param name="uri">Base uri of the controller.</param>
+            <param name="operations">Operation details.</param>
+        </member>
+        <member name="T:URSA.Web.Converters.DefaultConverterProvider">
+            <summary>Default implementation of the <see cref="T:URSA.Web.Converters.IConverterProvider"/>.</summary>
+        </member>
+        <member name="T:URSA.Web.Converters.IConverterProvider">
+            <summary>Provides a basic interface for <see cref="T:URSA.Web.Converters.IConverter"/> providers.</summary>
+        </member>
+        <member name="M:URSA.Web.Converters.IConverterProvider.Initialize(System.Collections.Generic.IEnumerable{URSA.Web.Converters.IConverter})">
+            <summary>Initializes provider with converters.</summary>
+            <param name="converters">Converters to acknowledge.</param>
+        </member>
+        <member name="M:URSA.Web.Converters.IConverterProvider.FindBestInputConverter``1(URSA.Web.IRequestInfo,System.Boolean)">
+            <summary>Searches for the best matching input <see cref="T:URSA.Web.Converters.IConverter"/>.</summary>
+            <typeparam name="T">Type of the expected type.</typeparam>
+            <param name="request">Request details.</param>
+            <param name="ignoreProtocol">Instructs to ignore protocol matching.</param>
+            <returns>Instance of the <see cref="T:URSA.Web.Converters.IConverter"/> if possible; otherwise <b>null</b>.</returns>
+        </member>
+        <member name="M:URSA.Web.Converters.IConverterProvider.FindBestInputConverter(System.Type,URSA.Web.IRequestInfo,System.Boolean)">
+            <summary>Searches for the best matching input <see cref="T:URSA.Web.Converters.IConverter"/>.</summary>
+            <param name="expectedType">Type of the expected type.</param>
+            <param name="request">Request details.</param>
+            <param name="ignoreProtocol">Instructs to ignore protocol matching.</param>
+            <returns>Instance of the <see cref="T:URSA.Web.Converters.IConverter"/> if possible; otherwise <b>null</b>.</returns>
+        </member>
+        <member name="M:URSA.Web.Converters.IConverterProvider.FindBestOutputConverter``1(URSA.Web.IResponseInfo)">
+            <summary>Searches for the best matching output <see cref="T:URSA.Web.Converters.IConverter"/>.</summary>
+            <typeparam name="T">Type of the expected type.</typeparam>
+            <param name="response">Response details.</param>
+            <returns>Instance of the <see cref="T:URSA.Web.Converters.IConverter"/> if possible; otherwise <b>null</b>.</returns>
+        </member>
+        <member name="M:URSA.Web.Converters.IConverterProvider.FindBestOutputConverter(System.Type,URSA.Web.IResponseInfo)">
+            <summary>Searches for the best matching output <see cref="T:URSA.Web.Converters.IConverter"/>.</summary>
+            <param name="expectedType">Type of the expected type.</param>
+            <param name="response">Response details.</param>
+            <returns>Instance of the <see cref="T:URSA.Web.Converters.IConverter"/> if possible; otherwise <b>null</b>.</returns>
+        </member>
+        <member name="P:URSA.Web.Converters.IConverterProvider.SupportedMediaTypes">
+            <summary>Gets the supported media types.</summary>
+        </member>
+        <member name="M:URSA.Web.Converters.DefaultConverterProvider.Initialize(System.Collections.Generic.IEnumerable{URSA.Web.Converters.IConverter})">
+            <inheritdoc />
+        </member>
+        <member name="M:URSA.Web.Converters.DefaultConverterProvider.FindBestInputConverter``1(URSA.Web.IRequestInfo,System.Boolean)">
+            <inheritdoc />
+        </member>
+        <member name="M:URSA.Web.Converters.DefaultConverterProvider.FindBestInputConverter(System.Type,URSA.Web.IRequestInfo,System.Boolean)">
+            <inheritdoc />
+        </member>
+        <member name="M:URSA.Web.Converters.DefaultConverterProvider.FindBestOutputConverter``1(URSA.Web.IResponseInfo)">
+            <inheritdoc />
+        </member>
+        <member name="M:URSA.Web.Converters.DefaultConverterProvider.FindBestOutputConverter(System.Type,URSA.Web.IResponseInfo)">
+            <inheritdoc />
+        </member>
+        <member name="P:URSA.Web.Converters.DefaultConverterProvider.SupportedMediaTypes">
+            <inheritdoc />
+        </member>
+        <member name="T:URSA.Web.Converters.CompatibilityLevel">
+            <summary>Defines body-converter compatibility levels.</summary>
+        </member>
+        <member name="F:URSA.Web.Converters.CompatibilityLevel.ExactMatch">
+            <summary>Defines a both type and protocol exact match of the converter against given body.</summary>
+        </member>
+        <member name="F:URSA.Web.Converters.CompatibilityLevel.ExactTypeMatch">
+            <summary>Defines an exact type match of the converter against given body.</summary>
+        </member>
+        <member name="F:URSA.Web.Converters.CompatibilityLevel.ExactProtocolMatch">
+            <summary>Defines an exact protocol match of the converter against given body.</summary>
+        </member>
+        <member name="F:URSA.Web.Converters.CompatibilityLevel.TypeMatch">
+            <summary>Defines a type match of the converter against given body.</summary>
+        </member>
+        <member name="F:URSA.Web.Converters.CompatibilityLevel.ProtocolMatch">
+            <summary>Defines a media type match of the converter against given body.</summary>
+        </member>
+        <member name="F:URSA.Web.Converters.CompatibilityLevel.None">
+            <summary>Defines a lack of compatibility of the converter against given body.</summary>
+        </member>
+        <member name="T:URSA.Web.Converters.IConverter">
+            <summary>Provides a basic value conversion facility.</summary>
+        </member>
+        <member name="M:URSA.Web.Converters.IConverter.CanConvertTo``1(URSA.Web.IRequestInfo)">
+            <summary>Checks if the converter can convert body of the request to the expected type.</summary>
+            <typeparam name="T">Type of object expected.</typeparam>
+            <param name="request">Request details.</param>
+            <returns><see cref="T:URSA.Web.Converters.CompatibilityLevel"/> between given request body and converter.</returns>
+        </member>
+        <member name="M:URSA.Web.Converters.IConverter.CanConvertTo(System.Type,URSA.Web.IRequestInfo)">
+            <summary>Checks if the converter can convert body of the request to the expected type.</summary>
+            <param name="expectedType">Type of object expected.</param>
+            <param name="request">Request details.</param>
+            <returns><see cref="T:URSA.Web.Converters.CompatibilityLevel"/> between given request body and converter.</returns>
+        </member>
+        <member name="M:URSA.Web.Converters.IConverter.ConvertTo``1(URSA.Web.IRequestInfo)">
+            <summary>Converts the request body into an object of the expected type.</summary>
+            <typeparam name="T">Type of object expected.</typeparam>
+            <param name="request">Request details.</param>
+            <returns>Object being an programmatic representation of the request body.</returns>
+        </member>
+        <member name="M:URSA.Web.Converters.IConverter.ConvertTo(System.Type,URSA.Web.IRequestInfo)">
+            <summary>Converts the request body into an object of the expected type.</summary>
+            <param name="expectedType">Type of object expected.</param>
+            <param name="request">Request details.</param>
+            <returns>Object being an programmatic representation of the request body.</returns>
+        </member>
+        <member name="M:URSA.Web.Converters.IConverter.ConvertTo``1(System.String)">
+            <summary>Converts the request body into an object of the expected type.</summary>
+            <typeparam name="T">Type of object expected.</typeparam>
+            <param name="body">Message body string.</param>
+            <returns>Object being an programmatic representation of the request body.</returns>
+        </member>
+        <member name="M:URSA.Web.Converters.IConverter.ConvertTo(System.Type,System.String)">
+            <summary>Converts the request body into an object of the expected type.</summary>
+            <param name="expectedType">Type of object expected.</param>
+            <param name="body">Message body string.</param>
+            <returns>Object being an programmatic representation of the request body.</returns>
+        </member>
+        <member name="M:URSA.Web.Converters.IConverter.CanConvertFrom``1(URSA.Web.IResponseInfo)">
+            <summary>Checks if the converter can convert object to response message body.</summary>
+            <typeparam name="T">Type of object.</typeparam>
+            <param name="response">Response details.</param>
+            <returns><see cref="T:URSA.Web.Converters.CompatibilityLevel"/> between desired type of object passed to the converter and the response.</returns>
+        </member>
+        <member name="M:URSA.Web.Converters.IConverter.CanConvertFrom(System.Type,URSA.Web.IResponseInfo)">
+            <summary>Checks if the converter can convert object to response message body.</summary>
+            <param name="givenType">Type of object.</param>
+            <param name="response">Response details.</param>
+            <returns><see cref="T:URSA.Web.Converters.CompatibilityLevel"/> between desired type of object passed to the converter and the response.</returns>
+        </member>
+        <member name="M:URSA.Web.Converters.IConverter.ConvertFrom``1(``0,URSA.Web.IResponseInfo)">
+            <summary>Converts an instance of the object into a response message body.</summary>
+            <typeparam name="T">Type of object.</typeparam>
+            <param name="instance">Instance to be converted.</param>
+            <param name="response">Response descriptor.</param>
+        </member>
+        <member name="M:URSA.Web.Converters.IConverter.ConvertFrom(System.Type,System.Object,URSA.Web.IResponseInfo)">
+            <summary>Converts an instance of the object into a response message body.</summary>
+            <param name="givenType">Type of object.</param>
+            <param name="instance">Instance to be converted.</param>
+            <param name="response">Response descriptor.</param>
+        </member>
+        <member name="P:URSA.Web.Converters.IConverter.SupportedMediaTypes">
+            <summary>Gets the supported media types.</summary>
+        </member>
+        <member name="T:URSA.Web.Description.IControllerDescriptionBuilder">
+            <summary>Builds description for given controller.</summary>
+        </member>
+        <member name="M:URSA.Web.Description.IControllerDescriptionBuilder.BuildDescriptor">
+            <summary>Builds the controller descriptor.</summary>
+            <returns>Controller description info.</returns>
+        </member>
+        <member name="M:URSA.Web.Description.IControllerDescriptionBuilder.GetOperationUriTemplate(System.Reflection.MethodInfo,System.Collections.Generic.IEnumerable{URSA.Web.Description.ArgumentInfo}@)">
+            <summary>Gets the operation Uri template.</summary>
+            <param name="methodInfo">Method for which to obtain the template.</param>
+            <param name="argumentMapping">Resulting argument mappings.</param>
+            <returns>Uri template for methods with parameters; otherwise <b>null</b>.</returns>
+        </member>
+        <member name="T:URSA.Web.Description.IControllerDescriptionBuilder`1">
+            <summary>Builds description for given controller.</summary>
+            <typeparam name="T">Type of the controller described.</typeparam>
+        </member>
+        <member name="M:URSA.Web.Description.IControllerDescriptionBuilder`1.BuildDescriptor">
+            <summary>Builds the controller descriptor.</summary>
+            <returns>Controller description info.</returns>
+        </member>
+        <member name="T:URSA.Web.IControlledEntity`1">
+            <summary>Represents an entity controlled by the <see cref="T:URSA.Web.IReadController`2"/>.</summary>
+            <typeparam name="T">Type of the entity's identifier.</typeparam>
+        </member>
+        <member name="P:URSA.Web.IControlledEntity`1.Id">
+            <summary>Gets or sets the primary key.</summary>
+        </member>
+        <member name="T:URSA.Web.IReadController`2">
+            <summary>Provides a contract of a read controller.</summary>
+            <typeparam name="T">Type of entities retrieved.</typeparam>
+            <typeparam name="I">Type of the identifier of entity.</typeparam>
+        </member>
+        <member name="T:URSA.Web.IController`1">
+            <summary>Specialized controller focused on CRUD operations of type <typeparamref name="T" />.</summary>
+            <typeparam name="T">Type of resource given controller works with.</typeparam>
+        </member>
+        <member name="T:URSA.Web.IController">
+            <summary>Marks classes as request handlers.</summary>
+        </member>
+        <member name="P:URSA.Web.IController.Response">
+            <summary>Gets or sets the response descriptor.</summary>
+        </member>
+        <member name="M:URSA.Web.IController`1.List(System.Int32,System.Int32)">
+            <summary>Gets all </summary>
+            <param name="skip">Skips top <paramref name="skip" /> elements of the collection.</param>
+            <param name="take">Takes top <paramref name="take" /> elements of the collection. Use 0 for all of the entities.</param>
+            <returns>Collection of entities.</returns>
+        </member>
+        <member name="M:URSA.Web.IReadController`2.Get(`1)">
+            <summary>Gets the given entity.</summary>
+            <param name="id">Identifier of the entity to retrieve.</param>
+            <returns>Instance of the <typeparamref name="T" /> if matching <paramref name="id" />; otherwise <b>null</b>.</returns>
+        </member>
+        <member name="T:URSA.Web.IWriteController`2">
+            <summary>Provides write operations of an entity.</summary>
+            <typeparam name="T">Type of entities.</typeparam>
+            <typeparam name="I">Type of the identifier of an entity.</typeparam>
+        </member>
+        <member name="M:URSA.Web.IWriteController`2.Create(`1@,`0)">
+            <summary>Creates a new instance.</summary>
+            <param name="id">Identifier of newly created entity.</param>
+            <param name="instance">Instance to be created.</param>
+            <returns><b>true</b> for success and <b>false</b> for failure; otherwise <b>null</b> when the instance does not exist.</returns>
+        </member>
+        <member name="M:URSA.Web.IWriteController`2.Update(`1,`0)">
+            <summary>Updates an existing instance.</summary>
+            <param name="id">Identifier of the entity to be updated.</param>
+            <param name="instance">Instance data.</param>
+            <returns><b>true</b> for success and <b>false</b> for failure; otherwise <b>null</b> when the instance does not exist.</returns>
+        </member>
+        <member name="M:URSA.Web.IWriteController`2.Delete(`1)">
+            <summary>Deletes an entity.</summary>
+            <param name="id">Identifier of the entity to be deleted.</param>
+            <returns><b>true</b> for success and <b>false</b> for failure; otherwise <b>null</b> when the instance does not exist.</returns>
+        </member>
+        <member name="T:URSA.Web.Mapping.IArgumentBinder">
+            <summary>Provides a basic contract for argument binders.</summary>
+        </member>
+        <member name="M:URSA.Web.Mapping.IArgumentBinder.BindArguments(URSA.Web.IRequestInfo,URSA.Web.IRequestMapping)">
+            <summary>Binds the arguments required to call the <paramref name="requestMapping" />.</summary>
+            <param name="request">Request details.</param>
+            <param name="requestMapping">Request mapping.</param>
+            <returns>Instances of values to be used as arguments of the <paramref name="requestMapping" />.</returns>
+        </member>
+        <member name="T:URSA.Web.Mapping.IArgumentBinder`1">
+            <summary>Provides a basic contract for argument binders.</summary>
+            <typeparam name="T">Type of the request handled.</typeparam>
+        </member>
+        <member name="M:URSA.Web.Mapping.IArgumentBinder`1.BindArguments(`0,URSA.Web.IRequestMapping)">
+            <summary>Binds the arguments required to call the <paramref name="requestMapping" />.</summary>
+            <param name="request">Request details.</param>
+            <param name="requestMapping">Request mapping.</param>
+            <returns>Instances of values to be used as arguments of the <paramref name="requestMapping" />.</returns>
+        </member>
+        <member name="T:URSA.Web.IRequestMapping">
+            <summary>Defines a basic contract for request mapping.</summary>
+        </member>
+        <member name="M:URSA.Web.IRequestMapping.Invoke(System.Object[])">
+            <summary>Invokes the mapped method.</summary>
+            <param name="arguments">Arguments for the invoked method.</param>
+            <returns>Result of the invocation.</returns>
+        </member>
+        <member name="P:URSA.Web.IRequestMapping.Target">
+            <summary>Gets the target of the invocation.</summary>
+        </member>
+        <member name="P:URSA.Web.IRequestMapping.Operation">
+            <summary>Gets the operation to be invoked.</summary>
+        </member>
+        <member name="P:URSA.Web.IRequestMapping.MethodRoute">
+            <summary>Gets the mapped method route.</summary>
+        </member>
+        <member name="T:URSA.Web.IResponseInfo">
+            <summary>Represents a response.</summary>
+        </member>
+        <member name="P:URSA.Web.IResponseInfo.Request">
+            <summary>Gets the corresponding request.</summary>
+        </member>
+        <member name="P:URSA.Web.IResponseInfo.Headers">
+            <summary>Gets the response headers.</summary>
+        </member>
+        <member name="P:URSA.Web.IResponseInfo.Body">
+            <summary>Gets the response body.</summary>
+        </member>
+        <member name="T:URSA.Web.IDelegateMapper">
+            <summary>Provides a basic description of the handler class method mapping facility.</summary>
+        </member>
+        <member name="M:URSA.Web.IDelegateMapper.MapRequest(URSA.Web.IRequestInfo)">
+            <summary>Maps a given requested uri to an actual method.</summary>
+            <param name="request">Requested uri.</param>
+            <returns><see cref="T:URSA.Web.IRequestMapping"/> pointing to the target handler or <b>null</b>.</returns>
+        </member>
+        <member name="T:URSA.Web.IDelegateMapper`1">
+            <summary>Provides a basic description of the handler class mapping facility.</summary>
+            <typeparam name="T">Type of requests to be mapped.</typeparam>
+        </member>
+        <member name="M:URSA.Web.IDelegateMapper`1.MapRequest(`0)">
+            <summary>Maps a given requested uri to an actual method.</summary>
+            <param name="request">Requested uri.</param>
+            <returns><see cref="T:URSA.Web.IRequestMapping"/> pointing to the target handler or <b>null</b>.</returns>
+        </member>
+        <member name="T:URSA.Web.IRequestHandler`2">
+            <summary>Describes a request handler.</summary>
+            <typeparam name="T">Type of requests to be handled.</typeparam>
+            <typeparam name="R">Type of response returned.</typeparam>
+        </member>
+        <member name="M:URSA.Web.IRequestHandler`2.HandleRequest(`0)">
+            <summary>Handles the requests.</summary>
+            <param name="request">Request details.</param>
+            <returns>Resulting response.</returns>
+        </member>
+        <member name="T:URSA.Web.IRequestInfo">
+            <summary>Describes a request.</summary>
+        </member>
+        <member name="P:URSA.Web.IRequestInfo.OutputNeutral">
+            <summary>Gets a value indicating whether the output can be provided by any of the converters available.</summary>
+        </member>
+        <member name="P:URSA.Web.IRequestInfo.Headers">
+            <summary>Gets the request headers.</summary>
+        </member>
+        <member name="P:URSA.Web.IRequestInfo.Body">
+            <summary>Gets the body of the request.</summary>
+        </member>
+        <member name="P:URSA.Web.IRequestInfo.Uri">
+            <summary>Gets the uri of the request.</summary>
+        </member>
+        <member name="T:URSA.Web.Mapping.FromQueryStringAttribute">
+            <summary>Marks the parameter to be bound to the query string.</summary>
+        </member>
+        <member name="T:URSA.Web.Mapping.ParameterSourceAttribute">
+            <summary>Parameter source marker.</summary>
+        </member>
+        <member name="T:URSA.Web.Mapping.MappingAttribute">
+            <summary>Abstract of a mapping attribute.</summary>
+        </member>
+        <member name="F:URSA.Web.Mapping.FromQueryStringAttribute.Value">
+            <summary>Defines a part of the uri responsible for mapping the actual value of the parameter in the uri.</summary>
+        </member>
+        <member name="F:URSA.Web.Mapping.FromQueryStringAttribute.Key">
+            <summary>Defines a part of the uri responsible for mapping name of the parameter.</summary>
+        </member>
+        <member name="F:URSA.Web.Mapping.FromQueryStringAttribute.Default">
+            <summary>Defines a default query string pattern.</summary>
+        </member>
+        <member name="M:URSA.Web.Mapping.FromQueryStringAttribute.#ctor">
+            <summary>Initializes a new instance of the <see cref="T:URSA.Web.Mapping.FromQueryStringAttribute"/> class.</summary>
+        </member>
+        <member name="M:URSA.Web.Mapping.FromQueryStringAttribute.#ctor(System.String)">
+            <summary>Initializes a new instance of the <see cref="T:URSA.Web.Mapping.FromQueryStringAttribute"/> class.</summary>
+            <param name="uri">Template of the uri for this parameter mapping.</param>
+        </member>
+        <member name="M:URSA.Web.Mapping.FromQueryStringAttribute.For(System.Reflection.ParameterInfo)">
+            <summary>Creates an instance of the <see cref="T:URSA.Web.Mapping.FromQueryStringAttribute"/> for given <paramref name="parameter "/>.</summary>
+            <param name="parameter">Parameter for which the attribute needs to be created.</param>
+            <returns>Instance of the <see cref="T:URSA.Web.Mapping.FromQueryStringAttribute"/>.</returns>
+        </member>
+        <member name="M:URSA.Web.Mapping.FromQueryStringAttribute.ToString">
+            <inheritdoc />
+        </member>
+        <member name="P:URSA.Web.Mapping.FromQueryStringAttribute.UriTemplate">
+            <summary>Gets the template of the uri for this parameter mapping.</summary>
+        </member>
+        <member name="T:URSA.Web.Mapping.FromBodyAttribute">
+            <summary>Marks the parameter to be bound to the body of the request.</summary>
+        </member>
+        <member name="M:URSA.Web.Mapping.FromBodyAttribute.#ctor">
+            <summary>Initializes a new instance of the <see cref="T:URSA.Web.Mapping.FromBodyAttribute"/> class.</summary>
+        </member>
+        <member name="M:URSA.Web.Mapping.FromBodyAttribute.#ctor(System.String)">
+            <summary>Initializes a new instance of the <see cref="T:URSA.Web.Mapping.FromBodyAttribute"/> class.</summary>
+            <param name="name">Name of the parameter in the multipart body form data.</param>
+        </member>
+        <member name="M:URSA.Web.Mapping.FromBodyAttribute.For(System.Reflection.ParameterInfo)">
+            <summary>Creates a body parameter source mapping for given parameter.</summary>
+            <param name="parameter">Parameter for which to create mapping.</param>
+            <returns>Instance of the <see cref="T:URSA.Web.Mapping.FromBodyAttribute"/>.</returns>
+        </member>
+        <member name="P:URSA.Web.Mapping.FromBodyAttribute.Name">
+            <summary>Gets the name of the parameter in the multipart body form data.</summary>
+        </member>
+        <member name="T:URSA.Web.Mapping.ResultTargetAttribute">
+            <summary>Determines target of the resulting argument.</summary>
+        </member>
+        <member name="T:URSA.Web.Mapping.ToBodyAttribute">
+            <summary>Points as the body output target.</summary>
+        </member>
+        <member name="T:URSA.Web.Mapping.ToHeaderAttribute">
+            <summary>Marks the parameter to be bound to the response header.</summary>
+        </member>
+        <member name="M:URSA.Web.Mapping.ToHeaderAttribute.#ctor(System.String)">
+            <summary>Initializes a new instance of the <see cref="T:URSA.Web.Mapping.ToHeaderAttribute"/> class.</summary>
+            <param name="name">Name of the header to be used.</param>
+        </member>
+        <member name="P:URSA.Web.Mapping.ToHeaderAttribute.Name">
+            <summary>Gets the name of the header to be used.</summary>
+        </member>
+        <member name="T:URSA.Web.Mapping.FromUriAttribute">
+            <summary>Marks the parameter to be bound to the uri.</summary>
+        </member>
+        <member name="F:URSA.Web.Mapping.FromUriAttribute.Value">
+            <summary>Defines a part of the uri responsible for mapping the actual value of the parameter in the uri.</summary>
+        </member>
+        <member name="F:URSA.Web.Mapping.FromUriAttribute.Key">
+            <summary>Defines a part of the uri responsible for mapping the name of the parameter.</summary>
+        </member>
+        <member name="F:URSA.Web.Mapping.FromUriAttribute.Default">
+            <summary>Defines a default uri pattern.</summary>
+        </member>
+        <member name="M:URSA.Web.Mapping.FromUriAttribute.#ctor">
+            <summary>Initializes a new instance of the <see cref="T:URSA.Web.Mapping.FromUriAttribute"/> class.</summary>
+        </member>
+        <member name="M:URSA.Web.Mapping.FromUriAttribute.#ctor(System.String)">
+            <summary>Initializes a new instance of the <see cref="T:URSA.Web.Mapping.FromUriAttribute"/> class.</summary>
+            <param name="uri">Template of the uri for this parameter mapping.</param>
+        </member>
+        <member name="M:URSA.Web.Mapping.FromUriAttribute.For(System.Reflection.ParameterInfo)">
+            <summary>Creates an instance of the <see cref="T:URSA.Web.Mapping.FromUriAttribute"/> for given <paramref name="parameter "/>.</summary>
+            <param name="parameter">Parameter for which the attribute needs to be created.</param>
+            <returns>Instance of the <see cref="T:URSA.Web.Mapping.FromQueryStringAttribute"/>.</returns>
+        </member>
+        <member name="M:URSA.Web.Mapping.FromUriAttribute.ToString">
+            <inheritdoc />
+        </member>
+        <member name="P:URSA.Web.Mapping.FromUriAttribute.UriTemplate">
+            <summary>Gets the template of the uri for this parameter mapping.</summary>
+        </member>
+        <member name="T:URSA.Web.Mapping.RouteAttribute">
+            <summary>Describes the partial uri associated with the method.</summary>
+        </member>
+        <member name="M:URSA.Web.Mapping.RouteAttribute.#ctor(System.String)">
+            <summary>Initializes a new instance of the <see cref="T:URSA.Web.Mapping.RouteAttribute"/> class.</summary>
+            <param name="uri">Part of the uri associated with the method.</param>
+        </member>
+        <member name="P:URSA.Web.Mapping.RouteAttribute.Uri">
+            <summary>Gets the part of the uri associated with the method.</summary>
+        </member>
+        <member name="T:URSA.Web.Description.OperationInfo">
+            <summary>Describes an controller operation.</summary>
+        </member>
+        <member name="M:URSA.Web.Description.OperationInfo.#ctor(System.Reflection.MethodInfo,System.Uri,System.String,System.Text.RegularExpressions.Regex,URSA.Web.Description.ValueInfo[])">
+            <summary>Initializes a new instance of the <see cref="T:URSA.Web.Description.OperationInfo"/> class.</summary>
+            <param name="underlyingMethod">Actual underlying method.</param>
+            <param name="uri">Base relative uri of the method without arguments.</param>
+            <param name="uriTemplate">Relative uri template with all arguments included.</param>
+            <param name="templateRegex">Regular expression template with all arguments included.</param>
+            <param name="values">Values descriptions.</param>
+        </member>
+        <member name="P:URSA.Web.Description.OperationInfo.UnderlyingMethod">
+            <summary>Gets the actual underlying method.</summary>
+        </member>
+        <member name="P:URSA.Web.Description.OperationInfo.Uri">
+            <summary>Gets the base uri of the method without arguments.</summary>
+        </member>
+        <member name="P:URSA.Web.Description.OperationInfo.UriTemplate">
+            <summary>Gets the uri template with all arguments included.</summary>
+        </member>
+        <member name="P:URSA.Web.Description.OperationInfo.TemplateRegex">
+            <summary>Gets the uri regular expression template with all arguments included.</summary>
+        </member>
+        <member name="P:URSA.Web.Description.OperationInfo.Arguments">
+            <summary>Gets the argument descriptions.</summary>
+        </member>
+        <member name="P:URSA.Web.Description.OperationInfo.Results">
+            <summary>Gets the result descriptions.</summary>
+        </member>
+        <member name="T:URSA.Web.Description.OperationInfo`1">
+            <summary>Describes an controller operation.</summary>
+            <typeparam name="T">Type of the protocol specific command.</typeparam>
+        </member>
+        <member name="M:URSA.Web.Description.OperationInfo`1.#ctor(System.Reflection.MethodInfo,System.Uri,System.String,System.Text.RegularExpressions.Regex,`0,URSA.Web.Description.ValueInfo[])">
+            <summary>Initializes a new instance of the <see cref="T:URSA.Web.Description.OperationInfo`1"/> class.</summary>
+            <param name="underlyingMethod">Actual underlying method.</param>
+            <param name="uri">Base relative uri of the method without arguments.</param>
+            <param name="uriTemplate">Relative uri template with all arguments included.</param>
+            <param name="templateRegex">Regular expression template with all arguments included.</param>
+            <param name="protocolSpecificCommand">Protocol specific command.</param>
+            <param name="values">Values descriptions.</param>
+        </member>
+        <member name="M:URSA.Web.Description.OperationInfo`1.op_Equality(URSA.Web.Description.OperationInfo{`0},URSA.Web.Description.OperationInfo{`0})">
+            <summary>Implements the operator equality.</summary>
+            <param name="operandA">Left operand.</param>
+            <param name="operandB">Right operand.</param>
+            <returns>The result of the operator.</returns>
+        </member>
+        <member name="M:URSA.Web.Description.OperationInfo`1.op_Inequality(URSA.Web.Description.OperationInfo{`0},URSA.Web.Description.OperationInfo{`0})">
+            <summary>Implements the operator inequality operator.</summary>
+            <param name="operandA">Left operand.</param>
+            <param name="operandB">Right operand.</param>
+            <returns>The result of the operator.</returns>
+        </member>
+        <member name="M:URSA.Web.Description.OperationInfo`1.GetHashCode">
+            <inheritdoc />
+        </member>
+        <member name="M:URSA.Web.Description.OperationInfo`1.Equals(System.Object)">
+            <inheritdoc />
+        </member>
+        <member name="P:URSA.Web.Description.OperationInfo`1.ProtocolSpecificCommand">
+            <summary>Gets the protocol specific command.</summary>
+        </member>
+        <member name="T:URSA.Web.RequestHandlerBase`2">
+            <summary>Serves as an abstract of the main entry point for the URSA.</summary>
+            <typeparam name="T">Type of the requests.</typeparam>
+            <typeparam name="TR">Type of the response.</typeparam>
+        </member>
+        <member name="M:URSA.Web.RequestHandlerBase`2.#ctor">
+            <summary>Initializes a new instance of the <see cref="T:URSA.Web.RequestHandlerBase`2"/> class.</summary>
+        </member>
+        <member name="M:URSA.Web.RequestHandlerBase`2.HandleRequest(`0)">
+            <inheritdoc />
+        </member>
+        <member name="P:URSA.Web.RequestHandlerBase`2.ConverterProvider">
+            <summary>Gets the converters provider.</summary>
+        </member>
+    </members>
+</doc>
