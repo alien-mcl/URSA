@@ -78,7 +78,6 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="packages.config" />
-    <Content Include="PersonController.txt" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>
@@ -100,7 +99,6 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="App_Code\Test.cs" />
     <Compile Include="Controllers\ProductController.cs" />
     <Compile Include="Controllers\PersonController.cs" />
     <Compile Include="Data\IProduct.cs" />
