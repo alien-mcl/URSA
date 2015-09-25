@@ -87,6 +87,7 @@
     <Compile Include="Given_instance_of_the\ControllerDescriptionBuilder_class\when_having_a_CRUD_controller.cs" />
     <Compile Include="Given_instance_of_the\ControllerDescriptionBuilder_class\when_having_standard_controller.cs" />
     <Compile Include="Given_instance_of_the\ControllerDescriptionBuilder_class\when_having_dependent_route_controller.cs" />
+    <Compile Include="Given_instance_of_the\converter_of\ExceptionConverter_class.cs" />
     <Compile Include="Given_instance_of_the\converter_of\DecimalConverter_class.cs" />
     <Compile Include="Given_instance_of_the\converter_of\DoubleConverter_class.cs" />
     <Compile Include="Given_instance_of_the\DefaultValueRelationSelector_class\when_handlig_response.cs" />

@@ -8,7 +8,7 @@ namespace URSA.Web.Http
     /// <summary>Represents an HTTP exception.</summary>
     [ExcludeFromCodeCoverage]
     [Serializable]
-    public class ProtocolException : Exception, ISerializable
+    public class ProtocolException : Exception
     {
         /// <summary>Initializes a new instance of the <see cref="ProtocolException" /> class.</summary>
         /// <param name="status">An associated HTTP status code of this exception</param>

@@ -18,20 +18,29 @@ namespace System
                 throw new ArgumentNullException("exception");
             }
 
-            switch (exception.GetType().FullName)
+            try
             {
-                case "System.Web.HttpException":
-                    return (ProtocolException)exception;
-                case "System.ArgumentException":
-                case "System.ArgumentNullException":
-                case "System.ArgumentOutOfRangeException":
-                    return new ProtocolException(HttpStatusCode.BadRequest, exception);
-                case "System.NotImplementedException":
-                    return new ProtocolException(HttpStatusCode.NotImplemented, exception);
-                case "System.UnauthorizedAccessException":
-                    return new ProtocolException(HttpStatusCode.Unauthorized, exception);
-                default:
-                    return new ProtocolException(HttpStatusCode.InternalServerError, exception);
+                switch (exception.GetType().FullName)
+                {
+                    case "URSA.Web.Http.ProtocolException":
+                        return (ProtocolException)exception;
+                    case "System.Web.HttpException":
+                        throw new ProtocolException((HttpStatusCode)((Web.HttpException)exception).WebEventCode);
+                    case "System.ArgumentException":
+                    case "System.ArgumentNullException":
+                    case "System.ArgumentOutOfRangeException":
+                        throw new ProtocolException(HttpStatusCode.BadRequest, exception);
+                    case "System.NotImplementedException":
+                        throw new ProtocolException(HttpStatusCode.NotImplemented, exception);
+                    case "System.UnauthorizedAccessException":
+                        throw new ProtocolException(HttpStatusCode.Unauthorized, exception);
+                    default:
+                        throw new ProtocolException(HttpStatusCode.InternalServerError, exception);
+                }
+            }
+            catch (ProtocolException result)
+            {
+                return result;
             }
         }
     }

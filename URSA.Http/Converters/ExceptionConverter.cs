@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using URSA.Web.Converters;
 
 namespace URSA.Web.Http.Converters
@@ -7,7 +8,8 @@ namespace URSA.Web.Http.Converters
     /// <summary>Converts exceptions into an HTTP message.</summary>
     public class ExceptionConverter : IConverter
     {
-        private static readonly string[] MediaTypes = new string[0];
+        private const string ApplicationProblemJson = "application/problem+json";
+        private static readonly string[] MediaTypes = { ApplicationProblemJson };
 
         /// <inheritdoc />
         public IEnumerable<string> SupportedMediaTypes { get { return MediaTypes; } }
@@ -104,6 +106,15 @@ namespace URSA.Web.Http.Converters
                 System.Web.HttpUtility.JavaScriptStringEncode(exception.Message));
             responseInfo.Headers.Add(new Header(Header.Warning, message));
             responseInfo.Status = exception.Status;
+            using (var writer = new StreamWriter(responseInfo.Body))
+            {
+                writer.Write(
+                    "{{{0}\t\"title\":\"{2}\",{0}\t\"details\":\"{3}\",\"status\":{1}{0}}}",
+                    Environment.NewLine,
+                    (int)exception.Status,
+                    System.Web.HttpUtility.JavaScriptStringEncode(exception.Message),
+                    System.Web.HttpUtility.JavaScriptStringEncode(exception.StackTrace));
+            }
         }
     }
 }
