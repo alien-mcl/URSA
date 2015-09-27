@@ -5,6 +5,7 @@ URSA is designed to do as much as possible automatically. While there is always 
 
 ### Building API
 Build an API is as easy as 01, 10, 11. Define a class implementing any of the interfaces listed below and this should make your class up and running:
+
 * URSA.Web.IController - the simplest and with least support for ReST behaviour.
 * URSA.Web.IController&lt;T&gt; - basic entity of type *T* based controller with list of items.
 * URSA.Web.IReadController&lt;T, I&gt; - basic entity of type *T* based controller with access to single item.
@@ -51,7 +52,7 @@ URSA comes with several convertes transforming incomming parameters and request 
 * *System.DateTime* converter - converts *text/plain* media types into *System.DateTime* or *System.Collections.Generic.IEnumerable&lt;System.DateTime&gt;*
 * *System.TimeSpan* converter - converts *text/plain* media types into *System.TimeSpan* or *System.Collections.Generic.IEnumerable&lt;System.TimeSpan&gt;*
 * *System.Guid* converter - converts *text/plain* media types into *System.Guid* or *System.Collections.Generic.IEnumerable&lt;System.Guid&gt;*
-* *System.Uri converter - converts either *text/plain* or *text/uri-list* media types into *System.Uri* or *System.Collections.Generic.IEnumerable&lt;System.Uri&gt;*
+* *System.Uri* converter - converts either *text/plain* or *text/uri-list* media types into *System.Uri* or *System.Collections.Generic.IEnumerable&lt;System.Uri&gt;*
 * JSON converter - converts *application/json* media types into strongly typed instances
 * XML converter - converts either *text/xml* or *application/xml* into strongly typed instances
 * RDF converter - converts *text/turtle*, *application/rdf+xml*, *application/owl+xml*, *application/ld+json* media types into strony typed instances
