@@ -12,6 +12,7 @@ namespace URSA.Web.Http.Description
     public class XmlDocProvider : IXmlDocProvider
     {
         private static readonly IDictionary<Assembly, XDocument> AssemblyCache = new ConcurrentDictionary<Assembly, XDocument>();
+        private static readonly Func<XElement, bool> DefaultAuxPredicate = element => element.Name == "summary"; 
 
         /// <inheritdoc />
         public string GetDescription(Type type)
@@ -37,6 +38,26 @@ namespace URSA.Web.Http.Description
             return GetText(
                 AssemblyCache[method.DeclaringType.Assembly], 
                 element => (element.Attribute("name") != null) && (element.Attribute("name").Value == CreateMemberName(method)));
+        }
+
+        /// <inheritdoc />
+        public string GetDescription(MethodInfo method, ParameterInfo parameter)
+        {
+            if (method == null)
+            {
+                throw new ArgumentNullException("method");
+            }
+
+            if (parameter == null)
+            {
+                throw new ArgumentNullException("parameter");
+            }
+
+            EnsureAssemblyDocumentation(method.DeclaringType.Assembly);
+            return GetText(
+                AssemblyCache[method.DeclaringType.Assembly],
+                element => (element.Attribute("name") != null) && (element.Attribute("name").Value == CreateMemberName(method)),
+                element => (element.Name.LocalName == "param") && (element.Attribute("name") != null) && (element.Attribute("name").Value == parameter.Name));
         }
 
         /// <inheritdoc />
@@ -87,12 +108,12 @@ namespace URSA.Web.Http.Description
             return null;
         }
 
-        private static string GetText(XDocument document, Func<XElement, bool> predicate)
+        private static string GetText(XDocument document, Func<XElement, bool> predicate, Func<XElement, bool> auxPredicate = null)
         {
             var element = document.Descendants("member").Where(predicate).FirstOrDefault();
             if (element != null)
             {
-                element = element.Descendants("summary").FirstOrDefault();
+                element = element.Descendants().Where(auxPredicate ?? DefaultAuxPredicate).FirstOrDefault();
             }
 
             return (element == null ? null : GetText(element).Trim('\r', '\n', '\t', ' '));

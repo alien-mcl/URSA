@@ -39,6 +39,16 @@ namespace Given_instance_of_the
             description.Should().Be("Creates the specified person which id is returned when created.");
         }
 
+        [TestMethod]
+        public void it_should_extract_method_parameter_description()
+        {
+            var method = typeof(TestController).GetMethod("Create");
+
+            var description = _provider.GetDescription(method, method.GetParameters()[1]);
+
+            description.Should().Be("The person.");
+        }
+
         [TestInitialize]
         public void Setup()
         {

@@ -193,8 +193,8 @@ namespace URSA.Web.Http.Description
             template = BuildTemplate(context, operation, result);
             bool isRdfRequired;
             bool requiresRdf = false;
-            IEnumerable<ParameterInfo> arguments = operation.Arguments.Where(parameter => parameter.Source is FromBodyAttribute).Select(parameter => parameter.Parameter);
-            IEnumerable<ParameterInfo> results = operation.Results.Where(output => output.Target is ToBodyAttribute).Select(parameter => parameter.Parameter);
+            var arguments = operation.Arguments.Where(parameter => parameter.Source is FromBodyAttribute).Select(parameter => parameter.Parameter);
+            var results = operation.Results.Where(output => output.Target is ToBodyAttribute).Select(parameter => parameter.Parameter);
             if (operation.IsWriteControllerOperation())
             {
                 arguments = (operation.UnderlyingMethod.GetParameters().Length > 1 ? new[] { operation.UnderlyingMethod.GetParameters()[1] } : new ParameterInfo[0]);
@@ -231,7 +231,7 @@ namespace URSA.Web.Http.Description
 
             IIriTemplate template = null;
             var templateUri = operationDocumentation.Id.Uri.AddFragment("template");
-            var templateMappings = from mapping in parameterMapping where !(mapping.Source is FromBodyAttribute) select BuildTemplateMapping(context, templateUri, mapping);
+            var templateMappings = from mapping in parameterMapping where !(mapping.Source is FromBodyAttribute) select BuildTemplateMapping(context, templateUri, operation, mapping);
             foreach (var templateMapping in templateMappings)
             {
                 if (template == null)
@@ -246,11 +246,12 @@ namespace URSA.Web.Http.Description
             return template;
         }
 
-        private IIriTemplateMapping BuildTemplateMapping(DescriptionContext context, Uri templateUri, ArgumentInfo mapping)
+        private IIriTemplateMapping BuildTemplateMapping(DescriptionContext context, Uri templateUri, OperationInfo<Verb> operation, ArgumentInfo mapping)
         {
             IIriTemplateMapping templateMapping = context.ApiDocumentation.Context.Create<IIriTemplateMapping>(templateUri.AddFragment(mapping.VariableName));
             templateMapping.Variable = mapping.VariableName;
             templateMapping.Required = mapping.Parameter.ParameterType.IsValueType;
+            templateMapping.Description = _xmlDocProvider.GetDescription(operation.UnderlyingMethod, mapping.Parameter);
             var linqBehaviors = mapping.Parameter.GetCustomAttributes<LinqServerBehaviorAttribute>(true);
             if (linqBehaviors.Any())
             {

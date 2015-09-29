@@ -30,98 +30,121 @@
                 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.3.14/angular.min.js"></script>
                 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.3.14/angular-route.min.js"></script>
                 <script type="text/javascript"><xsl:apply-templates select="hydra:ApiDocumentation" /><![CDATA[
+        var mapType = function(type) {
+            switch (type) {
+                case "http://www.w3.org/2001/XMLSchema#string": return "string";
+                case "http://www.w3.org/2001/XMLSchema#string[]": return "string[]";
+                case "http://www.w3.org/2001/XMLSchema#byte": return "sbyte";
+                case "http://www.w3.org/2001/XMLSchema#byte[]": return "sbyte[]";
+                case "http://www.w3.org/2001/XMLSchema#unsignedByte": return "byte";
+                case "http://www.w3.org/2001/XMLSchema#unsignedByte[]": return "byte[]";
+                case "http://www.w3.org/2001/XMLSchema#short": return "short";
+                case "http://www.w3.org/2001/XMLSchema#short[]": return "short[]";
+                case "http://www.w3.org/2001/XMLSchema#unsignedShort": return "ushort";
+                case "http://www.w3.org/2001/XMLSchema#unsignedShort[]": return "ushort[]";
+                case "http://www.w3.org/2001/XMLSchema#int": return "int";
+                case "http://www.w3.org/2001/XMLSchema#int[]": return "int[]";
+                case "http://www.w3.org/2001/XMLSchema#unsignedInt": return "uint";
+                case "http://www.w3.org/2001/XMLSchema#unsignedInt[]": return "uint[]";
+                case "http://www.w3.org/2001/XMLSchema#long": return "long";
+                case "http://www.w3.org/2001/XMLSchema#long[]": return "long[]";
+                case "http://www.w3.org/2001/XMLSchema#unsignedLong": return "ulong";
+                case "http://www.w3.org/2001/XMLSchema#unsignedLong[]": return "ulong[]";
+                case "http://www.w3.org/2001/XMLSchema#float": return "float";
+                case "http://www.w3.org/2001/XMLSchema#float[]": return "float[]";
+                case "http://www.w3.org/2001/XMLSchema#double": return "double";
+                case "http://www.w3.org/2001/XMLSchema#double[]": return "double[]";
+                case "http://www.w3.org/2001/XMLSchema#decimal": return "decimal";
+                case "http://www.w3.org/2001/XMLSchema#decimal[]": return "decimal[]";
+                case "http://www.w3.org/2001/XMLSchema#dateTime": return "System.DateTime";
+                case "http://www.w3.org/2001/XMLSchema#dateTime[]": return "System.DateTime[]";
+                case "http://www.w3.org/2001/XMLSchema#hexBinary": return "byte";
+                case "http://openguid.net/rdf#guid": return "System.Guid";
+                case "http://openguid.net/rdf#guid[]": return "System.Guid[]";
+                default: return type.replace(/^urn:((net|net-enumerable|net-collection|net-list|hydra):)?/, "");
+            }
+        };
+            
+        var createMethod = function(supportedClass, supportedOperation) {
+            var returns = "void";
+            if (supportedOperation.returns.length > 0) {
+                returns = "";
+                if (supportedOperation.returns.length > 1) {
+                    returns = supportedOperation.label + "Result";
+                }
+                else {
+                    returns = mapType(supportedOperation.returns[0]);
+                    if (returns.replace(/\[\]$/, "") === mapType(supportedClass["@id"])) {
+                        returns = supportedClass.label + (returns.replace(/\[\]$/, "") == returns ? "" : "[]");
+                    }
+                }
+            }
+                
+            var parameters = "";
+            if ((supportedOperation.template) && (supportedOperation.mappings)) {
+                for (var index = 0; index < supportedOperation.mappings.length; index++) {
+                    var mapping = supportedOperation.mappings[index];
+                    var parameterType = "object";
+                    if (mapping.property) {
+                        parameterType = mapType(mapping.property.type);
+                    }
+                        
+                    parameters += parameterType + " " + mapping.variable + ", ";
+                }
+                    
+                parameters = parameters.substr(0, parameters.length - 2);
+            }
+                
+            var arguments = "";
+            for (var index = 0; index < supportedOperation.expects.length; index++) {
+                var expected = supportedOperation.expects[index];
+                arguments += mapType(expected.type) + " " + expected.variable + ", ";
+            }
+                
+            if (arguments.length > 0) {
+                arguments = arguments.substr(0, arguments.length - 2);
+            }
+                
+            var result = returns + " " + supportedOperation.label + "(" + parameters + ((parameters.length > 0) && (arguments.length > 0) ? ", " : "") + arguments + ")";
+            return result;
+        };
+            
+        var createProperty = function(supportedClass, supportedProperty) {
+            return mapType(supportedProperty.type) + " " + supportedProperty.label;
+        };
+        
+        var createMember = function(supportedClass, supportedMember) {
+            if ((supportedClass == null) || (supportedMember == null)) {
+                return "";
+            }
+            
+            return (supportedMember["@type"].indexOf(hydra.supportedProperty) !== -1 ? createProperty(supportedClass, supportedMember): createMethod(supportedClass, supportedMember));
+        };
+        
         var apiDocumentation = angular.module("ApiDocumentation", ["ngRoute"]).
+        controller("MemberDescription", ["$scope", function($scope) {
+            $scope.currentClass = null;
+            $scope.currentMember = null;
+            $scope.createMember = createMember;
+            $scope.mapType = mapType;
+            $scope.$root.$on("MemberSelected", function(e, currentClass, currentMember) {
+                $scope.currentClass = currentClass;
+                $scope.currentMember = currentMember;
+            });
+        }]).
         controller("SupportedClasses", ["$scope", function($scope) {
             $scope.supportedClasses = supportedClasses;
-            $scope.mapType = function(type) {
-                switch (type) {
-                    case "http://www.w3.org/2001/XMLSchema#string": return "string";
-                    case "http://www.w3.org/2001/XMLSchema#string[]": return "string[]";
-                    case "http://www.w3.org/2001/XMLSchema#byte": return "sbyte";
-                    case "http://www.w3.org/2001/XMLSchema#byte[]": return "sbyte[]";
-                    case "http://www.w3.org/2001/XMLSchema#unsignedByte": return "byte";
-                    case "http://www.w3.org/2001/XMLSchema#unsignedByte[]": return "byte[]";
-                    case "http://www.w3.org/2001/XMLSchema#short": return "short";
-                    case "http://www.w3.org/2001/XMLSchema#short[]": return "short[]";
-                    case "http://www.w3.org/2001/XMLSchema#unsignedShort": return "ushort";
-                    case "http://www.w3.org/2001/XMLSchema#unsignedShort[]": return "ushort[]";
-                    case "http://www.w3.org/2001/XMLSchema#int": return "int";
-                    case "http://www.w3.org/2001/XMLSchema#int[]": return "int[]";
-                    case "http://www.w3.org/2001/XMLSchema#unsignedInt": return "uint";
-                    case "http://www.w3.org/2001/XMLSchema#unsignedInt[]": return "uint[]";
-                    case "http://www.w3.org/2001/XMLSchema#long": return "long";
-                    case "http://www.w3.org/2001/XMLSchema#long[]": return "long[]";
-                    case "http://www.w3.org/2001/XMLSchema#unsignedLong": return "ulong";
-                    case "http://www.w3.org/2001/XMLSchema#unsignedLong[]": return "ulong[]";
-                    case "http://www.w3.org/2001/XMLSchema#float": return "float";
-                    case "http://www.w3.org/2001/XMLSchema#float[]": return "float[]";
-                    case "http://www.w3.org/2001/XMLSchema#double": return "double";
-                    case "http://www.w3.org/2001/XMLSchema#double[]": return "double[]";
-                    case "http://www.w3.org/2001/XMLSchema#decimal": return "decimal";
-                    case "http://www.w3.org/2001/XMLSchema#decimal[]": return "decimal[]";
-                    case "http://www.w3.org/2001/XMLSchema#dateTime": return "System.DateTime";
-                    case "http://www.w3.org/2001/XMLSchema#dateTime[]": return "System.DateTime[]";
-                    case "http://www.w3.org/2001/XMLSchema#hexBinary": return "byte";
-                    case "http://openguid.net/rdf#guid": return "System.Guid";
-                    case "http://openguid.net/rdf#guid[]": return "System.Guid[]";
-                    default: return type.replace(/^urn:((net|net-enumerable|net-collection|net-list|hydra):)?/,"");
-                }
+            $scope.createMember = createMember;
+            $scope.showMember = function(supportedClass, supportedMember) {
+                $scope.$emit("MemberSelected", supportedClass, supportedMember);
             };
-            
-            $scope.createMethod = function(supportedClass, supportedOperation) {
-                var returns = "void";
-                if (supportedOperation.returns.length > 0) {
-                    returns = "";
-                    if (supportedOperation.returns.length > 1) {
-                        returns = supportedOperation.label + "Result";
-                    }
-                    else {
-                        returns = this.mapType(supportedOperation.returns[0]);
-                        if (returns.replace(/\[\]$/, "") === this.mapType(supportedClass["@id"])) {
-                            returns = supportedClass.label + (returns.replace(/\[\]$/, "") == returns ? "" : "[]");
-                        }
-                    }
-                }
-                
-                var parameters = "";
-                if ((supportedOperation.template) && (supportedOperation.mappings)) {
-                    for (var index = 0; index < supportedOperation.mappings.length; index++) {
-                        var mapping = supportedOperation.mappings[index];
-                        var parameterType = "object";
-                        if (mapping.property) {
-                            parameterType = this.mapType(mapping.property.type);
-                        }
-                        
-                        parameters += parameterType + " " + mapping.variable + ", ";
-                    }
-                    
-                    parameters = parameters.substr(0, parameters.length - 2);
-                }
-                
-                var arguments = "";
-                for (var index = 0; index < supportedOperation.expects.length; index++) {
-                    var expected = supportedOperation.expects[index];
-                    arguments += this.mapType(expected.type) + " " + expected.variable + ", ";
-                }
-                
-                if (arguments.length > 0) {
-                    arguments = arguments.substr(0, arguments.length - 2);
-                }
-                
-                var result = returns + " " + supportedOperation.label + "(" + parameters + ((parameters.length > 0) && (arguments.length > 0) ? ", " : "") + arguments + ")";
-                return result;
-            };
-            
-            $scope.createProperty = function(supportedClass, supportedProperty) {
-                return this.mapType(supportedProperty.type) + " " + supportedProperty.label;
-            }
         }]);
                 ]]></script>
             </head>
             <body ng-app="ApiDocumentation">
                 <div class="container-fluid">
-                    <div class="col-sm-4 col-xs-12">
-                        <nav class="panel-group" ng-controller="SupportedClasses" id="SupportedClasses">
+                    <div class="col-sm-4 col-xs-12" ng-controller="SupportedClasses">
+                        <nav class="panel-group" id="SupportedClasses">
                             <div class="panel panel-default" ng-repeat="supportedClass in supportedClasses">
                                 <div class="panel-heading">
                                     <h4 class="panel-title">
@@ -131,21 +154,47 @@
                                 <div id="collapse{{{{ $index }}}}" class="panel-collapse collapse in">
                                     <div class="panel-body">
                                         <ul class="list-group">
-                                            <li class="list-group-item list-group-item-property" ng-repeat="supportedProperty in supportedClass.supportedProperties">{{ createProperty(supportedClass, supportedProperty) }}</li>
-                                            <li class="list-group-item list-group-item-method" ng-repeat="supportedOperation in supportedClass.supportedOperations">{{ createMethod(supportedClass, supportedOperation) }}</li>
+                                            <li class="list-group-item list-group-item-property" ng-repeat="supportedProperty in supportedClass.supportedProperties" ng-click="showMember(supportedClass, supportedProperty)">{{ createMember(supportedClass, supportedProperty) }}</li>
+                                            <li class="list-group-item list-group-item-method" ng-repeat="supportedOperation in supportedClass.supportedOperations" ng-click="showMember(supportedClass, supportedOperation)">{{ createMember(supportedClass, supportedOperation) }}</li>
                                         </ul>
                                     </div>
                                 </div>
                             </div>
                         </nav>
                     </div>
-                    <div class="col-sm-8 col-xs-12"></div>
+                    <div class="col-sm-8 col-xs-12" ng-controller="MemberDescription">
+                        <div class="panel panel-default">
+                            <div class="panel-heading">{{ createMember(currentClass, currentMember) }}</div>
+                            <div class="panel-body">
+                                <p ng-show="currentMember.description">{{ currentMember.description }}</p>
+                                <table class="table">
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Type</th>
+                                        <th>Description</th>
+                                    </tr>
+                                    <tr ng-repeat="mapping in currentMember.mappings">
+                                        <td>{{ mapping.variable }}</td>
+                                        <td>{{ mapping.property ? mapType(mapping.property.type) : "object" }}</td>
+                                        <td>{{ mapping.description }}</td>
+                                    </tr>
+                                    <tr ng-repeat="expected in currentMember.expects">
+                                        <td>{{ expected.variable }}</td>
+                                        <td>{{ mapType(expected.type) }}</td>
+                                        <td></td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </body>
         </html>
     </xsl:template>
 
     <xsl:template match="hydra:ApiDocumentation">
+        window.hydra = new String("http://www.w3.org/ns/hydra/core#");
+        hydra.supportedProperty = hydra + "supportedProperty";
         var supportedClasses = [];<xsl:for-each select="hydra:supportedClasses"><xsl:variable name="id" select="@rdf:resource" />
         supportedClasses.push(<xsl:call-template name="hydra-Class">
                 <xsl:with-param name="class" select="/rdf:RDF/hydra:Class[@rdf:about = $id]|/rdf:RDF/*[rdf:type/@rdf:resource = '&hydra;Class' and @rdf:about = $id]" />
@@ -206,6 +255,7 @@
         <xsl:variable name="property" select="/rdf:RDF/rdf:Property[@rdf:about = $supportedProperty/hydra:property/@rdf:resource]|/rdf:RDF/*[rdf:type/@rdf:resource = '&rdf;Property' and @rdf:about = $supportedProperty/hydra:property/@rdf:resource]" />
                     {
                         "@id": "<xsl:value-of select="$supportedProperty/@rdf:about" />",
+                        "@type": [hydra.supportedProperty],
                         "label": "<xsl:value-of select="$property/rdfs:label" />",<xsl:if test="$supportedProperty/rdfs:comment">
                         "description": "<xsl:value-of select="$supportedProperty/rdfs:comment/text()"/>",</xsl:if>
                         "type": "<xsl:call-template name="type"><xsl:with-param name="type" select="$property/rdfs:range/@rdf:resource" /><xsl:with-param name="isEnumerable" select="$isEnumerable" /></xsl:call-template>",
@@ -225,6 +275,7 @@
         </xsl:variable>
                     {
                         "@id": "<xsl:value-of select="$supportedOperation/@rdf:about" />",
+                        "@type": [hydra.supportedOperation],
                         "label": "<xsl:value-of select="$supportedOperation/rdfs:label" />",<xsl:if test="$template">
                         "template": "<xsl:value-of select="$template/hydra:template" />",</xsl:if><xsl:if test="$supportedOperation/rdfs:comment">
                         "description": "<xsl:value-of select="$supportedOperation/rdfs:comment/text()"/>",</xsl:if>
@@ -250,10 +301,11 @@
                         "mappings": [<xsl:for-each select="/rdf:RDF/*[@rdf:about = $template/hydra:mapping/@rdf:resource]">
                             {
                                 "required": <xsl:choose><xsl:when test="hydra:required"><xsl:value-of select="hydra:required"/></xsl:when><xsl:otherwise>false</xsl:otherwise></xsl:choose>,
-                                "variable": "<xsl:value-of select="hydra:variable" />"<xsl:if test="hydra:property">,
-                                "property": { <xsl:variable name="current" select="hydra:property/@rdf:resource" />
+                                "variable": "<xsl:value-of select="hydra:variable" />",
+                                "description": "<xsl:value-of select="rdfs:comment" />"<xsl:if test="hydra:property">,
+                                "property": { <xsl:variable name="current" select="hydra:property/@rdf:resource" /><xsl:variable name="targetProperty" select="/rdf:RDF/rdf:Property[@rdf:about = $current]|/rdf:RDF/*[rdf:type[@rdf:resource = '&rdf;Property'] and @rdf:about = $current]" />
                                     "@id": "<xsl:value-of select="hydra:property/@rdf:resource" />",
-                                    "type": "<xsl:value-of select="/rdf:RDF/rdf:Property[@rdf:about = $current]/rdfs:range/@rdf:resource|/rdf:RDF/*[rdf:type[@rdf:resource = '&rdf;Property'] and @rdf:about = $current]/rdfs:range/@rdf:resource"/>"
+                                    "type": "<xsl:value-of select="$targetProperty/rdfs:range/@rdf:resource" />",
                                 }</xsl:if>
                             }<xsl:if test="position() != last()">,</xsl:if>
                         </xsl:for-each>

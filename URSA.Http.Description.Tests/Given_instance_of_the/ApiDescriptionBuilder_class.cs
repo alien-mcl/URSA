@@ -134,6 +134,7 @@ namespace Given_instance_of_the
         {
             var xmlDocProvider = new Mock<IXmlDocProvider>(MockBehavior.Strict);
             xmlDocProvider.Setup(instance => instance.GetDescription(It.IsAny<MethodInfo>())).Returns<MethodInfo>(method => method.Name);
+            xmlDocProvider.Setup(instance => instance.GetDescription(It.IsAny<MethodInfo>(), It.IsAny<ParameterInfo>())).Returns<MethodInfo, ParameterInfo>((method, parameter) => parameter.Name);
             xmlDocProvider.Setup(instance => instance.GetDescription(It.IsAny<PropertyInfo>())).Returns<PropertyInfo>(property => property.Name);
             xmlDocProvider.Setup(instance => instance.GetDescription(It.IsAny<Type>())).Returns<Type>(type => type.Name);
             return xmlDocProvider.Object;
@@ -237,6 +238,7 @@ namespace Given_instance_of_the
             var result = new Mock<IIriTemplateMapping>(MockBehavior.Strict);
             result.SetupGet(instance => instance.Id).Returns(id);
             result.SetupSet(instance => instance.Variable = It.IsAny<string>());
+            result.SetupSet(instance => instance.Description = It.IsAny<string>());
             result.SetupSet(instance => instance.Required = It.IsAny<bool>());
             result.SetupSet(instance => instance.Property = It.IsAny<IProperty>());
             return result.Object;
