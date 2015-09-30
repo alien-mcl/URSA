@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics.CodeAnalysis;
+using URSA.Web.Http.Description.Hydra;
 
 namespace URSA.Web.Http.Description.Mapping
 {
@@ -28,14 +29,19 @@ namespace URSA.Web.Http.Description.Mapping
         public LinqOperations Operation { get; private set; }
 
         /// <inheritdoc />
-        public override void Accept(IServerBehaviorAttributeVisitor visitor)
+        public override void Accept(IServerBehaviorAttributeVisitor visitor, IIriTemplateMapping templateMapping)
         {
             if (visitor == null)
             {
                 throw new ArgumentNullException("visitor");
             }
 
-            visitor.Visit(this);
+            if (templateMapping == null)
+            {
+                throw new ArgumentNullException("templateMapping");
+            }
+
+            visitor.Visit(this, templateMapping);
         }
     }
 }

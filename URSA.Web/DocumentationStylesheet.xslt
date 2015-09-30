@@ -118,7 +118,7 @@
                 return "";
             }
             
-            return (supportedMember["@type"].indexOf(hydra.supportedProperty) !== -1 ? createProperty(supportedClass, supportedMember): createMethod(supportedClass, supportedMember));
+            return (supportedMember["@type"] === hydra.supportedProperty ? createProperty(supportedClass, supportedMember): createMethod(supportedClass, supportedMember));
         };
         
         var apiDocumentation = angular.module("ApiDocumentation", ["ngRoute"]).
@@ -127,6 +127,12 @@
             $scope.currentMember = null;
             $scope.createMember = createMember;
             $scope.mapType = mapType;
+            $scope.isMethod = function(member) {
+                return member['@type'] === hydra.supportedOperation;
+            };
+            $scope.returns = function(member) {
+                return ((member.returns) && (member.returns.length > 0)) || (member.type);
+            };
             $scope.$root.$on("MemberSelected", function(e, currentClass, currentMember) {
                 $scope.currentClass = currentClass;
                 $scope.currentMember = currentMember;
@@ -162,12 +168,12 @@
                             </div>
                         </nav>
                     </div>
-                    <div class="col-sm-8 col-xs-12" ng-controller="MemberDescription">
+                    <div class="col-sm-8 col-xs-12" ng-controller="MemberDescription" ng-show="currentMember">
                         <div class="panel panel-default">
                             <div class="panel-heading">{{ createMember(currentClass, currentMember) }}</div>
                             <div class="panel-body">
                                 <p ng-show="currentMember.description">{{ currentMember.description }}</p>
-                                <table class="table">
+                                <table class="table" ng-show="isMethod(currentMember)">
                                     <tr>
                                         <th>Name</th>
                                         <th>Type</th>
@@ -184,6 +190,7 @@
                                         <td></td>
                                     </tr>
                                 </table>
+                                <p ng-show="returns(currentMember)">{{ currentMember.type ? "Type" : "Returns" }}: {{ mapType(currentMember.type || currentMember.returns[0]) }}</p>
                             </div>
                         </div>
                     </div>
@@ -255,9 +262,9 @@
         <xsl:variable name="property" select="/rdf:RDF/rdf:Property[@rdf:about = $supportedProperty/hydra:property/@rdf:resource]|/rdf:RDF/*[rdf:type/@rdf:resource = '&rdf;Property' and @rdf:about = $supportedProperty/hydra:property/@rdf:resource]" />
                     {
                         "@id": "<xsl:value-of select="$supportedProperty/@rdf:about" />",
-                        "@type": [hydra.supportedProperty],
-                        "label": "<xsl:value-of select="$property/rdfs:label" />",<xsl:if test="$supportedProperty/rdfs:comment">
-                        "description": "<xsl:value-of select="$supportedProperty/rdfs:comment/text()"/>",</xsl:if>
+                        "@type": hydra.supportedProperty,
+                        "label": "<xsl:value-of select="$property/rdfs:label" />",<xsl:if test="$property/rdfs:comment">
+                        "description": "<xsl:value-of select="$property/rdfs:comment/text()"/>",</xsl:if>
                         "type": "<xsl:call-template name="type"><xsl:with-param name="type" select="$property/rdfs:range/@rdf:resource" /><xsl:with-param name="isEnumerable" select="$isEnumerable" /></xsl:call-template>",
                         "property": "<xsl:value-of select="$property/@rdf:about" />",
                         "readonly": <xsl:choose><xsl:when test="$supportedProperty/hydra:readonly"><xsl:value-of select="$supportedProperty/hydra:readonly"/></xsl:when><xsl:otherwise>false</xsl:otherwise></xsl:choose>,
@@ -275,7 +282,7 @@
         </xsl:variable>
                     {
                         "@id": "<xsl:value-of select="$supportedOperation/@rdf:about" />",
-                        "@type": [hydra.supportedOperation],
+                        "@type": hydra.supportedOperation,
                         "label": "<xsl:value-of select="$supportedOperation/rdfs:label" />",<xsl:if test="$template">
                         "template": "<xsl:value-of select="$template/hydra:template" />",</xsl:if><xsl:if test="$supportedOperation/rdfs:comment">
                         "description": "<xsl:value-of select="$supportedOperation/rdfs:comment/text()"/>",</xsl:if>

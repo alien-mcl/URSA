@@ -22,15 +22,9 @@ namespace URSA.Web.Http.Description.Mapping
         }
 
         /// <inheritdoc />
-        public IApiDocumentation ApiDocumentation { get; set; }
-
-        /// <inheritdoc />
-        public IEntity MemberDescription { get; private set; }
-
-        /// <inheritdoc />
-        public void Visit(LinqServerBehaviorAttribute behaviorAttribute)
+        public void Visit(LinqServerBehaviorAttribute behaviorAttribute, IIriTemplateMapping templateMapping)
         {
-            MemberDescription = ApiDocumentation.Context.Create<Rdfs.IProperty>(
+            templateMapping.Property = templateMapping.Context.Create<Rdfs.IProperty>(
                 DescriptionController<IController>.VocabularyBaseUri.AbsoluteUri + behaviorAttribute.Operation.ToString().ToLowerCamelCase());
         }
     }

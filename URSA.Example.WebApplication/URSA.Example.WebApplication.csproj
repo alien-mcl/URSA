@@ -86,9 +86,6 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="DocumentationStylesheet.xslt">
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
     <Content Include="FodyWeavers.xml" />
     <Content Include="Global.asax" />
     <Content Include="Web.config">

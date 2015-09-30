@@ -7,6 +7,7 @@ using RomanticWeb;
 using RomanticWeb.DotNetRDF;
 using System;
 using System.Configuration;
+using System.Reflection;
 using System.Web;
 using URSA.CastleWindsor.ComponentModel;
 using URSA.CodeGen;
@@ -69,7 +70,7 @@ namespace URSA.CastleWindsor
             container.Register(Component.For<IResultBinder<RequestInfo>>().ImplementedBy<ResultBinder>().LifestyleSingleton());
             container.Register(Component.For<ITypeDescriptionBuilder>().ImplementedBy<HydraCompliantTypeDescriptionBuilder>()
                 .Named(EntityConverter.Hydra.ToString()).IsDefault().LifestyleSingleton());
-            container.Register(Component.For<IServerBehaviorAttributeVisitor>().ImplementedBy(typeof(DescriptionBuildingServerBahaviorAttributeVisitor<>)).Named("Hydra"));
+            container.Register(Component.For<IServerBehaviorAttributeVisitor>().ImplementedBy<DescriptionBuildingServerBahaviorAttributeVisitor<ParameterInfo>>().Named("Hydra"));
             container.Register(Component.For(typeof(IApiDescriptionBuilder<>)).ImplementedBy(typeof(ApiDescriptionBuilder<>)).LifestyleSingleton());
         }
 

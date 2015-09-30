@@ -18,6 +18,7 @@ using URSA.Web.Http;
 using URSA.Web.Http.Converters;
 using URSA.Web.Http.Description;
 using URSA.Web.Http.Description.Hydra;
+using URSA.Web.Http.Description.Mapping;
 using URSA.Web.Http.Description.Rdfs;
 using URSA.Web.Http.Description.Testing;
 using URSA.Web.Http.Description.Tests;
@@ -39,7 +40,7 @@ namespace Given_instance_of_the
             IXmlDocProvider xmlDocProvider;
             ITypeDescriptionBuilder typeDescriptionBuilder;
             var handlerMapper = SetupInfrastucture(out apiDocumentation, out xmlDocProvider, out typeDescriptionBuilder);
-            var apiDescriptionBuilder = new ApiDescriptionBuilder<TestController>(handlerMapper, xmlDocProvider, new[] { typeDescriptionBuilder }, new Type[0]);
+            var apiDescriptionBuilder = new ApiDescriptionBuilder<TestController>(handlerMapper, xmlDocProvider, new[] { typeDescriptionBuilder }, new IServerBehaviorAttributeVisitor[0]);
             apiDescriptionBuilder.BuildDescription(apiDocumentation, null);
 
             apiDocumentation.EntryPoints.Should().HaveCount(0);
@@ -57,7 +58,7 @@ namespace Given_instance_of_the
             ITypeDescriptionBuilder shaclTypeDescriptionBuilder = SetupTypeDescriptionBuilder(EntityConverter.Shacl);
             ITypeDescriptionBuilder hydraTypeDescriptionBuilder;
             var handlerMapper = SetupInfrastucture(out apiDocumentation, out xmlDocProvider, out hydraTypeDescriptionBuilder);
-            var apiDescriptionBuilder = new ApiDescriptionBuilder<TestController>(handlerMapper, xmlDocProvider, new[] { hydraTypeDescriptionBuilder, shaclTypeDescriptionBuilder }, new Type[0]);
+            var apiDescriptionBuilder = new ApiDescriptionBuilder<TestController>(handlerMapper, xmlDocProvider, new[] { hydraTypeDescriptionBuilder, shaclTypeDescriptionBuilder }, new IServerBehaviorAttributeVisitor[0]);
             apiDescriptionBuilder.BuildDescription(apiDocumentation, new[] { EntityConverter.Hydra });
 
             Mock.Get(hydraTypeDescriptionBuilder).VerifyGet(instance => instance.SupportedProfiles, Times.Once);
@@ -73,7 +74,7 @@ namespace Given_instance_of_the
             ITypeDescriptionBuilder shaclTypeDescriptionBuilder = SetupTypeDescriptionBuilder(EntityConverter.Shacl);
             ITypeDescriptionBuilder hydraTypeDescriptionBuilder;
             var handlerMapper = SetupInfrastucture(out apiDocumentation, out xmlDocProvider, out hydraTypeDescriptionBuilder);
-            var apiDescriptionBuilder = new ApiDescriptionBuilder<TestController>(handlerMapper, xmlDocProvider, new[] { hydraTypeDescriptionBuilder, shaclTypeDescriptionBuilder }, new Type[0]);
+            var apiDescriptionBuilder = new ApiDescriptionBuilder<TestController>(handlerMapper, xmlDocProvider, new[] { hydraTypeDescriptionBuilder, shaclTypeDescriptionBuilder }, new IServerBehaviorAttributeVisitor[0]);
             apiDescriptionBuilder.BuildDescription(apiDocumentation, new[] { EntityConverter.Shacl });
 
             Mock.Get(hydraTypeDescriptionBuilder).VerifyGet(instance => instance.SupportedProfiles, Times.Once);

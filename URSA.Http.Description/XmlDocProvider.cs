@@ -23,7 +23,8 @@ namespace URSA.Web.Http.Description
             }
 
             EnsureAssemblyDocumentation(type.Assembly);
-            return GetText(AssemblyCache[type.Assembly], element => (element.Attribute("name") != null) && (element.Attribute("name").Value == CreateMemberName(type)));
+            string memberName = CreateMemberName(type);
+            return GetText(AssemblyCache[type.Assembly], element => (element.Attribute("name") != null) && (element.Attribute("name").Value == memberName));
         }
 
         /// <inheritdoc />
@@ -35,9 +36,10 @@ namespace URSA.Web.Http.Description
             }
 
             EnsureAssemblyDocumentation(method.DeclaringType.Assembly);
+            string memberName = CreateMemberName(method);
             return GetText(
-                AssemblyCache[method.DeclaringType.Assembly], 
-                element => (element.Attribute("name") != null) && (element.Attribute("name").Value == CreateMemberName(method)));
+                AssemblyCache[method.DeclaringType.Assembly],
+                element => (element.Attribute("name") != null) && (element.Attribute("name").Value == memberName));
         }
 
         /// <inheritdoc />
@@ -54,9 +56,10 @@ namespace URSA.Web.Http.Description
             }
 
             EnsureAssemblyDocumentation(method.DeclaringType.Assembly);
+            string memberName = CreateMemberName(method);
             return GetText(
                 AssemblyCache[method.DeclaringType.Assembly],
-                element => (element.Attribute("name") != null) && (element.Attribute("name").Value == CreateMemberName(method)),
+                element => (element.Attribute("name") != null) && (element.Attribute("name").Value == memberName),
                 element => (element.Name.LocalName == "param") && (element.Attribute("name") != null) && (element.Attribute("name").Value == parameter.Name));
         }
 
@@ -78,11 +81,11 @@ namespace URSA.Web.Http.Description
         {
             if (member is ConstructorInfo)
             {
-                var parameters = ((MethodInfo)member).GetParameters();
+                var parameters = String.Join(",", ((MethodInfo)member).GetParameters().Select(parameter => CreateTypeName(parameter.ParameterType)));
                 return String.Format(
                     "M:{0}.#ctor{1}",
                     member.DeclaringType.FullName,
-                    (parameters.Length == 0 ? String.Empty : String.Format("({0})", String.Join(",", parameters.Select(parameter => parameter.ParameterType.FullName.Replace("&", "@"))))));
+                    (parameters.Length == 0 ? String.Empty : String.Format("({0})", parameters)));
             }
 
             if (member is PropertyInfo)
@@ -92,12 +95,12 @@ namespace URSA.Web.Http.Description
 
             if (member is MethodInfo)
             {
-                var parameters = ((MethodInfo)member).GetParameters();
+                var parameters = String.Join(",", ((MethodInfo)member).GetParameters().Select(parameter => CreateTypeName(parameter.ParameterType)));
                 return String.Format(
                     "M:{0}.{1}{2}",
                     member.DeclaringType.FullName,
                     member.Name,
-                    (parameters.Length == 0 ? String.Empty : String.Format("({0})", String.Join(",", parameters.Select(parameter => parameter.ParameterType.FullName.Replace("&", "@"))))));
+                    (parameters.Length == 0 ? String.Empty : String.Format("({0})", parameters)));
             }
 
             if (member is Type)
@@ -106,6 +109,20 @@ namespace URSA.Web.Http.Description
             }
 
             return null;
+        }
+
+        private static string CreateTypeName(Type type)
+        {
+            if (!type.IsGenericType)
+            {
+                return type.FullName.Replace("&", "@");
+            }
+
+            var arguments = type.GetGenericArguments();
+            return String.Format(
+                "{0}{{{1}}}",
+                type.FullName.Substring(0, type.FullName.IndexOf('`')),
+                String.Join(",", arguments.Select(argument => CreateTypeName(argument))));
         }
 
         private static string GetText(XDocument document, Func<XElement, bool> predicate, Func<XElement, bool> auxPredicate = null)

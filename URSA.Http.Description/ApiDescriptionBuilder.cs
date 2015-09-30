@@ -25,7 +25,7 @@ namespace URSA.Web.Http.Description
         private readonly IHttpControllerDescriptionBuilder<T> _descriptionBuilder;
         private readonly IXmlDocProvider _xmlDocProvider;
         private readonly IEnumerable<ITypeDescriptionBuilder> _typeDescriptionBuilders;
-        private readonly IEnumerable<Type> _serverBehaviorAttributeVisitors;
+        private readonly IEnumerable<IServerBehaviorAttributeVisitor> _serverBehaviorAttributeVisitors;
         private Type _specializationType;
 
         /// <summary>Initializes a new instance of the <see cref="ApiDescriptionBuilder{T}" /> class.</summary>
@@ -33,7 +33,7 @@ namespace URSA.Web.Http.Description
         /// <param name="xmlDocProvider">The XML documentation provider.</param>
         /// <param name="typeDescriptionBuilders">Type description builders.</param>
         /// <param name="serverBehaviorAttributeVisitors">Server behavior attribute visitors.</param>
-        public ApiDescriptionBuilder(IHttpControllerDescriptionBuilder<T> descriptionBuilder, IXmlDocProvider xmlDocProvider, IEnumerable<ITypeDescriptionBuilder> typeDescriptionBuilders, IEnumerable<Type> serverBehaviorAttributeVisitors)
+        public ApiDescriptionBuilder(IHttpControllerDescriptionBuilder<T> descriptionBuilder, IXmlDocProvider xmlDocProvider, IEnumerable<ITypeDescriptionBuilder> typeDescriptionBuilders, IEnumerable<IServerBehaviorAttributeVisitor> serverBehaviorAttributeVisitors)
         {
             if (descriptionBuilder == null)
             {
@@ -58,10 +58,7 @@ namespace URSA.Web.Http.Description
             _descriptionBuilder = descriptionBuilder;
             _xmlDocProvider = xmlDocProvider;
             _typeDescriptionBuilders = typeDescriptionBuilders;
-            if ((_serverBehaviorAttributeVisitors = (serverBehaviorAttributeVisitors ?? new Type[0])).Any(visitor => visitor.GetConstructor(new Type[0]) == null))
-            {
-                throw new ArgumentOutOfRangeException("serverBehaviorAttributeVisitors");
-            }
+            _serverBehaviorAttributeVisitors = serverBehaviorAttributeVisitors ?? new IServerBehaviorAttributeVisitor[0];
         }
 
         private Type SpecializationType
@@ -259,13 +256,14 @@ namespace URSA.Web.Http.Description
                 var resource = templateMapping.AsEntity<IResource>();
                 resource.SingleValue = range.SingleValue;
                 resource.MediaTypes.AddRange(range.MediaTypes);
-
-                foreach (var visitorType in _serverBehaviorAttributeVisitors)
+                foreach (var visitor in _serverBehaviorAttributeVisitors)
                 {
-                    var ctor = (visitorType.IsGenericType ? visitorType.MakeGenericType(typeof(ParameterInfo)) : visitorType).GetConstructor(new Type[0]);
-                    var visitor = (IServerBehaviorAttributeVisitor)ctor.Invoke(null);
-                    linqBehaviors.Accept(visitor);
-                    (templateMapping.Property = (Rdfs.IProperty)visitor.MemberDescription).Range.Add(range.Type);
+                    linqBehaviors.Accept(visitor, templateMapping);
+                }
+
+                if (templateMapping.Property != null)
+                {
+                    templateMapping.Property.Range.Add(range.Type);
                 }
             }
             else if (context.Type != typeof(object))

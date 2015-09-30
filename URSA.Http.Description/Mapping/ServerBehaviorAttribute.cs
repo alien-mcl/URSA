@@ -1,4 +1,5 @@
 ﻿using System;
+using URSA.Web.Http.Description.Hydra;
 
 namespace URSA.Web.Http.Description.Mapping
 {
@@ -8,6 +9,7 @@ namespace URSA.Web.Http.Description.Mapping
     {
         /// <summary>Accepts the specified visitor.</summary>
         /// <param name="visitor">The visitor.</param>
-        public abstract void Accept(IServerBehaviorAttributeVisitor visitor);
+        /// <param name="templateMapping">Template mapping to be amended by visitor.</param>
+        public abstract void Accept(IServerBehaviorAttributeVisitor visitor, IIriTemplateMapping templateMapping);
     }
 }
