@@ -8,6 +8,9 @@
         /// <summary>Gets the given entity.</summary>
         /// <param name="id">Identifier of the entity to retrieve.</param>
         /// <returns>Instance of the <typeparamref name="T" /> if matching <paramref name="id" />; otherwise <b>null</b>.</returns>
+        /// <exception cref="System.ArgumentOutOfRangeException">Thrown when any of the given parameters provided is out of range.</exception>
+        /// <exception cref="System.ArgumentNullException">Thrown when any of the given parameters is not provided.</exception>
+        /// <exception cref="System.ArgumentException">Thrown when any of the given parameters provided is invalid.</exception>
         T Get(I id);
     }
 }

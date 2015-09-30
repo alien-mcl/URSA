@@ -49,12 +49,12 @@ namespace Given_instance_of_the.ResponseComposer_class
             ConverterProvider = null;
         }
 
-        protected RequestMapping CreateRequestMapping(string methodName, object expectedResult, params object[] arguments)
+        protected RequestMapping CreateRequestMapping(string methodName, params object[] arguments)
         {
-            return CreateRequestMapping(methodName, Verb.GET, expectedResult, arguments);
+            return CreateRequestMapping(methodName, Verb.GET, arguments);
         }
 
-        protected RequestMapping CreateRequestMapping(string methodName, Verb httpMethod, object expectedResult, params object[] arguments)
+        protected RequestMapping CreateRequestMapping(string methodName, Verb httpMethod, params object[] arguments)
         {
             var method = Controller.GetType().GetMethod(methodName);
             string baseUri = Controller.GetType().GetCustomAttribute<RouteAttribute>().Uri.ToString();

@@ -91,6 +91,8 @@
     <Compile Include="Web\Mapping\FromUriAttribute.cs" />
     <Compile Include="Web\Mapping\RouteAttribute.cs" />
     <Compile Include="Web\Description\OperationInfo.cs" />
+    <Compile Include="Web\AlreadyExistsException.cs" />
+    <Compile Include="Web\NotFoundException.cs" />
     <Compile Include="Web\RequestHandlerBase.cs" />
   </ItemGroup>
   <ItemGroup>

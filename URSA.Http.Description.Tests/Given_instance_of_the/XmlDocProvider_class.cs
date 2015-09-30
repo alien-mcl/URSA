@@ -36,7 +36,7 @@ namespace Given_instance_of_the
         {
             var description = _provider.GetDescription(typeof(TestController).GetMethod("Create"));
 
-            description.Should().Be("Creates the specified person which id is returned when created.");
+            description.Should().Be("Creates the specified person which identifier is returned when created.");
         }
 
         [TestMethod]
@@ -44,7 +44,7 @@ namespace Given_instance_of_the
         {
             var method = typeof(TestController).GetMethod("Create");
 
-            var description = _provider.GetDescription(method, method.GetParameters()[1]);
+            var description = _provider.GetDescription(method, method.GetParameters()[0]);
 
             description.Should().Be("The person.");
         }

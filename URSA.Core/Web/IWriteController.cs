@@ -6,20 +6,29 @@
     public interface IWriteController<T, I> : IReadController<T, I> where T : IControlledEntity<I>
     {
         /// <summary>Creates a new instance.</summary>
-        /// <param name="id">Identifier of newly created entity.</param>
         /// <param name="instance">Instance to be created.</param>
-        /// <returns><b>true</b> for success and <b>false</b> for failure; otherwise <b>null</b> when the instance does not exist.</returns>
-        bool? Create(out I id, T instance);
+        /// <returns>Identifier of the newly create entity.</returns>
+        /// <exception cref="URSA.Web.AlreadyExistsException">Thrown when a given instance already exists and cannot be created.</exception>
+        /// <exception cref="System.ArgumentOutOfRangeException">Thrown when a given <paramref name="instance" /> provided is out of range.</exception>
+        /// <exception cref="System.ArgumentNullException">Thrown when a given <paramref name="instance" /> is not provided.</exception>
+        /// <exception cref="System.ArgumentException">Thrown when a given <paramref name="instance" /> provided is invalid.</exception>
+        I Create(T instance);
 
         /// <summary>Updates an existing instance.</summary>
         /// <param name="id">Identifier of the entity to be updated.</param>
         /// <param name="instance">Instance data.</param>
-        /// <returns><b>true</b> for success and <b>false</b> for failure; otherwise <b>null</b> when the instance does not exist.</returns>
-        bool? Update(I id, T instance);
+        /// <exception cref="URSA.Web.NotFoundException">Thrown when a given instance does not exist.</exception>
+        /// <exception cref="System.ArgumentOutOfRangeException">Thrown when any of the given parameters provided is out of range.</exception>
+        /// <exception cref="System.ArgumentNullException">Thrown when any of the given parameters is not provided.</exception>
+        /// <exception cref="System.ArgumentException">Thrown when any of the given parameters provided is invalid.</exception>
+        void Update(I id, T instance);
 
         /// <summary>Deletes an entity.</summary>
         /// <param name="id">Identifier of the entity to be deleted.</param>
-        /// <returns><b>true</b> for success and <b>false</b> for failure; otherwise <b>null</b> when the instance does not exist.</returns>
-        bool? Delete(I id);
+        /// <exception cref="URSA.Web.NotFoundException">Thrown when a given instance does not exist.</exception>
+        /// <exception cref="System.ArgumentOutOfRangeException">Thrown when any of the given parameters provided is out of range.</exception>
+        /// <exception cref="System.ArgumentNullException">Thrown when any of the given parameters is not provided.</exception>
+        /// <exception cref="System.ArgumentException">Thrown when any of the given parameters provided is invalid.</exception>
+        void Delete(I id);
     }
 }

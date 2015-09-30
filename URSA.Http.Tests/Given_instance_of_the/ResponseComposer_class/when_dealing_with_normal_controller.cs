@@ -18,7 +18,7 @@ namespace Given_instance_of_the.ResponseComposer_class
             int expected = 3;
             Converter.Setup(instance => instance.ConvertFrom(expected, It.IsAny<IResponseInfo>()));
 
-            var result = Composer.ComposeResponse(CreateRequestMapping("Add", expected, arguments), expected, arguments);
+            var result = Composer.ComposeResponse(CreateRequestMapping("Add", arguments), expected, arguments);
 
             result.Should().BeOfType<ObjectResponseInfo<int>>();
             Converter.Verify(instance => instance.ConvertFrom(expected, It.IsAny<IResponseInfo>()), Times.Once);
@@ -30,7 +30,7 @@ namespace Given_instance_of_the.ResponseComposer_class
             object[] arguments = { 1, 2 };
             int expected = 3;
 
-            var result = Composer.ComposeResponse(CreateRequestMapping("Multiply", expected, arguments), expected, arguments);
+            var result = Composer.ComposeResponse(CreateRequestMapping("Multiply", arguments), expected, arguments);
 
             result.Should().BeOfType<StringResponseInfo>();
             Converter.Verify(instance => instance.ConvertFrom(expected, It.IsAny<IResponseInfo>()), Times.Never);
@@ -44,7 +44,7 @@ namespace Given_instance_of_the.ResponseComposer_class
             var arguments = new object[] { 1, 2 };
             Converter.Setup(instance => instance.ConvertFrom(It.IsAny<int>(), It.IsAny<IResponseInfo>()));
 
-            var result = Composer.ComposeResponse(CreateRequestMapping("Whatever", expected, arguments), expected, arguments);
+            var result = Composer.ComposeResponse(CreateRequestMapping("Whatever", arguments), expected, arguments);
 
             result.Should().BeOfType<MultiObjectResponseInfo>();
             Converter.Verify(instance => instance.ConvertFrom(It.IsAny<int>(), It.IsAny<IResponseInfo>()), Times.Exactly(arguments.Length));

@@ -31,30 +31,24 @@ namespace URSA.Example.WebApplication.Controllers
         }
 
         /// <summary>Creates the specified product.</summary>
-        /// <param name="id">The identifier of the product created.</param>
         /// <param name="product">The product.</param>
-        /// <returns><b>true</b> if the product was created or <b>false</b> if not; otherwise <b>null</b>.</returns>
-        public bool? Create(out EntityId id, IProduct product)
+        /// <returns>Identifier of newly created product.</returns>
+        public EntityId Create(IProduct product)
         {
-            id = null;
-            return null;
+            return new EntityId("http://temp.uri/product");
         }
 
         /// <summary>Updates the specified product.</summary>
         /// <param name="id">The identifier of the product to be updated.</param>
         /// <param name="product">The product.</param>
-        /// <returns><b>true</b> if the product was updated or <b>false</b> if not; otherwise <b>null</b>.</returns>
-        public bool? Update(EntityId id, IProduct product)
+        public void Update(EntityId id, IProduct product)
         {
-            return null;
         }
 
         /// <summary>Deletes a product.</summary>
         /// <param name="id">Identifier of the product to be deleted.</param>
-        /// <returns><b>true</b> for success and <b>false</b> for failure; otherwise <b>null</b> when the instance does not exist.</returns>
-        public bool? Delete(EntityId id)
+        public void Delete(EntityId id)
         {
-            return null;
         }
     }
 }

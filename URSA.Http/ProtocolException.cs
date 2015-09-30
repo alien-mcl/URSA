@@ -12,7 +12,7 @@ namespace URSA.Web.Http
     {
         /// <summary>Initializes a new instance of the <see cref="ProtocolException" /> class.</summary>
         /// <param name="status">An associated HTTP status code of this exception</param>
-        public ProtocolException(HttpStatusCode status) : base()
+        public ProtocolException(HttpStatusCode status)
         {
             Status = status;
         }
@@ -40,6 +40,13 @@ namespace URSA.Web.Http
         public ProtocolException(HttpStatusCode status, string message, Exception innerException) : base(message, innerException)
         {
             Status = status;
+        }
+
+        /// <summary>Initializes a new instance of the <see cref="ProtocolException"/> class.</summary>
+        /// <param name="serializationInfo">The serialization information.</param>
+        /// <param name="streamingContext">The streaming context.</param>
+        public ProtocolException(SerializationInfo serializationInfo, StreamingContext streamingContext) : base(serializationInfo, streamingContext)
+        {
         }
 
         /// <summary>Gets the associated HTTP status code of this exception.</summary>

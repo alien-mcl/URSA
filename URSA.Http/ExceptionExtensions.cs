@@ -22,6 +22,10 @@ namespace System
             {
                 switch (exception.GetType().FullName)
                 {
+                    case "URSA.Web.NotFoundException":
+                        throw new ProtocolException(HttpStatusCode.NotFound, exception);
+                    case "URSA.Web.AlreadyExistsException":
+                        throw new ProtocolException(HttpStatusCode.Conflict, exception);
                     case "URSA.Web.Http.ProtocolException":
                         return (ProtocolException)exception;
                     case "System.Web.HttpException":

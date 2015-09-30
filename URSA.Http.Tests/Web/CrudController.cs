@@ -10,46 +10,39 @@ namespace URSA.Web.Tests
     {
         public IResponseInfo Response { get; set; }
 
-        public bool? Create(out int id, Person instance)
+        public int Create(Person instance)
         {
             switch (instance.Id)
             {
                 case 2:
-                    id = 0;
-                    return null;
+                    throw new Exception("Unhandled server error.");
                 case 3:
-                    id = 0;
-                    return false;
+                    throw new AlreadyExistsException(String.Format("Person with identifier of '{0}' already exists.", instance.Id));
             }
 
-            id = 1;
-            return true;
+            return 1;
         }
 
-        public bool? Update(int id, Person instance)
+        public void Update(int id, Person instance)
         {
             switch (id)
             {
                 case 2:
-                    return null;
+                    throw new Exception("Unhandled server error.");
                 case 3:
-                    return false;
+                    throw new NotFoundException(String.Format("Person with identifier of '{0}' does not exist.", instance.Id));
             }
-
-            return true;
         }
 
-        public bool? Delete(int id)
+        public void Delete(int id)
         {
             switch (id)
             {
                 case 2:
-                    return null;
+                    throw new Exception("Unhandled server error.");
                 case 3:
-                    return false;
+                    throw new NotFoundException(String.Format("Person with identifier of '{0}' does not exist.", id));
             }
-
-            return true;
         }
 
         public Person Get(int id)

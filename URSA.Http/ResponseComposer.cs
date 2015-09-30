@@ -148,10 +148,10 @@ namespace URSA.Web.Http
                     case "GET":
                         return MakeGetResponse(requestMapping, (resultingValues.Count > 0 ? resultingValues[resultingValues.Count - 1] : null));
                     case "POST":
-                        return MakePostResponse(requestMapping, (resultingValues.Count > 0 ? resultingValues[0] : null), (resultingValues.Count > 0 ? (bool?)resultingValues[resultingValues.Count - 1] : null));
+                        return MakePostResponse(requestMapping, (resultingValues.Count > 0 ? resultingValues[0] : null));
                     case "PUT":
                     case "DELETE":
-                        return MakeResponse(requestMapping, (resultingValues.Count > 0 ? (bool?)resultingValues[resultingValues.Count - 1] : null));
+                        return MakeResponse(requestMapping);
                 }
             }
 
@@ -195,18 +195,12 @@ namespace URSA.Web.Http
             return result;
         }
 
-        private ResponseInfo MakePostResponse(IRequestMapping requestMapping, object value, bool? operationResult)
+        private ResponseInfo MakePostResponse(IRequestMapping requestMapping, object value)
         {
             ResponseInfo result = (ResponseInfo)requestMapping.Target.Response;
-            if ((operationResult == null) || (value == null))
+            if (value == null)
             {
                 result.Status = HttpStatusCode.BadRequest;
-                return result;
-            }
-
-            if (!operationResult.Value)
-            {
-                result.Status = HttpStatusCode.Conflict;
                 return result;
             }
 
@@ -231,22 +225,10 @@ namespace URSA.Web.Http
             return result;
         }
 
-        private ResponseInfo MakeResponse(IRequestMapping requestMapping, bool? operationResult)
+        private ResponseInfo MakeResponse(IRequestMapping requestMapping)
         {
             ResponseInfo result = (ResponseInfo)requestMapping.Target.Response;
-            if (operationResult == null)
-            {
-                result.Status = HttpStatusCode.NotFound;
-            }
-            else if (!operationResult.Value)
-            {
-                result.Status = HttpStatusCode.Conflict;
-            }
-            else
-            {
-                result.Status = HttpStatusCode.NoContent;
-            }
-
+            result.Status = HttpStatusCode.NoContent;
             return result;
         }
     }

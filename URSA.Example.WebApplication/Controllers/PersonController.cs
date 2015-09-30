@@ -30,30 +30,24 @@ namespace URSA.Example.WebApplication.Controllers
         }
 
         /// <summary>Creates the specified person.</summary>
-        /// <param name="id">The identifier of the person created.</param>
         /// <param name="person">The person.</param>
-        /// <returns><b>true</b> if the person was created or <b>false</b> if not; otherwise <b>null</b>.</returns>
-        public bool? Create(out Guid id, Person person)
+        /// <returns>Identifier of newly created person.</returns>
+        public Guid Create(Person person)
         {
-            id = Guid.NewGuid();
-            return true;
+            return Guid.NewGuid();
         }
 
         /// <summary>Updates the specified person.</summary>
         /// <param name="id">The identifier of the person to be updated.</param>
         /// <param name="person">The person.</param>
-        /// <returns><b>true</b> if the person was updated or <b>false</b> if not; otherwise <b>null</b>.</returns>
-        public bool? Update(Guid id, Person person)
+        public void Update(Guid id, Person person)
         {
-            return null;
         }
 
         /// <summary>Deletes a person.</summary>
         /// <param name="id">Identifier of the person to be deleted.</param>
-        /// <returns><b>true</b> for success and <b>false</b> for failure; otherwise <b>null</b> when the instance does not exist.</returns>
-        public bool? Delete(Guid id)
+        public void Delete(Guid id)
         {
-            return null;
         }
 
         /// <summary>Adds the given <paramref name="roles" /> to the user with given <paramref name="id" />.</summary>
