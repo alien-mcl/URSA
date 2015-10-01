@@ -192,11 +192,6 @@ namespace URSA.Web.Http.Description
             bool requiresRdf = false;
             var arguments = operation.Arguments.Where(parameter => parameter.Source is FromBodyAttribute).Select(parameter => parameter.Parameter);
             var results = operation.Results.Where(output => output.Target is ToBodyAttribute).Select(parameter => parameter.Parameter);
-            if (operation.IsWriteControllerOperation())
-            {
-                arguments = (operation.UnderlyingMethod.GetParameters().Length > 1 ? new[] { operation.UnderlyingMethod.GetParameters()[1] } : new ParameterInfo[0]);
-                results = (operation.UnderlyingMethod.GetParameters()[0].IsOut ? new[] { operation.UnderlyingMethod.GetParameters()[0] } : new ParameterInfo[0]);
-            }
 
             foreach (var value in arguments)
             {
@@ -247,7 +242,7 @@ namespace URSA.Web.Http.Description
         {
             IIriTemplateMapping templateMapping = context.ApiDocumentation.Context.Create<IIriTemplateMapping>(templateUri.AddFragment(mapping.VariableName));
             templateMapping.Variable = mapping.VariableName;
-            templateMapping.Required = mapping.Parameter.ParameterType.IsValueType;
+            templateMapping.Required = (mapping.Parameter.ParameterType.IsValueType) && (!mapping.Parameter.HasDefaultValue);
             templateMapping.Description = _xmlDocProvider.GetDescription(operation.UnderlyingMethod, mapping.Parameter);
             var linqBehaviors = mapping.Parameter.GetCustomAttributes<LinqServerBehaviorAttribute>(true);
             if (linqBehaviors.Any())
