@@ -63,6 +63,7 @@ namespace Given_instance_of_the.ResponseComposer_class
             var person = new Person() { Id = 1 };
             string callUri;
             var controllerDescription = new ControllerInfo<CrudController>(
+                null,
                 new Uri("api/test", UriKind.Relative),
                 Controller.GetType().GetMethod("Get").ToOperationInfo("api/test", Verb.GET, out callUri, person.Id),
                 Controller.GetType().GetMethod("Create").ToOperationInfo("api/test", Verb.POST, out callUri, person));

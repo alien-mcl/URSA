@@ -25,8 +25,9 @@ namespace URSA.ComponentModel
         /// <typeparam name="T">Type of the component to be registered.</typeparam>
         /// <typeparam name="I">Type implementing the component.</typeparam>
         /// <param name="name">Name of the implementation.</param>
+        /// <param name="factoryMethod">Optional factory method.</param>
         /// <param name="lifestyle">Lifestyle of the registration.</param>
-        void Register<T, I>(string name, Lifestyles lifestyle = Lifestyles.Transient)
+        void Register<T, I>(string name, Func<T> factoryMethod = null, Lifestyles lifestyle = Lifestyles.Transient)
             where T : class
             where I : T;
 
@@ -34,8 +35,9 @@ namespace URSA.ComponentModel
         /// <param name="serviceType">Type of the component to be registered.</param>
         /// <param name="implementationType">Type implementing the component.</param>
         /// <param name="name">Name of the implementation.</param>
+        /// <param name="factoryMethod">Optional factory method.</param>
         /// <param name="lifestyle">Lifestyle of the registration.</param>
-        void Register(Type serviceType, Type implementationType, string name, Lifestyles lifestyle = Lifestyles.Transient);
+        void Register(Type serviceType, Type implementationType, string name, Func<object> factoryMethod = null, Lifestyles lifestyle = Lifestyles.Transient);
 
         /// <summary>Registers an instance of the component implementing <typeparamref name="T" />.</summary>
         /// <typeparam name="T">Type of the component.</typeparam>
@@ -52,16 +54,18 @@ namespace URSA.ComponentModel
         /// <summary>Registers a component <typeparamref name="T"/> implemented by <typeparamref name="I"/>.</summary>
         /// <typeparam name="T">Type of the component to be registered.</typeparam>
         /// <typeparam name="I">Type implementing the component.</typeparam>
+        /// <param name="factoryMethod">Optional factory method.</param>
         /// <param name="lifestyle">Lifestyle of the registration.</param>
-        void Register<T, I>(Lifestyles lifestyle = Lifestyles.Transient)
+        void Register<T, I>(Func<T> factoryMethod = null, Lifestyles lifestyle = Lifestyles.Transient)
             where T : class
             where I : T;
 
         /// <summary>Registers a component <paramref name="serviceType"/> implemented by <paramref name="implementationType"/>.</summary>
         /// <param name="serviceType">Type of the component to be registered.</param>
         /// <param name="implementationType">Type implementing the component.</param>
+        /// <param name="factoryMethod">Optional factory method.</param>
         /// <param name="lifestyle">Lifestyle of the registration.</param>
-        void Register(Type serviceType, Type implementationType, Lifestyles lifestyle = Lifestyles.Transient);
+        void Register(Type serviceType, Type implementationType, Func<object> factoryMethod = null, Lifestyles lifestyle = Lifestyles.Transient);
 
         /// <summary>Registers an instance of the component implementing <typeparamref name="T" />.</summary>
         /// <typeparam name="T">Type of the component.</typeparam>
@@ -87,51 +91,53 @@ namespace URSA.ComponentModel
 
         /// <summary>Determines whether it is possible to resolve the instance of type <typeparamref name="T" />.</summary>
         /// <typeparam name="T">Type of instance to resolve.</typeparam>
+        /// <param name="arguments">Optional constructor arguments.</param>
         /// <returns><b>true</b> if it is possible to resolve the instance; otherwise <b>false</b>.</returns>
-        bool CanResolve<T>();
+        bool CanResolve<T>(IDictionary<string, object> arguments = null);
 
         /// <summary>Determines whether it is possible to resolve the instance of type <paramref name="type" />.</summary>
         /// <param name="type">Type of instance to resolve.</param>
+        /// <param name="arguments">Optional constructor arguments.</param>
         /// <returns><b>true</b> if it is possible to resolve the instance; otherwise <b>false</b>.</returns>
-        bool CanResolve(Type type);
+        bool CanResolve(Type type, IDictionary<string, object> arguments = null);
 
         /// <summary>Resolves the component.</summary>
         /// <typeparam name="T">Type of the component to be resolved.</typeparam>
         /// <param name="arguments">Optional arguments to be passed for the resolved instance.</param>
         /// <returns>Implementation of the given <typeparamref name="T"/>.</returns>
-        T Resolve<T>(params object[] arguments);
+        T Resolve<T>(IDictionary<string, object> arguments = null);
 
         /// <summary>Resolves the component.</summary>
         /// <param name="type">Type of the component to be resolved.</param>
         /// <param name="arguments">Optional arguments to be passed for the resolved instance.</param>
         /// <returns>Implementation of the given <paramref name="type"/>.</returns>
-        object Resolve(Type type, params object[] arguments);
+        object Resolve(Type type, IDictionary<string, object> arguments = null);
 
         /// <summary>Resolves the component.</summary>
         /// <typeparam name="T">Type of the component to be resolved.</typeparam>
         /// <param name="name">Name of the implementation.</param>
         /// <param name="arguments">Optional arguments to be passed for the resolved instance.</param>
         /// <returns>Implementation of the given <typeparamref name="T"/>.</returns>
-        T Resolve<T>(string name, params object[] arguments);
+        T Resolve<T>(string name, IDictionary<string, object> arguments = null);
 
         /// <summary>Resolves the component.</summary>
         /// <param name="type">Type of the component to be resolved.</param>
         /// <param name="name">Name of the implementation.</param>
         /// <param name="arguments">Optional arguments to be passed for the resolved instance.</param>
         /// <returns>Implementation of the given <paramref name="type"/>.</returns>
-        object Resolve(Type type, string name, params object[] arguments);
+        object Resolve(Type type, string name, IDictionary<string, object> arguments = null);
 
         /// <summary>Resolves components based on given type.</summary>
         /// <typeparam name="T">Type of the components.</typeparam>
         /// <param name="arguments">Optional arguments to be passed for the resolved instance.</param>
         /// <returns>Enumeration of instances of types registered.</returns>
-        IEnumerable<T> ResolveAll<T>(params object[] arguments);
+        IEnumerable<T> ResolveAll<T>(IDictionary<string, object> arguments = null);
 
         /// <summary>Resolves components based on given type.</summary>
         /// <param name="type">Type of the components.</param>
         /// <param name="arguments">Optional arguments to be passed for the resolved instance.</param>
         /// <returns>Enumeration of instances of types registered.</returns>
-        IEnumerable<object> ResolveAll(Type type, params object[] arguments);
+        IEnumerable<object> ResolveAll(Type type, IDictionary<string, object> arguments = null);
 
         /// <summary>Resolves type of the component.</summary>
         /// <remarks>This method should return only resolvable, generic closed types.</remarks>

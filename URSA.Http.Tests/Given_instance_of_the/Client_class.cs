@@ -99,9 +99,9 @@ namespace Given_instance_of_the
             _resultBinder = new Mock<IResultBinder<RequestInfo>>(MockBehavior.Strict);
             _resultBinder.Setup(instance => instance.BindResults(It.IsAny<Type>(), It.IsAny<RequestInfo>())).Returns(new object[] { Person });
             UrsaConfigurationSection.ComponentProvider = (_container = new Mock<IComponentProvider>(MockBehavior.Strict)).Object;
-            _container.Setup(instance => instance.Resolve<IConverterProvider>()).Returns(_converterProvider.Object);
-            _container.Setup(instance => instance.ResolveAll<IWebRequestProvider>()).Returns(new[] { _webRequestProvider.Object });
-            _container.Setup(instance => instance.Resolve<IResultBinder<RequestInfo>>()).Returns(_resultBinder.Object);
+            _container.Setup(instance => instance.Resolve<IConverterProvider>(null)).Returns(_converterProvider.Object);
+            _container.Setup(instance => instance.ResolveAll<IWebRequestProvider>(null)).Returns(new[] { _webRequestProvider.Object });
+            _container.Setup(instance => instance.Resolve<IResultBinder<RequestInfo>>(null)).Returns(_resultBinder.Object);
             _client = new Client(CallUri);
         }
 

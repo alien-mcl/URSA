@@ -20,44 +20,44 @@ namespace Given_instance_of
         public void it_should_create_basic_controller_instance()
         {
             var controller = new BasicController();
-            _container.Setup(instance => instance.CanResolve(typeof(BasicController))).Returns(true);
-            _container.Setup(instance => instance.Resolve(typeof(BasicController))).Returns(controller);
+            _container.Setup(instance => instance.CanResolve(typeof(BasicController), null)).Returns(true);
+            _container.Setup(instance => instance.Resolve(typeof(BasicController), null)).Returns(controller);
 
             var result = _activator.CreateInstance(typeof(BasicController));
 
             result.Should().Be(controller);
-            _container.Verify(instance => instance.CanResolve(typeof(BasicController)));
-            _container.Verify(instance => instance.Resolve(typeof(BasicController)));
+            _container.Verify(instance => instance.CanResolve(typeof(BasicController), null));
+            _container.Verify(instance => instance.Resolve(typeof(BasicController), null));
         }
 
         [TestMethod]
         public void it_should_create_generic_type_controller_instance()
         {
             var controller = new DescriptionController<BasicController>();
-            _container.Setup(instance => instance.CanResolve(typeof(DescriptionController<BasicController>))).Returns(false);
-            _container.Setup(instance => instance.CanResolve(typeof(DescriptionController<>))).Returns(true);
-            _container.Setup(instance => instance.Resolve(typeof(DescriptionController<>))).Returns(controller);
+            _container.Setup(instance => instance.CanResolve(typeof(DescriptionController<BasicController>), null)).Returns(false);
+            _container.Setup(instance => instance.CanResolve(typeof(DescriptionController<>), null)).Returns(true);
+            _container.Setup(instance => instance.Resolve(typeof(DescriptionController<>), null)).Returns(controller);
 
             var result = _activator.CreateInstance(typeof(DescriptionController<BasicController>));
 
             result.Should().Be(controller);
-            _container.Verify(instance => instance.CanResolve(typeof(DescriptionController<BasicController>)));
-            _container.Verify(instance => instance.CanResolve(typeof(DescriptionController<>)));
-            _container.Verify(instance => instance.Resolve(typeof(DescriptionController<>)));
+            _container.Verify(instance => instance.CanResolve(typeof(DescriptionController<BasicController>), null));
+            _container.Verify(instance => instance.CanResolve(typeof(DescriptionController<>), null));
+            _container.Verify(instance => instance.Resolve(typeof(DescriptionController<>), null));
         }
 
         [TestMethod]
         public void it_should_create_complex_controller_instance()
         {
             var controller = new BasicController();
-            _container.Setup(instance => instance.CanResolve(typeof(BasicController))).Returns(false);
-            _container.Setup(instance => instance.Resolve(typeof(IController))).Returns(controller);
+            _container.Setup(instance => instance.CanResolve(typeof(BasicController), null)).Returns(false);
+            _container.Setup(instance => instance.Resolve(typeof(IController), null)).Returns(controller);
 
             var result = _activator.CreateInstance(typeof(BasicController));
 
             result.Should().Be(controller);
-            _container.Verify(instance => instance.CanResolve(typeof(BasicController)));
-            _container.Verify(instance => instance.Resolve(typeof(IController)));
+            _container.Verify(instance => instance.CanResolve(typeof(BasicController), null));
+            _container.Verify(instance => instance.Resolve(typeof(IController), null));
         }
 
         [TestInitialize]

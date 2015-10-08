@@ -2,6 +2,7 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Text.RegularExpressions;
@@ -56,11 +57,11 @@ namespace Given_instance_of_the
                 Verb.GET,
                 new ArgumentInfo(method.GetParameters()[0], FromQueryStringAttribute.For(method.GetParameters()[0]), "&operandA={?operandA}", "operandA"),
                 new ArgumentInfo(method.GetParameters()[1], FromQueryStringAttribute.For(method.GetParameters()[1]), "&operandB={?operandB}", "operandB"));
-            var description = new ControllerInfo<TestController>(new Uri("/api/test/", UriKind.Relative), operation);
+            var description = new ControllerInfo<TestController>(null, new Uri("/api/test/", UriKind.Relative), operation);
             Mock<IHttpControllerDescriptionBuilder<TestController>> builder = new Mock<IHttpControllerDescriptionBuilder<TestController>>();
             builder.As<IControllerDescriptionBuilder>().Setup(instance => instance.BuildDescriptor()).Returns(description);
             Mock<IControllerActivator> activator = new Mock<IControllerActivator>();
-            activator.Setup(instance => instance.CreateInstance(It.IsAny<Type>())).Returns<Type>(type => new TestController());
+            activator.Setup(instance => instance.CreateInstance(It.IsAny<Type>(), It.IsAny<IDictionary<string, object>>())).Returns(new TestController());
             _mapper = new DelegateMapper(new IHttpControllerDescriptionBuilder[] { builder.Object }, activator.Object);
         }
 

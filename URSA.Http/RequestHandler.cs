@@ -51,6 +51,11 @@ namespace URSA.Web.Http
             try
             {
                 var requestMapping = _handlerMapper.MapRequest(request);
+                if (requestMapping == null)
+                {
+                    throw new NotFoundException(String.Format("No API resource handles requested url '{0}'.", request.Uri));
+                }
+
                 ResponseInfo response = new StringResponseInfo(null, request);
                 requestMapping.Target.Response = response;
                 var arguments = _argumentBinder.BindArguments(request, requestMapping);

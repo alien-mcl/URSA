@@ -114,6 +114,9 @@
     <Compile Include="Given_instance_of_the\HydraCompliantTypeDescriptionBuilder_class\HydraCompliantTypeDescriptionBuilderTest.cs" />
     <Compile Include="Given_instance_of_the\HydraCompliantTypeDescriptionBuilder_class\when_describing_an_Int32_value_type.cs" />
     <Compile Include="Given_instance_of_the\HydraCompliantTypeDescriptionBuilder_class\when_describing_a_Person_reference_type.cs" />
+    <Compile Include="Given_instance_of_the\ApiEntryPointDescriptionBuilder_class.cs" />
+    <Compile Include="Given_instance_of_the\EntryPointControllerDescriptionBuilder_class.cs" />
+    <Compile Include="Given_instance_of_the\EntryPointDescriptionController_class.cs" />
     <Compile Include="Given_instance_of_the\XmlDocProvider_class.cs" />
     <Compile Include="Given_instance_of_the\XsdUriParser_class.cs" />
     <Compile Include="Given_instance_of_the\GenericUriParser_class.cs" />

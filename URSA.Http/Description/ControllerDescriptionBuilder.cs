@@ -87,9 +87,27 @@ namespace URSA.Web.Description.Http
             return _description.Value;
         }
 
-        private ControllerInfo<T> BuildDescriptorInternal()
+        /// <summary>Gets the controller route attribute.</summary>
+        /// <returns>Controller's route attribute with it's Uri.</returns>
+        protected virtual RouteAttribute GetControllerRoute()
         {
-            var prefix = typeof(T).GetControllerRoute();
+            return typeof(T).GetControllerRoute();
+        }
+
+        /// <summary>Builds the descriptor internally.</summary>
+        /// <returns>Controller information.</returns>
+        protected virtual ControllerInfo<T> BuildDescriptorInternal()
+        {
+            var globalRoutePrefix = (typeof(T).IsGenericType) && 
+                (typeof(T).GetGenericArguments()[0].GetInterfaces().Contains(typeof(IController))) ? 
+                typeof(T).GetGenericArguments()[0].Assembly.GetCustomAttribute<RouteAttribute>() : 
+                typeof(T).Assembly.GetCustomAttribute<RouteAttribute>();
+            var prefix = GetControllerRoute();
+            if (globalRoutePrefix != null)
+            {
+                prefix = new RouteAttribute(prefix.Uri.Combine(globalRoutePrefix.Uri).ToString());
+            }
+
             IList<OperationInfo> operations = new List<OperationInfo>();
             var methods = typeof(T).GetMethods(BindingFlags.Public | BindingFlags.Instance)
                 .Except(typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance)
@@ -100,7 +118,7 @@ namespace URSA.Web.Description.Http
                 operations.AddRange(BuildMethodDescriptor(method, prefix));
             }
 
-            return new ControllerInfo<T>(prefix.Uri, operations.ToArray());
+            return new ControllerInfo<T>((globalRoutePrefix != null ? globalRoutePrefix.Uri : null), prefix.Uri, operations.ToArray());
         }
 
         private IEnumerable<OperationInfo> BuildMethodDescriptor(MethodInfo method, RouteAttribute prefix)

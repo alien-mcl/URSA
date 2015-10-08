@@ -6,9 +6,11 @@ using Castle.MicroKernel.Resolvers.SpecializedResolvers;
 using Castle.Windsor;
 using Castle.Windsor.Installer;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using Castle.Core;
 using URSA.CastleWindsor.ComponentModel;
 using URSA.ComponentModel;
 
@@ -17,8 +19,8 @@ namespace URSA.ComponentModel
     /// <summary>Provides a Castle Windsor based implementation of the <see cref="IServiceProvider"/> interface.</summary>
     public sealed class WindsorComponentProvider : IComponentProvider, IDisposable
     {
-        private IWindsorContainer _container;
-        private IGenericImplementationMatchingStrategy _genericImplementationMatchingStrategy;
+        private readonly IWindsorContainer _container;
+        private readonly IGenericImplementationMatchingStrategy _genericImplementationMatchingStrategy;
 
         /// <summary>Initializes a new instance of the <see cref="WindsorComponentProvider"/> class.</summary>
         public WindsorComponentProvider()
@@ -39,17 +41,22 @@ namespace URSA.ComponentModel
         }
 
         /// <inheritdoc />
-        public void Register<T, I>(string name, Lifestyles lifestyle = Lifestyles.Transient)
+        public void Register<T, I>(string name, Func<T> factoryMethod = null, Lifestyles lifestyle = Lifestyles.Transient)
             where T : class
             where I : T
         {
-            Register(typeof(T), typeof(I), name, lifestyle);
+            Register(typeof(T), typeof(I), name, factoryMethod, lifestyle);
         }
 
         /// <inheritdoc />
-        public void Register(Type serviceType, Type implementationType, string name, Lifestyles lifestyle = Lifestyles.Transient)
+        public void Register(Type serviceType, Type implementationType, string name, Func<object> factoryMethod = null, Lifestyles lifestyle = Lifestyles.Transient)
         {
             var registration = Component.For(serviceType).ImplementedBy(implementationType, _genericImplementationMatchingStrategy);
+            if (factoryMethod != null)
+            {
+                registration = registration.UsingFactoryMethod(factoryMethod);
+            }
+
             switch (lifestyle)
             {
                 case Lifestyles.Transient:
@@ -81,17 +88,17 @@ namespace URSA.ComponentModel
         }
 
         /// <inheritdoc />
-        public void Register<T, I>(Lifestyles lifestyle = Lifestyles.Transient)
+        public void Register<T, I>(Func<T> factoryMethod = null, Lifestyles lifestyle = Lifestyles.Transient)
             where T : class
             where I : T
         {
-            Register(typeof(T), typeof(I), lifestyle);
+            Register(typeof(T), typeof(I), factoryMethod, lifestyle);
         }
 
         /// <inheritdoc />
-        public void Register(Type serviceType, Type implementationType, Lifestyles lifestyle = Lifestyles.Transient)
+        public void Register(Type serviceType, Type implementationType, Func<object> factoryMethod = null, Lifestyles lifestyle = Lifestyles.Transient)
         {
-            Register(serviceType, implementationType, null, lifestyle);
+            Register(serviceType, implementationType, null, factoryMethod, lifestyle);
         }
 
         /// <inheritdoc />
@@ -134,51 +141,78 @@ namespace URSA.ComponentModel
         }
 
         /// <inheritdoc />
-        public bool CanResolve<T>()
+        public bool CanResolve<T>(IDictionary<string, object> arguments = null)
         {
             return CanResolve(typeof(T));
         }
 
         /// <inheritdoc />
-        public bool CanResolve(Type type)
+        public bool CanResolve(Type type, IDictionary<string, object> arguments = null)
         {
-            return ResolveAllTypes(type).Any();
+            if (arguments == null)
+            {
+                return ResolveAllTypes(type).Any();
+            }
+
+            var parameters = arguments.ToArguments();
+            foreach (var handler in _container.Kernel.GetAssignableHandlers(type))
+            {
+                bool canResolve = true;
+                foreach (var dependency in handler.ComponentModel.Dependencies.OfType<ConstructorDependencyModel>())
+                {
+                    var creationContext = new CreationContext(handler, null, type, parameters, null, null);
+                    if (_container.Kernel.Resolver.CanResolve(creationContext, null, handler.ComponentModel, dependency))
+                    {
+                        continue;
+                    }
+
+                    canResolve = false;
+                    break;
+                }
+
+                if (canResolve)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         /// <inheritdoc />
-        public T Resolve<T>(params object[] arguments)
+        public T Resolve<T>(IDictionary<string, object> arguments = null)
         {
-            return _container.Resolve<T>(new Arguments(arguments));
+            return (arguments != null ? _container.Resolve<T>(arguments.ToArguments()) : _container.Resolve<T>());
         }
 
         /// <inheritdoc />
-        public object Resolve(Type type, params object[] arguments)
+        public object Resolve(Type type, IDictionary<string, object> arguments = null)
         {
-            return _container.Resolve(type, new Arguments(arguments));
+            return (arguments != null ? _container.Resolve(type, arguments.ToArguments()) : _container.Resolve(type));
         }
 
         /// <inheritdoc />
-        public T Resolve<T>(string name, params object[] arguments)
+        public T Resolve<T>(string name, IDictionary<string, object> arguments = null)
         {
-            return _container.Resolve<T>(name, new Arguments(arguments));
+            return (arguments != null ? _container.Resolve<T>(name, arguments.ToArguments()) : _container.Resolve<T>(name));
         }
 
         /// <inheritdoc />
-        public object Resolve(Type type, string name, params object[] arguments)
+        public object Resolve(Type type, string name, IDictionary<string, object> arguments = null)
         {
-            return _container.Resolve(name, type, new Arguments(arguments));
+            return (arguments != null ? _container.Resolve(name, type, arguments.ToArguments()) : _container.Resolve(name, type));
         }
 
         /// <inheritdoc />
-        public IEnumerable<T> ResolveAll<T>(params object[] arguments)
+        public IEnumerable<T> ResolveAll<T>(IDictionary<string, object> arguments = null)
         {
-            return _container.ResolveAll<T>(new Arguments(arguments));
+            return (arguments != null ? _container.ResolveAll<T>(arguments.ToArguments()) : _container.ResolveAll<T>());
         }
 
         /// <inheritdoc />
-        public IEnumerable<object> ResolveAll(Type type, params object[] arguments)
+        public IEnumerable<object> ResolveAll(Type type, IDictionary<string, object> arguments = null)
         {
-            return _container.ResolveAll(type, new Arguments(arguments)).Cast<object>();
+            return (arguments != null ? _container.ResolveAll(type, arguments.ToArguments()) : _container.ResolveAll(type)).Cast<object>();
         }
 
         /// <inheritdoc />

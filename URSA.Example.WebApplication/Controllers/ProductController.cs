@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using RomanticWeb.Entities;
 using URSA.Example.WebApplication.Data;
 using URSA.Web;

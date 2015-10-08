@@ -106,7 +106,7 @@ namespace URSA.Web.Http.Converters
                 System.Web.HttpUtility.JavaScriptStringEncode(exception.Message));
             responseInfo.Headers.Add(new Header(Header.Warning, message));
             responseInfo.Status = exception.Status;
-            using (var writer = new StreamWriter(responseInfo.Body))
+            using (var writer = new StreamWriter(responseInfo.Body, responseInfo.Encoding))
             {
                 writer.Write(
                     "{{{0}\t\"title\":\"{2}\",{0}\t\"details\":\"{3}\",\"status\":{1}{0}}}",

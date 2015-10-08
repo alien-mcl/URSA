@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using System.Web;
 using System.Web.Routing;
+using RomanticWeb;
 using URSA.ComponentModel;
 using URSA.Configuration;
 using URSA.Web.Description;
@@ -19,64 +20,53 @@ namespace URSA.Web
     /// <summary>Provides methods allowing to integrate URSA framework with standard ASP.net pipeline.</summary>
     public static class HttpApplicationExtesions
     {
+        private static readonly MethodInfo RegisterApiT = typeof(HttpApplicationExtesions)
+            .GetMethods(BindingFlags.NonPublic | BindingFlags.Static)
+            .First(method => (method.Name == "RegisterApi") && (method.IsGenericMethodDefinition));
+
         /// <summary>Registers all APIs into the ASP.net pipeline.</summary>
         /// <param name="application">Application to work with.</param>
         public static void RegisterApis(this HttpApplication application)
         {
-            var assemblies = UrsaConfigurationSection.GetInstallerAssemblies().Concat(new Assembly[] { Assembly.GetExecutingAssembly() });
+            var assemblies = UrsaConfigurationSection.GetInstallerAssemblies().Concat(new[] { Assembly.GetExecutingAssembly() });
             var container = UrsaConfigurationSection.InitializeComponentProvider();
             container.RegisterAll<IController>(assemblies);
             var controllers = container.ResolveAllTypes<IController>();
-            controllers
-                .Where(controllerType => (!controllerType.IsGenericType) || ((controllerType.IsGenericType) && (controllerType.GetGenericTypeDefinition() != typeof(DescriptionController<>))))
-                .ForEach(controllerType => container.Register(
-                typeof(IHttpControllerDescriptionBuilder<>).MakeGenericType(controllerType),
-                typeof(ControllerDescriptionBuilder<>).MakeGenericType(controllerType),
-                typeof(IHttpControllerDescriptionBuilder<>).MakeGenericType(controllerType).FullName));
-            controllers.ForEach(controllerType => container.Register(
-                typeof(IHttpControllerDescriptionBuilder),
-                typeof(ControllerDescriptionBuilder<>).MakeGenericType(controllerType)));
-            IDictionary<string, Route> routes = new Dictionary<string, Route>();
-            foreach (var controller in controllers.Where(controller => (!controller.IsGenericType) || 
-                ((controller.IsGenericType) && (!typeof(DescriptionController<>).IsAssignableFrom(controller.GetGenericTypeDefinition())))))
+            container.RegisterControllerRelatedTypes(controllers);
+            var registeredEntryPoints = new List<string>();
+            var routes = new Dictionary<string, Route>();
+            foreach (var controller in controllers.Where(controller => !controller.IsDescriptionController()))
             {
-                ((IDictionary<string, Route>)typeof(HttpApplicationExtesions).GetMethods(BindingFlags.NonPublic | BindingFlags.Static)
-                    .Where(method => (method.Name == "RegisterApi") && (method.IsGenericMethodDefinition))
-                    .Select(method => method.MakeGenericMethod(controller))
-                    .First()
-                    .Invoke(null, new object[] { container })).ForEach(route =>
-                    {
-                        if (!routes.ContainsKey(route.Key))
-                        {
-                            routes.Add(route.Key, route.Value);
-                        }
-                    });
+                var descriptionBuilder = (IHttpControllerDescriptionBuilder)container.Resolve(typeof(IHttpControllerDescriptionBuilder<>).MakeGenericType(controller));
+                var description = descriptionBuilder.BuildDescriptor();
+                if ((description.EntryPoint != null) && (!registeredEntryPoints.Contains(description.EntryPoint.ToString())))
+                {
+                    container.RegisterEntryPointControllerDescriptionBuilder(description.EntryPoint);
+                    registeredEntryPoints.Add(description.EntryPoint.ToString());
+                }
+
+                var routesToAdd = (IDictionary<string, Route>)RegisterApiT.MakeGenericMethod(controller).Invoke(null, new object[] { container, description });
+                routes.AddRange(routesToAdd.Where(route => !routes.ContainsKey(route.Key)));
             }
 
             routes.ForEach(route => RouteTable.Routes.Add(route.Key, route.Value));
         }
 
-        /// <summary>Registers a single HTTP protocol API.</summary>
-        /// <typeparam name="T">Type of controller to register.</typeparam>
-        /// <param name="application">Application to work with.</param>
-        public static void RegisterApi<T>(this HttpApplication application)
-            where T : IController
+        private static IDictionary<string, Route> RegisterApi<T>(IComponentProvider container, ControllerInfo<T> description) where T : IController
         {
-            var routes = RegisterApi<T>(UrsaConfigurationSection.InitializeComponentProvider());
-            routes.ForEach(route => RouteTable.Routes.Add(route.Key, route.Value));
-        }
-
-        private static IDictionary<string, Route> RegisterApi<T>(IComponentProvider container)
-            where T : IController
-        {
+            var globalRoutePrefixes = new List<Uri>();
             var handler = new UrsaHandler<T>(container.Resolve<IRequestHandler<RequestInfo, ResponseInfo>>());
-            var builder = container.Resolve<IHttpControllerDescriptionBuilder<T>>();
-            var description = builder.BuildDescriptor();
+            string globalRoutePrefix = (description.EntryPoint != null ? description.EntryPoint.ToString().Substring(1) + "/" : String.Empty);
             IDictionary<string, Route> routes = new Dictionary<string, Route>();
-            routes[typeof(T).FullName + "DocumentationStylesheet"] = new Route(EntityConverter.DocumentationStylesheet, handler);
-            routes[typeof(T).FullName + "PropertyIcon"] = new Route(EntityConverter.PropertyIcon, handler);
-            routes[typeof(T).FullName + "MethodIcon"] = new Route(EntityConverter.MethodIcon, handler);
+            routes[typeof(T).FullName + "DocumentationStylesheet"] = new Route(globalRoutePrefix + EntityConverter.DocumentationStylesheet, handler);
+            routes[typeof(T).FullName + "PropertyIcon"] = new Route(globalRoutePrefix + EntityConverter.PropertyIcon, handler);
+            routes[typeof(T).FullName + "MethodIcon"] = new Route(globalRoutePrefix + EntityConverter.MethodIcon, handler);
             routes[typeof(T).FullName] = new Route(description.Uri.ToString().Substring(1), handler);
+            if (!String.IsNullOrEmpty(globalRoutePrefix))
+            {
+                routes[globalRoutePrefix] = new Route(globalRoutePrefix, handler);
+            }
+
             foreach (var operation in description.Operations)
             {
                 string routeTemplate = (operation.UriTemplate ?? operation.Uri.ToString()).Substring(1).Replace("{?", "{");
@@ -93,6 +83,41 @@ namespace URSA.Web
             }
 
             return routes;
+        }
+
+        private static void RegisterControllerRelatedTypes(this IComponentProvider container, IEnumerable<Type> controllerTypes)
+        {
+            foreach (var controllerType in controllerTypes)
+            {
+                if (!controllerType.IsDescriptionController())
+                {
+                    container.Register(
+                        typeof(IHttpControllerDescriptionBuilder<>).MakeGenericType(controllerType),
+                        typeof(ControllerDescriptionBuilder<>).MakeGenericType(controllerType),
+                        typeof(IHttpControllerDescriptionBuilder<>).MakeGenericType(controllerType).FullName);
+                }
+
+                if (!typeof(EntryPointDescriptionController).IsAssignableFrom(controllerType))
+                {
+                    container.Register(
+                        typeof(IHttpControllerDescriptionBuilder),
+                        typeof(ControllerDescriptionBuilder<>).MakeGenericType(controllerType));
+                }
+            }
+        }
+
+        private static void RegisterEntryPointControllerDescriptionBuilder(this IComponentProvider container, Uri entryPoint)
+        {
+            container.Register<IHttpControllerDescriptionBuilder, EntryPointControllerDescriptionBuilder>(
+                entryPoint.ToString().Substring(1),
+                () => new EntryPointControllerDescriptionBuilder(entryPoint, container.Resolve<IDefaultValueRelationSelector>()),
+                Lifestyles.Singleton);
+        }
+
+        private static bool IsDescriptionController(this Type controllerType)
+        {
+            return (typeof(EntryPointDescriptionController).IsAssignableFrom(controllerType)) ||
+                   ((controllerType.IsGenericType) && (controllerType.GetGenericTypeDefinition() == typeof(DescriptionController<>)));
         }
     }
 }

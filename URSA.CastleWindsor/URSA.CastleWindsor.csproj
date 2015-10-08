@@ -85,9 +85,11 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ComponentModel\AutoClosingCollectionResolver.cs" />
+    <Compile Include="ComponentModel\DictionaryExtensions.cs" />
     <Compile Include="ComponentModel\HandlerEqualityComparer.cs" />
     <Compile Include="ComponentModel\NonPublicComponentActivator.cs" />
     <Compile Include="ComponentModel\DefaultGenericImplementationMatchingStrategy.cs" />
+    <Compile Include="ComponentModel\ApiDescriptiobBuilderTypedFactory.cs" />
     <Compile Include="ComponentModel\WindsorComponentProvider.cs" />
     <Compile Include="HttpInstaller.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

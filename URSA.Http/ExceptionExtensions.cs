@@ -1,5 +1,12 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using System.IO;
 using System.Net;
+using System.Runtime.Serialization;
+using System.Runtime.Serialization.Formatters.Binary;
+using System.Web;
+using URSA.Web;
 using URSA.Web.Http;
 
 namespace System
@@ -7,6 +14,20 @@ namespace System
     /// <summary>Provides useful exception extension methods.</summary>
     public static class ExceptionExtensions
     {
+        private static readonly IDictionary<Type, HttpStatusCode> ExceptionHttpStatusCodeMap;
+
+        static ExceptionExtensions()
+        {
+            ExceptionHttpStatusCodeMap = new ConcurrentDictionary<Type, HttpStatusCode>();
+            ExceptionHttpStatusCodeMap[typeof(NotFoundException)] = HttpStatusCode.NotFound;
+            ExceptionHttpStatusCodeMap[typeof(AlreadyExistsException)] = HttpStatusCode.Conflict;
+            ExceptionHttpStatusCodeMap[typeof(ArgumentException)] = HttpStatusCode.BadRequest;
+            ExceptionHttpStatusCodeMap[typeof(ArgumentNullException)] = HttpStatusCode.BadRequest;
+            ExceptionHttpStatusCodeMap[typeof(ArgumentOutOfRangeException)] = HttpStatusCode.BadRequest;
+            ExceptionHttpStatusCodeMap[typeof(NotImplementedException)] = HttpStatusCode.NotImplemented;
+            ExceptionHttpStatusCodeMap[typeof(UnauthorizedAccessException)] = HttpStatusCode.Unauthorized;
+        }
+
         /// <summary>Converts several standard exceptions into their corresponding HTTP equivalents.</summary>
         /// <param name="exception">Exception to be mapped.</param>
         /// <returns>Instance of the <see cref="ProtocolException"/> with a proper HTTP status code.</returns>
@@ -18,29 +39,20 @@ namespace System
                 throw new ArgumentNullException("exception");
             }
 
+            if (exception is ProtocolException)
+            {
+                return (ProtocolException)exception;
+            }
+
+            HttpStatusCode httpStatusCode = (exception is HttpException ? (HttpStatusCode)((HttpException)exception).WebEventCode : HttpStatusCode.InternalServerError);
+            if (ExceptionHttpStatusCodeMap.ContainsKey(exception.GetType()))
+            {
+                httpStatusCode = ExceptionHttpStatusCodeMap[exception.GetType()];
+            }
+
             try
             {
-                switch (exception.GetType().FullName)
-                {
-                    case "URSA.Web.NotFoundException":
-                        throw new ProtocolException(HttpStatusCode.NotFound, exception);
-                    case "URSA.Web.AlreadyExistsException":
-                        throw new ProtocolException(HttpStatusCode.Conflict, exception);
-                    case "URSA.Web.Http.ProtocolException":
-                        return (ProtocolException)exception;
-                    case "System.Web.HttpException":
-                        throw new ProtocolException((HttpStatusCode)((Web.HttpException)exception).WebEventCode);
-                    case "System.ArgumentException":
-                    case "System.ArgumentNullException":
-                    case "System.ArgumentOutOfRangeException":
-                        throw new ProtocolException(HttpStatusCode.BadRequest, exception);
-                    case "System.NotImplementedException":
-                        throw new ProtocolException(HttpStatusCode.NotImplemented, exception);
-                    case "System.UnauthorizedAccessException":
-                        throw new ProtocolException(HttpStatusCode.Unauthorized, exception);
-                    default:
-                        throw new ProtocolException(HttpStatusCode.InternalServerError, exception);
-                }
+                throw new ProtocolException(httpStatusCode, exception);
             }
             catch (ProtocolException result)
             {

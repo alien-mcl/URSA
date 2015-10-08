@@ -93,18 +93,18 @@ namespace Given_instance_of_the
             Mock<IControllerActivator> activator = new Mock<IControllerActivator>(MockBehavior.Strict);
 
             Mock<IComponentProvider> container = new Mock<IComponentProvider>(MockBehavior.Strict);
-            container.Setup(instance => instance.Resolve<IConverterProvider>()).Returns(converterProvider.Object);
-            container.Setup(instance => instance.Resolve<IDelegateMapper<RequestInfo>>()).Returns(_delegateMapper.Object);
+            container.Setup(instance => instance.Resolve<IConverterProvider>(null)).Returns(converterProvider.Object);
+            container.Setup(instance => instance.Resolve<IDelegateMapper<RequestInfo>>(null)).Returns(_delegateMapper.Object);
             container.Setup(instance => instance.Register<IDelegateMapper<RequestInfo>>(It.IsAny<DelegateMapper>()));
-            container.Setup(instance => instance.Resolve<IArgumentBinder<RequestInfo>>()).Returns(_argumentBinder.Object);
+            container.Setup(instance => instance.Resolve<IArgumentBinder<RequestInfo>>(null)).Returns(_argumentBinder.Object);
             container.Setup(instance => instance.Register<IArgumentBinder<RequestInfo>>(It.IsAny<ArgumentBinder>()));
             container.Setup(instance => instance.Register<IConverterProvider>(It.IsAny<IConverterProvider>()));
             container.Setup(instance => instance.Register<IControllerActivator>(It.IsAny<IControllerActivator>()));
-            container.Setup(instance => instance.Resolve<IControllerActivator>()).Returns(activator.Object);
-            container.Setup(instance => instance.ResolveAll<IParameterSourceArgumentBinder>()).Returns(new IParameterSourceArgumentBinder[0]);
-            container.Setup(instance => instance.ResolveAll<IConverter>()).Returns(new IConverter[] { converter.Object });
+            container.Setup(instance => instance.Resolve<IControllerActivator>(null)).Returns(activator.Object);
+            container.Setup(instance => instance.ResolveAll<IParameterSourceArgumentBinder>(null)).Returns(new IParameterSourceArgumentBinder[0]);
+            container.Setup(instance => instance.ResolveAll<IConverter>(null)).Returns(new IConverter[] { converter.Object });
             container.Setup(instance => instance.ResolveAllTypes<IController>()).Returns(new Type[] { typeof(TestController) });
-            container.Setup(instance => instance.Resolve(typeof(IHttpControllerDescriptionBuilder<>).MakeGenericType(typeof(TestController)))).Returns(builder.Object);
+            container.Setup(instance => instance.Resolve(typeof(IHttpControllerDescriptionBuilder<>).MakeGenericType(typeof(TestController)), null)).Returns(builder.Object);
             UrsaConfigurationSection.ComponentProvider = container.Object;
 
             _responseComposer = new Mock<IResponseComposer>(MockBehavior.Strict);

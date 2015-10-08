@@ -45,7 +45,7 @@ namespace URSA.Web.Handlers
             context.Response.TrySkipIisCustomErrors = true;
             if (context.Request.Url.Segments.Any())
             {
-                var segment = context.Request.Url.Segments.Skip(1).First();
+                var segment = context.Request.Url.Segments.Last();
                 switch (segment)
                 {
                     case EntityConverter.DocumentationStylesheet:

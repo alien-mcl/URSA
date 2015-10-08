@@ -247,7 +247,14 @@
             $scope.currentMember = null;
             $scope.createMember = createMember;
             $scope.currentFlavour = defaultFlavour;
-            $scope.mapType = mapType;
+            $scope.mapType = function(supportedClass, type, currentFlavour) {
+                var result = mapType(type, currentFlavour);
+                if (type.replace(/\[\]$/, "") === mapType(supportedClass["@id"], currentFlavour)) {
+                    result = supportedClass.label + (result.replace(/\[\]$/, "") === result ? "" : "[]");
+                }
+                
+                return result;
+            };
             $scope.isMethod = function(member) {
                 return (member) && (member['@type'] === hydra.supportedOperation);
             };
@@ -294,7 +301,7 @@
                                         <a data-toggle="collapse" data-parent="#SupportedClasses" href="#collapse{{{{ $index }}}}">{{ supportedClass.label }}</a>
                                     </h4>
                                 </div>
-                                <div id="collapse{{{{ $index }}}}" class="panel-collapse collapse in">
+                                <div id="collapse{{{{ $index }}}}" class="panel-collapse collapse">
                                     <div class="panel-body">
                                         <ul class="list-group">
                                             <a href="#" class="list-group-item list-group-item-property" ng-repeat="supportedProperty in supportedClass.supportedProperties" ng-click="showMember($event, supportedClass, supportedProperty)">
@@ -322,18 +329,18 @@
                                     </tr>
                                     <tr ng-repeat="mapping in currentMember.mappings">
                                         <td>{{ mapping.variable }}</td>
-                                        <td ng-attr-title="mapping.property ? mapping.property.type : ''">{{ mapping.property ? mapType(mapping.property.type, currentFlavour) : "object" }}</td>
+                                        <td ng-attr-title="mapping.property ? mapping.property.type : ''">{{ mapping.property ? mapType(currentClass, mapping.property.type, currentFlavour) : "object" }}</td>
                                         <td>{{ mapping.description }}</td>
                                     </tr>
                                     <tr ng-repeat="expected in currentMember.expects">
                                         <td>{{ expected.variable }}</td>
-                                        <td ng-attr-title="expected.type">{{ mapType(expected.type, currentFlavour) }}</td>
+                                        <td ng-attr-title="expected.type">{{ mapType(currentClass, expected.type, currentFlavour) }}</td>
                                         <td></td>
                                     </tr>
                                 </table>
                                 <p ng-show="returns(currentMember)">
                                     {{ currentMember.type ? "Type:" : "Returns:" }}
-                                    {{ returns(currentMember) ? mapType(currentMember.type || currentMember.returns[0], currentFlavour) : "" }}
+                                    {{ returns(currentMember) ? mapType(currentClass, currentMember.type || currentMember.returns[0], currentFlavour) : "" }}
                                 </p>
                             </div>
                         </div>
@@ -349,10 +356,8 @@
         var supportedClasses = [];<xsl:for-each select="hydra:supportedClasses"><xsl:variable name="id" select="@rdf:resource" />
         supportedClasses.push(<xsl:call-template name="hydra-Class">
                 <xsl:with-param name="class" select="/rdf:RDF/hydra:Class[@rdf:about = $id]|/rdf:RDF/*[rdf:type/@rdf:resource = '&hydra;Class' and @rdf:about = $id]" />
-            </xsl:call-template><xsl:if test="position() != last()">,</xsl:if>
-        );
-        supportedClasses[supportedClasses.length - 1].supportedOperations.pop();
-        </xsl:for-each>
+            </xsl:call-template>);
+        supportedClasses[supportedClasses.length - 1].supportedOperations.pop();</xsl:for-each>
     </xsl:template>
 
     <xsl:template name="hydra-Class">
@@ -404,7 +409,7 @@
                     {
                     }
                 ]
-                }</xsl:template>
+            }</xsl:template>
 
     <xsl:template name="hydra-SupportedProperty">
         <xsl:param name="supportedProperty" />
@@ -452,8 +457,8 @@
                                     ><xsl:with-param name="type" select="$resource/ursa:resourceType/@rdf:resource" 
                                     /><xsl:with-param name="isEnumerable" select="$enumerable" 
                                     /></xsl:call-template
-                                >"<xsl:if test="position() != last()">, </xsl:if>
-                            }</xsl:for-each>
+                                >"
+                            }<xsl:if test="position() != last()">, </xsl:if></xsl:for-each>
                         ],
                         "mappings": [<xsl:for-each select="/rdf:RDF/*[@rdf:about = $template/hydra:mapping/@rdf:resource]">
                             {

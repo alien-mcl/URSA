@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using URSA.ComponentModel;
@@ -24,25 +25,24 @@ namespace URSA.Web
         }
 
         /// <inheritdoc />
-        public IController CreateInstance(Type type)
+        public IController CreateInstance(Type type, IDictionary<string, object> arguments = null)
         {
             Type candidate = type;
-            if (_container.CanResolve(candidate))
+            if (_container.CanResolve(candidate, arguments))
             {
-                return (IController)_container.Resolve(candidate);
+                return (IController)_container.Resolve(candidate, arguments);
             }
-            else if ((type.IsGenericType) && (_container.CanResolve(candidate = type.GetGenericTypeDefinition())))
+
+            if ((type.IsGenericType) && (_container.CanResolve(candidate = type.GetGenericTypeDefinition(), arguments)))
             {
-                return (IController)_container.Resolve(candidate);
+                return (IController)_container.Resolve(candidate, arguments);
             }
-            else
-            {
-                candidate = type.GetInterfaces()
-                    .Where(@interface => typeof(IController).IsAssignableFrom(@interface))
-                    .OrderByDescending(@interface => @interface.GetGenericArguments().Length)
-                    .First();
-                return (IController)_container.Resolve(candidate);
-            }
+
+            candidate = type.GetInterfaces()
+                .Where(@interface => typeof(IController).IsAssignableFrom(@interface))
+                .OrderByDescending(@interface => @interface.GetGenericArguments().Length)
+                .First();
+            return (IController)_container.Resolve(candidate, arguments);
         }
     }
 }

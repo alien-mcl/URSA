@@ -83,6 +83,7 @@
     <Compile Include="ApiDescriptionBuilder.cs" />
     <EmbeddedResource Include="CodeGen\Templates\Client.cs" />
     <EmbeddedResource Include="CodeGen\Templates\Entity.cs" />
+    <Compile Include="ApiEntryPointDescriptionBuilder.cs" />
     <Compile Include="CodeGen\HydraClassGenerator.cs" />
     <Compile Include="CodeGen\GenericUriParser.cs" />
     <Compile Include="CodeGen\OGuidUriParser.cs" />
@@ -99,11 +100,15 @@
     <Compile Include="DescriptionContext.cs" />
     <Compile Include="DescriptionController.cs" />
     <Compile Include="Entities\EntityExtensions.cs" />
+    <Compile Include="EntryPointControllerDescriptionBuilder.cs" />
+    <Compile Include="EntryPointDescriptionController.cs" />
     <Compile Include="Hydra\IApiDocumentation.cs" />
     <Compile Include="Hydra\IReplaceResourceOperation.cs" />
     <Compile Include="Hydra\IDeleteResourceOperation.cs" />
     <Compile Include="Hydra\ICreateResourceOperation.cs" />
     <Compile Include="IApiDescriptionBuilder.cs" />
+    <Compile Include="IApiDescriptionBuilderFactory.cs" />
+    <Compile Include="IApiEntryPointDescriptionBuilder.cs" />
     <Compile Include="ITypeDescriptionBuilder.cs" />
     <Compile Include="IXmlDocProvider.cs" />
     <Compile Include="Mapping\DescriptionBuildingServerBahaviorAttributeVisitor.cs" />

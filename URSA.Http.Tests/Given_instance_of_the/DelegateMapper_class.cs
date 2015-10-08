@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
@@ -58,12 +59,12 @@ namespace Given_instance_of_the
                 new Regex(".*"),
                 Verb.GET,
                 method.GetParameters().Select(parameter => (ValueInfo)new ArgumentInfo(parameter, FromQueryStringAttribute.For(parameter), "add?{?" + parameter.Name + "}", parameter.Name)).ToArray());
-            var controllerInfo = new ControllerInfo<TestController>(new Uri("api/test", UriKind.Relative), _operation);
+            var controllerInfo = new ControllerInfo<TestController>(null, new Uri("api/test", UriKind.Relative), _operation);
             Mock<IHttpControllerDescriptionBuilder> controllerDescriptionBuilder = new Mock<IHttpControllerDescriptionBuilder>(MockBehavior.Strict);
             controllerDescriptionBuilder.Setup(instance => instance.BuildDescriptor()).Returns(controllerInfo);
             Mock<IControllerActivator> controllerActivator = new Mock<IControllerActivator>(MockBehavior.Strict);
-            controllerActivator.Setup(instance => instance.CreateInstance(It.IsAny<Type>())).Returns(_controller);
-            _delegateMapper = (IDelegateMapper)new DelegateMapper(new[] { controllerDescriptionBuilder.Object }, controllerActivator.Object);
+            controllerActivator.Setup(instance => instance.CreateInstance(It.IsAny<Type>(), It.IsAny<IDictionary<string, object>>())).Returns(_controller);
+            _delegateMapper = new DelegateMapper(new[] { controllerDescriptionBuilder.Object }, controllerActivator.Object);
         }
 
         [TestCleanup]

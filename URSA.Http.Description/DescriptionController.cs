@@ -2,6 +2,7 @@
 using RomanticWeb.Entities;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using URSA.Web.Http.Converters;
 using URSA.Web.Http.Description.Hydra;
@@ -29,10 +30,8 @@ namespace URSA.Web.Http.Description
         JsonLd
     }
 
-    /// <summary>Provides a ReST description facility.</summary>
-    /// <typeparam name="T">Type of the controller to generate documentation for.</typeparam>
-    [DependentRoute]
-    public class DescriptionController<T> : IController where T : IController
+    /// <summary>Describes an abstract description controller.</summary>
+    public abstract class DescriptionController : IController
     {
         /// <summary>Defines an URSA vocabulary base URI.</summary>
         public static readonly Uri VocabularyBaseUri = new Uri("http://github.io/ursa/vocabulary#");
@@ -40,13 +39,13 @@ namespace URSA.Web.Http.Description
         /// <summary>Defines a '<![CDATA[application/xml]]>' media type.</summary>
         private const string ApplicationXml = "application/xml";
 
-        private readonly IApiDescriptionBuilder<T> _apiDescriptionBuilder;
+        private readonly IApiDescriptionBuilder _apiDescriptionBuilder;
         private readonly IEntityContext _entityContext;
 
-        /// <summary>Initializes a new instance of the <see cref="DescriptionController{T}" /> class.</summary>
+        /// <summary>Initializes a new instance of the <see cref="DescriptionController" /> class.</summary>
         /// <param name="entityContext">Entity context.</param>
         /// <param name="apiDescriptionBuilder">API description builder.</param>
-        public DescriptionController(IEntityContext entityContext, IApiDescriptionBuilder<T> apiDescriptionBuilder)
+        protected DescriptionController(IEntityContext entityContext, IApiDescriptionBuilder apiDescriptionBuilder)
         {
             if (entityContext == null)
             {
@@ -64,6 +63,12 @@ namespace URSA.Web.Http.Description
 
         /// <inheritdoc />
         public IResponseInfo Response { get; set; }
+
+        /// <summary>Gets the name of the file.</summary>
+        protected internal abstract string FileName { get; }
+
+        /// <summary>Gets the API description builder.</summary>
+        protected IApiDescriptionBuilder ApiDescriptionBuilder { get { return _apiDescriptionBuilder; } }
 
         private IEnumerable<Uri> RequestedMediaTypeProfiles
         {
@@ -103,7 +108,7 @@ namespace URSA.Web.Http.Description
         public IApiDocumentation GetApiEntryPointDescription(OutputFormats? format = null)
         {
             var fileExtension = OverrideAcceptedMediaType(format);
-            ((ResponseInfo)Response).Headers.ContentDisposition = String.Format("inline; filename=\"{0}.{1}\"", typeof(T).Name, fileExtension);
+            ((ResponseInfo)Response).Headers.ContentDisposition = String.Format("inline; filename=\"{0}.{1}\"", FileName, fileExtension);
             IApiDocumentation result = _entityContext.Create<IApiDocumentation>(new EntityId(Response.Request.Uri.AddFragment(String.Empty)));
             _apiDescriptionBuilder.BuildDescription(result, RequestedMediaTypeProfiles);
             return result;
@@ -139,5 +144,22 @@ namespace URSA.Web.Http.Description
                 .FirstOrDefault();
             return (EntityConverter.MediaTypeFileFormats.ContainsKey(resultingMediaType) ? EntityConverter.MediaTypeFileFormats[resultingMediaType] : "txt");
         }
+    }
+
+    /// <summary>Provides a ReST description facility.</summary>
+    /// <typeparam name="T">Type of the controller to generate documentation for.</typeparam>
+    [DependentRoute]
+    [SuppressMessage("StyleCop.CSharp.MaintainabilityRules", "SA1402:FileMayOnlyContainASingleClass", Justification = "Suppression is OK - generic and non-generic class.")]
+    public class DescriptionController<T> : DescriptionController where T : IController
+    {
+        /// <summary>Initializes a new instance of the <see cref="DescriptionController{T}" /> class.</summary>
+        /// <param name="entityContext">Entity context.</param>
+        /// <param name="apiDescriptionBuilder">API description builder.</param>
+        public DescriptionController(IEntityContext entityContext, IApiDescriptionBuilder<T> apiDescriptionBuilder) : base(entityContext, apiDescriptionBuilder)
+        {
+        }
+
+        /// <inheritdoc />
+        protected internal override string FileName { get { return typeof(T).Name; } }
     }
 }

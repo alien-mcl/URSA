@@ -97,7 +97,7 @@ namespace URSA.Configuration
             string installerAssemblyNameMask = configuration.InstallerAssemblyNameMask ?? DefaultInstallerAssemblyNameMask;
             var componentProviderCtor = ConfigurationSectionExtensions.GetProvider<IComponentProvider>(null, configuration.ServiceProviderType);
             var container = (IComponentProvider)componentProviderCtor.Invoke(null);
-            var assemblies = GetInstallerAssemblies(installerAssemblyNameMask).Concat(new Assembly[] { Assembly.GetExecutingAssembly() });
+            var assemblies = GetInstallerAssemblies(installerAssemblyNameMask).Concat(new[] { Assembly.GetExecutingAssembly() });
             container.Install(assemblies);
             container.RegisterAll<IConverter>(assemblies);
             var converterProvider = (IConverterProvider)(configuration.GetProvider<IConverterProvider>(configuration.ConverterProviderType ?? typeof(DefaultConverterProvider))).Invoke(null);

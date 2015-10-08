@@ -61,7 +61,8 @@ namespace URSA.Web.Http
                         continue;
                     }
 
-                    return new RequestMapping(_controllerActivator.CreateInstance(controller.GetType().GetGenericArguments()[0]), operation, operation.Uri);
+                    var controllerInstance = _controllerActivator.CreateInstance(controller.GetType().GetGenericArguments()[0], controller.Arguments);
+                    return new RequestMapping(controllerInstance, operation, operation.Uri);
                 }
             }
 

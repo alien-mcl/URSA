@@ -158,7 +158,7 @@ namespace Given_instance_of_the
                 .Except(typeof(TestController).GetProperties(BindingFlags.Public | BindingFlags.Instance).SelectMany(property => new MethodInfo[] { property.GetGetMethod(), property.GetSetMethod() }))
                 .Select(method => CreateOperation(method, verbs[method.Name]));
 
-            ControllerInfo<TestController> controllerInfo = new ControllerInfo<TestController>(new Uri("/", UriKind.Relative), operations.ToArray());
+            ControllerInfo<TestController> controllerInfo = new ControllerInfo<TestController>(null, new Uri("/", UriKind.Relative), operations.ToArray());
             Mock<IHttpControllerDescriptionBuilder<TestController>> descriptionBuilder = new Mock<IHttpControllerDescriptionBuilder<TestController>>();
             descriptionBuilder.Setup(instance => instance.BuildDescriptor()).Returns(controllerInfo);
             descriptionBuilder.Setup(instance => instance.GetMethodVerb(It.IsAny<MethodInfo>())).Returns<MethodInfo>(method => verbs[method.Name]);
