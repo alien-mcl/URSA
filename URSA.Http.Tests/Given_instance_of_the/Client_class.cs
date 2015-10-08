@@ -22,7 +22,7 @@ namespace Given_instance_of_the
         private const string RelativeUri = "/test/person/{?id}";
         private static readonly Uri CallUri = new Uri("http://temp.uri/");
         private static readonly dynamic Arguments = new ExpandoObject();
-        private static readonly Person Person = new Person() { Id = 1, FirstName = "test", LastName = "test" };
+        private static readonly Person Person = new Person() { Key = 1, FirstName = "test", LastName = "test" };
         private Mock<IComponentProvider> _container;
         private Mock<HttpWebResponse> _webResponse;
         private Mock<HttpWebRequest> _webRequest;

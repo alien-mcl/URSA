@@ -149,7 +149,7 @@ namespace URSA.ComponentModel
         /// <inheritdoc />
         public bool CanResolve(Type type, IDictionary<string, object> arguments = null)
         {
-            if (arguments == null)
+            if ((arguments == null) || (arguments.Count == 0))
             {
                 return ResolveAllTypes(type).Any();
             }

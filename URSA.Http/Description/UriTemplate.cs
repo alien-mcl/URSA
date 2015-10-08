@@ -164,7 +164,7 @@ namespace URSA.Web.Description.Http
                 var identifierSegment = this
                     .Where((item, index) => (item.Source is FromUriAttribute) && (item.Member is ParameterInfo) &&
                         ((implementation = ControlledEntityType.GetInterfaces().First(@interface => (@interface.IsGenericType) && (@interface.GetGenericTypeDefinition() == typeof(IControlledEntity<>)))) != null) &&
-                        (((ParameterInfo)item.Member).ParameterType == implementation.GetProperty("Id").PropertyType) &&
+                        (((ParameterInfo)item.Member).ParameterType == implementation.GetProperty("Key").PropertyType) &&
                         ((indexOf = index) != -1))
                     .FirstOrDefault();
                 if ((indexOf <= 1) || ((indexOf > 1) && (!(this[indexOf - 1].Member is MethodInfo))))

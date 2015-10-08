@@ -113,7 +113,7 @@ namespace URSA.Web.Http.Converters
                     Environment.NewLine,
                     (int)exception.Status,
                     System.Web.HttpUtility.JavaScriptStringEncode(exception.Message),
-                    System.Web.HttpUtility.JavaScriptStringEncode(exception.StackTrace));
+                    System.Web.HttpUtility.JavaScriptStringEncode(exception.InnerException != null ? exception.InnerException.StackTrace : exception.StackTrace));
             }
         }
     }

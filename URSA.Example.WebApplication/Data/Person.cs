@@ -10,7 +10,7 @@ namespace URSA.Example.WebApplication.Data
     {
         /// <summary>Gets or sets the person's identifier.</summary>
         [Key]
-        public Guid Id { get; set; }
+        public Guid Key { get; set; }
 
         /// <summary> Gets or sets the person's firstname.</summary>
         public string Firstname { get; set; }

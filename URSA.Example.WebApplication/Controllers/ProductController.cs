@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using RomanticWeb.Entities;
 using URSA.Example.WebApplication.Data;
 using URSA.Web;
@@ -7,7 +8,7 @@ using URSA.Web.Http.Description.Mapping;
 namespace URSA.Example.WebApplication.Controllers
 {
     /// <summary>Provides a basic product handling.</summary>
-    public class ProductController : IWriteController<IProduct, EntityId>
+    public class ProductController : IWriteController<IProduct, Guid>
     {
         /// <inheritdoc />
         public IResponseInfo Response { get; set; }
@@ -24,7 +25,7 @@ namespace URSA.Example.WebApplication.Controllers
         /// <summary>Gets the product with identifier of <paramref name="id" />.</summary>
         /// <param name="id">Identifier of the product to retrieve.</param>
         /// <returns>Instance of the <see cref="IProduct" /> if matching <paramref name="id" />; otherwise <b>null</b>.</returns>
-        public IProduct Get(EntityId id)
+        public IProduct Get(Guid id)
         {
             return null;
         }
@@ -32,21 +33,21 @@ namespace URSA.Example.WebApplication.Controllers
         /// <summary>Creates the specified product.</summary>
         /// <param name="product">The product.</param>
         /// <returns>Identifier of newly created product.</returns>
-        public EntityId Create(IProduct product)
+        public Guid Create(IProduct product)
         {
-            return new EntityId("http://temp.uri/product");
+            return Guid.Empty;
         }
 
         /// <summary>Updates the specified product.</summary>
         /// <param name="id">The identifier of the product to be updated.</param>
         /// <param name="product">The product.</param>
-        public void Update(EntityId id, IProduct product)
+        public void Update(Guid id, IProduct product)
         {
         }
 
         /// <summary>Deletes a product.</summary>
         /// <param name="id">Identifier of the product to be deleted.</param>
-        public void Delete(EntityId id)
+        public void Delete(Guid id)
         {
         }
     }

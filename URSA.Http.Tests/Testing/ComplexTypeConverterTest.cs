@@ -7,11 +7,11 @@ namespace URSA.Web.Http.Testing
 {
     public abstract class ComplexTypeConverterTest<T> : ConverterTest<T, Person> where T : class, IConverter
     {
-        private static readonly Person Entity = new Person() { Id = 1, FirstName = "Tester", LastName = "Test", Roles = new[] { "Role" } };
+        private static readonly Person Entity = new Person() { Key = 1, FirstName = "Tester", LastName = "Test", Roles = new[] { "Role" } };
         private static readonly Person[] Entities =
         {
-            new Person() { Id = 2, FirstName = "Tester", LastName = "Test 1", Roles = new[] { "Role 1" } },
-            new Person() { Id = 2, FirstName = "Tester", LastName = "Test 2", Roles = new[] { "Role 2" } }
+            new Person() { Key = 2, FirstName = "Tester", LastName = "Test 1", Roles = new[] { "Role 1" } },
+            new Person() { Key = 2, FirstName = "Tester", LastName = "Test 2", Roles = new[] { "Role 2" } }
         };
 
         protected override Person SingleEntity { get { return Entity; } }
@@ -25,7 +25,7 @@ namespace URSA.Web.Http.Testing
         protected override void AssertSingleEntity(Person result)
         {
             result.Should().NotBeNull();
-            result.Id.Should().Be(SingleEntity.Id);
+            result.Key.Should().Be(SingleEntity.Key);
             result.FirstName.Should().Be(SingleEntity.FirstName);
             result.LastName.Should().Be(SingleEntity.LastName);
             result.Roles.Should().HaveCount(SingleEntity.Roles.Length);
@@ -36,12 +36,12 @@ namespace URSA.Web.Http.Testing
         {
             result.Should().NotBeNull();
             result.Should().HaveCount(MultipleEntities.Length);
-            result.First().Id.Should().Be(MultipleEntities.First().Id);
+            result.First().Key.Should().Be(MultipleEntities.First().Key);
             result.First().FirstName.Should().Be(MultipleEntities.First().FirstName);
             result.First().LastName.Should().Be(MultipleEntities.First().LastName);
             result.First().Roles.Should().HaveCount(MultipleEntities.First().Roles.Length);
             result.First().Roles.First().Should().Be(MultipleEntities.First().Roles.First());
-            result.Last().Id.Should().Be(MultipleEntities.Last().Id);
+            result.Last().Key.Should().Be(MultipleEntities.Last().Key);
             result.Last().FirstName.Should().Be(MultipleEntities.Last().FirstName);
             result.Last().LastName.Should().Be(MultipleEntities.Last().LastName);
             result.Last().Roles.Should().HaveCount(MultipleEntities.Last().Roles.Length);

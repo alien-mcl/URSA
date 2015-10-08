@@ -5,6 +5,6 @@
     public interface IControlledEntity<T>
     {
         /// <summary>Gets or sets the primary key.</summary>
-        T Id { get; set; }
+        T Key { get; set; }
     }
 }

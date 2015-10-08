@@ -12,12 +12,12 @@ namespace URSA.Web.Tests
 
         public int Create(Person instance)
         {
-            switch (instance.Id)
+            switch (instance.Key)
             {
                 case 2:
                     throw new Exception("Unhandled server error.");
                 case 3:
-                    throw new AlreadyExistsException(String.Format("Person with identifier of '{0}' already exists.", instance.Id));
+                    throw new AlreadyExistsException(String.Format("Person with identifier of '{0}' already exists.", instance.Key));
             }
 
             return 1;
@@ -30,7 +30,7 @@ namespace URSA.Web.Tests
                 case 2:
                     throw new Exception("Unhandled server error.");
                 case 3:
-                    throw new NotFoundException(String.Format("Person with identifier of '{0}' does not exist.", instance.Id));
+                    throw new NotFoundException(String.Format("Person with identifier of '{0}' does not exist.", instance.Key));
             }
         }
 
@@ -53,12 +53,12 @@ namespace URSA.Web.Tests
                     return null;
             }
 
-            return new Person() { Id = id };
+            return new Person() { Key = id };
         }
 
         public IEnumerable<Person> List(int skip = 0, int take = 0)
         {
-            return new Person[] { new Person() { Id = 1 } };
+            return new Person[] { new Person() { Key = 1 } };
         }
 
         public void SetRoles(int id, IEnumerable<string> roles)

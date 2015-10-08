@@ -5,7 +5,7 @@ namespace URSA.Web.Http.Tests.Data
     [ExcludeFromCodeCoverage]
     public class Person : IControlledEntity<int>
     {
-        public int Id { get; set; }
+        public int Key { get; set; }
 
         public string FirstName { get; set; }
 

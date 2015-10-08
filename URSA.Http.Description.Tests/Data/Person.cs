@@ -9,7 +9,7 @@ namespace URSA.Web.Http.Description.Tests.Data
     public class Person : IControlledEntity<Guid>
     {
         /// <summary>Gets or sets the person identifier.</summary>
-        public Guid Id { get; set; }
+        public Guid Key { get; set; }
 
         /// <summary>Gets or sets the person firstname.</summary>
         public string FirstName { get; set; }

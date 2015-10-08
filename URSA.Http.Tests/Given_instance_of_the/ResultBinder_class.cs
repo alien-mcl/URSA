@@ -20,7 +20,7 @@ namespace URSA.Web.Http.Tests.Given_instance_of_the
         [TestMethod]
         public void it_should_bind_response_object()
         {
-            var expected = new Person() { Id = 1, FirstName = "test", LastName = "test", Roles = new[] { "test" } };
+            var expected = new Person() { Key = 1, FirstName = "test", LastName = "test", Roles = new[] { "test" } };
             var body = new MemoryStream();
             new JsonSerializer().Serialize(new StreamWriter(body), expected);
             body.Seek(0, SeekOrigin.Begin);

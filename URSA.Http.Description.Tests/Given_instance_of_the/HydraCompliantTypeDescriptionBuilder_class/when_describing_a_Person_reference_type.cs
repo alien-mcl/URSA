@@ -36,13 +36,13 @@ namespace Given_instance_of_the.HydraCompliantTypeDescriptionBuilder_class
         {
             var result = (IClass)DescriptionContext.ForType(ApiDocumentation, typeof(Person), Builder).BuildTypeDescription().Type;
 
-            var property = result.SupportedProperties.FirstOrDefault(item => (item.Property != null) && (item.Property.Label == "Id"));
+            var property = result.SupportedProperties.FirstOrDefault(item => (item.Property != null) && (item.Property.Label == "Key"));
 
             property.Should().NotBeNull();
             property.ReadOnly.Should().BeFalse();
             property.WriteOnly.Should().BeFalse();
             property.Required.Should().BeTrue();
-            property.Property.Description.Should().Be(typeof(Person) + ".Id");
+            property.Property.Description.Should().Be(typeof(Person) + ".Key");
             property.Property.Domain.Should().Contain(@class => @class.Id.Uri.AbsoluteUri.Contains(typeof(Person).FullName));
             property.Property.Range.Should().Contain(resource => OGuidUriParser.Types.Any(item => item.Value.AbsoluteUri == resource.Id.Uri.AbsoluteUri));
         }

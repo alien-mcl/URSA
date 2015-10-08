@@ -19,7 +19,7 @@ namespace Given_instance_of_the.ResponseComposer_class
         public void it_should_handle_List_request_correctly()
         {
             object[] arguments = { 1, 2 };
-            var expected = new Person[] { new Person() { Id = 1 } };
+            var expected = new Person[] { new Person() { Key = 1 } };
             Converter.Setup(instance => instance.ConvertFrom(expected, It.IsAny<IResponseInfo>()));
 
             var result = Composer.ComposeResponse(CreateRequestMapping("List", arguments), expected, arguments);
@@ -47,7 +47,7 @@ namespace Given_instance_of_the.ResponseComposer_class
         public void it_should_return_404_not_found_when_reading_inexisting_resource()
         {
             object[] arguments = { 2 };
-            var expected = new Person() { Id = (int)arguments[0] };
+            var expected = new Person() { Key = (int)arguments[0] };
             Converter.Setup(instance => instance.ConvertFrom(expected, It.IsAny<IResponseInfo>()));
 
             var result = Composer.ComposeResponse(CreateRequestMapping("Get", arguments), expected, arguments);
@@ -60,27 +60,27 @@ namespace Given_instance_of_the.ResponseComposer_class
         [TestMethod]
         public void it_should_handle_Create_request_correctly()
         {
-            var person = new Person() { Id = 1 };
+            var person = new Person() { Key = 1 };
             string callUri;
             var controllerDescription = new ControllerInfo<CrudController>(
                 null,
                 new Uri("api/test", UriKind.Relative),
-                Controller.GetType().GetMethod("Get").ToOperationInfo("api/test", Verb.GET, out callUri, person.Id),
+                Controller.GetType().GetMethod("Get").ToOperationInfo("api/test", Verb.GET, out callUri, person.Key),
                 Controller.GetType().GetMethod("Create").ToOperationInfo("api/test", Verb.POST, out callUri, person));
             ControllerDescriptionBuilder.As<IControllerDescriptionBuilder>().Setup(instance => instance.BuildDescriptor()).Returns(controllerDescription);
 
-            var result = Composer.ComposeResponse(CreateRequestMapping("Create", Verb.POST, person), person.Id, person);
+            var result = Composer.ComposeResponse(CreateRequestMapping("Create", Verb.POST, person), person.Key, person);
 
             result.Should().BeOfType<StringResponseInfo>();
             result.Status.Should().Be(HttpStatusCode.Created);
-            result.Headers.Should().ContainKey("Location").WhichValue.Should().Be("/api/test/get/id/" + person.Id);
-            Converter.Verify(instance => instance.ConvertFrom(person.Id, It.IsAny<IResponseInfo>()), Times.Never);
+            result.Headers.Should().ContainKey("Location").WhichValue.Should().Be("/api/test/get/id/" + person.Key);
+            Converter.Verify(instance => instance.ConvertFrom(person.Key, It.IsAny<IResponseInfo>()), Times.Never);
         }
 
         [TestMethod]
         public void it_should_handle_Update_request_correctly()
         {
-            object[] arguments = { 1, new Person() { Id = 1 } };
+            object[] arguments = { 1, new Person() { Key = 1 } };
             bool? expected = true;
             Converter.Setup(instance => instance.ConvertFrom(expected, It.IsAny<IResponseInfo>()));
 
