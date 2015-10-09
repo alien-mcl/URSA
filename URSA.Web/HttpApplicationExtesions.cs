@@ -54,7 +54,6 @@ namespace URSA.Web
 
         private static IDictionary<string, Route> RegisterApi<T>(IComponentProvider container, ControllerInfo<T> description) where T : IController
         {
-            var globalRoutePrefixes = new List<Uri>();
             var handler = new UrsaHandler<T>(container.Resolve<IRequestHandler<RequestInfo, ResponseInfo>>());
             string globalRoutePrefix = (description.EntryPoint != null ? description.EntryPoint.ToString().Substring(1) + "/" : String.Empty);
             IDictionary<string, Route> routes = new Dictionary<string, Route>();

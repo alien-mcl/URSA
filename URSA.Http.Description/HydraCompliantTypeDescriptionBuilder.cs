@@ -70,9 +70,8 @@ namespace URSA.Web.Http.Description
                 requiresRdf = true;
             }
 
-            IResource result;
             IClass @class;
-            result = context.ApiDocumentation.Context.Create<IResource>(context.ApiDocumentation.CreateBlankId());
+            var result = context.ApiDocumentation.Context.Create<IResource>(context.ApiDocumentation.CreateBlankId());
             result.SingleValue = !System.Reflection.TypeExtensions.IsEnumerable(context.Type);
             result.Type = @class = context.ApiDocumentation.Context.Create<IClass>(classUri);
             @class.Label = itemType.Name.Replace("&", String.Empty);
@@ -101,9 +100,9 @@ namespace URSA.Web.Http.Description
         {
             IResource existingType;
             if ((context.ContainsType(context.Type)) &&
-                (context[context.Type].Is(context.ApiDocumentation.Context.Mappings.MappingFor<IResource>().Classes.Select(item => item.Uri).First())) &&
+                (context[context.Type].Is(context.ApiDocumentation.Context.Mappings.MappingFor<IResource>().Classes.First().Uri)) &&
                 ((existingType = context[context.Type].Type) != null) &&
-                (existingType.Is(context.ApiDocumentation.Context.Mappings.MappingFor<IClass>().Classes.Select(item => item.Uri).First())))
+                (existingType.Is(context.ApiDocumentation.Context.Mappings.MappingFor<IClass>().Classes.First().Uri)))
             {
                 foreach (var property in existingType.AsEntity<IClass>().SupportedProperties)
                 {

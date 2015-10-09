@@ -8,21 +8,6 @@ namespace URSA.Web.Http.Description
 {
     internal static class OperationExtensions
     {
-        internal static bool IsDeleteOperation<T>(this OperationInfo<T> operation)
-        {
-            return (operation.IsWriteControllerOperation()) && (operation.UnderlyingMethod.Name == "Delete");
-        }
-
-        internal static bool IsUpdateOperation<T>(this OperationInfo<T> operation)
-        {
-            return (operation.IsWriteControllerOperation()) && (operation.UnderlyingMethod.Name == "Update");
-        }
-
-        internal static bool IsCreateOperation<T>(this OperationInfo<T> operation)
-        {
-            return (operation.IsWriteControllerOperation()) && (operation.UnderlyingMethod.Name == "Create");
-        }
-
         internal static bool IsWriteControllerOperation<T>(this OperationInfo<T> operation)
         {
             Type type;
@@ -46,11 +31,20 @@ namespace URSA.Web.Http.Description
         internal static IOperation AsOperation<T>(this OperationInfo<T> operation, IApiDocumentation apiDocumentation)
         {
             var methodId = operation.CreateId(apiDocumentation.Context.BaseUriSelector.SelectBaseUri(new EntityId(new Uri("/", UriKind.Relative))));
-            return 
-                (operation.IsCreateOperation() ? apiDocumentation.Context.Create<ICreateResourceOperation>(methodId) :
-                (operation.IsDeleteOperation() ? apiDocumentation.Context.Create<IDeleteResourceOperation>(methodId) :
-                (operation.IsUpdateOperation() ? apiDocumentation.Context.Create<IReplaceResourceOperation>(methodId) :
-                 apiDocumentation.Context.Create<IOperation>(methodId))));
+            if (operation.IsWriteControllerOperation())
+            {
+                switch (operation.UnderlyingMethod.Name)
+                {
+                    case "Delete":
+                        return apiDocumentation.Context.Create<IDeleteResourceOperation>(methodId);
+                    case "Update":
+                        return apiDocumentation.Context.Create<IReplaceResourceOperation>(methodId);
+                    case "Create":
+                        return apiDocumentation.Context.Create<ICreateResourceOperation>(methodId);
+                }
+            }
+
+            return apiDocumentation.Context.Create<IOperation>(methodId);
         }
 
         private static bool IsWriteControllerOperation(Type @interface)
