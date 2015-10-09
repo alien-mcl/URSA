@@ -123,15 +123,32 @@ namespace URSA.Web.Http.Description
         private static Rdfs.IProperty GetMappingProperty(DescriptionContext context, ParameterInfo parameter)
         {
             IResource description = context[context.Type];
-            if (description.Type is IClass)
+            if (!(description.Type is IClass))
             {
-                return (from supportedProperty in ((IClass)description.Type).SupportedProperties
-                        let property = supportedProperty.Property
-                        where StringComparer.OrdinalIgnoreCase.Equals(property.Label, parameter.Name)
-                        select property).FirstOrDefault();
+                return null;
             }
 
-            return null;
+            Rdfs.IProperty resultCandidate = null;
+            IResource parameterType = null;
+            foreach (var supportedProperty in ((IClass)description.Type).SupportedProperties)
+            {
+                if (StringComparer.OrdinalIgnoreCase.Equals(supportedProperty.Property.Label, parameter.Name))
+                {
+                    return supportedProperty.Property;
+                }
+
+                if (parameterType == null)
+                {
+                    parameterType = (context.ContainsType(parameter.ParameterType) ? context[parameter.ParameterType] : context.BuildTypeDescription());
+                }
+
+                if (supportedProperty.Property.Range.Any(range => range.Id == (parameterType.Type ?? parameterType).Id))
+                {
+                    resultCandidate = supportedProperty.Property;
+                }
+            }
+
+            return resultCandidate;
         }
 
         private ITypeDescriptionBuilder GetTypeDescriptionBuilder(IEnumerable<Uri> profiles)
