@@ -117,19 +117,22 @@ namespace URSA.Web.Http.Description
         //// TODO: Check the default file name is actually a TXT!
         private string OverrideAcceptedMediaType(OutputFormats? format)
         {
-            switch ((OutputFormats)format)
+            if (format != null)
             {
-                case OutputFormats.JsonLd:
-                    return EntityConverter.MediaTypeFileFormats[Response.Request.Headers[Header.Accept] = EntityConverter.ApplicationLdJson];
-                case OutputFormats.Turtle:
-                    return EntityConverter.MediaTypeFileFormats[Response.Request.Headers[Header.Accept] = EntityConverter.TextTurtle];
-                case OutputFormats.Xml:
-                    Response.Headers[Header.ContentType] = ApplicationXml;
-                    return EntityConverter.MediaTypeFileFormats[Response.Request.Headers[Header.Accept] = EntityConverter.ApplicationRdfXml];
-                case OutputFormats.Rdf:
-                    return EntityConverter.MediaTypeFileFormats[Response.Request.Headers[Header.Accept] = EntityConverter.ApplicationRdfXml];
-                case OutputFormats.Owl:
-                    return EntityConverter.MediaTypeFileFormats[Response.Request.Headers[Header.Accept] = EntityConverter.ApplicationRdfXml];
+                switch ((OutputFormats)format)
+                {
+                    case OutputFormats.JsonLd:
+                        return EntityConverter.MediaTypeFileFormats[Response.Request.Headers[Header.Accept] = EntityConverter.ApplicationLdJson];
+                    case OutputFormats.Turtle:
+                        return EntityConverter.MediaTypeFileFormats[Response.Request.Headers[Header.Accept] = EntityConverter.TextTurtle];
+                    case OutputFormats.Xml:
+                        Response.Headers[Header.ContentType] = ApplicationXml;
+                        return EntityConverter.MediaTypeFileFormats[Response.Request.Headers[Header.Accept] = EntityConverter.ApplicationRdfXml];
+                    case OutputFormats.Rdf:
+                        return EntityConverter.MediaTypeFileFormats[Response.Request.Headers[Header.Accept] = EntityConverter.ApplicationRdfXml];
+                    case OutputFormats.Owl:
+                        return EntityConverter.MediaTypeFileFormats[Response.Request.Headers[Header.Accept] = EntityConverter.ApplicationRdfXml];
+                }
             }
 
             var accept = Response.Request.Headers[Header.Accept];
@@ -142,7 +145,7 @@ namespace URSA.Web.Http.Description
             var resultingMediaType = ((RequestInfo)Response.Request).Headers[Header.Accept].Values
                 .Join(EntityConverter.MediaTypes, outer => outer.Value, inner => inner, (outer, inner) => inner)
                 .FirstOrDefault();
-            return (EntityConverter.MediaTypeFileFormats.ContainsKey(resultingMediaType) ? EntityConverter.MediaTypeFileFormats[resultingMediaType] : "txt");
+            return ((resultingMediaType == null) || (!EntityConverter.MediaTypeFileFormats.ContainsKey(resultingMediaType)) ? "txt" : EntityConverter.MediaTypeFileFormats[resultingMediaType]);
         }
     }
 

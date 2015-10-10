@@ -13,6 +13,13 @@ namespace URSA.Web.Http
         internal static readonly Regex Header = new Regex(String.Format("(?<Name>{0}):(?<Value>(.|(?<=\r)\n(?=[ \t]))*)", Token));
         private readonly IDictionary<string, Header> _headers = new Dictionary<string, Header>(Http.Header.Comparer);
 
+        /// <summary>Gets or sets the 'Access-Control-Request-Method' header's value.</summary>
+        public string AccessControlRequestMethod
+        {
+            get { return (this[Http.Header.AccessControlRequestMethod] != null ? String.Join(",", this[Http.Header.AccessControlRequestMethod].Values) : null); }
+            set { Set(Http.Header.AccessControlRequestMethod, value); }
+        }
+
         /// <summary>Gets or sets the 'Content-Length' header's value.</summary>
         /// <remarks>If the header does not exist, value of 0 is returned.</remarks>
         public int ContentLength
@@ -55,6 +62,13 @@ namespace URSA.Web.Http
         {
             get { return (this[Http.Header.ContentDisposition] != null ? String.Join(",", this[Http.Header.ContentDisposition].Values) : null); }
             set { Set(Http.Header.ContentDisposition, value); }
+        }
+
+        /// <summary>Gets or sets the 'Origin' header's value.</summary>
+        public string Origin
+        {
+            get { return (this[Http.Header.Origin] != null ? String.Join(",", this[Http.Header.Origin].Values) : null); }
+            set { Set(Http.Header.Origin, value); }
         }
 
         /// <summary>Gets or sets the 'Location' header's value.</summary>

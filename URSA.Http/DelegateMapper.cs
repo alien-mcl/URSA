@@ -56,7 +56,8 @@ namespace URSA.Web.Http
                 foreach (var operation in controller.Operations.Cast<OperationInfo<Verb>>().Where(operation => operation.TemplateRegex.IsMatch(requestUri)))
                 {
                     allowedOptions.Add(operation);
-                    if (request.Method != operation.ProtocolSpecificCommand)
+                    if ((request.Method != operation.ProtocolSpecificCommand) || ((request.IsCorsPreflight) &&
+                        (!typeof(OptionsController).IsAssignableFrom(operation.UnderlyingMethod.DeclaringType))))
                     {
                         continue;
                     }

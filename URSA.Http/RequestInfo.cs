@@ -88,6 +88,12 @@ namespace URSA.Web.Http
         /// <inheritdoc />
         public bool OutputNeutral { get { return (Headers.Accept.IndexOf(AnyAny) != -1); } }
 
+        /// <summary>Gets a value indicating whether this request is cross-origin resource sharing preflight request.</summary>
+        public bool IsCorsPreflight
+        {
+            get { return ((Method == Verb.OPTIONS) && (!String.IsNullOrEmpty(Headers.Origin)) && (!String.IsNullOrEmpty(Headers.AccessControlRequestMethod))); }
+        }
+
         /// <inheritdoc />
         IDictionary<string, string> IRequestInfo.Headers { get { return Headers; } }
 

@@ -11,6 +11,9 @@ namespace URSA.Web.Http
     /// <summary>Describes an HTTP header.</summary>
     public class Header
     {
+        /// <summary>Defines the 'Access-Control-Request-Method' header name.</summary>
+        public const string AccessControlRequestMethod = "Access-Control-Request-Method";
+
         /// <summary>Defines the 'Warning' header name.</summary>
         public const string Warning = "Warning";
 
@@ -37,6 +40,9 @@ namespace URSA.Web.Http
 
         /// <summary>Defines the 'Link' header name.</summary>
         public const string Link = "Link";
+
+        /// <summary>Defines the 'Origin' header name.</summary>
+        public const string Origin = "Origin";
 
         internal static readonly IEqualityComparer<string> Comparer = StringComparer.OrdinalIgnoreCase;
 
