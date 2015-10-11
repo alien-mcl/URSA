@@ -44,6 +44,28 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".build", ".build", "{516055
 		.build\Version.bat = .build\Version.bat
 	EndProjectSection
 EndProject
+Project("{E24C65DC-7377-472B-9ABA-BC803B73C61A}") = "URSA.Client", "http://localhost:49639", "{96C34881-396A-4F51-AEF0-F0B5F96545FB}"
+	ProjectSection(WebsiteProperties) = preProject
+		UseIISExpress = "true"
+		TargetFrameworkMoniker = ".NETFramework,Version%3Dv4.5"
+		Debug.AspNetCompiler.VirtualPath = "/localhost_49639"
+		Debug.AspNetCompiler.PhysicalPath = "URSA.Client\"
+		Debug.AspNetCompiler.TargetPath = "PrecompiledWeb\localhost_49639\"
+		Debug.AspNetCompiler.Updateable = "true"
+		Debug.AspNetCompiler.ForceOverwrite = "true"
+		Debug.AspNetCompiler.FixedNames = "false"
+		Debug.AspNetCompiler.Debug = "True"
+		Release.AspNetCompiler.VirtualPath = "/localhost_49639"
+		Release.AspNetCompiler.PhysicalPath = "URSA.Client\"
+		Release.AspNetCompiler.TargetPath = "PrecompiledWeb\localhost_49639\"
+		Release.AspNetCompiler.Updateable = "true"
+		Release.AspNetCompiler.ForceOverwrite = "true"
+		Release.AspNetCompiler.FixedNames = "false"
+		Release.AspNetCompiler.Debug = "False"
+		SlnRelativePath = "URSA.Client\"
+		DefaultWebSiteLanguage = "Visual C#"
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -98,6 +120,8 @@ Global
 		{433E0693-2669-4DF1-B366-8330CF5AC0CE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{433E0693-2669-4DF1-B366-8330CF5AC0CE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{433E0693-2669-4DF1-B366-8330CF5AC0CE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{96C34881-396A-4F51-AEF0-F0B5F96545FB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{96C34881-396A-4F51-AEF0-F0B5F96545FB}.Release|Any CPU.ActiveCfg = Debug|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
