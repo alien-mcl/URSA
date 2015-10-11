@@ -6,91 +6,91 @@ using URSA.Web.Http.Description.Rdfs;
 namespace URSA.Web.Http.Description.Shacl
 {
     /// <summary>Describes a property constraint.</summary>
-    [Class("sh", "PropertyConstraint")]
+    [Class("shacl", "PropertyConstraint")]
     public interface IPropertyConstraint : IConstraintTemplate
     {
         /// <summary>Gets or sets the predicate.</summary>
-        [Property("sh", "predicate")]
+        [Property("shacl", "predicate")]
         IEntity Predicate { get; set; }
 
         /// <summary>Gets or sets the default value.</summary>
-        [Property("sh", "defaultValue")]
+        [Property("shacl", "defaultValue")]
         object DefaultValue { get; set; }
 
         /// <summary>Gets the allowed values.</summary>
-        [Collection("sh", "allowedValues")]
+        [Collection("shacl", "allowedValues")]
         IList<IEntity> AllowedValues { get; }
 
         /// <summary>Gets or sets the data type.</summary>
-        [Property("sh", "datatype")]
+        [Property("shacl", "datatype")]
         IEntity Datatype { get; set; }
 
         /// <summary>Gets or sets the value shape.</summary>
-        [Property("sh", "valueShape")]
+        [Property("shacl", "valueShape")]
         IShape ValueShape { get; set; }
 
         /// <summary>Gets or sets the qualified value shape.</summary>
-        [Property("sh", "qualifiedValueShape")]
+        [Property("shacl", "qualifiedValueShape")]
         IShape QualifiedValueShape { get; set; }
 
         /// <summary>Gets or sets the qualified minimum count.</summary>
-        [Property("sh", "qualifiedMinCount")]
+        [Property("shacl", "qualifiedMinCount")]
         int? QualifiedMinCount { get; set; }
 
         /// <summary>Gets or sets the qualified maximum count.</summary>
-        [Property("sh", "qualifiedMaxCount")]
+        [Property("shacl", "qualifiedMaxCount")]
         int? QualifiedMaxCount { get; set; }
 
         /// <summary>Gets or sets the direct type of all values.</summary>
-        [Property("sh", "directValueType")]
+        [Property("shacl", "directValueType")]
         IClass DirectValueType { get; set; }
 
         /// <summary>Gets or sets the class of all values.</summary>
-        [Property("sh", "valueClass")]
+        [Property("shacl", "valueClass")]
         IClass ValueClass { get; set; }
 
         /// <summary>Gets or sets the value.</summary>
-        [Property("sh", "hasValue")]
+        [Property("shacl", "hasValue")]
         object Value { get; set; }
 
         /// <summary>Gets or sets the minimum count.</summary>
-        [Property("sh", "minCount")]
+        [Property("shacl", "minCount")]
         int? MinCount { get; set; }
 
         /// <summary>Gets or sets the maximum count.</summary>
-        [Property("sh", "maxCount")]
+        [Property("shacl", "maxCount")]
         int? MaxCount { get; set; }
 
         /// <summary>Gets or sets the minimum exclusive count.</summary>
-        [Property("sh", "minExclusive")]
+        [Property("shacl", "minExclusive")]
         int? MinExclusive { get; set; }
 
         /// <summary>Gets or sets the maximum exclusive count.</summary>
-        [Property("sh", "maxExclusive")]
+        [Property("shacl", "maxExclusive")]
         int? MaxExclusive { get; set; }
 
         /// <summary>Gets or sets the minimum inclusive count.</summary>
-        [Property("sh", "minInclusive")]
+        [Property("shacl", "minInclusive")]
         int? MinInclusive { get; set; }
 
         /// <summary>Gets or sets the maximum inclusive count.</summary>
-        [Property("sh", "maxInclusive")]
+        [Property("shacl", "maxInclusive")]
         int? MaxInclusive { get; set; }
 
         /// <summary>Gets or sets the minimum string length.</summary>
-        [Property("sh", "minLength")]
+        [Property("shacl", "minLength")]
         int? MinLength { get; set; }
 
         /// <summary>Gets or sets the maximum string length.</summary>
-        [Property("sh", "maxLength")]
+        [Property("shacl", "maxLength")]
         int? MaxLength { get; set; }
 
         /// <summary>Gets or sets the kind of the node.</summary>
-        [Property("sh", "nodeKind")]
+        [Property("shacl", "nodeKind")]
         INodeKind NodeKind { get; set; }
 
         /// <summary>Gets or sets the pattern.</summary>
-        [Property("sh", "pattern")]
+        [Property("shacl", "pattern")]
         string Pattern { get; set; }
     }
 }

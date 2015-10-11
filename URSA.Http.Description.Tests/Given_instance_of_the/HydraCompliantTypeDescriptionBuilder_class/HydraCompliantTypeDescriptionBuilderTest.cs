@@ -105,14 +105,14 @@ namespace Given_instance_of_the.HydraCompliantTypeDescriptionBuilder_class
             var required = (propertyInfo.PropertyType.IsValueType) || (propertyInfo.GetCustomAttribute<RequiredAttribute>() != null);
             var result = new Mock<ISupportedProperty>(MockBehavior.Strict);
             IProperty property = null;
-            result.SetupSet(instance => instance.ReadOnly = It.Is<bool>(value => value == readOnly));
-            result.SetupSet(instance => instance.WriteOnly = It.Is<bool>(value => value == writeOnly));
+            result.SetupSet(instance => instance.Readable = It.Is<bool>(value => value == readOnly));
+            result.SetupSet(instance => instance.Writeable = It.Is<bool>(value => value == writeOnly));
             result.SetupSet(instance => instance.Required = It.Is<bool>(value => value == required));
             result.SetupSet(instance => instance.Property = It.Is<IProperty>(value => value.Id.Uri.AbsoluteUri.Contains(propertyFullName))).Callback<IProperty>(value => property = value);
             result.SetupGet(instance => instance.Context).Returns(entityContext);
             result.SetupGet(instance => instance.Id).Returns(id);
-            result.SetupGet(instance => instance.ReadOnly).Returns(readOnly);
-            result.SetupGet(instance => instance.WriteOnly).Returns(writeOnly);
+            result.SetupGet(instance => instance.Readable).Returns(readOnly);
+            result.SetupGet(instance => instance.Writeable).Returns(writeOnly);
             result.SetupGet(instance => instance.Required).Returns(required);
             result.SetupGet(instance => instance.Property).Returns(() => property);
             return result.Object;

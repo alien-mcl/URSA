@@ -15,12 +15,12 @@ namespace URSA.Web.Http.Description.Hydra
         [Property("hydra", "required")]
         bool Required { get; set; }
 
-        /// <summary>Gets or sets a value indicating whether the property is read-only.</summary>
-        [Property("hydra", "readonly")]
-        bool ReadOnly { get; set; }
+        /// <summary>Gets or sets a value indicating whether the property is readable.</summary>
+        [Property("hydra", "readable")]
+        bool Readable { get; set; }
 
-        /// <summary>Gets or sets a value indicating whether the property is write-only.</summary>
-        [Property("hydra", "writeonly")]
-        bool WriteOnly { get; set; }
+        /// <summary>Gets or sets a value indicating whether the property is writeable.</summary>
+        [Property("hydra", "writeable")]
+        bool Writeable { get; set; }
     }
 }

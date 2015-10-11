@@ -20,7 +20,7 @@ namespace URSA.Web.Http.Description.Hydra
         ICollection<IResource> Returns { get; }
 
         /// <summary>Gets the HTTP status codes.</summary>
-        [Collection("hydra", "statusCodes")]
+        [Collection("hydra", "statusCode")]
         ICollection<int> StatusCodes { get; }
     }
 }

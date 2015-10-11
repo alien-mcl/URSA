@@ -132,8 +132,8 @@ namespace Given_instance_of_the.HydraClassGenerator_class
 
             var supportedProperty = new Mock<ISupportedProperty>(MockBehavior.Strict);
             supportedProperty.SetupGet(instance => instance.Property).Returns(_property.Object);
-            supportedProperty.SetupGet(instance => instance.WriteOnly).Returns(false);
-            supportedProperty.SetupGet(instance => instance.ReadOnly).Returns(false);
+            supportedProperty.SetupGet(instance => instance.Writeable).Returns(false);
+            supportedProperty.SetupGet(instance => instance.Readable).Returns(false);
 
             var restriction = new Mock<IRestriction>(MockBehavior.Strict);
             restriction.SetupGet(instance => instance.Id).Returns(new EntityId(new Uri("urn:guid:" + Guid.NewGuid())));

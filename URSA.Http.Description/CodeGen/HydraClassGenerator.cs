@@ -184,8 +184,8 @@ namespace URSA.CodeGen
                 properties.AppendFormat(
                     PropertyTemplate,
                     propertyName,
-                    property.WriteOnly ? String.Empty : " get" + (property.ReadOnly ? " " : String.Empty) + ";",
-                    property.ReadOnly ? String.Empty : " set; ",
+                    property.Writeable ? String.Empty : " get" + (property.Readable ? " " : String.Empty) + ";",
+                    property.Readable ? String.Empty : " set; ",
                     typeName,
                     (propertyName == "Id" ? "new " : String.Empty),
                     mapping);

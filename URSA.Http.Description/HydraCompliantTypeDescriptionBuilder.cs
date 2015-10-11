@@ -149,8 +149,8 @@ namespace URSA.Web.Http.Description
             var propertyUri = (!typeof(IEntity).IsAssignableFrom(context.Type) ? @class.Id.Uri.AddName(property.Name) :
                 context.ApiDocumentation.Context.Mappings.MappingFor(context.Type).PropertyFor(property.Name).Uri);
             var result = context.ApiDocumentation.Context.Create<ISupportedProperty>(propertyId);
-            result.ReadOnly = (!property.PropertyType.IsCollection()) && (!property.CanWrite);
-            result.WriteOnly = !property.CanRead;
+            result.Readable = property.CanRead;
+            result.Writeable = property.CanWrite;
             result.Required = (property.PropertyType.IsValueType) || (property.GetCustomAttribute<RequiredAttribute>() != null);
             result.Property = (property.GetCustomAttribute<KeyAttribute>() != null ?
                 context.ApiDocumentation.Context.Create<IInverseFunctionalProperty>(propertyUri) :

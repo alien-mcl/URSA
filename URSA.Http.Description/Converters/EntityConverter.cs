@@ -71,7 +71,7 @@ namespace URSA.Web.Http.Converters
                 ""title"": ""hydra:title"",
                 ""description"": ""hydra:description"",
                 ""supportedClasses"": ""hydra:supportedClasses"",
-                ""supportedProperties"": ""hydra:supportedProperties"",
+                ""supportedProperty"": ""hydra:supportedProperty"",
                 ""supportedOperation"": ""hydra:supportedOperation"",
                 ""operation"": ""hydra:operation"",
                 ""statusCodes"": ""hydra:statusCodes"",

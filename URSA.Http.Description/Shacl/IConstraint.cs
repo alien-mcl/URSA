@@ -3,7 +3,7 @@
 namespace URSA.Web.Http.Description.Shacl
 {
     /// <summary>Describes a constraint.</summary>
-    [Class("sh", "Constraint")]
+    [Class("shacl", "Constraint")]
     public interface IConstraint : IShapeClass
     {
     }

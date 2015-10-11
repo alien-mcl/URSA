@@ -39,8 +39,8 @@ namespace Given_instance_of_the.HydraCompliantTypeDescriptionBuilder_class
             var property = result.SupportedProperties.FirstOrDefault(item => (item.Property != null) && (item.Property.Label == "Key"));
 
             property.Should().NotBeNull();
-            property.ReadOnly.Should().BeFalse();
-            property.WriteOnly.Should().BeFalse();
+            property.Readable.Should().BeFalse();
+            property.Writeable.Should().BeFalse();
             property.Required.Should().BeTrue();
             property.Property.Description.Should().Be(typeof(Person) + ".Key");
             property.Property.Domain.Should().Contain(@class => @class.Id.Uri.AbsoluteUri.Contains(typeof(Person).FullName));
@@ -55,8 +55,8 @@ namespace Given_instance_of_the.HydraCompliantTypeDescriptionBuilder_class
             var property = result.SupportedProperties.FirstOrDefault(item => (item.Property != null) && (item.Property.Label == "FirstName"));
 
             property.Should().NotBeNull();
-            property.ReadOnly.Should().BeFalse();
-            property.WriteOnly.Should().BeFalse();
+            property.Readable.Should().BeFalse();
+            property.Writeable.Should().BeFalse();
             property.Required.Should().BeFalse();
             property.Property.Description.Should().Be(typeof(Person) + ".FirstName");
             property.Property.Domain.Should().Contain(@class => @class.Id.Uri.AbsoluteUri.Contains(typeof(Person).FullName));
@@ -71,8 +71,8 @@ namespace Given_instance_of_the.HydraCompliantTypeDescriptionBuilder_class
             var property = result.SupportedProperties.FirstOrDefault(item => (item.Property != null) && (item.Property.Label == "LastName"));
 
             property.Should().NotBeNull();
-            property.ReadOnly.Should().BeFalse();
-            property.WriteOnly.Should().BeFalse();
+            property.Readable.Should().BeFalse();
+            property.Writeable.Should().BeFalse();
             property.Required.Should().BeFalse();
             property.Property.Description.Should().Be(typeof(Person) + ".LastName");
             property.Property.Domain.Should().Contain(@class => @class.Id.Uri.AbsoluteUri.Contains(typeof(Person).FullName));
@@ -87,8 +87,8 @@ namespace Given_instance_of_the.HydraCompliantTypeDescriptionBuilder_class
             var property = result.SupportedProperties.FirstOrDefault(item => (item.Property != null) && (item.Property.Label == "Roles"));
 
             property.Should().NotBeNull();
-            property.ReadOnly.Should().BeFalse();
-            property.WriteOnly.Should().BeFalse();
+            property.Readable.Should().BeFalse();
+            property.Writeable.Should().BeFalse();
             property.Required.Should().BeFalse();
             property.Property.Description.Should().Be(typeof(Person) + ".Roles");
             property.Property.Domain.Should().Contain(@class => @class.Id.Uri.AbsoluteUri.Contains(typeof(Person).FullName));

@@ -365,7 +365,7 @@
             {
                 "@id": "<xsl:value-of select="$class/@rdf:about" />",
                 "label": "<xsl:value-of select="$class/rdfs:label" />",
-                "supportedProperties": [<xsl:for-each select="$class/hydra:supportedProperties">
+                "supportedProperties": [<xsl:for-each select="$class/hydra:supportedProperty">
                     <xsl:variable name="id" select="@rdf:resource" />
                     <xsl:variable name="supportedProperty" select="/rdf:RDF/hydra:SupportedProperty[@rdf:about = $id]|/rdf:RDF/*[rdf:type/@rdf:resource = '&hydra;SupportedProperty' and @rdf:about = $id]" />
                     <xsl:variable name="property" select="/rdf:RDF/rdf:Property[@rdf:about = $supportedProperty/hydra:property/@rdf:resource]|/rdf:RDF/*[rdf:type/@rdf:resource = '&rdf;Property' and @rdf:about = $supportedProperty/hydra:property/@rdf:resource]" />
