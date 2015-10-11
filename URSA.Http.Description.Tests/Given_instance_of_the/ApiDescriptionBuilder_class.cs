@@ -179,6 +179,7 @@ namespace Given_instance_of_the
             typeDescriptionBuilder.SetupGet(instance => instance.SupportedProfiles).Returns(new[] { supportedProfile ?? EntityConverter.Hydra });
             typeDescriptionBuilder.Setup(instance => instance.BuildTypeDescription(It.IsAny<DescriptionContext>())).Returns<DescriptionContext>(context => CreateDescription(context, out requiresRdf));
             typeDescriptionBuilder.Setup(instance => instance.BuildTypeDescription(It.IsAny<DescriptionContext>(), out requiresRdf)).Returns<DescriptionContext, bool>((context, rdf) => CreateDescription(context, out rdf));
+            typeDescriptionBuilder.Setup(instance => instance.SubClass(It.IsAny<DescriptionContext>(), It.IsAny<IClass>(), null)).Returns<DescriptionContext, IClass, EntityId>((context, @class, id) => @class);
             return typeDescriptionBuilder.Object;
         }
 
@@ -203,19 +204,16 @@ namespace Given_instance_of_the
             return entityContext.Object;
         }
 
-        private static IResource CreateDescription(DescriptionContext context, out bool requiresRdf)
+        private static IClass CreateDescription(DescriptionContext context, out bool requiresRdf)
         {
-            var result = new Mock<IResource>(MockBehavior.Strict);
+            var result = new Mock<IClass>(MockBehavior.Strict);
             result.SetupGet(instance => instance.Id).Returns(new EntityId(String.Format("urn:net:" + context.Type.FullName)));
             result.SetupSet(instance => instance.Label = It.IsAny<string>());
             result.SetupGet(instance => instance.MediaTypes).Returns(new List<string>());
             if (context.Type == typeof(Person))
             {
-                var type = new Mock<IClass>(MockBehavior.Strict);
-                type.SetupGet(instance => instance.SupportedProperties).Returns(new ISupportedProperty[0]);
-                type.SetupGet(instance => instance.Id).Returns(new BlankId("bnode" + new Random().Next()));
-                type.SetupGet(instance => instance.SupportedOperations).Returns(new List<IOperation>());
-                result.SetupGet(instance => instance.Type).Returns(type.Object);
+                result.SetupGet(instance => instance.SupportedProperties).Returns(new ISupportedProperty[0]);
+                result.SetupGet(instance => instance.SupportedOperations).Returns(new List<IOperation>());
             }
 
             context.Describe(result.Object, requiresRdf = false);
@@ -229,8 +227,8 @@ namespace Given_instance_of_the
             result.SetupGet(instance => instance.Method).Returns(new List<string>());
             result.SetupSet(instance => instance.Label = It.IsAny<string>());
             result.SetupSet(instance => instance.Description = It.IsAny<string>());
-            result.SetupGet(instance => instance.Returns).Returns(new List<IResource>());
-            result.SetupGet(instance => instance.Expects).Returns(new List<IResource>());
+            result.SetupGet(instance => instance.Returns).Returns(new List<IClass>());
+            result.SetupGet(instance => instance.Expects).Returns(new List<IClass>());
             return result.Object;
         }
 

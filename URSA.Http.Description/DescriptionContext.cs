@@ -12,7 +12,7 @@ namespace URSA.Web.Http.Description
     /// <summary>Provides a description context.</summary>
     public class DescriptionContext
     {
-        private readonly IDictionary<Type, Tuple<IResource, bool>> _typeDefinitions;
+        private readonly IDictionary<Type, Tuple<IClass, bool>> _typeDefinitions;
 
         /// <summary>Initializes a new instance of the <see cref="DescriptionContext"/> class.</summary>
         /// <param name="apiDocumentation">The API documentation.</param>
@@ -20,7 +20,7 @@ namespace URSA.Web.Http.Description
         /// <param name="type">The type.</param>
         /// <param name="typeDefinitions">The type definitions.</param>
         [ExcludeFromCodeCoverage]
-        private DescriptionContext(IApiDocumentation apiDocumentation, ITypeDescriptionBuilder typeDescriptionBuilder, Type type, IDictionary<Type, Tuple<IResource, bool>> typeDefinitions)
+        private DescriptionContext(IApiDocumentation apiDocumentation, ITypeDescriptionBuilder typeDescriptionBuilder, Type type, IDictionary<Type, Tuple<IClass, bool>> typeDefinitions)
         {
             if (apiDocumentation == null)
             {
@@ -60,7 +60,7 @@ namespace URSA.Web.Http.Description
         /// <summary>Gets the description for given <paramref name="type" />.</summary>
         /// <param name="type">The type for which to obtain the description.</param>
         /// <returns>Instance of the <see cref="IResource" /> containing the description of given <paramref name="type" />.</returns>
-        public IResource this[Type type] { get { return _typeDefinitions[type].Item1; } }
+        public IClass this[Type type] { get { return _typeDefinitions[type].Item1; } }
 
         /// <summary>Creates a copy of the context for different type.</summary>
         /// <param name="apiDocumentation">The API documentation.</param>
@@ -85,7 +85,7 @@ namespace URSA.Web.Http.Description
                 throw new ArgumentNullException("type");
             }
 
-            return new DescriptionContext(apiDocumentation, typeDescriptionBuilder, type, new Dictionary<Type, Tuple<IResource, bool>>());
+            return new DescriptionContext(apiDocumentation, typeDescriptionBuilder, type, new Dictionary<Type, Tuple<IClass, bool>>());
         }
 
         /// <summary>Creates a copy of the context for different type.</summary>
@@ -104,7 +104,7 @@ namespace URSA.Web.Http.Description
 
         /// <summary>Builds the type description.</summary>
         /// <returns>Description of the type.</returns>
-        public IResource BuildTypeDescription()
+        public IClass BuildTypeDescription()
         {
             return TypeDescriptionBuilder.BuildTypeDescription(this);
         }
@@ -138,14 +138,14 @@ namespace URSA.Web.Http.Description
         /// <summary>Describes the current type.</summary>
         /// <param name="resource">The resource describing a type.</param>
         /// <param name="requiresRdf">Flag determining whether the type requires RDF approach.</param>
-        public void Describe(IResource resource, bool requiresRdf)
+        public void Describe(IClass resource, bool requiresRdf)
         {
             if (resource == null)
             {
                 throw new ArgumentNullException("resource");
             }
 
-            _typeDefinitions[Type] = new Tuple<IResource, bool>(resource, requiresRdf);
+            _typeDefinitions[Type] = new Tuple<IClass, bool>(resource, requiresRdf);
         }
     }
 }

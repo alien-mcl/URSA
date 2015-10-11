@@ -90,16 +90,11 @@ namespace URSA.Web.Http.Description
 
             var typeDescriptionBuilder = GetTypeDescriptionBuilder(profiles);
             var context = DescriptionContext.ForType(apiDocumentation, SpecializationType, typeDescriptionBuilder);
-            IResource specializationType = context.BuildTypeDescription();
-            if (!(specializationType.Type is IClass))
-            {
-                return;
-            }
-
+            IClass specializationType = context.BuildTypeDescription();
             BuildDescription(context, specializationType);
         }
 
-        private static void BuildOperationMediaType(IEnumerable<IResource> resources, OperationInfo operation, bool requiresRdf)
+        private static void BuildOperationMediaType(IEnumerable<IClass> resources, OperationInfo operation, bool requiresRdf)
         {
             foreach (var resource in resources)
             {
@@ -122,15 +117,10 @@ namespace URSA.Web.Http.Description
 
         private static Rdfs.IProperty GetMappingProperty(DescriptionContext context, ParameterInfo parameter)
         {
-            IResource description = context[context.Type];
-            if (!(description.Type is IClass))
-            {
-                return null;
-            }
-
+            IClass description = context[context.Type];
             Rdfs.IProperty resultCandidate = null;
             IResource parameterType = null;
-            foreach (var supportedProperty in ((IClass)description.Type).SupportedProperties)
+            foreach (var supportedProperty in description.SupportedProperties)
             {
                 if (StringComparer.OrdinalIgnoreCase.Equals(supportedProperty.Property.Label, parameter.Name))
                 {
@@ -142,7 +132,7 @@ namespace URSA.Web.Http.Description
                     parameterType = (context.ContainsType(parameter.ParameterType) ? context[parameter.ParameterType] : context.BuildTypeDescription());
                 }
 
-                if (supportedProperty.Property.Range.Any(range => range.Id == (parameterType.Type ?? parameterType).Id))
+                if (supportedProperty.Property.Range.Any(range => range.Id == parameterType.Id))
                 {
                     resultCandidate = supportedProperty.Property;
                 }
@@ -172,10 +162,9 @@ namespace URSA.Web.Http.Description
             return result;
         }
 
-        private void BuildDescription(DescriptionContext context, IResource specializationType)
+        private void BuildDescription(DescriptionContext context, IClass specializationType)
         {
-            IClass @class = (IClass)specializationType.Type;
-            context.ApiDocumentation.SupportedClasses.Add(@class);
+            context.ApiDocumentation.SupportedClasses.Add(specializationType);
             var description = _descriptionBuilder.BuildDescriptor();
             foreach (OperationInfo<Verb> operation in description.Operations)
             {
@@ -186,14 +175,14 @@ namespace URSA.Web.Http.Description
                     ITemplatedLink templatedLink = context.ApiDocumentation.Context.Create<ITemplatedLink>(template.Id.Uri.AbsoluteUri.Replace("#template", "#withTemplate"));
                     templatedLink.Operations.Add(operationDefinition);
                     context.ApiDocumentation.Context.Store.ReplacePredicateValues(
-                        @class.Id,
+                        specializationType.Id,
                         Node.ForUri(templatedLink.Id.Uri),
                         () => new Node[] { Node.ForUri(template.Id.Uri) },
                         specializationType.Id.Uri);
                 }
                 else
                 {
-                    @class.SupportedOperations.Add(operationDefinition);
+                    specializationType.SupportedOperations.Add(operationDefinition);
                 }
             }
         }
@@ -213,6 +202,7 @@ namespace URSA.Web.Http.Description
             foreach (var value in arguments)
             {
                 var expected = context.TypeDescriptionBuilder.BuildTypeDescription(context.ForType(value.ParameterType), out isRdfRequired);
+                expected = context.TypeDescriptionBuilder.SubClass(context, expected);
                 expected.Label = value.Name ?? "instance";
                 result.Expects.Add(expected);
                 requiresRdf |= isRdfRequired;
@@ -220,7 +210,9 @@ namespace URSA.Web.Http.Description
 
             foreach (var value in results)
             {
-                result.Returns.Add(context.TypeDescriptionBuilder.BuildTypeDescription(context.ForType(value.ParameterType), out isRdfRequired));
+                var returned = context.TypeDescriptionBuilder.BuildTypeDescription(context.ForType(value.ParameterType), out isRdfRequired);
+                returned = context.TypeDescriptionBuilder.SubClass(context, returned);
+                result.Returns.Add(returned);
                 requiresRdf |= isRdfRequired;
             }
 
@@ -275,7 +267,7 @@ namespace URSA.Web.Http.Description
 
                 if (templateMapping.Property != null)
                 {
-                    templateMapping.Property.Range.Add(range.Type);
+                    templateMapping.Property.Range.Add(range);
                 }
             }
             else if (context.Type != typeof(object))

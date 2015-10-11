@@ -11,10 +11,6 @@ namespace URSA.Web.Http.Description.Hydra
         [Collection("hydra", "operation")]
         ICollection<IOperation> Operations { get; }
 
-        /// <summary>Gets or sets the type of the resource.</summary>
-        [Property("ursa", "resourceType")]
-        IResource Type { get; set; }
-
         /// <summary>Gets or sets a flag indicating whether the resource is a single value or not.</summary>
         [Property("ursa", "singleValue")]
         bool? SingleValue { get; set; }

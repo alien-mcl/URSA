@@ -62,7 +62,6 @@ namespace Given_instance_of_the.HydraClassGenerator_class
             context.SetupGet(instance => instance.Mappings).Returns(mappings.Object);
             _resource = new Mock<IResource>(MockBehavior.Strict);
             _resource.SetupGet(instance => instance.Id).Returns(uri);
-            _resource.SetupGet(instance => instance.Type).Returns((IResource)null);
             _resource.As<ITypedEntity>().SetupGet(instance => instance.Types).Returns(new EntityId[0]);
             _resource.As<IEntity>().SetupGet(instance => instance.Context).Returns(context.Object);
             _generator = new HydraClassGenerator(new IUriParser[] { _uriParser.Object });

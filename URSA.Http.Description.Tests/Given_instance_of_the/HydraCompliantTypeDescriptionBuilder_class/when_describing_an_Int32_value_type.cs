@@ -12,16 +12,18 @@ namespace Given_instance_of_the.HydraCompliantTypeDescriptionBuilder_class
         [TestMethod]
         public void it_should_create_a_resource_description()
         {
-            var result = DescriptionContext.ForType(ApiDocumentation, typeof(int), Builder).BuildTypeDescription();
+            var context = DescriptionContext.ForType(ApiDocumentation, typeof(int), Builder);
+            var result = context.BuildTypeDescription();
+            result = context.TypeDescriptionBuilder.SubClass(context, result);
 
             result.SingleValue.Should().HaveValue().And.Subject.Value.Should().BeTrue();
-            result.Type.Should().BeAssignableTo<IResource>();
+            result.Should().BeAssignableTo<IClass>();
         }
 
         [TestMethod]
         public void it_should_create_a_type_description()
         {
-            var result = DescriptionContext.ForType(ApiDocumentation, typeof(int), Builder).BuildTypeDescription().Type;
+            var result = DescriptionContext.ForType(ApiDocumentation, typeof(int), Builder).BuildTypeDescription();
 
             result.Label.Should().Be("int");
             result.Description.Should().BeNull();

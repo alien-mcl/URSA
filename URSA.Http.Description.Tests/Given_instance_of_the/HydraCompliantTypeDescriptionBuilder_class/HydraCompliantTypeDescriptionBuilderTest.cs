@@ -47,7 +47,7 @@ namespace Given_instance_of_the.HydraCompliantTypeDescriptionBuilder_class
             blankIdGenerator.Setup(instance => instance.Generate()).Returns("bnode" + new Random().Next());
             var entityContext = new Mock<IEntityContext>(MockBehavior.Strict);
             entityContext.SetupGet(instance => instance.BlankIdGenerator).Returns(blankIdGenerator.Object);
-            entityContext.Setup(instance => instance.Create<IResource>(It.IsAny<EntityId>())).Returns<EntityId>(id => CreateResource(entityContext.Object, id));
+            ////entityContext.Setup(instance => instance.Create<IResource>(It.IsAny<EntityId>())).Returns<EntityId>(id => CreateResource(entityContext.Object, id));
             entityContext.Setup(instance => instance.Create<IClass>(It.IsAny<EntityId>())).Returns<EntityId>(id => CreateClass(entityContext.Object, id));
             entityContext.Setup(instance => instance.Create<ISupportedProperty>(It.IsAny<EntityId>())).Returns<EntityId>(id => CreateSupportedProperty(entityContext.Object, id));
             entityContext.Setup(instance => instance.Create<IProperty>(It.IsAny<EntityId>())).Returns<EntityId>(id => CreateProperty(entityContext.Object, id));
@@ -61,19 +61,16 @@ namespace Given_instance_of_the.HydraCompliantTypeDescriptionBuilder_class
         private static IResource CreateResource(IEntityContext entityContext, EntityId id)
         {
             var result = new Mock<IResource>(MockBehavior.Strict);
-            IResource type = null;
             bool? singleValue = null;
             string label = null;
             string description = null;
             result.SetupSet(instance => instance.Label = It.IsAny<string>()).Callback<string>(value => label = value);
             result.SetupSet(instance => instance.Description = It.IsAny<string>()).Callback<string>(value => description = value);
             result.SetupSet(instance => instance.SingleValue = It.IsAny<bool?>()).Callback<bool?>(value => singleValue = value);
-            result.SetupSet(instance => instance.Type = It.IsAny<IResource>()).Callback<IResource>(value => type = value);
             result.SetupGet(instance => instance.Context).Returns(entityContext);
             result.SetupGet(instance => instance.Id).Returns(id);
             result.SetupGet(instance => instance.Label).Returns(() => label);
             result.SetupGet(instance => instance.Description).Returns(() => description);
-            result.SetupGet(instance => instance.Type).Returns(() => type);
             result.SetupGet(instance => instance.SingleValue).Returns(() => singleValue);
             return result.Object;
         }
@@ -81,14 +78,17 @@ namespace Given_instance_of_the.HydraCompliantTypeDescriptionBuilder_class
         private static IClass CreateClass(IEntityContext entityContext, EntityId id)
         {
             var result = new Mock<IClass>(MockBehavior.Strict);
+            bool? singleValue = null;
             string label = null;
             string description = null;
             result.SetupSet(instance => instance.Label = It.IsAny<string>()).Callback<string>(value => label = value);
             result.SetupSet(instance => instance.Description = It.IsAny<string>()).Callback<string>(value => description = value);
+            result.SetupSet(instance => instance.SingleValue = It.IsAny<bool?>()).Callback<bool?>(value => singleValue = value);
             result.SetupGet(instance => instance.Context).Returns(entityContext);
             result.SetupGet(instance => instance.Id).Returns(id);
             result.SetupGet(instance => instance.Label).Returns(() => label);
             result.SetupGet(instance => instance.Description).Returns(() => description);
+            result.SetupGet(instance => instance.SingleValue).Returns(() => singleValue);
             result.SetupGet(instance => instance.SupportedProperties).Returns(new List<ISupportedProperty>());
             result.SetupGet(instance => instance.SubClassOf).Returns(new List<URSA.Web.Http.Description.Rdfs.IClass>());
             return result.Object;
@@ -100,8 +100,8 @@ namespace Given_instance_of_the.HydraCompliantTypeDescriptionBuilder_class
             var declaringTypeName = propertyFullName.Substring(0, propertyFullName.LastIndexOf('.'));
             var propertyName = propertyFullName.Substring(declaringTypeName.Length + 1);
             var propertyInfo = Type.GetType(declaringTypeName).GetProperty(propertyName);
-            var readOnly = (!propertyInfo.PropertyType.IsCollection()) && (!propertyInfo.CanWrite);
-            var writeOnly = !propertyInfo.CanRead;
+            var readOnly = propertyInfo.CanRead;
+            var writeOnly = propertyInfo.CanWrite;
             var required = (propertyInfo.PropertyType.IsValueType) || (propertyInfo.GetCustomAttribute<RequiredAttribute>() != null);
             var result = new Mock<ISupportedProperty>(MockBehavior.Strict);
             IProperty property = null;

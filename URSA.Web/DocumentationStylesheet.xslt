@@ -203,9 +203,9 @@
         var createProperty = function(supportedClass, supportedProperty, currentFlavour) {
             var result = mapType(supportedProperty.type, currentFlavour) + " " + supportedProperty.label;
             switch (currentFlavour) {
-                case "C#": result += " " + (supportedProperty.writeOnly ? "{ set; }" : (supportedProperty.readOnly ? "{ get; }" : "{ get; set; }")); break;
-                case "Java": result = (supportedProperty.writeOnly ? "@Setter" : (supportedProperty.readOnly ? "@Getter" : "@Getter @Setter")) + " " + result; break;
-                case "UML": result = (supportedProperty.writeOnly ? "<<writeonly>>" : (supportedProperty.readOnly ? "<<readonly>>" : "<<property>>")) + " " + result; break; 
+                case "C#": result += " { " + (supportedProperty.readable ? "get; " : "") + (supportedProperty.writeable ? "set; " : "") + "}"; break;
+                case "Java": result = (supportedProperty.readable ? "@Getter " : "") + (supportedProperty.writeable ? "@Setter " : "") + " " + result; break;
+                case "UML": result = ((supportedProperty.readable) && (supportedProeprty.writeable) ? "<<property>>" : (supportedProperty.readable ? "<<readonly>>" : "<<writeonly>>")) + " " + result; break; 
             }
             
             return result;
@@ -422,8 +422,8 @@
                         "description": "<xsl:value-of select="$property/rdfs:comment/text()"/>",</xsl:if>
                         "type": "<xsl:call-template name="type"><xsl:with-param name="type" select="$property/rdfs:range/@rdf:resource" /><xsl:with-param name="isEnumerable" select="$isEnumerable" /></xsl:call-template>",
                         "property": "<xsl:value-of select="$property/@rdf:about" />",
-                        "readonly": <xsl:choose><xsl:when test="$supportedProperty/hydra:readonly"><xsl:value-of select="$supportedProperty/hydra:readonly"/></xsl:when><xsl:otherwise>false</xsl:otherwise></xsl:choose>,
-                        "writeonly": <xsl:choose><xsl:when test="$supportedProperty/hydra:writeonly"><xsl:value-of select="$supportedProperty/hydra:writeonly"/></xsl:when><xsl:otherwise>false</xsl:otherwise></xsl:choose>
+                        "readable": <xsl:choose><xsl:when test="$supportedProperty/hydra:readable"><xsl:value-of select="$supportedProperty/hydra:readable"/></xsl:when><xsl:otherwise>false</xsl:otherwise></xsl:choose>,
+                        "writeable": <xsl:choose><xsl:when test="$supportedProperty/hydra:writeable"><xsl:value-of select="$supportedProperty/hydra:writeable"/></xsl:when><xsl:otherwise>false</xsl:otherwise></xsl:choose>
                     }</xsl:template>
     
     <xsl:template name="hydra-SupportedOperation">
@@ -444,7 +444,7 @@
                         "returns": [<xsl:for-each select="$supportedOperation/hydra:returns">"<xsl:variable name="current" select="./@rdf:nodeID" 
                             /><xsl:variable name="resource" select="/rdf:RDF/*[@rdf:nodeID = $current]" 
                             /><xsl:variable name="enumerable"><xsl:choose><xsl:when test="$resource/ursa:singleValue/text() = 'true'">false</xsl:when><xsl:otherwise>true</xsl:otherwise></xsl:choose></xsl:variable><xsl:call-template name="type"
-                                ><xsl:with-param name="type" select="$resource/ursa:resourceType/@rdf:resource" 
+                                ><xsl:with-param name="type" select="/rdf:RDF/*[@rdf:nodeID = $current]/rdfs:subClassOf/@rdf:resource" 
                                 /><xsl:with-param name="isEnumerable" select="$enumerable" 
                                 /></xsl:call-template
                             >"<xsl:if test="position() != last()">, </xsl:if></xsl:for-each>],
@@ -454,7 +454,7 @@
                                 <xsl:variable name="enumerable"><xsl:choose><xsl:when test="$resource/ursa:singleValue/text() = 'true'">false</xsl:when><xsl:otherwise>true</xsl:otherwise></xsl:choose></xsl:variable>
                                 "variable": "<xsl:value-of select="$resource/rdfs:label" />",
                                 "type": "<xsl:call-template name="type"
-                                    ><xsl:with-param name="type" select="$resource/ursa:resourceType/@rdf:resource" 
+                                    ><xsl:with-param name="type" select="/rdf:RDF/*[@rdf:nodeID = $current]/rdfs:subClassOf/@rdf:resource" 
                                     /><xsl:with-param name="isEnumerable" select="$enumerable" 
                                     /></xsl:call-template
                                 >"

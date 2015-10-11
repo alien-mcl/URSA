@@ -71,11 +71,6 @@ namespace URSA.CodeGen
         /// <inheritdoc />
         public string CreateNamespace(IResource resource)
         {
-            if (resource.Type != null)
-            {
-                resource = resource.Type;
-            }
-
             string result;
             if (Namespaces.TryGetValue(resource, out result))
             {
@@ -89,11 +84,6 @@ namespace URSA.CodeGen
         /// <inheritdoc />
         public string CreateName(IResource resource)
         {
-            if (resource.Type != null)
-            {
-                resource = resource.Type;
-            }
-
             string result;
             if (Names.TryGetValue(resource, out result))
             {
@@ -368,8 +358,6 @@ namespace URSA.CodeGen
             {
                 validMediaTypes.AddRange(type.MediaTypes);
             }
-
-            type = type.Type ?? type;
 
             IClass @class = (type.Is(Rdfs.Class) ? type.AsEntity<IClass>() : null);
             if (@class == null)

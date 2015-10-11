@@ -15,16 +15,19 @@ namespace Given_instance_of_the.HydraCompliantTypeDescriptionBuilder_class
         [TestMethod]
         public void it_should_create_a_resource_description()
         {
-            var result = DescriptionContext.ForType(ApiDocumentation, typeof(Person), Builder).BuildTypeDescription();
+            var context = DescriptionContext.ForType(ApiDocumentation, typeof(Person), Builder);
+
+            var result = context.BuildTypeDescription();
+            result = context.TypeDescriptionBuilder.SubClass(context, result);
 
             result.SingleValue.Should().HaveValue().And.Subject.Value.Should().BeTrue();
-            result.Type.Should().BeAssignableTo<IClass>();
+            result.Should().BeAssignableTo<IClass>();
         }
 
         [TestMethod]
         public void it_should_create_a_type_description()
         {
-            var result = (IClass)DescriptionContext.ForType(ApiDocumentation, typeof(Person), Builder).BuildTypeDescription().Type;
+            var result = DescriptionContext.ForType(ApiDocumentation, typeof(Person), Builder).BuildTypeDescription();
 
             result.Label.Should().Be("Person");
             result.Description.Should().Be(typeof(Person).FullName);
@@ -34,13 +37,13 @@ namespace Given_instance_of_the.HydraCompliantTypeDescriptionBuilder_class
         [TestMethod]
         public void it_should_create_an_Id_property_description()
         {
-            var result = (IClass)DescriptionContext.ForType(ApiDocumentation, typeof(Person), Builder).BuildTypeDescription().Type;
+            var result = DescriptionContext.ForType(ApiDocumentation, typeof(Person), Builder).BuildTypeDescription();
 
             var property = result.SupportedProperties.FirstOrDefault(item => (item.Property != null) && (item.Property.Label == "Key"));
 
             property.Should().NotBeNull();
-            property.Readable.Should().BeFalse();
-            property.Writeable.Should().BeFalse();
+            property.Readable.Should().BeTrue();
+            property.Writeable.Should().BeTrue();
             property.Required.Should().BeTrue();
             property.Property.Description.Should().Be(typeof(Person) + ".Key");
             property.Property.Domain.Should().Contain(@class => @class.Id.Uri.AbsoluteUri.Contains(typeof(Person).FullName));
@@ -50,13 +53,13 @@ namespace Given_instance_of_the.HydraCompliantTypeDescriptionBuilder_class
         [TestMethod]
         public void it_should_create_an_FirstName_property_description()
         {
-            var result = (IClass)DescriptionContext.ForType(ApiDocumentation, typeof(Person), Builder).BuildTypeDescription().Type;
+            var result = DescriptionContext.ForType(ApiDocumentation, typeof(Person), Builder).BuildTypeDescription();
 
             var property = result.SupportedProperties.FirstOrDefault(item => (item.Property != null) && (item.Property.Label == "FirstName"));
 
             property.Should().NotBeNull();
-            property.Readable.Should().BeFalse();
-            property.Writeable.Should().BeFalse();
+            property.Readable.Should().BeTrue();
+            property.Writeable.Should().BeTrue();
             property.Required.Should().BeFalse();
             property.Property.Description.Should().Be(typeof(Person) + ".FirstName");
             property.Property.Domain.Should().Contain(@class => @class.Id.Uri.AbsoluteUri.Contains(typeof(Person).FullName));
@@ -66,13 +69,13 @@ namespace Given_instance_of_the.HydraCompliantTypeDescriptionBuilder_class
         [TestMethod]
         public void it_should_create_an_LastName_property_description()
         {
-            var result = (IClass)DescriptionContext.ForType(ApiDocumentation, typeof(Person), Builder).BuildTypeDescription().Type;
+            var result = DescriptionContext.ForType(ApiDocumentation, typeof(Person), Builder).BuildTypeDescription();
 
             var property = result.SupportedProperties.FirstOrDefault(item => (item.Property != null) && (item.Property.Label == "LastName"));
 
             property.Should().NotBeNull();
-            property.Readable.Should().BeFalse();
-            property.Writeable.Should().BeFalse();
+            property.Readable.Should().BeTrue();
+            property.Writeable.Should().BeTrue();
             property.Required.Should().BeFalse();
             property.Property.Description.Should().Be(typeof(Person) + ".LastName");
             property.Property.Domain.Should().Contain(@class => @class.Id.Uri.AbsoluteUri.Contains(typeof(Person).FullName));
@@ -82,13 +85,13 @@ namespace Given_instance_of_the.HydraCompliantTypeDescriptionBuilder_class
         [TestMethod]
         public void it_should_create_an_Roles_property_description()
         {
-            var result = (IClass)DescriptionContext.ForType(ApiDocumentation, typeof(Person), Builder).BuildTypeDescription().Type;
+            var result = DescriptionContext.ForType(ApiDocumentation, typeof(Person), Builder).BuildTypeDescription();
 
             var property = result.SupportedProperties.FirstOrDefault(item => (item.Property != null) && (item.Property.Label == "Roles"));
 
             property.Should().NotBeNull();
-            property.Readable.Should().BeFalse();
-            property.Writeable.Should().BeFalse();
+            property.Readable.Should().BeTrue();
+            property.Writeable.Should().BeTrue();
             property.Required.Should().BeFalse();
             property.Property.Description.Should().Be(typeof(Person) + ".Roles");
             property.Property.Domain.Should().Contain(@class => @class.Id.Uri.AbsoluteUri.Contains(typeof(Person).FullName));

@@ -117,11 +117,8 @@ namespace Given_instance_of_the.HydraClassGenerator_class
 
         private void SetupClass()
         {
-            var rangeType = new Mock<IResource>(MockBehavior.Strict);
-            rangeType.SetupGet(instance => instance.Id).Returns(Xsd.Int);
-            var range = new Mock<IResource>(MockBehavior.Strict);
-            range.SetupGet(instance => instance.Id).Returns(new EntityId(new Uri("wrapper:xsd:int")));
-            range.SetupGet(instance => instance.Type).Returns(rangeType.Object);
+            var range = new Mock<IClass>(MockBehavior.Strict);
+            range.SetupGet(instance => instance.Id).Returns(new EntityId(Xsd.Int));
             range.SetupGet(instance => instance.Context).Returns(_context.Object);
             range.As<ITypedEntity>().SetupGet(instance => instance.Types).Returns(new[] { new EntityId(UrsaDatatypeDefinition) });
             _property = new Mock<URSA.Web.Http.Description.Rdfs.IProperty>(MockBehavior.Strict);
@@ -143,7 +140,6 @@ namespace Given_instance_of_the.HydraClassGenerator_class
             _class = new Mock<IClass>(MockBehavior.Strict);
             _class.SetupGet(instance => instance.Context).Returns(_context.Object);
             _class.SetupGet(instance => instance.Id).Returns(ClassId);
-            _class.SetupGet(instance => instance.Type).Returns((IResource)null);
             _class.SetupGet(instance => instance.Label).Returns("Type");
             _class.SetupGet(instance => instance.SupportedProperties).Returns(new[] { supportedProperty.Object });
             _class.SetupGet(instance => instance.SubClassOf).Returns(new[] { restriction.Object });
