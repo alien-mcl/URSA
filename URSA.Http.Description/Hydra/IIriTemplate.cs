@@ -5,7 +5,7 @@ namespace URSA.Web.Http.Description.Hydra
 {
     /// <summary>Describes an IRI template.</summary>
     [Class("hydra", "IriTemplate")]
-    public interface IIriTemplate : IClass
+    public interface IIriTemplate : IResource
     {
         /// <summary>Gets or sets the IRI template string.</summary>
         [Property("hydra", "template")]

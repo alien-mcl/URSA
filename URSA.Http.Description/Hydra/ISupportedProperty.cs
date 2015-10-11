@@ -5,7 +5,7 @@ namespace URSA.Web.Http.Description.Hydra
 {
     /// <summary>Describes a supported property.</summary>
     [Class("hydra", "SupportedProperty")]
-    public interface ISupportedProperty : IEntity
+    public interface ISupportedProperty : IResource
     {
         /// <summary>Gets or sets an RDF property description.</summary>
         [Property("hydra", "property")]

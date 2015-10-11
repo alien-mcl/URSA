@@ -123,6 +123,11 @@ namespace URSA.Web.Http.Description
         {
             if (context.ContainsType(context.Type))
             {
+                if (@class == context[context.Type])
+                {
+                    return;
+                }
+
                 foreach (var property in context[context.Type].SupportedProperties)
                 {
                     @class.SupportedProperties.Add(property);
@@ -174,15 +179,20 @@ namespace URSA.Web.Http.Description
             result.Property.Label = property.Name;
             result.Property.Description = _xmlDocProvider.GetDescription(property);
             result.Property.Domain.Add(@class);
+            IClass propertyType;
             if (!context.ContainsType(property.PropertyType))
             {
                 bool requiresRdf;
                 var childContext = context.ForType(property.PropertyType);
-                var propertyType = BuildTypeDescription(childContext, out requiresRdf);
+                propertyType = BuildTypeDescription(childContext, out requiresRdf);
                 childContext.Describe(propertyType, requiresRdf);
             }
+            else
+            {
+                propertyType = context[property.PropertyType];
+            }
 
-            result.Property.Range.Add(context[property.PropertyType]);
+            result.Property.Range.Add(context.TypeDescriptionBuilder.SubClass(context, propertyType));
             if ((System.Reflection.TypeExtensions.IsEnumerable(property.PropertyType)) && (property.PropertyType != typeof(byte[])))
             {
                 return result;

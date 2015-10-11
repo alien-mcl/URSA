@@ -47,7 +47,9 @@ namespace Given_instance_of_the.HydraCompliantTypeDescriptionBuilder_class
             property.Required.Should().BeTrue();
             property.Property.Description.Should().Be(typeof(Person) + ".Key");
             property.Property.Domain.Should().Contain(@class => @class.Id.Uri.AbsoluteUri.Contains(typeof(Person).FullName));
-            property.Property.Range.Should().Contain(resource => OGuidUriParser.Types.Any(item => item.Value.AbsoluteUri == resource.Id.Uri.AbsoluteUri));
+            property.Property.Range.Should().HaveCount(1);
+            property.Property.Range.First().Should().BeAssignableTo<IClass>();
+            ((IClass)property.Property.Range.First()).SubClassOf.Should().Contain(resource => OGuidUriParser.Types.Any(item => item.Value.AbsoluteUri == resource.Id.Uri.AbsoluteUri));
         }
 
         [TestMethod]
@@ -63,7 +65,9 @@ namespace Given_instance_of_the.HydraCompliantTypeDescriptionBuilder_class
             property.Required.Should().BeFalse();
             property.Property.Description.Should().Be(typeof(Person) + ".FirstName");
             property.Property.Domain.Should().Contain(@class => @class.Id.Uri.AbsoluteUri.Contains(typeof(Person).FullName));
-            property.Property.Range.Should().Contain(resource => XsdUriParser.Types.Any(item => item.Value.AbsoluteUri == resource.Id.Uri.AbsoluteUri));
+            property.Property.Range.Should().HaveCount(1);
+            property.Property.Range.First().Should().BeAssignableTo<IClass>();
+            ((IClass)property.Property.Range.First()).SubClassOf.Should().Contain(resource => XsdUriParser.Types.Any(item => item.Value.AbsoluteUri == resource.Id.Uri.AbsoluteUri));
         }
 
         [TestMethod]
@@ -79,7 +83,9 @@ namespace Given_instance_of_the.HydraCompliantTypeDescriptionBuilder_class
             property.Required.Should().BeFalse();
             property.Property.Description.Should().Be(typeof(Person) + ".LastName");
             property.Property.Domain.Should().Contain(@class => @class.Id.Uri.AbsoluteUri.Contains(typeof(Person).FullName));
-            property.Property.Range.Should().Contain(resource => XsdUriParser.Types.Any(item => item.Value.AbsoluteUri == resource.Id.Uri.AbsoluteUri));
+            property.Property.Range.Should().HaveCount(1);
+            property.Property.Range.First().Should().BeAssignableTo<IClass>();
+            ((IClass)property.Property.Range.First()).SubClassOf.Should().Contain(resource => XsdUriParser.Types.Any(item => item.Value.AbsoluteUri == resource.Id.Uri.AbsoluteUri));
         }
 
         [TestMethod]
@@ -95,7 +101,9 @@ namespace Given_instance_of_the.HydraCompliantTypeDescriptionBuilder_class
             property.Required.Should().BeFalse();
             property.Property.Description.Should().Be(typeof(Person) + ".Roles");
             property.Property.Domain.Should().Contain(@class => @class.Id.Uri.AbsoluteUri.Contains(typeof(Person).FullName));
-            property.Property.Range.Should().Contain(resource => XsdUriParser.Types.Any(item => item.Value.AbsoluteUri == resource.Id.Uri.AbsoluteUri));
+            property.Property.Range.Should().HaveCount(1);
+            property.Property.Range.First().Should().BeAssignableTo<IClass>();
+            ((IClass)property.Property.Range.First()).SubClassOf.Should().Contain(resource => XsdUriParser.Types.Any(item => item.Value.AbsoluteUri == resource.Id.Uri.AbsoluteUri));
         }
     }
 }

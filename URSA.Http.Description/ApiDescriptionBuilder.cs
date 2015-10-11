@@ -132,7 +132,8 @@ namespace URSA.Web.Http.Description
                     parameterType = (context.ContainsType(parameter.ParameterType) ? context[parameter.ParameterType] : context.BuildTypeDescription());
                 }
 
-                if (supportedProperty.Property.Range.Any(range => range.Id == parameterType.Id))
+                if (supportedProperty.Property.Range.Any(range => (range.Id == parameterType.Id) || 
+                    ((range is IClass) && (((IClass)range).SubClassOf.Any(subClass => subClass.Id == parameterType.Id)))))
                 {
                     resultCandidate = supportedProperty.Property;
                 }
@@ -256,10 +257,10 @@ namespace URSA.Web.Http.Description
             var linqBehaviors = mapping.Parameter.GetCustomAttributes<LinqServerBehaviorAttribute>(true);
             if (linqBehaviors.Any())
             {
-                IResource range = (context.ContainsType(typeof(int)) ? context[typeof(int)] : context.TypeDescriptionBuilder.BuildTypeDescription(context.ForType(typeof(int))));
-                var resource = templateMapping.AsEntity<IResource>();
-                resource.SingleValue = range.SingleValue;
-                resource.MediaTypes.AddRange(range.MediaTypes);
+                IClass range = (context.ContainsType(typeof(int)) ? context[typeof(int)] : context.TypeDescriptionBuilder.BuildTypeDescription(context.ForType(typeof(int))));
+                range = context.TypeDescriptionBuilder.SubClass(context, range);
+                range.SingleValue = range.SingleValue;
+                range.MediaTypes.AddRange(range.MediaTypes);
                 foreach (var visitor in _serverBehaviorAttributeVisitors)
                 {
                     linqBehaviors.Accept(visitor, templateMapping);
