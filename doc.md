@@ -1,5 +1,7 @@
 ---
 layout: default
+title: Documentation
+weight: 2
 ---
 URSA is designed to do as much as possible automatically. While there is always an option of explicitely defining the behaviour, in most of the cases you'd like to stick to the defaults.
 

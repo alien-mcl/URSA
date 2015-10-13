@@ -4,8 +4,8 @@
 		<a id="forkme_banner" href="https://github.com/alien-mcl/URSA">View on GitHub</a>
 		<h1 id="project_title">URSA</h1>
 		<h2 id="project_tagline">Ultimate ReSt Api</h2>
-		<section>
-			{% for page in site.pages %}
+		<section>{% assign pages = site.pages | sort:"weight" %}
+			{% for page in pages %}
 				{% if page.title %}
 			<a class="page-link" href="{{ page.url | prepend: site.baseurl }}">{{ page.title }}</a>
 				{% endif %}

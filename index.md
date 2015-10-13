@@ -1,5 +1,7 @@
 ---
 layout: default
+title: Home
+weight: 1
 ---
 ### Meet the bear - Ultimate ReSt Api.
 Welcome to the home site of the URSA project. Here you can find documentation pieces that would allow you to get started with creating your ReSTful APIs easily.
