@@ -34,7 +34,7 @@ namespace URSA.Web.Http.Description
     public abstract class DescriptionController : IController
     {
         /// <summary>Defines an URSA vocabulary base URI.</summary>
-        public static readonly Uri VocabularyBaseUri = new Uri("http://github.io/ursa/vocabulary#");
+        public static readonly Uri VocabularyBaseUri = new Uri("http://alien-mcl.github.io/URSA/vocabulary#");
 
         /// <summary>Defines a '<![CDATA[application/xml]]>' media type.</summary>
         private const string ApplicationXml = "application/xml";

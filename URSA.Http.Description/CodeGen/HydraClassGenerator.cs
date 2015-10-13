@@ -31,6 +31,7 @@ namespace URSA.CodeGen
         private static readonly string OperationTemplate = new StreamReader(typeof(HydraClassGenerator).Assembly.GetManifestResourceStream("URSA.Web.Http.Description.CodeGen.Templates.Operation.cs")).ReadToEnd();
         private static readonly IDictionary<IResource, string> Namespaces = new ConcurrentDictionary<IResource, string>();
         private static readonly IDictionary<IResource, string> Names = new ConcurrentDictionary<IResource, string>();
+        private static readonly string[] KnownDataTypeNamespaces = new[] { XsdUriParser.Xsd, OGuidUriParser.OGuid };
 
         private readonly IEnumerable<IUriParser> _uriParsers;
         private readonly IUriParser _hydraUriParser;
@@ -104,6 +105,11 @@ namespace URSA.CodeGen
                 return CreateName((IResource)@class);
             }
 
+            if (KnownDataTypeNamespaces.Any(knownDataTypeNamespace => @class.Id.ToString().StartsWith(knownDataTypeNamespace)))
+            {
+                return CreateName((IResource)@class);
+            }
+
             return (!String.IsNullOrEmpty(@class.Label) ? @class.Label : CreateName((IResource)@class));
         }
 
@@ -119,7 +125,7 @@ namespace URSA.CodeGen
 
             if (String.IsNullOrEmpty(result))
             {
-                result = CreateName((IResource)operation);
+                result = CreateName(operation);
             }
 
             return result;
@@ -151,7 +157,12 @@ namespace URSA.CodeGen
                 var propertyTypeName = "Object";
                 if (property.Property.Range.Any())
                 {
-                    var propertyType = property.Property.Range.First().AsEntity<IResource>();
+                    IClass propertyType = property.Property.Range.First().AsEntity<IClass>();
+                    if ((propertyType.Id is BlankId) && (propertyType.SubClassOf.Any()))
+                    {
+                        propertyType = propertyType.SubClassOf.First().AsEntity<IClass>();
+                    }
+
                     propertyTypeNamespace = CreateNamespace(propertyType);
                     propertyTypeName = CreateName(propertyType);
                 }
@@ -174,8 +185,8 @@ namespace URSA.CodeGen
                 properties.AppendFormat(
                     PropertyTemplate,
                     propertyName,
-                    property.Writeable ? String.Empty : " get" + (property.Readable ? " " : String.Empty) + ";",
-                    property.Readable ? String.Empty : " set; ",
+                    property.Readable ? " get;" + (property.Writeable ? String.Empty : " ") : String.Empty,
+                    property.Writeable ? " set; " : String.Empty,
                     typeName,
                     (propertyName == "Id" ? "new " : String.Empty),
                     mapping);
@@ -261,7 +272,7 @@ namespace URSA.CodeGen
             foreach (var mapping in mappings)
             {
                 var variableName = mapping.Variable.ToLowerCamelCase();
-                IResource expected = null;
+                IClass expected = null;
                 if (mapping.Property != null)
                 {
                     if (mapping.Property.GetTypes().Any(type => AbsoluteUriComparer.Default.Equals(type.Uri, mapping.Context.Mappings.MappingFor<IInverseFunctionalProperty>().Classes.First().Uri)))
@@ -271,18 +282,29 @@ namespace URSA.CodeGen
 
                     if (mapping.Property.Range.Any())
                     {
-                        expected = mapping.Property.Range.First().AsEntity<IResource>();
+                        expected = mapping.Property.Range.First().AsEntity<IClass>();
                     }
                 }
 
-                var @namespace = (expected != null ? CreateNamespace(expected) : "System");
-                var name = (expected != null ? CreateName(expected) : "Object");
+                var @namespace = "System";
+                var name = "Object";
+                if (expected != null)
+                {
+                    if ((expected.Id is BlankId) && (expected.SubClassOf.Any()))
+                    {
+                        expected = expected.SubClassOf.First().AsEntity<IClass>();
+                    }
+
+                    @namespace = CreateNamespace(expected);
+                    name = CreateName(expected);
+                }
+
                 parameters.AppendFormat("{0}.{1} {2}, ", @namespace, name, variableName);
                 uriArguments.AppendFormat("            uriArguments.{0} = {0};{1}", variableName, Environment.NewLine);
             }
         }
 
-        private void AnalyzeBody(string supportedClassFullName, IEnumerable<IResource> expects, StringBuilder parameters, StringBuilder bodyArguments, StringBuilder contentType)
+        private void AnalyzeBody(string supportedClassFullName, IEnumerable<IClass> expects, StringBuilder parameters, StringBuilder bodyArguments, StringBuilder contentType)
         {
             var validMediaTypes = new List<string>();
             foreach (var expected in expects)
@@ -308,7 +330,7 @@ namespace URSA.CodeGen
             }
         }
 
-        private string AnalyzeResult(string supportedClassFullName, string operationName, IEnumerable<IResource> returns, IDictionary<string, string> classes, bool singleValueExpected, StringBuilder accept)
+        private string AnalyzeResult(string supportedClassFullName, string operationName, IEnumerable<IClass> returns, IDictionary<string, string> classes, bool singleValueExpected, StringBuilder accept)
         {
             string result;
             string @namespace;
@@ -352,18 +374,16 @@ namespace URSA.CodeGen
             return result;
         }
 
-        private string AnalyzeType(string supportedClassFullName, IResource type, out string @namespace, IList<string> validMediaTypes = null)
+        private string AnalyzeType(string supportedClassFullName, IClass @class, out string @namespace, IList<string> validMediaTypes = null)
         {
             if (validMediaTypes != null)
             {
-                validMediaTypes.AddRange(type.MediaTypes);
+                validMediaTypes.AddRange(@class.MediaTypes);
             }
 
-            IClass @class = (type.Is(Rdfs.Class) ? type.AsEntity<IClass>() : null);
-            if (@class == null)
+            if ((@class.Id is BlankId) && (@class.SubClassOf.Any()))
             {
-                @namespace = CreateNamespace(type);
-                return CreateName(type);
+                @class = @class.SubClassOf.First().AsEntity<IClass>();
             }
 
             @namespace = CreateNamespace(@class);

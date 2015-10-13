@@ -29,6 +29,7 @@ namespace URSA.Web.Http.Client.Proxy
             if (args.Length < 2)
             {
                 Console.Write("Usage{0}\tURSAHttpClientProxyGenerator http://my.api/rest/service target-directory", Environment.NewLine);
+                Environment.Exit(0);
             }
 
             Process(args[0], args[1]);

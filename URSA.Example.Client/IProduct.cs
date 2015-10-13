@@ -16,14 +16,17 @@ namespace Vocab
     [RomanticWeb.Mapping.Attributes.Class("http://temp.uri/vocab#Product")]
     public interface IIProduct : RomanticWeb.Entities.IEntity
     {
-        [RomanticWeb.Mapping.Attributes.Property("http://temp.uri/vocab#name")]
-        System.String Name { get; set; }
-
         [RomanticWeb.Mapping.Attributes.Collection("http://temp.uri/vocab#feature")]
-        System.Collections.Generic.IEnumerable<System.String> Features { get; set; }
+        System.Collections.Generic.IEnumerable<System.String> Features { get ; set; }
+
+        [RomanticWeb.Mapping.Attributes.Property("http://temp.uri/vocab#key")]
+        System.Guid Key { get ; set; }
+
+        [RomanticWeb.Mapping.Attributes.Property("http://temp.uri/vocab#name")]
+        System.String Name { get ; set; }
 
         [RomanticWeb.Mapping.Attributes.Property("http://temp.uri/vocab#price")]
-        System.Single Price { get; set; }
+        System.Single Price { get ; set; }
     }
 
     [System.CodeDom.Compiler.GeneratedCode("URSA HTTP client proxy generation tool", "1.0")]
@@ -35,10 +38,12 @@ namespace Vocab
 
         RomanticWeb.Entities.EntityId RomanticWeb.Entities.IEntity.Id { get { return _id; } }
 
-        public System.String Name { get; set; }
+        public System.Collections.Generic.IEnumerable<System.String> Features { get ; set; }
 
-        public System.Collections.Generic.IEnumerable<System.String> Features { get; set; }
+        public System.Guid Key { get ; set; }
 
-        public System.Single Price { get; set; }
+        public System.String Name { get ; set; }
+
+        public System.Single Price { get ; set; }
     }
 }

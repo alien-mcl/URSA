@@ -120,6 +120,7 @@ namespace Given_instance_of_the.HydraClassGenerator_class
             var range = new Mock<IClass>(MockBehavior.Strict);
             range.SetupGet(instance => instance.Id).Returns(new EntityId(Xsd.Int));
             range.SetupGet(instance => instance.Context).Returns(_context.Object);
+            range.SetupGet(instance => instance.SubClassOf).Returns(new URSA.Web.Http.Description.Rdfs.IClass[0]);
             range.As<ITypedEntity>().SetupGet(instance => instance.Types).Returns(new[] { new EntityId(UrsaDatatypeDefinition) });
             _property = new Mock<URSA.Web.Http.Description.Rdfs.IProperty>(MockBehavior.Strict);
             _property.SetupGet(instance => instance.Id).Returns(new EntityId(new Uri(ClassUri.AbsoluteUri + ".Id")));
@@ -129,8 +130,8 @@ namespace Given_instance_of_the.HydraClassGenerator_class
 
             var supportedProperty = new Mock<ISupportedProperty>(MockBehavior.Strict);
             supportedProperty.SetupGet(instance => instance.Property).Returns(_property.Object);
-            supportedProperty.SetupGet(instance => instance.Writeable).Returns(false);
-            supportedProperty.SetupGet(instance => instance.Readable).Returns(false);
+            supportedProperty.SetupGet(instance => instance.Writeable).Returns(true);
+            supportedProperty.SetupGet(instance => instance.Readable).Returns(true);
 
             var restriction = new Mock<IRestriction>(MockBehavior.Strict);
             restriction.SetupGet(instance => instance.Id).Returns(new EntityId(new Uri("urn:guid:" + Guid.NewGuid())));

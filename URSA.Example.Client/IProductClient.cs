@@ -19,56 +19,55 @@ namespace Vocab
         {
         }
 
-        public void Delete()
+        public System.Guid Create(Vocab.IIProduct product)
+        {
+            dynamic uriArguments = new ExpandoObject();
+            var accept = new string[] {
+                "application/rdf+xml",
+                "application/owl+xml",
+                "text/turtle",
+                "application/ld+json" };
+            var contentType = new string[] {
+                "application/rdf+xml",
+                "application/owl+xml",
+                "application/ld+json",
+                "text/turtle" };
+            return Call<System.Guid>(Verb.POST, "/api/product/#POSTProduct", accept, contentType, uriArguments, product);
+        }
+
+        public System.Collections.Generic.IEnumerable<Vocab.IIProduct> Get(System.Guid id)
+        {
+            dynamic uriArguments = new ExpandoObject();
+            var accept = new string[] {
+                "application/rdf+xml",
+                "application/owl+xml",
+                "text/turtle",
+                "application/ld+json" };
+            var contentType = new string[0];
+            uriArguments.id = id;
+            return Call<System.Collections.Generic.IEnumerable<Vocab.IIProduct>>(Verb.GET, "/api/product/id/{?id}", accept, contentType, uriArguments);
+        }
+
+        public void Delete(System.Guid id)
         {
             dynamic uriArguments = new ExpandoObject();
             var accept = new string[0];
             var contentType = new string[0];
-            Call(Verb.DELETE, "/product/#DELETEId", accept, contentType, uriArguments);
+            uriArguments.id = id;
+            Call(Verb.DELETE, "/api/product/id/{?id}", accept, contentType, uriArguments);
         }
 
-        public System.Collections.Generic.IEnumerable<Vocab.IIProduct> Get(RomanticWeb.Entities.EntityId id)
-        {
-            dynamic uriArguments = new ExpandoObject();
-            var accept = new string[] {
-                "application/rdf+xml",
-                "application/owl+xml",
-                "text/turtle",
-                "application/ld+json" };
-            var contentType = new string[] {
-                "application/rdf+xml",
-                "text/turtle",
-                "application/owl+xml",
-                "application/ld+json" };
-            return Call<System.Collections.Generic.IEnumerable<Vocab.IIProduct>>(Verb.GET, "/product/#GETId", accept, contentType, uriArguments, id);
-        }
-
-        public RomanticWeb.Entities.EntityId Create(Vocab.IIProduct instance)
-        {
-            dynamic uriArguments = new ExpandoObject();
-            var accept = new string[] {
-                "application/rdf+xml",
-                "text/turtle",
-                "application/owl+xml",
-                "application/ld+json" };
-            var contentType = new string[] {
-                "application/rdf+xml",
-                "application/owl+xml",
-                "text/turtle",
-                "application/ld+json" };
-            return Call<RomanticWeb.Entities.EntityId>(Verb.POST, "/product/#POSTProduct", accept, contentType, uriArguments, instance);
-        }
-
-        public void Update(Vocab.IIProduct instance)
+        public void Update(System.Guid id, Vocab.IIProduct product)
         {
             dynamic uriArguments = new ExpandoObject();
             var accept = new string[0];
             var contentType = new string[] {
                 "application/rdf+xml",
-                "application/owl+xml",
                 "text/turtle",
+                "application/owl+xml",
                 "application/ld+json" };
-            Call(Verb.PUT, "/product/#PUTIdAndProduct", accept, contentType, uriArguments, instance);
+            uriArguments.id = id;
+            Call(Verb.PUT, "/api/product/id/{?id}", accept, contentType, uriArguments, product);
         }
 
         public System.Collections.Generic.IEnumerable<Vocab.IIProduct> List(System.Int32 skip, System.Int32 take)
@@ -76,13 +75,13 @@ namespace Vocab
             dynamic uriArguments = new ExpandoObject();
             var accept = new string[] {
                 "application/rdf+xml",
-                "text/turtle",
                 "application/owl+xml",
-                "application/ld+json" };
+                "application/ld+json",
+                "text/turtle" };
             var contentType = new string[0];
             uriArguments.skip = skip;
             uriArguments.take = take;
-            return Call<System.Collections.Generic.IEnumerable<Vocab.IIProduct>>(Verb.GET, "/product?skip={?skip}&take={?take}", accept, contentType, uriArguments);
+            return Call<System.Collections.Generic.IEnumerable<Vocab.IIProduct>>(Verb.GET, "/api/product?skip={?skip}&take={?take}", accept, contentType, uriArguments);
         }
     }
 }

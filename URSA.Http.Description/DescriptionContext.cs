@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using RomanticWeb;
+using RomanticWeb.Entities;
 using URSA.Web.Http.Description.Hydra;
 
 namespace URSA.Web.Http.Description
@@ -107,6 +108,23 @@ namespace URSA.Web.Http.Description
         public IClass BuildTypeDescription()
         {
             return TypeDescriptionBuilder.BuildTypeDescription(this);
+        }
+
+        /// <summary>Builds the type description.</summary>
+        /// <param name="requiresRdf">Flag determining whether the context's type requires an RDF approach.</param>
+        /// <returns>Description of the type.</returns>
+        public IClass BuildTypeDescription(out bool requiresRdf)
+        {
+            return TypeDescriptionBuilder.BuildTypeDescription(this, out requiresRdf);
+        }
+
+        /// <summary>Creates a sub-class of the given <paramref name="class" />.</summary>
+        /// <param name="class">The class to be sub-classed.</param>
+        /// <param name="id">The sub-class identifier.</param>
+        /// <returns>Sub-classed instance of the given <paramref name="class" />.</returns>
+        public IClass SubClass(IClass @class, EntityId id = null)
+        {
+            return TypeDescriptionBuilder.SubClass(this, @class, id);
         }
 
         /// <summary> Determines whether the given <paramref name="type" /> is already described and available in the context.</summary>

@@ -192,7 +192,7 @@ namespace URSA.Web.Http.Description
                 propertyType = context[property.PropertyType];
             }
 
-            result.Property.Range.Add(context.TypeDescriptionBuilder.SubClass(context, propertyType));
+            result.Property.Range.Add(context.SubClass(propertyType));
             if ((System.Reflection.TypeExtensions.IsEnumerable(property.PropertyType)) && (property.PropertyType != typeof(byte[])))
             {
                 return result;

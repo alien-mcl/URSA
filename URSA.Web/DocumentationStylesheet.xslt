@@ -5,11 +5,11 @@
     <!ENTITY owl 'http://www.w3.org/2002/07/owl#'>
     <!ENTITY xsd 'http://www.w3.org/2001/XMLSchema#'>
     <!ENTITY hydra 'http://www.w3.org/ns/hydra/core#'>
-    <!ENTITY ursa 'http://github.io/ursa/vocabulary#'>
+    <!ENTITY ursa 'http://alien-mcl.github.io/URSA/vocabulary#'>
 ]>
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:msxsl="urn:schemas-microsoft-com:xslt" exclude-result-prefixes="msxsl"
     xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#" xmlns:xsd="http://www.w3.org/2001/XMLSchema#" xmlns:hydra="http://www.w3.org/ns/hydra/core#" 
-    xmlns:owl="http://www.w3.org/2002/07/owl#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:ursa="http://github.io/ursa/vocabulary#">
+    xmlns:owl="http://www.w3.org/2002/07/owl#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:ursa="http://alien-mcl.github.io/URSA/vocabulary#">
     <xsl:output method="html" indent="yes" encoding="utf-8" omit-xml-declaration="yes" media-type="text/html" />
 
     <xsl:template match="/rdf:RDF">

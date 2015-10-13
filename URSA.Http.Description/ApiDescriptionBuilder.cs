@@ -202,8 +202,9 @@ namespace URSA.Web.Http.Description
 
             foreach (var value in arguments)
             {
-                var expected = context.TypeDescriptionBuilder.BuildTypeDescription(context.ForType(value.ParameterType), out isRdfRequired);
-                expected = context.TypeDescriptionBuilder.SubClass(context, expected);
+                var childContext = context.ForType(value.ParameterType);
+                var expected = childContext.BuildTypeDescription(out isRdfRequired);
+                expected = childContext.SubClass(expected);
                 expected.Label = value.Name ?? "instance";
                 result.Expects.Add(expected);
                 requiresRdf |= isRdfRequired;
@@ -211,8 +212,9 @@ namespace URSA.Web.Http.Description
 
             foreach (var value in results)
             {
-                var returned = context.TypeDescriptionBuilder.BuildTypeDescription(context.ForType(value.ParameterType), out isRdfRequired);
-                returned = context.TypeDescriptionBuilder.SubClass(context, returned);
+                var childContext = context.ForType(value.ParameterType);
+                var returned = childContext.BuildTypeDescription(out isRdfRequired);
+                returned = childContext.SubClass(returned);
                 result.Returns.Add(returned);
                 requiresRdf |= isRdfRequired;
             }
@@ -258,7 +260,7 @@ namespace URSA.Web.Http.Description
             if (linqBehaviors.Any())
             {
                 IClass range = (context.ContainsType(typeof(int)) ? context[typeof(int)] : context.TypeDescriptionBuilder.BuildTypeDescription(context.ForType(typeof(int))));
-                range = context.TypeDescriptionBuilder.SubClass(context, range);
+                range = context.SubClass(range);
                 range.SingleValue = range.SingleValue;
                 range.MediaTypes.AddRange(range.MediaTypes);
                 foreach (var visitor in _serverBehaviorAttributeVisitors)

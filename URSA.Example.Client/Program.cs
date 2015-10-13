@@ -11,8 +11,8 @@ namespace URSA.Example
         {
             var client = new PersonClient(new Uri(new SqlConnectionStringBuilder(ConfigurationManager.ConnectionStrings["ServerUri"].ConnectionString).DataSource));
             var person = new Person() { Firstname = "Test", Lastname = "Testing", Roles = new[] { "Role" } };
-            person.Id = client.Create(person);
-            Console.WriteLine("Created person '{0}'.", person.Id);
+            person.Key = client.Create(person);
+            Console.WriteLine("Created person '{0}'.", person.Key);
             Console.ReadLine();
         }
     }
