@@ -103,11 +103,23 @@ namespace URSA.Web.Http.Description
         /// <param name="format">Optional output format.</param>
         /// <returns><see cref="IApiDocumentation" /> instance.</returns>
         [Route("/")]
-        [OnOptions]
         [OnGet]
-        public IApiDocumentation GetApiEntryPointDescription(OutputFormats? format = null)
+        public IApiDocumentation GetApiEntryPointDescription(OutputFormats format)
         {
-            var fileExtension = OverrideAcceptedMediaType(format);
+            return GetApiEntryPointDescription(OverrideAcceptedMediaType(format));
+        }
+
+        /// <summary>Gets the API documentation.</summary>
+        /// <returns><see cref="IApiDocumentation" /> instance.</returns>
+        [Route("/")]
+        [OnOptions]
+        public IApiDocumentation GetApiEntryPointDescription()
+        {
+            return GetApiEntryPointDescription(OverrideAcceptedMediaType(null));
+        }
+
+        private IApiDocumentation GetApiEntryPointDescription(string fileExtension)
+        {
             ((ResponseInfo)Response).Headers.ContentDisposition = String.Format("inline; filename=\"{0}.{1}\"", FileName, fileExtension);
             IApiDocumentation result = _entityContext.Create<IApiDocumentation>(new EntityId(Response.Request.Uri.AddFragment(String.Empty)));
             _apiDescriptionBuilder.BuildDescription(result, RequestedMediaTypeProfiles);

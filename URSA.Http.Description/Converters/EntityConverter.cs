@@ -139,7 +139,7 @@ namespace URSA.Web.Http.Converters
                 return CompatibilityLevel.None;
             }
 
-            var result = CompatibilityLevel.TypeMatch;
+            var result = CompatibilityLevel.ExactTypeMatch;
             var requestInfo = (RequestInfo)request;
             var contentType = requestInfo.Headers[Header.ContentType];
             if ((contentType != null) && (contentType.Values.Join(MediaTypes, outer => outer.Value, inner => inner, (outer, inner) => outer).Any()))
@@ -236,7 +236,7 @@ namespace URSA.Web.Http.Converters
                 return CompatibilityLevel.None;
             }
 
-            var result = CompatibilityLevel.TypeMatch;
+            var result = CompatibilityLevel.ExactTypeMatch;
             var requestInfo = (RequestInfo)response.Request;
             var accept = requestInfo.Headers[Header.Accept];
             if ((accept != null) && (accept.Values.Join(MediaTypes, outer => outer.Value, inner => inner, (outer, inner) => outer).Any()))

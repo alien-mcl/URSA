@@ -180,19 +180,20 @@ namespace URSA.Web.Http.Description
             result.Property.Description = _xmlDocProvider.GetDescription(property);
             result.Property.Domain.Add(@class);
             IClass propertyType;
-            if (!context.ContainsType(property.PropertyType))
+            var itemPropertyType = property.PropertyType.FindItemType();
+            if (!context.ContainsType(itemPropertyType))
             {
                 bool requiresRdf;
-                var childContext = context.ForType(property.PropertyType);
+                var childContext = context.ForType(itemPropertyType);
                 propertyType = BuildTypeDescription(childContext, out requiresRdf);
                 childContext.Describe(propertyType, requiresRdf);
             }
             else
             {
-                propertyType = context[property.PropertyType];
+                propertyType = context[itemPropertyType];
             }
 
-            result.Property.Range.Add(context.SubClass(propertyType));
+            result.Property.Range.Add(propertyType);
             if ((System.Reflection.TypeExtensions.IsEnumerable(property.PropertyType)) && (property.PropertyType != typeof(byte[])))
             {
                 return result;
