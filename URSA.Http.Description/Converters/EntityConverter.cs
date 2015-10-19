@@ -134,7 +134,8 @@ namespace URSA.Web.Http.Converters
                 throw new ArgumentNullException("request");
             }
 
-            if (!typeof(IEntity).IsAssignableFrom(expectedType))
+            var actualExpectedType = expectedType.FindItemType();
+            if (!typeof(IEntity).IsAssignableFrom(actualExpectedType))
             {
                 return CompatibilityLevel.None;
             }
@@ -231,7 +232,8 @@ namespace URSA.Web.Http.Converters
                 throw new ArgumentNullException("response");
             }
 
-            if (!typeof(IEntity).IsAssignableFrom(givenType))
+            var actualGivenType = givenType.FindItemType();
+            if (!typeof(IEntity).IsAssignableFrom(actualGivenType))
             {
                 return CompatibilityLevel.None;
             }
@@ -283,11 +285,15 @@ namespace URSA.Web.Http.Converters
                 }
 
                 //// TODO: Add support for graph based serializations.
-                var entity = (IEntity)instance;
+                var entities = (instance is IEnumerable<IEntity> ? (IEnumerable<IEntity>)instance : new[] { (IEntity)instance });
                 ITripleStore store = new TripleStore();
                 IGraph graph = new Graph();
-                graph.Assert(entity.Context.Store.Quads.Select(quad =>
-                    new Triple(quad.Subject.UnWrapNode(graph), quad.Predicate.UnWrapNode(graph), quad.Object.UnWrapNode(graph))));
+                foreach (var entity in entities)
+                {
+                    graph.Assert(entity.Context.Store.Quads.Select(quad =>
+                        new Triple(quad.Subject.UnWrapNode(graph), quad.Predicate.UnWrapNode(graph), quad.Object.UnWrapNode(graph))));
+                }
+
                 var writer = CreateWriter(mediaType);
                 if (writer is RdfXmlWriter)
                 {

@@ -94,24 +94,29 @@ namespace URSA.Web.Http.Description
             BuildDescription(context, specializationType);
         }
 
-        private static void BuildOperationMediaType(IEnumerable<IClass> resources, OperationInfo operation, bool requiresRdf)
+        private static void BuildResourceMediaType(IOperation result, IClass resource, bool requiresRdf)
+        {
+            foreach (var mediaType in (requiresRdf ? RdfMediaTypes : NonRdfMediaTypes))
+            {
+                result.MediaTypes.Add(mediaType);
+            }
+        }
+
+        private static void BuildOperationMediaType(IOperation result, IEnumerable<IClass> resources, OperationInfo operation, bool requiresRdf)
         {
             foreach (var resource in resources)
             {
                 foreach (var mediaType in operation.UnderlyingMethod.GetCustomAttributes<AsMediaTypeAttribute>())
                 {
-                    resource.MediaTypes.Add(mediaType.MediaType);
+                    result.MediaTypes.Add(mediaType.MediaType);
                 }
 
-                if (resource.MediaTypes.Count != 0)
+                if (result.MediaTypes.Count != 0)
                 {
                     continue;
                 }
 
-                foreach (var mediaType in (requiresRdf ? RdfMediaTypes : NonRdfMediaTypes))
-                {
-                    resource.MediaTypes.Add(mediaType);
-                }
+                BuildResourceMediaType(result, resource, requiresRdf);
             }
         }
 
@@ -219,8 +224,8 @@ namespace URSA.Web.Http.Description
                 requiresRdf |= isRdfRequired;
             }
 
-            BuildOperationMediaType(result.Returns, operation, requiresRdf);
-            BuildOperationMediaType(result.Expects, operation, requiresRdf);
+            BuildOperationMediaType(result, result.Returns, operation, requiresRdf);
+            BuildOperationMediaType(result, result.Expects, operation, requiresRdf);
             return result;
         }
 

@@ -420,7 +420,7 @@
                         "@type": hydra.supportedProperty,
                         "label": "<xsl:value-of select="$property/rdfs:label" />",<xsl:if test="$property/rdfs:comment">
                         "description": "<xsl:value-of select="$property/rdfs:comment/text()"/>",</xsl:if>
-                        "type": "<xsl:call-template name="type"><xsl:with-param name="type" select="/rdf:RDF/*[@rdf:nodeID = $property/rdfs:range/@rdf:nodeID]/rdfs:subClassOf/@rdf:resource" /><xsl:with-param name="isEnumerable" select="$isEnumerable" /></xsl:call-template>",
+                        "type": "<xsl:call-template name="type"><xsl:with-param name="type" select="/rdf:RDF/*[@rdf:nodeID = $property/rdfs:range/@rdf:nodeID]/rdfs:subClassOf/@rdf:resource|$property/rdfs:range/@rdf:resource" /><xsl:with-param name="isEnumerable" select="$isEnumerable" /></xsl:call-template>",
                         "property": "<xsl:value-of select="$property/@rdf:about" />",
                         "readable": <xsl:choose><xsl:when test="$supportedProperty/hydra:readable"><xsl:value-of select="$supportedProperty/hydra:readable"/></xsl:when><xsl:otherwise>false</xsl:otherwise></xsl:choose>,
                         "writeable": <xsl:choose><xsl:when test="$supportedProperty/hydra:writeable"><xsl:value-of select="$supportedProperty/hydra:writeable"/></xsl:when><xsl:otherwise>false</xsl:otherwise></xsl:choose>
