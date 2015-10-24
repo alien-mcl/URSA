@@ -17,13 +17,31 @@ namespace URSA.Web.Http.Tests.Testing
         /// <param name="method">The method.</param>
         /// <param name="baseUri">The call URI.</param>
         /// <param name="verb">The verb.</param>
+        /// <returns>Operation descriptor.</returns>
+        public static OperationInfo<T> ToOperationInfo<T>(this MethodInfo method, string baseUri, T verb)
+        {
+            string callUri;
+            return method.ToOperationInfo(baseUri, verb, out callUri);
+        }
+
+        /// <summary>Converts a method into an operation descriptor..</summary>
+        /// <typeparam name="T">Type of the protocol specific command.</typeparam>
+        /// <param name="method">The method.</param>
+        /// <param name="baseUri">The call URI.</param>
+        /// <param name="verb">The verb.</param>
         /// <param name="callUri">Call URI.</param>
         /// <param name="values">Call values.</param>
         /// <returns>Operation descriptor.</returns>
         public static OperationInfo<T> ToOperationInfo<T>(this MethodInfo method, string baseUri, T verb, out string callUri, params object[] values)
         {
             var methodUri = method.GetCustomAttributes<RouteAttribute>().Select(attribute => attribute.Uri.ToString()).FirstOrDefault() ?? method.Name.ToLower();
-            var actualCallUri = "/" + baseUri.Trim('/') + "/" + methodUri.TrimStart('/');
+            if ((methodUri == "list") || (methodUri == "get") || (methodUri == "create") || (methodUri == "post") || 
+                (methodUri == "update") || (methodUri == "put") || (methodUri == "delete"))
+            {
+                methodUri = String.Empty;
+            }
+
+            var actualCallUri = "/" + baseUri.Trim('/') + (methodUri.Length > 0 ? "/" + methodUri.TrimStart('/') : String.Empty);
             var targetUriTemplate = actualCallUri;
             var queryString = String.Empty;
             var arguments = method.GetParameters()
@@ -34,7 +52,7 @@ namespace URSA.Web.Http.Tests.Testing
                     var target = parameter.GetParameterTarget();
                     if (target is FromUriAttribute)
                     {
-                        var temp = String.Format("/{0}/{{?{0}}}", parameter.Name);
+                        var temp = String.Format("/{{?{0}}}", parameter.Name);
                         uriTemplate = (methodUri += temp);
                         targetUriTemplate += temp;
                         actualCallUri += temp;
@@ -60,7 +78,8 @@ namespace URSA.Web.Http.Tests.Testing
             targetUriTemplate += queryString;
             var queryStringParameters = Regex.Matches(callUri, "[?&]([^=]+)=[^&]+").Cast<Match>();
             var queryStringRegex = (queryStringParameters.Any() ? "[?&](" + String.Join("|", queryStringParameters.Select(item => item.Groups[1].Value)) + ")=[^&]+" : String.Empty);
-            return new OperationInfo<T>(method, new Uri(methodUri, UriKind.RelativeOrAbsolute), targetUriTemplate, new Regex("^" + methodUri + queryStringRegex + "$"), verb, (ValueInfo[])arguments);
+            var methodRegex = new Regex("^" + Regex.Replace(actualCallUri, "/{\\?[^}]+}", "/[^\\/]+") + queryStringRegex + "$");
+            return new OperationInfo<T>(method, new Uri(methodUri, UriKind.RelativeOrAbsolute), targetUriTemplate, methodRegex, verb, (ValueInfo[])arguments);
         }
 
         private static ParameterSourceAttribute GetParameterTarget(this ParameterInfo parameter)

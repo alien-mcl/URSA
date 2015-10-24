@@ -141,11 +141,14 @@ namespace Given_instance_of_the.HydraCompliantTypeDescriptionBuilder_class
         private static IRestriction CreateRestriction(IEntityContext entityContext, EntityId id)
         {
             var result = new Mock<IRestriction>(MockBehavior.Strict);
-            result.SetupSet(instance => instance.OnProperty = It.IsAny<IProperty>());
+            IProperty property = null;
+            result.SetupSet(instance => instance.OnProperty = It.IsAny<IProperty>()).Callback<IProperty>(value => property = value);
             result.SetupSet(instance => instance.MaxCardinality = 1);
             result.SetupSet(instance => instance.AllValuesFrom = It.IsAny<IEntity>());
             result.SetupGet(instance => instance.Context).Returns(entityContext);
             result.SetupGet(instance => instance.Id).Returns(id);
+            result.SetupGet(instance => instance.MaxCardinality).Returns(1);
+            result.SetupGet(instance => instance.OnProperty).Returns(() => property);
             return result.Object;
         }
     }

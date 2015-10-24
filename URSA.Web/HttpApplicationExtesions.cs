@@ -24,32 +24,37 @@ namespace URSA.Web
             .GetMethods(BindingFlags.NonPublic | BindingFlags.Static)
             .First(method => (method.Name == "RegisterApi") && (method.IsGenericMethodDefinition));
 
+        private static readonly object Lock = new Object();
+
         /// <summary>Registers all APIs into the ASP.net pipeline.</summary>
         /// <param name="application">Application to work with.</param>
         public static void RegisterApis(this HttpApplication application)
         {
-            var assemblies = UrsaConfigurationSection.GetInstallerAssemblies().Concat(new[] { Assembly.GetExecutingAssembly() });
-            var container = UrsaConfigurationSection.InitializeComponentProvider();
-            container.RegisterAll<IController>(assemblies);
-            var controllers = container.ResolveAllTypes<IController>();
-            container.RegisterControllerRelatedTypes(controllers);
-            var registeredEntryPoints = new List<string>();
-            var routes = new Dictionary<string, Route>();
-            foreach (var controller in controllers.Where(controller => !controller.IsDescriptionController()))
+            lock (Lock)
             {
-                var descriptionBuilder = (IHttpControllerDescriptionBuilder)container.Resolve(typeof(IHttpControllerDescriptionBuilder<>).MakeGenericType(controller));
-                var description = descriptionBuilder.BuildDescriptor();
-                if ((description.EntryPoint != null) && (!registeredEntryPoints.Contains(description.EntryPoint.ToString())))
+                var assemblies = UrsaConfigurationSection.GetInstallerAssemblies().Concat(new[] { Assembly.GetExecutingAssembly() });
+                var container = UrsaConfigurationSection.InitializeComponentProvider();
+                container.RegisterAll<IController>(assemblies);
+                var controllers = container.ResolveAllTypes<IController>();
+                container.RegisterControllerRelatedTypes(controllers);
+                var registeredEntryPoints = new List<string>();
+                var routes = new Dictionary<string, Route>();
+                foreach (var controller in controllers.Where(controller => !controller.IsDescriptionController()))
                 {
-                    container.RegisterEntryPointControllerDescriptionBuilder(description.EntryPoint);
-                    registeredEntryPoints.Add(description.EntryPoint.ToString());
+                    var descriptionBuilder = (IHttpControllerDescriptionBuilder)container.Resolve(typeof(IHttpControllerDescriptionBuilder<>).MakeGenericType(controller));
+                    var description = descriptionBuilder.BuildDescriptor();
+                    if ((description.EntryPoint != null) && (!registeredEntryPoints.Contains(description.EntryPoint.ToString())))
+                    {
+                        container.RegisterEntryPointControllerDescriptionBuilder(description.EntryPoint);
+                        registeredEntryPoints.Add(description.EntryPoint.ToString());
+                    }
+
+                    var routesToAdd = (IDictionary<string, Route>)RegisterApiT.MakeGenericMethod(controller).Invoke(null, new object[] { container, description });
+                    routes.AddRange(routesToAdd.Where(route => !routes.ContainsKey(route.Key)));
                 }
 
-                var routesToAdd = (IDictionary<string, Route>)RegisterApiT.MakeGenericMethod(controller).Invoke(null, new object[] { container, description });
-                routes.AddRange(routesToAdd.Where(route => !routes.ContainsKey(route.Key)));
+                routes.ForEach(route => RouteTable.Routes.Add(route.Key, route.Value));
             }
-
-            routes.ForEach(route => RouteTable.Routes.Add(route.Key, route.Value));
         }
 
         private static IDictionary<string, Route> RegisterApi<T>(IComponentProvider container, ControllerInfo<T> description) where T : IController

@@ -3,9 +3,8 @@ using System.Collections.Generic;
 using RomanticWeb.Entities;
 using RomanticWeb.Mapping.Attributes;
 using RomanticWeb.Mapping.Fluent;
-using URSA.Web;
 
-namespace URSA.Example.WebApplication.Data
+namespace URSA.Web.Http.Description.Tests.Data
 {
     /// <summary>Describes a person.</summary>
     [Class("http://temp.uri/vocab#Product")]

@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Linq;
 using System.Reflection;
+using URSA.Web;
 
 namespace URSA.Reflection
 {
@@ -29,6 +31,30 @@ namespace URSA.Reflection
         internal static Uri MakeUri(this PropertyInfo property)
         {
             return new Uri(String.Format("urn:{2}:{0}.{1}", property.DeclaringType, property.Name, HydraSymbol));
+        }
+
+        internal static Type GetInterfaceImplementation(this Type implementour, Type implementation)
+        {
+            return (implementour.GetInterfaces().FirstOrDefault(@interface => (@interface.IsGenericType) && (implementation == @interface.GetGenericTypeDefinition()))) ??
+                ((implementour.IsInterface) && (implementour.IsGenericType) && (implementation == implementour.GetGenericTypeDefinition()) ? implementour : null);
+        }
+
+        internal static bool ImplementsGeneric(this PropertyInfo implementour, Type genericType, string propertyName)
+        {
+            Type implementation;
+            return (((implementation = implementour.DeclaringType.GetInterfaceImplementation(genericType)) != null) &&
+                (implementour.Implements(implementation.GetProperty(propertyName))));
+        }
+
+        internal static bool Implements(this PropertyInfo implementour, PropertyInfo property)
+        {
+            return ((implementour.DeclaringType.IsInterface) && (implementour.Matches(property))) || ((!implementour.DeclaringType.IsInterface) &&
+                (implementour.DeclaringType.GetInterfaceMap(property.DeclaringType).TargetMethods.Any(targetMethod => targetMethod == property.GetGetMethod())));
+        }
+
+        internal static bool Matches(this PropertyInfo leftOperand, PropertyInfo rightOperand)
+        {
+            return (leftOperand.Name == rightOperand.Name) && (leftOperand.PropertyType == rightOperand.PropertyType);
         }
     }
 }

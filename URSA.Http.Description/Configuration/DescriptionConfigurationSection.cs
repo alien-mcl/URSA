@@ -12,6 +12,7 @@ namespace URSA.Configuration
         internal const string ConfigurationSectionName = "description";
         internal const string ConfigurationSection = UrsaConfigurationSection.ConfigurationSectionGroupName + "/" + ConfigurationSectionName;
         private const string TypeDescriptionBuilderTypeNameAttributeName = "typeDescriptionBuilderType";
+        private const string DefaultStoreFactoryNameAttributeName = "defaultStoreFactoryName";
 
         /// <summary>Gets the default configuration.</summary>
         public static DescriptionConfigurationSection Default
@@ -28,6 +29,14 @@ namespace URSA.Configuration
         {
             get { return Type.GetType(TypeDescriptionBuilderTypeName); }
             set { TypeDescriptionBuilderTypeName = (value != null ? value.AssemblyQualifiedName : null); }
+        }
+
+        /// <summary>Gets or sets the default name of the store factory.</summary>
+        [ConfigurationProperty(DefaultStoreFactoryNameAttributeName)]
+        public string DefaultStoreFactoryName
+        {
+            get { return (string)this[DefaultStoreFactoryNameAttributeName]; }
+            set { this[DefaultStoreFactoryNameAttributeName] = value; }
         }
 
         [ConfigurationProperty(TypeDescriptionBuilderTypeNameAttributeName)]

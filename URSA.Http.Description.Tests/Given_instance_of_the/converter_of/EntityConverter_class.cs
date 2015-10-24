@@ -12,6 +12,10 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using RomanticWeb.Configuration;
+using RomanticWeb.Mapping.Model;
+using RomanticWeb.NamedGraphs;
+using URSA.Configuration;
 using URSA.Web.Http.Converters;
 using URSA.Web.Http.Description.Hydra;
 using URSA.Web.Http.Description.Testing;
@@ -144,14 +148,14 @@ namespace Given_instance_of_the.converter_of
 
         protected override EntityConverter CreateInstance()
         {
-            ITripleStore tripleStore = null;
+            ITripleStore tripleStore = new TripleStore();
+            var metaGraph = new Graph() { BaseUri = ConfigurationSectionHandler.Default.Factories[DescriptionConfigurationSection.Default.DefaultStoreFactoryName].MetaGraphUri };
+            tripleStore.Add(metaGraph);
             _context = new Mock<IEntityContext>();
             _context.Setup(instance => instance.Load<IOperation>(It.IsAny<EntityId>())).Returns<EntityId>(id => CreateOperationMock(tripleStore, id).Object);
-            Mock<IEntityContextFactory> entityContextFactory = new Mock<IEntityContextFactory>();
-            entityContextFactory.Setup(instance => instance.CreateContext()).Returns(_context.Object);
-            entityContextFactory.As<IComponentRegistryFacade>().Setup(instance => instance.Register(It.IsAny<ITripleStore>()))
-                .Callback<ITripleStore>(store => tripleStore = store);
-            return new EntityConverter(entityContextFactory.Object);
+            var namedGraphSelector = new Mock<INamedGraphSelector>(MockBehavior.Strict);
+            namedGraphSelector.Setup(instance => instance.SelectGraph(It.IsAny<EntityId>(), It.IsAny<IEntityMapping>(), It.IsAny<IPropertyMapping>())).Returns(BaseUri);
+            return new EntityConverter(_context.Object, tripleStore, namedGraphSelector.Object);
         }
 
         private Mock<IOperation> CreateOperationMock(ITripleStore tripleStore, EntityId id)

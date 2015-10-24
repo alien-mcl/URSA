@@ -227,6 +227,7 @@ namespace Given_instance_of_the
             result.SetupGet(instance => instance.Method).Returns(new List<string>());
             result.SetupSet(instance => instance.Label = It.IsAny<string>());
             result.SetupSet(instance => instance.Description = It.IsAny<string>());
+            result.SetupGet(instance => instance.MediaTypes).Returns(new List<string>());
             result.SetupGet(instance => instance.Returns).Returns(new List<IClass>());
             result.SetupGet(instance => instance.Expects).Returns(new List<IClass>());
             return result.Object;

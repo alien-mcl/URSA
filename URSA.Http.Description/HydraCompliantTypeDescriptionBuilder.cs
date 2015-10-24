@@ -135,7 +135,9 @@ namespace URSA.Web.Http.Description
             }
             else
             {
-                foreach (var property in context.Type.GetProperties(BindingFlags.Instance | BindingFlags.Public))
+                var properties = context.Type.GetProperties(BindingFlags.Instance | BindingFlags.Public)
+                    .Union(context.Type.GetInterfaces().Except(new[] { typeof(IEntity) }).SelectMany(@interface => @interface.GetProperties()));
+                foreach (var property in properties)
                 {
                     @class.SupportedProperties.Add(BuildSupportedProperty(context, @class, property));
                 }
@@ -173,7 +175,9 @@ namespace URSA.Web.Http.Description
             result.Readable = property.CanRead;
             result.Writeable = property.CanWrite;
             result.Required = (property.PropertyType.IsValueType) || (property.GetCustomAttribute<RequiredAttribute>() != null);
-            result.Property = (property.GetCustomAttribute<KeyAttribute>() != null ?
+            var isKeyProperty = (property.GetCustomAttribute<KeyAttribute>() != null) ||
+                (property.ImplementsGeneric(typeof(IControlledEntity<>), "Key"));
+            result.Property = (isKeyProperty ?
                 context.ApiDocumentation.Context.Create<IInverseFunctionalProperty>(propertyUri) :
                 context.ApiDocumentation.Context.Create<IProperty>(propertyUri));
             result.Property.Label = property.Name;

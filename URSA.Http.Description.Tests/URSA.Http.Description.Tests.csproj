@@ -106,6 +106,7 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
+    <Compile Include="Data\IProduct.cs" />
     <Compile Include="Data\Person.cs" />
     <Compile Include="Given_instance_of_the\ApiDescriptionBuilder_class.cs" />
     <Compile Include="Given_instance_of_the\converter_of\EntityConverter_class.cs" />
@@ -117,6 +118,8 @@
     <Compile Include="Given_instance_of_the\ApiEntryPointDescriptionBuilder_class.cs" />
     <Compile Include="Given_instance_of_the\EntryPointControllerDescriptionBuilder_class.cs" />
     <Compile Include="Given_instance_of_the\EntryPointDescriptionController_class.cs" />
+    <Compile Include="Given_instance_of_the\OwningResourceNamedGraphSelector_class.cs" />
+    <Compile Include="Given_instance_of_the\EntityExtensions_class.cs" />
     <Compile Include="Given_instance_of_the\XmlDocProvider_class.cs" />
     <Compile Include="Given_instance_of_the\XsdUriParser_class.cs" />
     <Compile Include="Given_instance_of_the\GenericUriParser_class.cs" />

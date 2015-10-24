@@ -10,7 +10,8 @@ using System.Configuration;
 using System.Reflection;
 using System.Web;
 using Castle.Facilities.TypedFactory;
-using Castle.Facilities.TypedFactory.Internal;
+using RomanticWeb.Configuration;
+using RomanticWeb.NamedGraphs;
 using URSA.CastleWindsor.ComponentModel;
 using URSA.CodeGen;
 using URSA.ComponentModel;
@@ -22,6 +23,7 @@ using URSA.Web.Http.Converters;
 using URSA.Web.Http.Description;
 using URSA.Web.Http.Description.CodeGen;
 using URSA.Web.Http.Description.Mapping;
+using URSA.Web.Http.Description.NamedGraphs;
 using URSA.Web.Http.Mapping;
 using URSA.Web.Mapping;
 using VDS.RDF;
@@ -31,13 +33,15 @@ namespace URSA.CastleWindsor
     /// <summary>Installs HTTP components.</summary>
     public class HttpInstaller : IWindsorInstaller
     {
+        private readonly Lazy<ITripleStore> _tripleStore; 
         private readonly Lazy<EntityContextFactory> _entityContextFactory;
         private readonly object _lock = new object();
 
         /// <summary>Initializes a new instance of the <see cref="HttpInstaller" /> class.</summary>
         public HttpInstaller()
         {
-            _entityContextFactory = new Lazy<EntityContextFactory>(CreateEntityContextFactory);
+            _tripleStore = new Lazy<ITripleStore>(CreateTripleStore, true);
+            _entityContextFactory = new Lazy<EntityContextFactory>(CreateEntityContextFactory, true);
         }
 
         /// <inheritdoc />
@@ -50,8 +54,10 @@ namespace URSA.CastleWindsor
                 typeof(DefaultValueRelationSelector));
             container.AddFacility<TypedFactoryFacility>();
             container.Register(Component.For<IControllerActivator>().UsingFactoryMethod((kernel, context) => new DefaultControllerActivator(UrsaConfigurationSection.InitializeComponentProvider())).LifestyleSingleton());
-            container.Register(Component.For<IEntityContext>().UsingFactoryMethod(CreateEntityContext).LifestylePerWebRequest());
+            container.Register(Component.For<ITripleStore>().Instance(_tripleStore.Value).LifestyleSingleton());
+            container.Register(Component.For<INamedGraphSelector>().ImplementedBy<OwningResourceNamedGraphSelector>().LifestyleSingleton());
             container.Register(Component.For<IEntityContextFactory>().Instance(_entityContextFactory.Value).LifestyleSingleton());
+            container.Register(Component.For<IEntityContext>().UsingFactoryMethod(CreateEntityContext).LifeStyle.HybridPerWebRequestPerThread());
             container.Register(Component.For<IDefaultValueRelationSelector>().ImplementedBy(sourceSelectorType).LifestyleSingleton());
             container.Register(Component.For(typeof(DescriptionController<>)).Forward<IController>()
                 .ImplementedBy(typeof(DescriptionController<>), componentProvider.GenericImplementationMatchingStrategy).LifestyleTransient());
@@ -81,23 +87,53 @@ namespace URSA.CastleWindsor
 
         private IEntityContext CreateEntityContext(IKernel kernel, CreationContext context)
         {
-            IEntityContext result = null;
+            IEntityContext result;
             lock (_lock)
             {
-                var baseUri = String.Format(
-                    "{0}://{1}{2}/",
-                    HttpContext.Current.Request.Url.Scheme,
-                    HttpContext.Current.Request.Url.Host,
-                    ((HttpContext.Current.Request.Url.Port != 80) && (HttpContext.Current.Request.Url.Port > 0) ? String.Format(":{0}", HttpContext.Current.Request.Url.Port) : String.Empty));
-                result = _entityContextFactory.Value.WithDotNetRDF(new TripleStore()).WithBaseUri(policy => policy.Default.Is(new Uri(baseUri))).CreateContext();
+                EntityContextFactory entityContextFactory = _entityContextFactory.Value;
+                try
+                {
+                    if ((HttpContext.Current != null) && (!kernel.HasComponent("BaseUri")))
+                    {
+                        var baseUrl = String.Format(
+                            "{0}://{1}{2}/",
+                            HttpContext.Current.Request.Url.Scheme,
+                            HttpContext.Current.Request.Url.Host,
+                            ((HttpContext.Current.Request.Url.Port != 80) && (HttpContext.Current.Request.Url.Port > 0) ? String.Format(":{0}", HttpContext.Current.Request.Url.Port) : String.Empty));
+                        Uri baseUri = new Uri(baseUrl);
+                        kernel.Register(Component.For<Uri>().Named("BaseUri").Instance(baseUri));
+                        entityContextFactory
+                            .WithNamedGraphSelector(kernel.Resolve<INamedGraphSelector>())
+                            .WithBaseUri(policy => policy.Default.Is(baseUri));
+                    }
+                }
+                catch (HttpException)
+                {
+                }
+
+                result = entityContextFactory.CreateContext();
             }
 
             return result;
         }
 
+        private ITripleStore CreateTripleStore()
+        {
+            var store = new ThreadSafeTripleStore();
+            var metaGraph = new ThreadSafeGraph()
+            {
+                BaseUri = ConfigurationSectionHandler.Default.Factories[DescriptionConfigurationSection.Default.DefaultStoreFactoryName].MetaGraphUri
+            };
+            store.Add(metaGraph);
+            return store;
+        }
+
         private EntityContextFactory CreateEntityContextFactory()
         {
-            return EntityContextFactory.FromConfiguration(EntityConverter.DefaultEntityContextFactoryName).WithDefaultOntologies();
+            return EntityContextFactory
+                .FromConfiguration(EntityConverter.DefaultEntityContextFactoryName)
+                .WithDefaultOntologies()
+                .WithDotNetRDF(_tripleStore.Value);
         }
     }
 }

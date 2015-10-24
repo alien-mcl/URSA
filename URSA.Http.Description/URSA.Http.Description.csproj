@@ -116,6 +116,7 @@
     <Compile Include="Mapping\LinqServerBehaviorAttribute.cs" />
     <Compile Include="Mapping\ServerBehaviorAttribute.cs" />
     <Compile Include="Model\EntityQuadExtensions.cs" />
+    <Compile Include="NamedGraphs\OwningResourceNamedGraphSelector.cs" />
     <Compile Include="OperationExtensions.cs" />
     <Compile Include="Owl\IClass.cs" />
     <Compile Include="Owl\IInverseFunctionalProperty.cs" />

@@ -73,7 +73,7 @@ namespace Given_instance_of_the.ResponseComposer_class
 
             result.Should().BeOfType<StringResponseInfo>();
             result.Status.Should().Be(HttpStatusCode.Created);
-            result.Headers.Should().ContainKey("Location").WhichValue.Should().Be("/api/test/get/id/" + person.Key);
+            result.Headers.Should().ContainKey("Location").WhichValue.Should().Be("/api/test/" + person.Key);
             Converter.Verify(instance => instance.ConvertFrom(person.Key, It.IsAny<IResponseInfo>()), Times.Never);
         }
 

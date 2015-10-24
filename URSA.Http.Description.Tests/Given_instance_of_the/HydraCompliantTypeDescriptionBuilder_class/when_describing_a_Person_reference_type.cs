@@ -4,8 +4,9 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using URSA.Web.Http.Description;
 using URSA.Web.Http.Description.CodeGen;
-using URSA.Web.Http.Description.Hydra;
+using URSA.Web.Http.Description.Owl;
 using URSA.Web.Http.Description.Tests.Data;
+using IClass = URSA.Web.Http.Description.Hydra.IClass;
 
 namespace Given_instance_of_the.HydraCompliantTypeDescriptionBuilder_class
 {
@@ -49,7 +50,9 @@ namespace Given_instance_of_the.HydraCompliantTypeDescriptionBuilder_class
             property.Property.Domain.Should().Contain(@class => @class.Id.Uri.AbsoluteUri.Contains(typeof(Person).FullName));
             property.Property.Range.Should().HaveCount(1);
             property.Property.Range.First().Should().BeAssignableTo<IClass>();
-            ((IClass)property.Property.Range.First()).SubClassOf.Should().Contain(resource => OGuidUriParser.Types.Any(item => item.Value.AbsoluteUri == resource.Id.Uri.AbsoluteUri));
+            OGuidUriParser.Types.Values.Any(iri => iri.AbsoluteUri == ((IClass)property.Property.Range.First()).Id.Uri.AbsoluteUri).Should().BeTrue();
+            result.SubClassOf.OfType<IRestriction>().Any(restriction => (restriction.OnProperty.Id.Uri.AbsoluteUri == property.Property.Id.Uri.AbsoluteUri) &&
+                (restriction.MaxCardinality == 1)).Should().BeTrue();
         }
 
         [TestMethod]
@@ -67,7 +70,9 @@ namespace Given_instance_of_the.HydraCompliantTypeDescriptionBuilder_class
             property.Property.Domain.Should().Contain(@class => @class.Id.Uri.AbsoluteUri.Contains(typeof(Person).FullName));
             property.Property.Range.Should().HaveCount(1);
             property.Property.Range.First().Should().BeAssignableTo<IClass>();
-            ((IClass)property.Property.Range.First()).SubClassOf.Should().Contain(resource => XsdUriParser.Types.Any(item => item.Value.AbsoluteUri == resource.Id.Uri.AbsoluteUri));
+            XsdUriParser.Types.Values.Any(iri => iri.AbsoluteUri == ((IClass)property.Property.Range.First()).Id.Uri.AbsoluteUri).Should().BeTrue();
+            result.SubClassOf.OfType<IRestriction>().Any(restriction => (restriction.OnProperty.Id.Uri.AbsoluteUri == property.Property.Id.Uri.AbsoluteUri) &&
+                (restriction.MaxCardinality == 1)).Should().BeTrue();
         }
 
         [TestMethod]
@@ -85,7 +90,9 @@ namespace Given_instance_of_the.HydraCompliantTypeDescriptionBuilder_class
             property.Property.Domain.Should().Contain(@class => @class.Id.Uri.AbsoluteUri.Contains(typeof(Person).FullName));
             property.Property.Range.Should().HaveCount(1);
             property.Property.Range.First().Should().BeAssignableTo<IClass>();
-            ((IClass)property.Property.Range.First()).SubClassOf.Should().Contain(resource => XsdUriParser.Types.Any(item => item.Value.AbsoluteUri == resource.Id.Uri.AbsoluteUri));
+            XsdUriParser.Types.Values.Any(iri => iri.AbsoluteUri == ((IClass)property.Property.Range.First()).Id.Uri.AbsoluteUri).Should().BeTrue();
+            result.SubClassOf.OfType<IRestriction>().Any(restriction => (restriction.OnProperty.Id.Uri.AbsoluteUri == property.Property.Id.Uri.AbsoluteUri) &&
+                (restriction.MaxCardinality == 1)).Should().BeTrue();
         }
 
         [TestMethod]
@@ -103,7 +110,9 @@ namespace Given_instance_of_the.HydraCompliantTypeDescriptionBuilder_class
             property.Property.Domain.Should().Contain(@class => @class.Id.Uri.AbsoluteUri.Contains(typeof(Person).FullName));
             property.Property.Range.Should().HaveCount(1);
             property.Property.Range.First().Should().BeAssignableTo<IClass>();
-            ((IClass)property.Property.Range.First()).SubClassOf.Should().Contain(resource => XsdUriParser.Types.Any(item => item.Value.AbsoluteUri == resource.Id.Uri.AbsoluteUri));
+            XsdUriParser.Types.Values.Any(iri => iri.AbsoluteUri == ((IClass)property.Property.Range.First()).Id.Uri.AbsoluteUri).Should().BeTrue();
+            result.SubClassOf.OfType<IRestriction>().Any(restriction => (restriction.OnProperty.Id.Uri.AbsoluteUri == property.Property.Id.Uri.AbsoluteUri) &&
+                (restriction.MaxCardinality == 1)).Should().BeFalse();
         }
     }
 }

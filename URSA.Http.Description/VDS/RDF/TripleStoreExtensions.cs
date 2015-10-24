@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Linq;
 using RomanticWeb;
+using RomanticWeb.Configuration;
+using URSA.Configuration;
 using VDS.RDF;
 
 namespace URSA.Web.Http.Description.VDS.RDF
@@ -12,49 +14,47 @@ namespace URSA.Web.Http.Description.VDS.RDF
 
         /// <summary>Maps all triples from default graph to their respective graphs and adds a proper statement to RomanticWeb's meta graph.</summary>
         /// <param name="tripleStore">The triple store.</param>
-        /// <param name="metaGraphUri">The meta graph URI.</param>
-        public static void MapToMetaGraph(this ITripleStore tripleStore, Uri metaGraphUri)
+        /// <param name="graphUri">The target graph URI.</param>
+        public static void MapToMetaGraph(this ITripleStore tripleStore, Uri graphUri)
         {
             if (tripleStore == null)
             {
                 throw new ArgumentNullException("tripleStore");
             }
 
-            if (metaGraphUri == null)
+            if (graphUri == null)
             {
-                throw new ArgumentNullException("metaGraphUri");
+                throw new ArgumentNullException("graphUri");
             }
 
-            var defaultGraph = tripleStore.Graphs.FirstOrDefault(item => item.BaseUri == null);
-            if (defaultGraph == null)
-            {
-                return;
-            }
-
+            var metaGraphUri = ConfigurationSectionHandler.Default.Factories[DescriptionConfigurationSection.Default.DefaultStoreFactoryName].MetaGraphUri;
             var metaGraph = tripleStore.FindOrCreate(metaGraphUri);
-            var primaryTopic = metaGraph.CreateUriNode(PrimaryTopic);
-            foreach (var triple in defaultGraph.Triples)
+            var graph = tripleStore.FindOrCreate(graphUri);
+            var graphNode = metaGraph.CreateUriNode(graphUri);
+            var primaryTopicNode = metaGraph.CreateUriNode(PrimaryTopic);
+            foreach (var triple in graph.Triples)
             {
-                IGraph graph = null;
                 var subject = (triple.Subject is IUriNode ? (IUriNode)triple.Subject : ((IBlankNode)triple.Subject).FindBlankNodeOwner(tripleStore));
                 if (subject == null)
                 {
                     continue;
                 }
 
-                graph = tripleStore.FindOrCreate(subject.Uri);
-                if (graph == null)
-                {
-                    continue;
-                }
+                metaGraph.Assert(new Triple(graphNode, primaryTopicNode, subject.CopyNode(metaGraph)));
+            }
+        }
 
-                var newTriple = new Triple(triple.Subject.CopyNode(graph), triple.Predicate.CopyNode(graph), triple.Object.CopyNode(graph));
-                graph.Assert(newTriple);
-                var describer = subject.CopyNode(metaGraph);
-                metaGraph.Assert(new Triple(describer, primaryTopic, describer));
+        internal static IGraph FindOrCreate(this ITripleStore tripleStore, Uri uri)
+        {
+            var graph = tripleStore.Graphs.FirstOrDefault(item => AbsoluteUriComparer.Default.Equals(item.BaseUri, uri));
+            if (graph != null)
+            {
+                return graph;
             }
 
-            defaultGraph.Clear();
+            graph = new ThreadSafeGraph() { BaseUri = uri };
+            tripleStore.Add(graph);
+            return graph;
         }
 
         private static IUriNode FindBlankNodeOwner(this IBlankNode blankNode, ITripleStore tripleStore)
@@ -69,19 +69,6 @@ namespace URSA.Web.Http.Description.VDS.RDF
             }
 
             return null;
-        }
-
-        private static IGraph FindOrCreate(this ITripleStore tripleStore, Uri uri)
-        {
-            var graph = tripleStore.Graphs.FirstOrDefault(item => AbsoluteUriComparer.Default.Equals(item.BaseUri, uri));
-            if (graph != null)
-            {
-                return graph;
-            }
-
-            graph = new Graph() { BaseUri = uri };
-            tripleStore.Add(graph);
-            return graph;
         }
     }
 }
