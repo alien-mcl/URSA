@@ -33,7 +33,7 @@ namespace Given_instance_of_the.converter_of
         private const string ContentType = "application/ld+json";
         private const string ClassId = "class";
         private const string Method = "GET";
-        private const string BodyPattern = "[{{ \"@id\":\"{0}{2}\", \"@type\":\"{1}Operation\", \"{1}method\":\"GET\", \"{1}returns\":{{ \"@id\":\"{0}{3}\" }} }},{{ \"@id\":\"{0}{3}\", \"@type\":\"{1}Class\" }}]";
+        private const string BodyPattern = "[{{ \"@id\":\"{0}{2}/\", \"@type\":\"{1}Operation\", \"{1}method\":\"GET\", \"{1}returns\":{{ \"@id\":\"{0}{3}\" }} }},{{ \"@id\":\"{0}{3}\", \"@type\":\"{1}Class\" }}]";
         private static readonly string Body = String.Format(BodyPattern, BaseUri, EntityConverter.Hydra, OperationName, ClassId);
         private Mock<IEntityContext> _context;
 
@@ -134,7 +134,7 @@ namespace Given_instance_of_the.converter_of
         protected override void AssertSingleEntity(IOperation result)
         {
             result.Should().NotBeNull();
-            result.Id.ToString().Should().Be(new Uri(BaseUri, OperationName).ToString());
+            result.Id.ToString().Should().Be(new Uri(BaseUri, OperationName + "/").ToString());
             result.Method.Should().HaveCount(1);
             result.Method.First().Should().Be(Method);
             result.Returns.Should().HaveCount(1);
@@ -178,7 +178,7 @@ namespace Given_instance_of_the.converter_of
 
         private Mock<IOperation> CreateOperationMock()
         {
-            var operationUri = new Uri(BaseUri, OperationName);
+            var operationUri = new Uri(BaseUri, OperationName + "/");
             var operationId = new EntityId(operationUri);
             var classUri = new Uri(BaseUri, ClassId);
             var classId = new EntityId(classUri);

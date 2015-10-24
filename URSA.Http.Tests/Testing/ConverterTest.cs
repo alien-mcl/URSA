@@ -218,7 +218,7 @@ namespace URSA.Web.Http.Testing
             headers.Accept = mediaType;
             return new RequestInfo(
                 Verb.Parse(method),
-                new Uri(BaseUri, handler),
+                new Uri(BaseUri, handler + "/"),
                 (body != null ? new MemoryStream(Encoding.UTF8.GetBytes(body)) : new MemoryStream()),
                 headers);
         }

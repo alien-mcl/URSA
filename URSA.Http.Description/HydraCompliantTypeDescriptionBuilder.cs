@@ -12,6 +12,7 @@ using URSA.Web.Http.Description.Entities;
 using URSA.Web.Http.Description.Hydra;
 using URSA.Web.Http.Description.Owl;
 using URSA.Web.Http.Description.Rdfs;
+using URSA.Web.Http.Description.Reflection;
 using IClass = URSA.Web.Http.Description.Hydra.IClass;
 
 namespace URSA.Web.Http.Description
@@ -136,10 +137,11 @@ namespace URSA.Web.Http.Description
             else
             {
                 var properties = context.Type.GetProperties(BindingFlags.Instance | BindingFlags.Public)
-                    .Union(context.Type.GetInterfaces().Except(new[] { typeof(IEntity) }).SelectMany(@interface => @interface.GetProperties()));
+                    .Union(context.Type.GetInterfaces().Except(new[] { typeof(IEntity) }).SelectMany(@interface => @interface.GetProperties()))
+                    .Distinct(PropertyEqualityComparer.Default);
                 foreach (var property in properties)
                 {
-                    @class.SupportedProperties.Add(BuildSupportedProperty(context, @class, property));
+                    @class.SupportedProperties.Add(BuildSupportedProperty(context, @class, context.Type, property));
                 }
             }
         }
@@ -166,9 +168,9 @@ namespace URSA.Web.Http.Description
             return result;
         }
 
-        private ISupportedProperty BuildSupportedProperty(DescriptionContext context, IClass @class, PropertyInfo property)
+        private ISupportedProperty BuildSupportedProperty(DescriptionContext context, IClass @class, Type declaringType, PropertyInfo property)
         {
-            var propertyId = new EntityId(property.MakeUri());
+            var propertyId = new EntityId(property.MakeUri(declaringType));
             var propertyUri = (!typeof(IEntity).IsAssignableFrom(context.Type) ? @class.Id.Uri.AddName(property.Name) :
                 context.ApiDocumentation.Context.Mappings.MappingFor(context.Type).PropertyFor(property.Name).Uri);
             var result = context.ApiDocumentation.Context.Create<ISupportedProperty>(propertyId);

@@ -467,7 +467,7 @@
                                 "description": "<xsl:value-of select="rdfs:comment" />"<xsl:if test="hydra:property">,
                                 "property": { <xsl:variable name="current" select="hydra:property/@rdf:resource" /><xsl:variable name="targetProperty" select="/rdf:RDF/rdf:Property[@rdf:about = $current]|/rdf:RDF/*[rdf:type[@rdf:resource = '&rdf;Property'] and @rdf:about = $current]" />
                                     "@id": "<xsl:value-of select="hydra:property/@rdf:resource" />",
-                                    "type": "<xsl:value-of select="/rdf:RDF/*[@rdf:nodeID = $targetProperty/rdfs:range/@rdf:nodeID]/rdfs:subClassOf/@rdf:resource" />",
+                                    "type": "<xsl:value-of select="/rdf:RDF/*[@rdf:nodeID = $targetProperty/rdfs:range/@rdf:nodeID]/rdfs:subClassOf/@rdf:resource | $targetProperty/rdfs:range/@rdf:resource" />",
                                 }</xsl:if>
                             }<xsl:if test="position() != last()">,</xsl:if>
                         </xsl:for-each>

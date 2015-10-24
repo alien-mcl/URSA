@@ -28,9 +28,9 @@ namespace URSA.Reflection
             return new Uri(String.Format("urn:{1}:{0}", type.FullName.Replace("&", String.Empty), subScheme));
         }
 
-        internal static Uri MakeUri(this PropertyInfo property)
+        internal static Uri MakeUri(this PropertyInfo property, Type declaringTypeOverride = null)
         {
-            return new Uri(String.Format("urn:{2}:{0}.{1}", property.DeclaringType, property.Name, HydraSymbol));
+            return new Uri(String.Format("urn:{2}:{0}.{1}", declaringTypeOverride ?? property.DeclaringType, property.Name, HydraSymbol));
         }
 
         internal static Type GetInterfaceImplementation(this Type implementour, Type implementation)

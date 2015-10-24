@@ -28,7 +28,7 @@ namespace Given_instance_of_the.HydraCompliantTypeDescriptionBuilder_class
         {
             var xmlDocProvider = new Mock<IXmlDocProvider>(MockBehavior.Strict);
             xmlDocProvider.Setup(instance => instance.GetDescription(It.IsAny<Type>())).Returns<Type>(type => type.FullName);
-            xmlDocProvider.Setup(instance => instance.GetDescription(It.IsAny<PropertyInfo>())).Returns<PropertyInfo>(property => property.DeclaringType + "." + property.Name);
+            xmlDocProvider.Setup(instance => instance.GetDescription(It.IsAny<PropertyInfo>())).Returns<PropertyInfo>(property => typeof(T) + "." + property.Name);
             xmlDocProvider.Setup(instance => instance.GetDescription(It.IsAny<MethodInfo>())).Returns<MethodInfo>(method => method.DeclaringType + "." + method.Name + "()");
             ApiDocumentation = CreateApiDocumentation();
             Builder = new HydraCompliantTypeDescriptionBuilder(xmlDocProvider.Object);
@@ -47,10 +47,10 @@ namespace Given_instance_of_the.HydraCompliantTypeDescriptionBuilder_class
             blankIdGenerator.Setup(instance => instance.Generate()).Returns("bnode" + new Random().Next());
             var entityContext = new Mock<IEntityContext>(MockBehavior.Strict);
             entityContext.SetupGet(instance => instance.BlankIdGenerator).Returns(blankIdGenerator.Object);
-            ////entityContext.Setup(instance => instance.Create<IResource>(It.IsAny<EntityId>())).Returns<EntityId>(id => CreateResource(entityContext.Object, id));
             entityContext.Setup(instance => instance.Create<IClass>(It.IsAny<EntityId>())).Returns<EntityId>(id => CreateClass(entityContext.Object, id));
             entityContext.Setup(instance => instance.Create<ISupportedProperty>(It.IsAny<EntityId>())).Returns<EntityId>(id => CreateSupportedProperty(entityContext.Object, id));
-            entityContext.Setup(instance => instance.Create<IProperty>(It.IsAny<EntityId>())).Returns<EntityId>(id => CreateProperty(entityContext.Object, id));
+            entityContext.Setup(instance => instance.Create<IProperty>(It.IsAny<EntityId>())).Returns<EntityId>(id => CreateProperty<IProperty>(entityContext.Object, id));
+            entityContext.Setup(instance => instance.Create<IInverseFunctionalProperty>(It.IsAny<EntityId>())).Returns<EntityId>(id => CreateProperty<IInverseFunctionalProperty>(entityContext.Object, id));
             entityContext.Setup(instance => instance.Create<IRestriction>(It.IsAny<EntityId>())).Returns<EntityId>(id => CreateRestriction(entityContext.Object, id));
             var result = new Mock<IApiDocumentation>(MockBehavior.Strict);
             result.SetupGet(instance => instance.Id).Returns(new EntityId("http://temp.uri/api"));
@@ -118,13 +118,13 @@ namespace Given_instance_of_the.HydraCompliantTypeDescriptionBuilder_class
             return result.Object;
         }
 
-        private static IProperty CreateProperty(IEntityContext entityContext, EntityId id)
+        private static T CreateProperty<T>(IEntityContext entityContext, EntityId id) where T : class, IProperty
         {
             var propertyFullName = id.Uri.AbsoluteUri.Substring(id.Uri.AbsoluteUri.LastIndexOf(':') + 1);
             var declaringTypeName = propertyFullName.Substring(0, propertyFullName.LastIndexOf('.'));
             var propertyName = propertyFullName.Substring(declaringTypeName.Length + 1);
             var propertyInfo = Type.GetType(declaringTypeName).GetProperty(propertyName);
-            var result = new Mock<IProperty>(MockBehavior.Strict);
+            var result = new Mock<T>(MockBehavior.Strict);
             string label = null;
             string description = null;
             result.SetupSet(instance => instance.Label = propertyInfo.Name).Callback<string>(value => label = value);
