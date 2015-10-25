@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using RomanticWeb.Entities;
 using RomanticWeb.Mapping.Attributes;
 using RomanticWeb.Mapping.Fluent;
@@ -12,6 +13,7 @@ namespace URSA.Example.WebApplication.Data
     public interface IProduct : IEntity, IControlledEntity<Guid>
     {
         /// <summary> Gets or sets the product's name.</summary>
+        [Required]
         [Property("http://temp.uri/vocab#name")]
         string Name { get; set; }
 

@@ -39,7 +39,9 @@ namespace URSA.Example.WebApplication.Controllers
         /// <returns>Identifier of newly created product.</returns>
         public Guid Create(IProduct product)
         {
-            product = product.Rename(new EntityId(product.Id.Uri + (product.Id.Uri.AbsoluteUri.EndsWith("/") ? String.Empty : "/") + (product.Key = Guid.NewGuid())));
+            product.Key = Guid.NewGuid();
+            product.Context.Commit();
+            product = product.Rename(new EntityId(product.Id.Uri + (product.Id.Uri.AbsoluteUri.EndsWith("/") ? String.Empty : "/") + product.Key));
             Repository.Add(product);
             return product.Key;
         }
