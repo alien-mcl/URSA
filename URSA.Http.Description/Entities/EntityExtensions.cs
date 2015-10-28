@@ -65,9 +65,10 @@ namespace URSA.Web.Http.Description.Entities
             var metaGraph = store.Graphs[ConfigurationSectionHandler.Default.Factories[DescriptionConfigurationSection.Default.DefaultStoreFactoryName].MetaGraphUri];
             var newGraph = (store is ThreadSafeTripleStore ? new ThreadSafeGraph() : new Graph());
             var graphNode = metaGraph.CreateUriNode(newGraph.BaseUri = namedGraphSelector.SelectGraph(newId, null, null));
+            var sourceGraph = namedGraphSelector.SelectGraph(entity.Id, null, null);
             var primaryTopicNode = metaGraph.CreateUriNode(Foaf.primaryTopic);
             store.Add(newGraph);
-            foreach (var triple in store.Graphs.First(graph => AbsoluteUriComparer.Default.Equals(graph.BaseUri, entity.Id.Uri)).Triples)
+            foreach (var triple in store.Graphs[sourceGraph].Triples)
             {
                 INode subject;
                 newGraph.Assert(
@@ -80,6 +81,7 @@ namespace URSA.Web.Http.Description.Entities
                 }
             }
 
+            store.Remove(sourceGraph);
             return entity.Context.Load<T>(newId);
         }
 

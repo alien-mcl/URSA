@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
@@ -11,7 +12,9 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using RomanticWeb;
 using RomanticWeb.Entities;
+using RomanticWeb.Mapping.Model;
 using RomanticWeb.Model;
+using RomanticWeb.NamedGraphs;
 using URSA.Web.Description;
 using URSA.Web.Description.Http;
 using URSA.Web.Http;
@@ -19,6 +22,7 @@ using URSA.Web.Http.Converters;
 using URSA.Web.Http.Description;
 using URSA.Web.Http.Description.Hydra;
 using URSA.Web.Http.Description.Mapping;
+using URSA.Web.Http.Description.NamedGraphs;
 using URSA.Web.Http.Description.Rdfs;
 using URSA.Web.Http.Description.Testing;
 using URSA.Web.Http.Description.Tests;
@@ -39,8 +43,14 @@ namespace Given_instance_of_the
             IApiDocumentation apiDocumentation;
             IXmlDocProvider xmlDocProvider;
             ITypeDescriptionBuilder typeDescriptionBuilder;
-            var handlerMapper = SetupInfrastucture(out apiDocumentation, out xmlDocProvider, out typeDescriptionBuilder);
-            var apiDescriptionBuilder = new ApiDescriptionBuilder<TestController>(handlerMapper, xmlDocProvider, new[] { typeDescriptionBuilder }, new IServerBehaviorAttributeVisitor[0]);
+            INamedGraphSelectorFactory namedGraphSelectorFactory;
+            var handlerMapper = SetupInfrastucture(out apiDocumentation, out xmlDocProvider, out typeDescriptionBuilder, out namedGraphSelectorFactory);
+            var apiDescriptionBuilder = new ApiDescriptionBuilder<TestController>(
+                handlerMapper,
+                xmlDocProvider,
+                new[] { typeDescriptionBuilder },
+                new IServerBehaviorAttributeVisitor[0],
+                namedGraphSelectorFactory);
             apiDescriptionBuilder.BuildDescription(apiDocumentation, null);
 
             apiDocumentation.EntryPoints.Should().HaveCount(0);
@@ -57,8 +67,14 @@ namespace Given_instance_of_the
             IXmlDocProvider xmlDocProvider;
             ITypeDescriptionBuilder shaclTypeDescriptionBuilder = SetupTypeDescriptionBuilder(EntityConverter.Shacl);
             ITypeDescriptionBuilder hydraTypeDescriptionBuilder;
-            var handlerMapper = SetupInfrastucture(out apiDocumentation, out xmlDocProvider, out hydraTypeDescriptionBuilder);
-            var apiDescriptionBuilder = new ApiDescriptionBuilder<TestController>(handlerMapper, xmlDocProvider, new[] { hydraTypeDescriptionBuilder, shaclTypeDescriptionBuilder }, new IServerBehaviorAttributeVisitor[0]);
+            INamedGraphSelectorFactory namedGraphSelectorFactory;
+            var handlerMapper = SetupInfrastucture(out apiDocumentation, out xmlDocProvider, out hydraTypeDescriptionBuilder, out namedGraphSelectorFactory);
+            var apiDescriptionBuilder = new ApiDescriptionBuilder<TestController>(
+                handlerMapper,
+                xmlDocProvider,
+                new[] { hydraTypeDescriptionBuilder, shaclTypeDescriptionBuilder },
+                new IServerBehaviorAttributeVisitor[0],
+                namedGraphSelectorFactory);
             apiDescriptionBuilder.BuildDescription(apiDocumentation, new[] { EntityConverter.Hydra });
 
             Mock.Get(hydraTypeDescriptionBuilder).VerifyGet(instance => instance.SupportedProfiles, Times.Once);
@@ -73,8 +89,14 @@ namespace Given_instance_of_the
             IXmlDocProvider xmlDocProvider;
             ITypeDescriptionBuilder shaclTypeDescriptionBuilder = SetupTypeDescriptionBuilder(EntityConverter.Shacl);
             ITypeDescriptionBuilder hydraTypeDescriptionBuilder;
-            var handlerMapper = SetupInfrastucture(out apiDocumentation, out xmlDocProvider, out hydraTypeDescriptionBuilder);
-            var apiDescriptionBuilder = new ApiDescriptionBuilder<TestController>(handlerMapper, xmlDocProvider, new[] { hydraTypeDescriptionBuilder, shaclTypeDescriptionBuilder }, new IServerBehaviorAttributeVisitor[0]);
+            INamedGraphSelectorFactory namedGraphSelectorFactory;
+            var handlerMapper = SetupInfrastucture(out apiDocumentation, out xmlDocProvider, out hydraTypeDescriptionBuilder, out namedGraphSelectorFactory);
+            var apiDescriptionBuilder = new ApiDescriptionBuilder<TestController>(
+                handlerMapper,
+                xmlDocProvider,
+                new[] { hydraTypeDescriptionBuilder, shaclTypeDescriptionBuilder },
+                new IServerBehaviorAttributeVisitor[0],
+                namedGraphSelectorFactory);
             apiDescriptionBuilder.BuildDescription(apiDocumentation, new[] { EntityConverter.Shacl });
 
             Mock.Get(hydraTypeDescriptionBuilder).VerifyGet(instance => instance.SupportedProfiles, Times.Once);
@@ -82,12 +104,17 @@ namespace Given_instance_of_the
             Mock.Get(hydraTypeDescriptionBuilder).Verify(instance => instance.BuildTypeDescription(It.IsAny<DescriptionContext>()), Times.Never);
         }
 
-        private static IHttpControllerDescriptionBuilder<TestController> SetupInfrastucture(out IApiDocumentation apiDocumentationInstance, out IXmlDocProvider xmlDocProvider, out ITypeDescriptionBuilder typeDescriptionBuilder)
+        private static IHttpControllerDescriptionBuilder<TestController> SetupInfrastucture(
+            out IApiDocumentation apiDocumentationInstance,
+            out IXmlDocProvider xmlDocProvider,
+            out ITypeDescriptionBuilder typeDescriptionBuilder,
+            out INamedGraphSelectorFactory namedGraphSelectorFactory)
         {
             Uri baseUri = new Uri("http://temp.org/");
             apiDocumentationInstance = MockHelpers.MockEntity<IApiDocumentation>(SetupEntityContext(baseUri), new EntityId(new Uri(baseUri, "api"))).Object;
             xmlDocProvider = SetupXmlDocProvider();
             typeDescriptionBuilder = SetupTypeDescriptionBuilder();
+            namedGraphSelectorFactory = SetupNamedGraphSelectorFactory(baseUri);
             return SetupHttpControllerDescriptionBuilder();
         }
 
@@ -129,6 +156,16 @@ namespace Given_instance_of_the
             }
 
             return new OperationInfo<Verb>(method, new Uri("/", UriKind.Relative), uriTemplate, new Regex(".*"), verb, arguments.ToArray());
+        }
+
+        private static INamedGraphSelectorFactory SetupNamedGraphSelectorFactory(Uri baseUri)
+        {
+            var namedGraphSelector = new Mock<INamedGraphSelector>(MockBehavior.Strict);
+            namedGraphSelector.Setup(instance => instance.SelectGraph(It.IsAny<EntityId>(), It.IsAny<IEntityMapping>(), It.IsAny<IPropertyMapping>()))
+                .Returns<EntityId, IEntityMapping, IPropertyMapping>((id, map, property) => baseUri);
+            var namedGraphSelectorFactory = new Mock<INamedGraphSelectorFactory>(MockBehavior.Strict);
+            namedGraphSelectorFactory.SetupGet(instance => instance.NamedGraphSelector).Returns(namedGraphSelector.Object);
+            return namedGraphSelectorFactory.Object;
         }
 
         private static IXmlDocProvider SetupXmlDocProvider()
@@ -189,7 +226,7 @@ namespace Given_instance_of_the
             baseUriSelector.Setup(instance => instance.SelectBaseUri(It.IsAny<EntityId>())).Returns(baseUri);
 
             var store = new Mock<IEntityStore>(MockBehavior.Strict);
-            store.Setup(instance => instance.ReplacePredicateValues(It.IsAny<EntityId>(), It.IsAny<Node>(), It.IsAny<Func<IEnumerable<Node>>>(), It.IsAny<Uri>()));
+            store.Setup(instance => instance.ReplacePredicateValues(It.IsAny<EntityId>(), It.IsAny<Node>(), It.IsAny<Func<IEnumerable<Node>>>(), It.IsAny<Uri>(), CultureInfo.InvariantCulture));
 
             var entityContext = new Mock<IEntityContext>(MockBehavior.Strict);
             entityContext.SetupGet(instance => instance.BaseUriSelector).Returns(baseUriSelector.Object);

@@ -105,7 +105,7 @@ namespace System
                         iri.Insert(hash, '/');
                     }
                 }
-                else if (iri[iri.Length - 1] != '/')
+                else if ((iri[iri.Length - 1] != '/') && (uri.Query.Length == 0))
                 {
                     iri.Append('/');
                 }

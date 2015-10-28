@@ -59,11 +59,13 @@
     <Reference Include="Remotion.Linq">
       <HintPath>..\packages\Remotion.Linq.1.15.15.0\lib\portable-net45+wp80+wpa81+win\Remotion.Linq.dll</HintPath>
     </Reference>
-    <Reference Include="RomanticWeb">
-      <HintPath>..\packages\RomanticWeb.0.3.40.0\Lib\net40\RomanticWeb.dll</HintPath>
+    <Reference Include="RomanticWeb, Version=0.3.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\RomanticWeb.0.3.136.0\Lib\net40\RomanticWeb.dll</HintPath>
+      <Private>True</Private>
     </Reference>
-    <Reference Include="RomanticWeb.dotNetRDF">
-      <HintPath>..\packages\RomanticWeb.dotNetRDF.0.3.40.0\Lib\net40\RomanticWeb.dotNetRDF.dll</HintPath>
+    <Reference Include="RomanticWeb.dotNetRDF, Version=0.3.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\RomanticWeb.dotNetRDF.0.3.136.0\Lib\net40\RomanticWeb.dotNetRDF.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
@@ -100,6 +102,7 @@
     <Compile Include="DescriptionContext.cs" />
     <Compile Include="DescriptionController.cs" />
     <Compile Include="Entities\EntityExtensions.cs" />
+    <Compile Include="Entities\IEntityContextProvider.cs" />
     <Compile Include="EntryPointControllerDescriptionBuilder.cs" />
     <Compile Include="EntryPointDescriptionController.cs" />
     <Compile Include="Hydra\IApiDocumentation.cs" />
@@ -116,6 +119,9 @@
     <Compile Include="Mapping\LinqServerBehaviorAttribute.cs" />
     <Compile Include="Mapping\ServerBehaviorAttribute.cs" />
     <Compile Include="Model\EntityQuadExtensions.cs" />
+    <Compile Include="NamedGraphs\ILocallyControlledNamedGraphSelector.cs" />
+    <Compile Include="NamedGraphs\INamedGraphSelectorFactory.cs" />
+    <Compile Include="NamedGraphs\LocallyControlledOwningResourceNamedGraphSelector.cs" />
     <Compile Include="NamedGraphs\OwningResourceNamedGraphSelector.cs" />
     <Compile Include="OperationExtensions.cs" />
     <Compile Include="Owl\IClass.cs" />

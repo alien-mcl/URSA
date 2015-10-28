@@ -1,14 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using RomanticWeb.Entities;
 using RomanticWeb.Model;
+using RomanticWeb.NamedGraphs;
 using URSA.Web.Description;
 using URSA.Web.Description.Http;
 using URSA.Web.Http.Converters;
 using URSA.Web.Http.Description.Hydra;
 using URSA.Web.Http.Description.Mapping;
+using URSA.Web.Http.Description.NamedGraphs;
 using URSA.Web.Http.Mapping;
 using URSA.Web.Mapping;
 using IClass = URSA.Web.Http.Description.Hydra.IClass;
@@ -26,6 +29,7 @@ namespace URSA.Web.Http.Description
         private readonly IXmlDocProvider _xmlDocProvider;
         private readonly IEnumerable<ITypeDescriptionBuilder> _typeDescriptionBuilders;
         private readonly IEnumerable<IServerBehaviorAttributeVisitor> _serverBehaviorAttributeVisitors;
+        private readonly INamedGraphSelectorFactory _namedGraphSelectorFactory;
         private Type _specializationType;
 
         /// <summary>Initializes a new instance of the <see cref="ApiDescriptionBuilder{T}" /> class.</summary>
@@ -33,7 +37,13 @@ namespace URSA.Web.Http.Description
         /// <param name="xmlDocProvider">The XML documentation provider.</param>
         /// <param name="typeDescriptionBuilders">Type description builders.</param>
         /// <param name="serverBehaviorAttributeVisitors">Server behavior attribute visitors.</param>
-        public ApiDescriptionBuilder(IHttpControllerDescriptionBuilder<T> descriptionBuilder, IXmlDocProvider xmlDocProvider, IEnumerable<ITypeDescriptionBuilder> typeDescriptionBuilders, IEnumerable<IServerBehaviorAttributeVisitor> serverBehaviorAttributeVisitors)
+        /// <param name="namedGraphSelectorFactory">Named graph selector factory.</param>
+        public ApiDescriptionBuilder(
+            IHttpControllerDescriptionBuilder<T> descriptionBuilder, 
+            IXmlDocProvider xmlDocProvider, 
+            IEnumerable<ITypeDescriptionBuilder> typeDescriptionBuilders, 
+            IEnumerable<IServerBehaviorAttributeVisitor> serverBehaviorAttributeVisitors,
+            INamedGraphSelectorFactory namedGraphSelectorFactory)
         {
             if (descriptionBuilder == null)
             {
@@ -55,10 +65,16 @@ namespace URSA.Web.Http.Description
                 throw new ArgumentOutOfRangeException("typeDescriptionBuilders");
             }
 
+            if (namedGraphSelectorFactory == null)
+            {
+                throw new ArgumentNullException("namedGraphSelectorFactory");
+            }
+
             _descriptionBuilder = descriptionBuilder;
             _xmlDocProvider = xmlDocProvider;
             _typeDescriptionBuilders = typeDescriptionBuilders;
             _serverBehaviorAttributeVisitors = serverBehaviorAttributeVisitors ?? new IServerBehaviorAttributeVisitor[0];
+            _namedGraphSelectorFactory = namedGraphSelectorFactory;
         }
 
         private Type SpecializationType
@@ -94,7 +110,7 @@ namespace URSA.Web.Http.Description
             BuildDescription(context, specializationType);
         }
 
-        private static void BuildResourceMediaType(IOperation result, IClass resource, bool requiresRdf)
+        private static void BuildOperationMediaType(IOperation result, bool requiresRdf)
         {
             foreach (var mediaType in (requiresRdf ? RdfMediaTypes : NonRdfMediaTypes))
             {
@@ -116,7 +132,7 @@ namespace URSA.Web.Http.Description
                     continue;
                 }
 
-                BuildResourceMediaType(result, resource, requiresRdf);
+                BuildOperationMediaType(result, requiresRdf);
             }
         }
 
@@ -170,6 +186,7 @@ namespace URSA.Web.Http.Description
 
         private void BuildDescription(DescriptionContext context, IClass specializationType)
         {
+            Uri graphUri = _namedGraphSelectorFactory.NamedGraphSelector.SelectGraph(specializationType.Id, null, null);
             context.ApiDocumentation.SupportedClasses.Add(specializationType);
             var description = _descriptionBuilder.BuildDescriptor();
             foreach (OperationInfo<Verb> operation in description.Operations)
@@ -184,7 +201,8 @@ namespace URSA.Web.Http.Description
                         specializationType.Id,
                         Node.ForUri(templatedLink.Id.Uri),
                         () => new Node[] { Node.ForUri(template.Id.Uri) },
-                        specializationType.Id.Uri);
+                        graphUri,
+                        CultureInfo.InvariantCulture);
                 }
                 else
                 {
@@ -201,7 +219,7 @@ namespace URSA.Web.Http.Description
             result.Method.Add(_descriptionBuilder.GetMethodVerb(operation.UnderlyingMethod).ToString());
             template = BuildTemplate(context, operation, result);
             bool isRdfRequired;
-            bool requiresRdf = false;
+            bool requiresRdf = context.RequiresRdf(SpecializationType);
             var arguments = operation.Arguments.Where(parameter => parameter.Source is FromBodyAttribute).Select(parameter => parameter.Parameter);
             var results = operation.Results.Where(output => output.Target is ToBodyAttribute).Select(parameter => parameter.Parameter);
 
@@ -226,6 +244,11 @@ namespace URSA.Web.Http.Description
 
             BuildOperationMediaType(result, result.Returns, operation, requiresRdf);
             BuildOperationMediaType(result, result.Expects, operation, requiresRdf);
+            if (!result.MediaTypes.Any())
+            {
+                BuildOperationMediaType(result, requiresRdf);
+            }
+
             return result;
         }
 

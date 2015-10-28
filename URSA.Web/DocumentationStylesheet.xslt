@@ -353,7 +353,7 @@
     <xsl:template match="hydra:ApiDocumentation">
         window.hydra = new String("http://www.w3.org/ns/hydra/core#");
         hydra.supportedProperty = hydra + "supportedProperty";
-        var supportedClasses = [];<xsl:for-each select="hydra:supportedClasses"><xsl:variable name="id" select="@rdf:resource" />
+        var supportedClasses = [];<xsl:for-each select="hydra:supportedClass"><xsl:variable name="id" select="@rdf:resource" />
         supportedClasses.push(<xsl:call-template name="hydra-Class">
                 <xsl:with-param name="class" select="/rdf:RDF/hydra:Class[@rdf:about = $id]|/rdf:RDF/*[rdf:type/@rdf:resource = '&hydra;Class' and @rdf:about = $id]" />
             </xsl:call-template>);

@@ -22,6 +22,7 @@ using URSA.Web.Http;
 using URSA.Web.Http.Converters;
 using URSA.Web.Http.Description;
 using URSA.Web.Http.Description.CodeGen;
+using URSA.Web.Http.Description.Entities;
 using URSA.Web.Http.Description.Mapping;
 using URSA.Web.Http.Description.NamedGraphs;
 using URSA.Web.Http.Mapping;
@@ -53,11 +54,15 @@ namespace URSA.CastleWindsor
                 configuration.DefaultValueRelationSelectorType :
                 typeof(DefaultValueRelationSelector));
             container.AddFacility<TypedFactoryFacility>();
+            var typedFactory = new UrsaCustomTypedFactory();
             container.Register(Component.For<IControllerActivator>().UsingFactoryMethod((kernel, context) => new DefaultControllerActivator(UrsaConfigurationSection.InitializeComponentProvider())).LifestyleSingleton());
-            container.Register(Component.For<ITripleStore>().Instance(_tripleStore.Value).LifestyleSingleton());
-            container.Register(Component.For<INamedGraphSelector>().ImplementedBy<OwningResourceNamedGraphSelector>().LifestyleSingleton());
-            container.Register(Component.For<IEntityContextFactory>().Instance(_entityContextFactory.Value).LifestyleSingleton());
-            container.Register(Component.For<IEntityContext>().UsingFactoryMethod(CreateEntityContext).LifeStyle.HybridPerWebRequestPerThread());
+            container.Register(Component.For<ITripleStore>().Instance(_tripleStore.Value).Named("InMemoryTripleStore").LifestyleSingleton());
+            container.Register(Component.For<INamedGraphSelectorFactory>().AsFactory(typedFactory).LifestyleSingleton());
+            container.Register(Component.For<INamedGraphSelector>().ImplementedBy<LocallyControlledOwningResourceNamedGraphSelector>()
+                .Forward<ILocallyControlledNamedGraphSelector>().Named("InMemoryNamedGraphSelector").LifestyleSingleton());
+            container.Register(Component.For<IEntityContextFactory>().Instance(_entityContextFactory.Value).Named("InMemoryEntityContextFactory").LifestyleSingleton());
+            container.Register(Component.For<IEntityContext>().UsingFactoryMethod(CreateEntityContext).Named("InMemoryEntityContext").LifeStyle.HybridPerWebRequestPerThread());
+            container.Register(Component.For<IEntityContextProvider>().AsFactory(typedFactory).LifestyleSingleton());
             container.Register(Component.For<IDefaultValueRelationSelector>().ImplementedBy(sourceSelectorType).LifestyleSingleton());
             container.Register(Component.For(typeof(DescriptionController<>)).Forward<IController>()
                 .ImplementedBy(typeof(DescriptionController<>), componentProvider.GenericImplementationMatchingStrategy).LifestyleTransient());
@@ -82,36 +87,54 @@ namespace URSA.CastleWindsor
             container.Register(Component.For<IServerBehaviorAttributeVisitor>().ImplementedBy<DescriptionBuildingServerBahaviorAttributeVisitor<ParameterInfo>>().Named("Hydra"));
             container.Register(Component.For(typeof(IApiDescriptionBuilder<>)).ImplementedBy(typeof(ApiDescriptionBuilder<>)).LifestyleSingleton().Forward<IApiDescriptionBuilder>());
             container.Register(Component.For<IApiEntryPointDescriptionBuilder>().ImplementedBy<ApiEntryPointDescriptionBuilder>().LifestyleSingleton().Forward<IApiDescriptionBuilder>());
-            container.Register(Component.For<IApiDescriptionBuilderFactory>().AsFactory(new ApiDescriptiobBuilderTypedFactory()).LifestyleSingleton());
+            container.Register(Component.For<IApiDescriptionBuilderFactory>().AsFactory(typedFactory).LifestyleSingleton());
+        }
+
+        private static Uri GetBaseUri()
+        {
+            try
+            {
+                if (HttpContext.Current == null)
+                {
+                    return null;
+                }
+
+                var baseUrl = String.Format(
+                    "{0}://{1}{2}/",
+                    HttpContext.Current.Request.Url.Scheme,
+                    HttpContext.Current.Request.Url.Host,
+                    ((HttpContext.Current.Request.Url.Port != 80) && (HttpContext.Current.Request.Url.Port > 0) ? String.Format(":{0}", HttpContext.Current.Request.Url.Port) : String.Empty));
+                return new Uri(baseUrl);
+            }
+            catch (HttpException)
+            {
+                return null;
+            }
         }
 
         private IEntityContext CreateEntityContext(IKernel kernel, CreationContext context)
         {
-            IEntityContext result;
+            IEntityContext result = null;
             lock (_lock)
             {
                 EntityContextFactory entityContextFactory = _entityContextFactory.Value;
-                try
+                if (!kernel.HasComponent("BaseUri"))
                 {
-                    if ((HttpContext.Current != null) && (!kernel.HasComponent("BaseUri")))
+                    var baseUri = GetBaseUri();
+                    if (baseUri != null)
                     {
-                        var baseUrl = String.Format(
-                            "{0}://{1}{2}/",
-                            HttpContext.Current.Request.Url.Scheme,
-                            HttpContext.Current.Request.Url.Host,
-                            ((HttpContext.Current.Request.Url.Port != 80) && (HttpContext.Current.Request.Url.Port > 0) ? String.Format(":{0}", HttpContext.Current.Request.Url.Port) : String.Empty));
-                        Uri baseUri = new Uri(baseUrl);
                         kernel.Register(Component.For<Uri>().Named("BaseUri").Instance(baseUri));
-                        entityContextFactory
+                        result = entityContextFactory
                             .WithNamedGraphSelector(kernel.Resolve<INamedGraphSelector>())
-                            .WithBaseUri(policy => policy.Default.Is(baseUri));
+                            .WithBaseUri(policy => policy.Default.Is(baseUri))
+                            .CreateContext();
                     }
                 }
-                catch (HttpException)
-                {
-                }
 
-                result = entityContextFactory.CreateContext();
+                if (result == null)
+                {
+                    result = entityContextFactory.CreateContext();
+                }
             }
 
             return result;
@@ -119,11 +142,9 @@ namespace URSA.CastleWindsor
 
         private ITripleStore CreateTripleStore()
         {
+            var metaGraphUri = ConfigurationSectionHandler.Default.Factories[DescriptionConfigurationSection.Default.DefaultStoreFactoryName].MetaGraphUri;
             var store = new ThreadSafeTripleStore();
-            var metaGraph = new ThreadSafeGraph()
-            {
-                BaseUri = ConfigurationSectionHandler.Default.Factories[DescriptionConfigurationSection.Default.DefaultStoreFactoryName].MetaGraphUri
-            };
+            var metaGraph = new ThreadSafeGraph() { BaseUri = metaGraphUri };
             store.Add(metaGraph);
             return store;
         }
@@ -131,7 +152,7 @@ namespace URSA.CastleWindsor
         private EntityContextFactory CreateEntityContextFactory()
         {
             return EntityContextFactory
-                .FromConfiguration(EntityConverter.DefaultEntityContextFactoryName)
+                .FromConfiguration(DescriptionConfigurationSection.Default.DefaultStoreFactoryName)
                 .WithDefaultOntologies()
                 .WithDotNetRDF(_tripleStore.Value);
         }

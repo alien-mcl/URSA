@@ -15,7 +15,8 @@ namespace URSA.Web.Mapping
         public const string Key = "/key/";
 
         /// <summary>Defines a default uri pattern.</summary>
-        public static readonly Uri Default = new Uri(String.Format("{0}{1}", Key, Value), UriKind.Relative);
+        //// TODO: Replace /key/{?value} with /{?value}
+        public static readonly Uri Default = new Uri(String.Format("/{0}", Key, Value), UriKind.Relative);
 
         /// <summary>Initializes a new instance of the <see cref="FromUriAttribute" /> class.</summary>
         public FromUriAttribute()

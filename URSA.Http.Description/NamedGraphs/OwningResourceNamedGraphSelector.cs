@@ -20,7 +20,6 @@ namespace URSA.Web.Http.Description.NamedGraphs
         /// <param name="descriptionBuilders">The description builders.</param>
         public OwningResourceNamedGraphSelector(IEnumerable<IHttpControllerDescriptionBuilder> descriptionBuilders)
         {
-            //// TODO: Handle late loaded description builders!
             if (descriptionBuilders == null)
             {
                 throw new ArgumentNullException("descriptionBuilders");
@@ -28,11 +27,15 @@ namespace URSA.Web.Http.Description.NamedGraphs
 
             _apiUriTemplates = from descriptionBuilder in descriptionBuilders
                                from operation in descriptionBuilder.BuildDescriptor().Operations
+                               orderby operation.TemplateRegex.ToString().Length descending 
                                select operation.TemplateRegex;
         }
 
+        /// <summary>Gets the named graphs mapping cache.</summary>
+        protected IDictionary<EntityId, Uri> Cache { get { return _cache; } }
+
         /// <inheritdoc />
-        public Uri SelectGraph(EntityId entityId, IEntityMapping entityMapping, IPropertyMapping predicate)
+        public virtual Uri SelectGraph(EntityId entityId, IEntityMapping entityMapping, IPropertyMapping predicate)
         {
             Uri result;
             if (_cache.TryGetValue(entityId, out result))
@@ -41,13 +44,13 @@ namespace URSA.Web.Http.Description.NamedGraphs
             }
 
             string currentUri = String.Join(String.Empty, entityId.Uri.Segments) + entityId.Uri.Query;
-            string host = entityId.Uri.ToString().Substring(0, entityId.Uri.ToString().Length - currentUri.Length);
+            Uri host = new Uri(entityId.Uri.ToString().Substring(0, entityId.Uri.ToString().Length - currentUri.Length).TrimEnd('/'));
             bool isQueryRemoved = false;
             while (currentUri != null)
             {
                 if (_apiUriTemplates.Any(template => template.IsMatch(currentUri)))
                 {
-                    result = new Uri(host + currentUri);
+                    result = new Uri(currentUri, UriKind.Relative).Combine(host);
                     break;
                 }
 
@@ -59,14 +62,7 @@ namespace URSA.Web.Http.Description.NamedGraphs
                 else
                 {
                     int position;
-                    if ((position = currentUri.LastIndexOf("/")) > 0)
-                    {
-                        currentUri = currentUri.Substring(0, position);
-                    }
-                    else
-                    {
-                        currentUri = null;
-                    }
+                    currentUri = ((position = currentUri.LastIndexOf("/")) > 0 ? currentUri.Substring(0, position) : null);
                 }
             }
 

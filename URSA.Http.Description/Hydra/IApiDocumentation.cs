@@ -17,7 +17,7 @@ namespace URSA.Web.Http.Description.Hydra
         string Description { get; set; }
 
         /// <summary>Gets the APIs supported classes.</summary>
-        [Collection("hydra", "supportedClasses")]
+        [Collection("hydra", "supportedClass")]
         ICollection<IClass> SupportedClasses { get; }
 
         /// <summary>Gets the APIs status codes.</summary>

@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using RomanticWeb;
+using URSA.Web.Http.Description.Entities;
+using URSA.Web.Http.Description.NamedGraphs;
 
 namespace URSA.Web.Http.Description
 {
@@ -12,10 +13,16 @@ namespace URSA.Web.Http.Description
 
         /// <summary>Initializes a new instance of the <see cref="EntryPointDescriptionController"/> class.</summary>
         /// <param name="entryPoint">Entry point Uri.</param>
-        /// <param name="entityContext">Entity context.</param>
+        /// <param name="entityContextProvider">Entity context provider.</param>
         /// <param name="apiDescriptionBuilder">API description builder.</param>
+        /// <param name="namedGraphSelectorFactory">Named graph selector factory.</param>
         [ExcludeFromCodeCoverage]
-        public EntryPointDescriptionController(Uri entryPoint, IEntityContext entityContext, IApiEntryPointDescriptionBuilder apiDescriptionBuilder) : base(entityContext, apiDescriptionBuilder)
+        public EntryPointDescriptionController(
+            Uri entryPoint,
+            IEntityContextProvider entityContextProvider,
+            IApiEntryPointDescriptionBuilder apiDescriptionBuilder,
+            INamedGraphSelectorFactory namedGraphSelectorFactory) :
+            base(entityContextProvider, apiDescriptionBuilder, namedGraphSelectorFactory)
         {
             if (entryPoint == null)
             {
