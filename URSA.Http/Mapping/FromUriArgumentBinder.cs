@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Text.RegularExpressions;
 using URSA.Web.Converters;
 using URSA.Web.Description;
+using URSA.Web.Description.Http;
 using URSA.Web.Http.Converters;
 using URSA.Web.Mapping;
 
@@ -49,10 +50,8 @@ namespace URSA.Web.Http.Mapping
             }
 
             Uri uri = MakeUri(context.Parameter, context.RequestMapping.MethodRoute, context.RequestMapping.Operation);
-            string template = uri.ToString()
-                .Replace("/" + context.Parameter.Name + "/" + FromUriAttribute.Value, "/" + context.Parameter.Name + "/(?<Value>[^/\\?]+)")
-                .Replace(FromUriAttribute.Value, "[^/\\?]+");
-            Match match = Regex.Match(context.Request.Uri.ToString(), template);
+            string template = UriTemplate.VariableTemplateRegex.Replace(uri.ToString(), "(?<Value>[^/\\?]+)");
+            Match match = Regex.Match(context.Request.Uri.ToRelativeUri().ToString(), template);
             return (match.Success ? _converterProvider.ConvertTo(match.Groups["Value"].Value, context.Parameter.ParameterType, context.Request) : null);
         }
 
@@ -77,7 +76,7 @@ namespace URSA.Web.Http.Mapping
             foreach (var argument in operation.Arguments)
             {
                 var argumentSource = argument.Source;
-                if ((argumentSource == null) || (!(argumentSource is FromUriAttribute)))
+                if (!(argumentSource is FromUriAttribute))
                 {
                     continue;
                 }

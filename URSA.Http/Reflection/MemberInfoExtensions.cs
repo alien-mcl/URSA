@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using URSA.Web.Description.Http;
 using URSA.Web.Http.Mapping;
 using URSA.Web.Mapping;
 
@@ -86,9 +87,8 @@ namespace URSA.Web.Http.Reflection
             return route;
         }
 
-        internal static bool CreateParameterTemplateRegex(this ParameterInfo parameter, ParameterSourceAttribute parameterSource, out string parameterUriTemplate, out string parameterTemplateRegex)
+        internal static bool CreateParameterTemplateRegex(this ParameterInfo parameter, ParameterSourceAttribute parameterSource, out string parameterTemplateRegex)
         {
-            parameterUriTemplate = null;
             parameterTemplateRegex = null;
             var methodInfo = typeof(MemberInfoExtensions).GetMethods(BindingFlags.Static | BindingFlags.NonPublic)
                 .FirstOrDefault(item => (item.Name == "CreateParameterTemplateRegex") && (item.GetParameters().Length > 1) && (item.GetParameters()[1].ParameterType == parameterSource.GetType()));
@@ -97,10 +97,9 @@ namespace URSA.Web.Http.Reflection
                 return false;
             }
 
-            var arguments = new object[] { parameter, parameterSource, parameterUriTemplate, parameterTemplateRegex };
+            var arguments = new object[] { parameter, parameterSource, null };
             methodInfo.Invoke(null, arguments);
-            parameterUriTemplate = (string)arguments[2];
-            parameterTemplateRegex = (string)arguments[3];
+            parameterTemplateRegex = (string)arguments[2];
             return true;
         }
 
@@ -144,18 +143,17 @@ namespace URSA.Web.Http.Reflection
             }
         }
 
-        private static void CreateParameterTemplateRegex(this ParameterInfo parameter, FromQueryStringAttribute fromQueryString, out string parameterUriTemplate, out string parameterTemplateRegex)
+        private static void CreateParameterTemplateRegex(this ParameterInfo parameter, FromQueryStringAttribute fromQueryString, out string parameterTemplateRegex)
         {
-            string result = (fromQueryString.UriTemplate == FromQueryStringAttribute.Default ? FromQueryStringAttribute.For(parameter).UriTemplate : fromQueryString.UriTemplate);
-            parameterUriTemplate = result.Replace(FromUriAttribute.Value, "{?" + parameter.Name + "}");
-            parameterTemplateRegex = result.Replace(FromUriAttribute.Value, "[^&]+");
+            var parameterName = UriTemplate.VariableTemplateRegex.Match(fromQueryString.UriTemplate).Groups[1].Value;
+            parameterTemplateRegex = (parameter.HasDefaultValue) || (!parameter.ParameterType.IsValueType) ?
+                String.Format("([?&]({0}=[^&]*)){{0,}}", parameterName) :
+                String.Format("([?&]({0}=[^&]*)){{1,}}", parameterName);
         }
 
-        private static void CreateParameterTemplateRegex(this ParameterInfo parameter, FromUriAttribute fromUri, out string parameterUriTemplate, out string parameterTemplateRegex)
+        private static void CreateParameterTemplateRegex(this ParameterInfo parameter, FromUriAttribute fromUri, out string parameterTemplateRegex)
         {
-            string result = (fromUri.UriTemplate == FromUriAttribute.Default ? FromUriAttribute.For(parameter).UriTemplate.ToString() : fromUri.UriTemplate.ToString());
-            parameterUriTemplate = result.Replace(FromUriAttribute.Value, "{?" + parameter.Name + "}");
-            parameterTemplateRegex = result.Replace(FromUriAttribute.Value, "[^/?]+");
+            parameterTemplateRegex = UriTemplate.VariableTemplateRegex.Replace(fromUri.UriTemplate.ToString(), "[^/?]+");
         }
     }
 }

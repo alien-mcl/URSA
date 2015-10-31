@@ -83,6 +83,7 @@
     <Compile Include="Web\IRequestInfo.cs" />
     <Compile Include="Web\Mapping\FromQueryStringAttribute.cs" />
     <Compile Include="Web\Mapping\FromBodyAttribute.cs" />
+    <Compile Include="Web\Mapping\IUriTemplateParameterSourceAttribute.cs" />
     <Compile Include="Web\Mapping\MappingAttribute.cs" />
     <Compile Include="Web\Mapping\ParameterSourceAttribute.cs" />
     <Compile Include="Web\Mapping\ResultTargetAttribute.cs" />

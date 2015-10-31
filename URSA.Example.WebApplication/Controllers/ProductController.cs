@@ -60,7 +60,7 @@ namespace URSA.Example.WebApplication.Controllers
         {
             product.Key = Guid.NewGuid();
             product.Context.Commit();
-            product = product.Rename(new EntityId(product.Id.Uri + (product.Id.Uri.AbsoluteUri.EndsWith("/") ? String.Empty : "/") + "id/" + product.Key));
+            product = product.Rename(new EntityId(product.Id.Uri + (product.Id.Uri.AbsoluteUri.EndsWith("/") ? String.Empty : "/") + product.Key));
             _repository.Add(product);
             return product.Key;
         }

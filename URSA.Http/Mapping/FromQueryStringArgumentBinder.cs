@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using URSA.Web.Converters;
+using URSA.Web.Description.Http;
 using URSA.Web.Http.Converters;
 using URSA.Web.Mapping;
 
@@ -47,10 +48,10 @@ namespace URSA.Web.Http.Mapping
                 return null;
             }
 
-            string template = context.ParameterSource.UriTemplate
-                .Replace(FromQueryStringAttribute.Value, "(?<Value>[^&]+)")
+            string template = UriTemplate.VariableTemplateRegex
+                .Replace(context.ParameterSource.UriTemplate, "(?<Value>[^&]+)")
                 .Replace(FromQueryStringAttribute.Key, "&" + context.Parameter.Name + "=");
-            MatchCollection matches = Regex.Matches("&" + context.Request.Uri.Query.Substring(1), template);
+            MatchCollection matches = Regex.Matches(context.Request.Uri.Query.Substring(1), template);
             return (matches.Count == 0 ? null : 
                 _converterProvider.ConvertToCollection(matches.Cast<Match>().Select(match => match.Groups["Value"].Value), context.Parameter.ParameterType, context.Request));
         }

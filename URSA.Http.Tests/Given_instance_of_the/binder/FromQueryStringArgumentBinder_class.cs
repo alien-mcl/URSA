@@ -13,7 +13,7 @@ namespace Given_instance_of_the.binder
     [TestClass]
     public class FromUriArgumentBinder_class : ArgumentBinderTest<FromUriArgumentBinder, FromUriAttribute, int>
     {
-        protected override Uri RequestUri { get { return new Uri("http://temp.org/api/test/sub/operandA/1?operandB=1"); } }
+        protected override Uri RequestUri { get { return new Uri("http://temp.org/api/test/sub/1?operandB=1"); } }
 
         protected override Uri MethodUri { get { return new Uri("http://temp.org/api/test/sub"); } }
 

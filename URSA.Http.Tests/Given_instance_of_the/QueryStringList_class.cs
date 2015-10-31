@@ -13,24 +13,24 @@ namespace Given_instance_of_the
         public void it_should_build_uri_template_properly()
         {
             var segments = new UriTemplate.QueryStringList(null, false);
-            segments.Add("id={?id}", new FromQueryStringAttribute("&id={?value}"), typeof(CrudController).GetMethod("Update").GetParameters()[0]);
-            segments.Add("person={?person}", new FromQueryStringAttribute("&person={?value}"), typeof(CrudController).GetMethod("Update").GetParameters()[1]);
+            segments.Add("id={?id}", new FromQueryStringAttribute("&id={?id}"), typeof(CrudController).GetMethod("Update").GetParameters()[0]);
+            segments.Add("person={?person}", new FromQueryStringAttribute("&person={?person}"), typeof(CrudController).GetMethod("Update").GetParameters()[1]);
 
             var result = segments.ToString();
 
-            result.Should().Be("?id={?id}&person={?person}");
+            result.Should().Be("?id={id}{&person}");
         }
 
         [TestMethod]
         public void it_should_build_uri_regex_properly()
         {
             var segments = new UriTemplate.QueryStringList(null, true);
-            segments.Add("id=[^&]+", new FromUriAttribute("&id={?value}"), typeof(CrudController).GetMethod("Get").GetParameters()[0]);
-            segments.Add("person=[^&]+", new FromQueryStringAttribute("&person={?value}"), typeof(CrudController).GetMethod("Update").GetParameters()[1]);
+            segments.Add("id=[^&]+", new FromQueryStringAttribute("&id={?id}"), typeof(CrudController).GetMethod("Update").GetParameters()[0]);
+            segments.Add("person=[^&]+", new FromQueryStringAttribute("&person={?person}"), typeof(CrudController).GetMethod("Update").GetParameters()[1]);
 
             var result = segments.ToString();
 
-            result.Should().Be("[?&](id=[^&]+|person=[^&]+)=[^&]+");
+            result.Should().Be("([?&](id|person)=[^&]*){0,}");
         }
     }
 }

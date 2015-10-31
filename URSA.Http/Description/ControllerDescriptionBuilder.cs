@@ -175,7 +175,7 @@ namespace URSA.Web.Description.Http
                     continue;
                 }
 
-                string variableName = (isBodyParameter ? null : parameter.Name.ToLowerCamelCase());
+                string variableName = (isBodyParameter ? null : UriTemplate.VariableTemplateRegex.Match(parameterUriTemplate).Groups[1].Value.ToLowerCamelCase());
                 if (parameterTemplateRegex != null)
                 {
                     restUriTemplate = false;
@@ -183,7 +183,7 @@ namespace URSA.Web.Description.Http
                     uriTemplate.Add(parameterUriTemplate, source, parameter, parameter.HasDefaultValue);
                 }
 
-                result.Add(new ArgumentInfo(parameter, source, (isBodyParameter ? null : (parameterTemplateRegex[0] == '&' ? parameterUriTemplate : uriTemplate.ToString(false))), variableName));
+                result.Add(new ArgumentInfo(parameter, source, (isBodyParameter ? null : (parameterTemplateRegex.StartsWith("([?&]") ? parameterUriTemplate : uriTemplate.ToString(false))), variableName));
             }
 
             if (restUriTemplate)
@@ -196,9 +196,25 @@ namespace URSA.Web.Description.Http
 
         private ParameterSourceAttribute CreateParameterTemplateRegex(MethodInfo method, ParameterInfo parameter, Verb verb, out string parameterUriTemplate, out string parameterTemplateRegex, out bool isBodyParameter)
         {
+            parameterUriTemplate = null;
             isBodyParameter = false;
             var parameterSource = parameter.GetCustomAttribute<ParameterSourceAttribute>(true) ?? _defaultValueRelationSelector.ProvideDefault(parameter, verb);
-            if ((!parameter.CreateParameterTemplateRegex(parameterSource, out parameterUriTemplate, out parameterTemplateRegex)) && (parameterSource is FromBodyAttribute))
+            var templatedParameterSource = parameterSource as IUriTemplateParameterSourceAttribute;
+            if ((templatedParameterSource != null) && (templatedParameterSource.Template == templatedParameterSource.DefaultTemplate))
+            {
+                templatedParameterSource = (parameterSource = templatedParameterSource.For(parameter)) as IUriTemplateParameterSourceAttribute;
+            }
+
+            if (templatedParameterSource != null)
+            {
+                if ((!(parameterUriTemplate = templatedParameterSource.Template).StartsWith("&")) && 
+                    (parameterSource is FromQueryStringAttribute) && (!parameterUriTemplate.StartsWith("{")))
+                {
+                    parameterUriTemplate = "&" + parameterUriTemplate;
+                }
+            }
+
+            if ((!parameter.CreateParameterTemplateRegex(parameterSource, out parameterTemplateRegex)) && (parameterSource is FromBodyAttribute))
             {
                 isBodyParameter = true;
             }

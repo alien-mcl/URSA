@@ -37,6 +37,7 @@ namespace URSA.CastleWindsor
         private readonly Lazy<ITripleStore> _tripleStore; 
         private readonly Lazy<EntityContextFactory> _entityContextFactory;
         private readonly object _lock = new object();
+        private bool _isBaseUriInitialized = false;
 
         /// <summary>Initializes a new instance of the <see cref="HttpInstaller" /> class.</summary>
         public HttpInstaller()
@@ -118,12 +119,12 @@ namespace URSA.CastleWindsor
             lock (_lock)
             {
                 EntityContextFactory entityContextFactory = _entityContextFactory.Value;
-                if (!kernel.HasComponent("BaseUri"))
+                if (!_isBaseUriInitialized)
                 {
                     var baseUri = GetBaseUri();
                     if (baseUri != null)
                     {
-                        kernel.Register(Component.For<Uri>().Named("BaseUri").Instance(baseUri));
+                        _isBaseUriInitialized = true;
                         result = entityContextFactory
                             .WithNamedGraphSelector(kernel.Resolve<INamedGraphSelector>())
                             .WithBaseUri(policy => policy.Default.Is(baseUri))

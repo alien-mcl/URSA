@@ -10,6 +10,7 @@ namespace URSA.Web.Description.Http
 {
     internal class UriTemplate : ICloneable
     {
+        internal static readonly Regex VariableTemplateRegex = new Regex("\\{[/?&#\\.;]*([^*}]+)([*]*)\\}");
         private readonly bool _isRegexMode;
         private readonly Type _controlledEntityType;
         private readonly SegmentList _segments;
@@ -191,25 +192,65 @@ namespace URSA.Web.Description.Http
                     return String.Empty;
                 }
 
-                if (!IsRegexMode)
-                {
-                    return String.Format("?{0}", String.Join("&", this.Select(pair => pair.Part)));
-                }
+                return (IsRegexMode ? AsRegularExpresion() : AsUriTemplate());
+            }
 
-                var totalParameters = 0;
-                var optionalParameters = 0;
+            private string AsRegularExpresion()
+            {
+                StringBuilder fixedParameters = new StringBuilder(128);
+                int optionalParameters = 0;
                 foreach (var parameter in this)
                 {
-                    totalParameters++;
-                    if (parameter.HasDefaultValue)
+                    optionalParameters += ((parameter.HasDefaultValue) || (!((ParameterInfo)parameter.Member).ParameterType.IsValueType) ? 1 : 0);
+                    var match = VariableTemplateRegex.Match(((FromQueryStringAttribute)parameter.Source).UriTemplate);
+                    var parameterName = match.Groups[1].Value;
+                    fixedParameters.Append(fixedParameters.Length == 0 ? "([?&](" : "|");
+                    fixedParameters.Append(parameterName);
+                }
+
+                if (fixedParameters.Length > 0)
+                {
+                    fixedParameters.AppendFormat(")=[^&]{0}){1}", (optionalParameters == 0 ? "+" : "*"), (optionalParameters == 0 ? "{1,}" : "{0,}"));
+                }
+
+                return fixedParameters.ToString();
+            }
+
+            private string AsUriTemplate()
+            {
+                StringBuilder fixedParameters = new StringBuilder(128);
+                StringBuilder optionalParameters = new StringBuilder(128);
+                foreach (var parameter in this)
+                {
+                    var match = VariableTemplateRegex.Match(((FromQueryStringAttribute)parameter.Source).UriTemplate);
+                    var parameterName = match.Groups[1].Value;
+                    if ((parameter.HasDefaultValue) || (!((ParameterInfo)parameter.Member).ParameterType.IsValueType))
                     {
-                        optionalParameters++;
+                        optionalParameters.Append(optionalParameters.Length == 0 ? "{&" : ",");
+                        optionalParameters.Append(parameterName + match.Groups[2].Value);
+                    }
+                    else
+                    {
+                        fixedParameters.Append("&");
+                        fixedParameters.AppendFormat("{0}={{{0}}}", parameterName);
                     }
                 }
 
-                return (optionalParameters == totalParameters ? "(" : String.Empty) +
-                    "[?&](" + String.Join("|", this.Select(pair => pair.Part)) + ")=[^&]+" +
-                    (optionalParameters == totalParameters ? "){0,}" : String.Empty);
+                if (optionalParameters.Length > 0)
+                {
+                    optionalParameters.Append("}");
+                }
+
+                if (fixedParameters.Length > 0)
+                {
+                    fixedParameters.Remove(0, 1).Insert(0, "?");
+                }
+                else if (optionalParameters.Length > 0)
+                {
+                    optionalParameters.Remove(1, 1).Insert(1, "?");
+                }
+
+                return fixedParameters.Append(optionalParameters).ToString();
             }
         }
     }

@@ -23,7 +23,7 @@ namespace Given_instance_of_the.ControllerDescriptionBuilder_class
             var method = typeof(CrudController).GetMethod("SetRoles");
             var details = _builder.BuildDescriptor().Operations.Cast<OperationInfo<Verb>>().FirstOrDefault(operation => operation.UnderlyingMethod == method);
 
-            details.UriTemplate.Should().Be("/api/person/id/{?id}/roles");
+            details.UriTemplate.Should().Be("/api/person/{id}/roles");
             details.ProtocolSpecificCommand.Should().Be(Verb.POST);
         }
 

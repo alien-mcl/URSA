@@ -30,15 +30,15 @@ namespace Given_instance_of_the.ControllerDescriptionBuilder_class
 
             details.Should().NotBeNull();
             details.ProtocolSpecificCommand.Should().Be(Verb.GET);
-            details.UriTemplate.Should().Be("/api/test/add?operandA={?operandA}&operandB={?operandB}");
-            details.TemplateRegex.ToString().Should().Be("^/api/test/add([?&](operandA|operandB)=[^&]+){0,}$");
+            details.UriTemplate.Should().Be("/api/test/add{?operandA,operandB}");
+            details.TemplateRegex.ToString().Should().Be("^/api/test/add([?&](operandA|operandB)=[^&]*){0,}$");
             details.Uri.ToString().Should().Be("/api/test/add");
             details.Arguments.Should().HaveCount(method.GetParameters().Length);
             details.Arguments.First().Parameter.Should().Be(method.GetParameters().First());
-            details.Arguments.First().UriTemplate.Should().Be("&operandA={?operandA}");
+            details.Arguments.First().UriTemplate.Should().Be("{?operandA}");
             details.Arguments.First().VariableName.Should().Be("operandA");
             details.Arguments.Last().Parameter.Should().Be(method.GetParameters().Last());
-            details.Arguments.Last().UriTemplate.Should().Be("&operandB={?operandB}");
+            details.Arguments.Last().UriTemplate.Should().Be("{?operandB}");
             details.Arguments.Last().VariableName.Should().Be("operandB");
         }
 
@@ -50,14 +50,15 @@ namespace Given_instance_of_the.ControllerDescriptionBuilder_class
 
             details.Should().NotBeNull();
             details.ProtocolSpecificCommand.Should().Be(Verb.GET);
-            details.UriTemplate.Should().Be("/api/test/sub/operandA/{?operandA}?operandB={?operandB}");
+            details.UriTemplate.Should().Be("/api/test/sub/{operandA}?operandB={operandB}");
+            details.TemplateRegex.ToString().Should().Be("^/api/test/sub/[^/?]+([?&](operandB)=[^&]+){1,}$");
             details.Uri.ToString().Should().Be("/api/test/sub");
             details.Arguments.Should().HaveCount(method.GetParameters().Length);
             details.Arguments.First().Parameter.Should().Be(method.GetParameters().First());
-            details.Arguments.First().UriTemplate.Should().Be("/api/test/sub/operandA/{?operandA}");
+            details.Arguments.First().UriTemplate.Should().Be("/api/test/sub/{operandA}");
             details.Arguments.First().VariableName.Should().Be("operandA");
             details.Arguments.Last().Parameter.Should().Be(method.GetParameters().Last());
-            details.Arguments.Last().UriTemplate.Should().Be("&operandB={?operandB}");
+            details.Arguments.Last().UriTemplate.Should().Be("&operandB={operandB}");
             details.Arguments.Last().VariableName.Should().Be("operandB");
         }
 
@@ -69,14 +70,15 @@ namespace Given_instance_of_the.ControllerDescriptionBuilder_class
 
             details.Should().NotBeNull();
             details.ProtocolSpecificCommand.Should().Be(Verb.GET);
-            details.UriTemplate.Should().Be("/api/test/multiply/operandB/{?operandB}?operandA={?operandA}");
+            details.UriTemplate.Should().Be("/api/test/multiply/{operandB}?operandA={operandA}");
+            details.TemplateRegex.ToString().Should().Be("^/api/test/multiply/[^/?]+([?&](operandA)=[^&]+){1,}$");
             details.Uri.ToString().Should().Be("/api/test/multiply");
             details.Arguments.Should().HaveCount(method.GetParameters().Length);
             details.Arguments.First().Parameter.Should().Be(method.GetParameters().First());
-            details.Arguments.First().UriTemplate.Should().Be("&operandA={?operandA}");
+            details.Arguments.First().UriTemplate.Should().Be("&operandA={operandA}");
             details.Arguments.First().VariableName.Should().Be("operandA");
             details.Arguments.Last().Parameter.Should().Be(method.GetParameters().Last());
-            details.Arguments.Last().UriTemplate.Should().Be("/api/test/multiply/operandB/{?operandB}");
+            details.Arguments.Last().UriTemplate.Should().Be("/api/test/multiply/{operandB}");
             details.Arguments.Last().VariableName.Should().Be("operandB");
         }
 
@@ -88,11 +90,12 @@ namespace Given_instance_of_the.ControllerDescriptionBuilder_class
 
             details.Should().NotBeNull();
             details.ProtocolSpecificCommand.Should().Be(Verb.POST);
-            details.UriTemplate.Should().Be("/api/test/div/operandA/{?operandA}");
+            details.UriTemplate.Should().Be("/api/test/div/{operandA}");
+            details.TemplateRegex.ToString().Should().Be("^/api/test/div/[^/?]+$");
             details.Uri.ToString().Should().Be("/api/test/div");
             details.Arguments.Should().HaveCount(method.GetParameters().Length);
             details.Arguments.First().Parameter.Should().Be(method.GetParameters().First());
-            details.Arguments.First().UriTemplate.Should().Be("/api/test/div/operandA/{?operandA}");
+            details.Arguments.First().UriTemplate.Should().Be("/api/test/div/{operandA}");
             details.Arguments.First().VariableName.Should().Be("operandA");
             details.Arguments.Last().Parameter.Should().Be(method.GetParameters().Last());
             details.Arguments.Last().UriTemplate.Should().Be(null);
@@ -125,15 +128,15 @@ namespace Given_instance_of_the.ControllerDescriptionBuilder_class
 
             details.Should().NotBeNull();
             details.ProtocolSpecificCommand.Should().Be(Verb.GET);
-            details.UriTemplate.Should().Be("/api/test/power/operandA/{?operandA}/operandB/{?operandB}");
-            details.TemplateRegex.ToString().Should().Be("^/api/test/power(/operandA/[^/?]+)?(/operandB/[^/?]+)?$");
+            details.UriTemplate.Should().Be("/api/test/power/{operandA}/{operandB}");
+            details.TemplateRegex.ToString().Should().Be("^/api/test/power(/[^/?]+)?(/[^/?]+)?$");
             details.Uri.ToString().Should().Be("/api/test/power");
             details.Arguments.Should().HaveCount(method.GetParameters().Length);
             details.Arguments.First().Parameter.Should().Be(method.GetParameters().First());
-            details.Arguments.First().UriTemplate.Should().Be("/api/test/power/operandA/{?operandA}");
+            details.Arguments.First().UriTemplate.Should().Be("/api/test/power/{operandA}");
             details.Arguments.First().VariableName.Should().Be("operandA");
             details.Arguments.Last().Parameter.Should().Be(method.GetParameters().Last());
-            details.Arguments.Last().UriTemplate.Should().Be("/api/test/power/operandA/{?operandA}/operandB/{?operandB}");
+            details.Arguments.Last().UriTemplate.Should().Be("/api/test/power/{operandA}/{operandB}");
             details.Arguments.Last().VariableName.Should().Be("operandB");
         }
 
@@ -145,11 +148,11 @@ namespace Given_instance_of_the.ControllerDescriptionBuilder_class
 
             details.Should().NotBeNull();
             details.ProtocolSpecificCommand.Should().Be(Verb.GET);
-            details.UriTemplate.Should().Be("/api/test/log?operands={?operands}");
+            details.UriTemplate.Should().Be("/api/test/log{?operands*}");
             details.Uri.ToString().Should().Be("/api/test/log");
             details.Arguments.Should().HaveCount(method.GetParameters().Length);
             details.Arguments.First().Parameter.Should().Be(method.GetParameters().First());
-            details.Arguments.First().UriTemplate.Should().Be("&operands={?operands}");
+            details.Arguments.First().UriTemplate.Should().Be("{?operands*}");
             details.Arguments.First().VariableName.Should().Be("operands");
         }
 
@@ -180,7 +183,7 @@ namespace Given_instance_of_the.ControllerDescriptionBuilder_class
             IEnumerable<ArgumentInfo> mappings;
             var result = _builder.GetOperationUriTemplate(method, out mappings);
 
-            result.Should().Be("/api/test/log?operands={?operands}");
+            result.Should().Be("/api/test/log{?operands*}");
             mappings.Should().HaveCount(method.GetParameters().Length);
             mappings.First().Parameter.Should().Be(method.GetParameters()[0]);
         }

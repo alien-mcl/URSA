@@ -5,10 +5,11 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Newtonsoft.Json;
 using URSA.Web.Converters;
+using URSA.Web.Http;
 using URSA.Web.Http.Mapping;
 using URSA.Web.Http.Tests.Data;
 
-namespace URSA.Web.Http.Tests.Given_instance_of_the
+namespace Given_instance_of_the
 {
     [TestClass]
     public class ResultBinder_class
