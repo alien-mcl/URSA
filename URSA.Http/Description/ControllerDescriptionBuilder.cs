@@ -175,7 +175,7 @@ namespace URSA.Web.Description.Http
                     continue;
                 }
 
-                string variableName = (isBodyParameter ? null : UriTemplate.VariableTemplateRegex.Match(parameterUriTemplate).Groups[1].Value.ToLowerCamelCase());
+                string variableName = (isBodyParameter ? null : UriTemplate.VariableTemplateRegex.Match(parameterUriTemplate).Groups["ParameterName"].Value.ToLowerCamelCase());
                 if (parameterTemplateRegex != null)
                 {
                     restUriTemplate = false;

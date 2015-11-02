@@ -65,8 +65,7 @@ namespace URSA.Web.Http.Mapping
                 if (!argument.Parameter.IsOut)
                 {
                     value = BindArgument(request, requestMapping, (ArgumentInfo)argument, index, multipartBodies);
-                    if ((value == (argument.Parameter.ParameterType.IsValueType ? Activator.CreateInstance(argument.Parameter.ParameterType) : null)) &&
-                        (argument.Parameter.DefaultValue != null))
+                    if ((value == null) && (argument.Parameter.DefaultValue != null))
                     {
                         value = argument.Parameter.DefaultValue;
                     }

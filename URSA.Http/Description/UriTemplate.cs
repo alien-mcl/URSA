@@ -10,7 +10,7 @@ namespace URSA.Web.Description.Http
 {
     internal class UriTemplate : ICloneable
     {
-        internal static readonly Regex VariableTemplateRegex = new Regex("\\{[/?&#\\.;]*([^*}]+)([*]*)\\}");
+        internal static readonly Regex VariableTemplateRegex = new Regex("\\{(?<ExpansionType>[/?&#\\.;])*(?<ParameterName>[^*}]+)(?<ListIndicator>[*]*)\\}");
         private readonly bool _isRegexMode;
         private readonly Type _controlledEntityType;
         private readonly SegmentList _segments;
@@ -203,7 +203,7 @@ namespace URSA.Web.Description.Http
                 {
                     optionalParameters += ((parameter.HasDefaultValue) || (!((ParameterInfo)parameter.Member).ParameterType.IsValueType) ? 1 : 0);
                     var match = VariableTemplateRegex.Match(((FromQueryStringAttribute)parameter.Source).UriTemplate);
-                    var parameterName = match.Groups[1].Value;
+                    var parameterName = match.Groups["ParameterName"].Value;
                     fixedParameters.Append(fixedParameters.Length == 0 ? "([?&](" : "|");
                     fixedParameters.Append(parameterName);
                 }
@@ -223,11 +223,11 @@ namespace URSA.Web.Description.Http
                 foreach (var parameter in this)
                 {
                     var match = VariableTemplateRegex.Match(((FromQueryStringAttribute)parameter.Source).UriTemplate);
-                    var parameterName = match.Groups[1].Value;
+                    var parameterName = match.Groups["ParameterName"].Value;
                     if ((parameter.HasDefaultValue) || (!((ParameterInfo)parameter.Member).ParameterType.IsValueType))
                     {
                         optionalParameters.Append(optionalParameters.Length == 0 ? "{&" : ",");
-                        optionalParameters.Append(parameterName + match.Groups[2].Value);
+                        optionalParameters.Append(parameterName + match.Groups["ListIndicator"].Value);
                     }
                     else
                     {

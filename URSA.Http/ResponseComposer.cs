@@ -55,8 +55,7 @@ namespace URSA.Web.Http
             ResponseInfo result = null;
             if (output is ResponseInfo)
             {
-                result = (ResponseInfo)output;
-                if (result != response)
+                if ((result = (ResponseInfo)output) != response)
                 {
                     result.Headers.Merge(response.Headers);
                 }
@@ -74,7 +73,7 @@ namespace URSA.Web.Http
                 if (requestMapping.Target.GetType().GetInterfaces()
                     .Any(@interface => (@interface.IsGenericType) && (typeof(IController<>).IsAssignableFrom(@interface.GetGenericTypeDefinition()))))
                 {
-                    result = HandleCrudRequest(requestMapping, resultingValues, out success);
+                    result = HandleCrudRequest(requestMapping, resultingValues, arguments, out success);
                 }
 
                 if (!success)
@@ -88,11 +87,7 @@ namespace URSA.Web.Http
                 result.Headers.ContentType = StringConverter.TextPlain;
             }
 
-            if (result.Status == 0)
-            {
-                result.Status = HttpStatusCode.OK;
-            }
-
+            result.Status = (result.Status == 0 ? HttpStatusCode.OK : result.Status);
             return result;
         }
 
@@ -133,7 +128,7 @@ namespace URSA.Web.Http
             return result;
         }
 
-        private ResponseInfo HandleCrudRequest(IRequestMapping requestMapping, IList<object> resultingValues, out bool success)
+        private ResponseInfo HandleCrudRequest(IRequestMapping requestMapping, IList<object> resultingValues, object[] arguments, out bool success)
         {
             success = true;
             var methods = GetCrudMethods(requestMapping.Target.GetType());
@@ -144,14 +139,16 @@ namespace URSA.Web.Http
                 {
                     case "":
                         var type = requestMapping.Operation.UnderlyingMethod.ReturnType;
-                        return MakeResponse(requestMapping, (resultingValues.Count > 0 ? resultingValues : new[] { new object[0].MakeInstance(type, type.GetItemType()) }));
+                        var items = (resultingValues.Count > 1 ? (IEnumerable)resultingValues[1] : new[] { new object[0].MakeInstance(type, type.GetItemType()) });
+                        var totalItems = (resultingValues.Count > 0 ? (int)resultingValues[0] : -1);
+                        return MakeListResponse(requestMapping, items, arguments, totalItems);
                     case "GET":
                         return MakeGetResponse(requestMapping, (resultingValues.Count > 0 ? resultingValues[resultingValues.Count - 1] : null));
                     case "POST":
                         return MakePostResponse(requestMapping, (resultingValues.Count > 0 ? resultingValues[0] : null));
                     case "PUT":
                     case "DELETE":
-                        return MakeResponse(requestMapping);
+                        return MakeDeleteResponse(requestMapping);
                 }
             }
 
@@ -166,20 +163,47 @@ namespace URSA.Web.Http
             var headerValues = new List<KeyValuePair<ResultInfo, object>>();
             requestMapping.Operation.Results.ForEach((resultValue, index) =>
                 (resultValue.Target is ToHeaderAttribute ? headerValues : bodyValues).Add(new KeyValuePair<ResultInfo, object>(resultValue, resultingValues[index])));
+
             switch (bodyValues.Count)
             {
                 case 0:
                     break;
                 case 1:
-                    result = ObjectResponseInfo<object>.CreateInstance(result.Encoding, result.Request, bodyValues[0].Value.GetType(), bodyValues[0].Value, _converterProvider, result.Headers);
+                    var bodyValue = bodyValues[0];
+                    result = ObjectResponseInfo<object>.CreateInstance(result.Encoding, result.Request, bodyValue.Value.GetType(), bodyValue.Value, _converterProvider, result.Headers);
                     break;
                 default:
                     result = new MultiObjectResponseInfo(result.Encoding, result.Request, bodyValues.Select(item => item.Value), _converterProvider, result.Headers);
                     break;
             }
 
-            headerValues.ForEach(value => result.Headers.Add(new Header(((ToHeaderAttribute)value.Key.Target).Name, _converterProvider.ConvertFrom(value.Value))));
+            headerValues.ForEach(value => result.Headers.Add(new Header(
+                ((ToHeaderAttribute)value.Key.Target).Name,
+                String.Format(((ToHeaderAttribute)value.Key.Target).Format, _converterProvider.ConvertFrom(value.Value)))));
             return result;
+        }
+
+        private ResponseInfo MakeListResponse(IRequestMapping requestMapping, IEnumerable resultingValues, object[] arguments, int totalItems = 0)
+        {
+            ResponseInfo result = (ResponseInfo)requestMapping.Target.Response;
+            if ((arguments[0] != null) && (arguments[1]) != null)
+            {
+                int skip = (int)arguments[1];
+                int take = (int)arguments[2];
+                if (take > 0)
+                {
+                    var contentRangeHeaderValue = String.Format("members {0}-{1}/{2}", skip, Math.Min(take, resultingValues.Cast<object>().Count()), totalItems);
+                    result.Headers.Add(new Header("Content-Range", contentRangeHeaderValue));
+                }
+            }
+
+            return ObjectResponseInfo<object>.CreateInstance(
+                result.Encoding,
+                result.Request,
+                requestMapping.Operation.UnderlyingMethod.ReturnType,
+                resultingValues,
+                _converterProvider,
+                result.Headers);
         }
 
         private ResponseInfo MakeGetResponse(IRequestMapping requestMapping, object resultingValue)
@@ -225,7 +249,7 @@ namespace URSA.Web.Http
             return result;
         }
 
-        private ResponseInfo MakeResponse(IRequestMapping requestMapping)
+        private ResponseInfo MakeDeleteResponse(IRequestMapping requestMapping)
         {
             ResponseInfo result = (ResponseInfo)requestMapping.Target.Response;
             result.Status = HttpStatusCode.NoContent;

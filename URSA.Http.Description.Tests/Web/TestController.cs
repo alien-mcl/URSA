@@ -14,11 +14,13 @@ namespace URSA.Web.Http.Description.Tests
         public IResponseInfo Response { get; set; }
 
         /// <summary>Gets all persons.</summary>
+        /// <param name="totalItems">Total items in collection.</param>
         /// <param name="page">Page of the collection. Use 0 for all of the entities.</param>
         /// <param name="pageSize">Page size. Ignored when <paramref name="page" /> is set to 0.</param>
         /// <returns>Collection of entities.</returns>
-        public IEnumerable<Person> List(int page = 0, int pageSize = 0)
+        public IEnumerable<Person> List(out int totalItems, int page = 0, int pageSize = 0)
         {
+            totalItems = 0;
             return new Person[0];
         }
 

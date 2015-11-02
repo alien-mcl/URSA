@@ -7,9 +7,12 @@ namespace URSA.Web.Mapping
     [ExcludeFromCodeCoverage]
     public class ToHeaderAttribute : ResultTargetAttribute
     {
+        private const string DefaultFormat = "{0}";
+
         /// <summary>Initializes a new instance of the <see cref="ToHeaderAttribute" /> class.</summary>
         /// <param name="name">Name of the header to be used.</param>
-        public ToHeaderAttribute(string name)
+        /// <param name="format">Optional format string of the header value. Value of "{0}" is used if none provided.</param>
+        public ToHeaderAttribute(string name, string format = DefaultFormat)
         {
             if (name == null)
             {
@@ -22,9 +25,13 @@ namespace URSA.Web.Mapping
             }
 
             Name = name;
+            Format = format ?? DefaultFormat;
         }
 
         /// <summary>Gets the name of the header to be used.</summary>
         public string Name { get; private set; }
+
+        /// <summary>Gets the format string of the header value.</summary>
+        public string Format { get; private set; }
     }
 }

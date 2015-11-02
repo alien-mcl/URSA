@@ -37,11 +37,24 @@ namespace URSA.Example.WebApplication.Controllers
         public IResponseInfo Response { get; set; }
 
         /// <summary>Gets all products.</summary>
+        /// <param name="totalItems">Number of total items in the collection if <paramref name="skip" /> and <paramref name="take" /> are used.</param>
         /// <param name="skip">Skips top <paramref name="skip" /> elements of the collection.</param>
         /// <param name="take">Takes top <paramref name="take" /> elements of the collection. Use 0 for all of the entities.</param>
         /// <returns>Collection of entities.</returns>
-        public IEnumerable<IProduct> List([LinqServerBehavior(LinqOperations.Skip)] int skip = 0, [LinqServerBehavior(LinqOperations.Take)] int take = 0)
+        public IEnumerable<IProduct> List(out int totalItems, [LinqServerBehavior(LinqOperations.Skip)] int skip = 0, [LinqServerBehavior(LinqOperations.Take)] int take = 0)
         {
+            totalItems = _repository.Count;
+            IEnumerable<IProduct> result = _repository;
+            if (skip > 0)
+            {
+                result = result.Skip(skip);
+            }
+
+            if (take > 0)
+            {
+                result = result.Take(take);
+            }
+
             return _repository;
         }
 

@@ -2,6 +2,9 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using URSA.Web;
 using URSA.Web.Description;
@@ -18,15 +21,18 @@ namespace Given_instance_of_the.ResponseComposer_class
         [TestMethod]
         public void it_should_handle_List_request_correctly()
         {
-            object[] arguments = { 1, 2 };
-            var expected = new Person[] { new Person() { Key = 1 } };
-            Converter.Setup(instance => instance.ConvertFrom(expected, It.IsAny<IResponseInfo>()));
+            object[] arguments = { 1, 1, 2 };
+            var expected = new[] { new Person() { Key = 1 } };
+            Converter.Setup(instance => instance.ConvertFrom(It.Is<IEnumerable>(collection => collection.Cast<Person>().Contains(expected[0])), It.IsAny<IResponseInfo>()));
 
             var result = Composer.ComposeResponse(CreateRequestMapping("List", arguments), expected, arguments);
 
-            result.Should().BeOfType<ObjectResponseInfo<Person[]>>();
+            result.Should().NotBeNull();
+            result.GetType().IsGenericType.Should().BeTrue();
+            result.GetType().GetGenericTypeDefinition().Should().Be(typeof(ObjectResponseInfo<>));
+            typeof(IEnumerable<Person>).IsAssignableFrom(result.GetType().GetGenericArguments()[0]).Should().BeTrue();
             result.Status.Should().Be(HttpStatusCode.OK);
-            Converter.Verify(instance => instance.ConvertFrom(expected, It.IsAny<IResponseInfo>()), Times.Once);
+            Converter.Verify(instance => instance.ConvertFrom(It.Is<IEnumerable>(collection => collection.Cast<Person>().Contains(expected[0])), It.IsAny<IResponseInfo>()), Times.Once);
         }
 
         [TestMethod]

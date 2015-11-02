@@ -16,12 +16,25 @@ namespace URSA.Example.WebApplication.Controllers
         public IResponseInfo Response { get; set; }
 
         /// <summary>Gets all persons.</summary>
+        /// <param name="totalItems">Number of total items in the collection if <paramref name="skip" /> and <paramref name="take" /> are used.</param>
         /// <param name="skip">Skips top <paramref name="skip" /> elements of the collection.</param>
         /// <param name="take">Takes top <paramref name="take" /> elements of the collection. Use 0 for all of the entities.</param>
         /// <returns>Collection of entities.</returns>
-        public IEnumerable<Person> List([LinqServerBehavior(LinqOperations.Skip)] int skip = 0, [LinqServerBehavior(LinqOperations.Take)] int take = 0)
+        public IEnumerable<Person> List(out int totalItems, [LinqServerBehavior(LinqOperations.Skip)] int skip = 0, [LinqServerBehavior(LinqOperations.Take)] int take = 0)
         {
-            return Repository;
+            totalItems = Repository.Count;
+            IEnumerable<Person> result = Repository;
+            if (skip > 0)
+            {
+                result = result.Skip(skip);
+            }
+
+            if (take > 0)
+            {
+                result = result.Take(take);
+            }
+
+            return result;
         }
 
         /// <summary>Gets the person with identifier of <paramref name="id" />.</summary>

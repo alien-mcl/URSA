@@ -145,7 +145,7 @@ namespace URSA.Web.Http.Reflection
 
         private static void CreateParameterTemplateRegex(this ParameterInfo parameter, FromQueryStringAttribute fromQueryString, out string parameterTemplateRegex)
         {
-            var parameterName = UriTemplate.VariableTemplateRegex.Match(fromQueryString.UriTemplate).Groups[1].Value;
+            var parameterName = UriTemplate.VariableTemplateRegex.Match(fromQueryString.UriTemplate).Groups["ParameterName"].Value;
             parameterTemplateRegex = (parameter.HasDefaultValue) || (!parameter.ParameterType.IsValueType) ?
                 String.Format("([?&]({0}=[^&]*)){{0,}}", parameterName) :
                 String.Format("([?&]({0}=[^&]*)){{1,}}", parameterName);

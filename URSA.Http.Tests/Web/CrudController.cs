@@ -56,9 +56,10 @@ namespace URSA.Web.Tests
             return new Person() { Key = id };
         }
 
-        public IEnumerable<Person> List(int skip = 0, int take = 0)
+        public IEnumerable<Person> List(out int totalItems, int skip = 0, int take = 0)
         {
-            return new Person[] { new Person() { Key = 1 } };
+            totalItems = 1;
+            return new[] { new Person() { Key = 1 } };
         }
 
         public void SetRoles(int id, IEnumerable<string> roles)
