@@ -186,13 +186,13 @@ namespace URSA.Web.Http
         private ResponseInfo MakeListResponse(IRequestMapping requestMapping, IEnumerable resultingValues, object[] arguments, int totalItems = 0)
         {
             ResponseInfo result = (ResponseInfo)requestMapping.Target.Response;
-            if ((arguments[0] != null) && (arguments[1]) != null)
+            if ((arguments[0] != null) && (arguments[1] != null))
             {
                 int skip = (int)arguments[1];
                 int take = (int)arguments[2];
                 if (take > 0)
                 {
-                    var contentRangeHeaderValue = String.Format("members {0}-{1}/{2}", skip, Math.Min(take, resultingValues.Cast<object>().Count()), totalItems);
+                    var contentRangeHeaderValue = String.Format("members {0}-{1}/{2}", skip, Math.Max(0, Math.Min(take, resultingValues.Cast<object>().Count()) - 1), totalItems);
                     result.Headers.Add(new Header("Content-Range", contentRangeHeaderValue));
                 }
             }

@@ -55,7 +55,7 @@ namespace URSA.Example.WebApplication.Controllers
                 result = result.Take(take);
             }
 
-            return _repository;
+            return result;
         }
 
         /// <summary>Gets the product with identifier of <paramref name="id" />.</summary>
