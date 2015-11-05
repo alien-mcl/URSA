@@ -2,11 +2,13 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
+using System.Dynamic;
 using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
+using Resta.UriTemplates;
 using URSA.ComponentModel;
 using URSA.Configuration;
 using URSA.Web.Converters;
@@ -54,28 +56,16 @@ namespace URSA.Web.Http
 
         private Uri BaseUri { get; set; }
 
-        internal Uri BuildUri(string url, dynamic uriArguments)
+        internal Uri BuildUri(string url, ExpandoObject uriArguments)
         {
-            foreach (KeyValuePair<string, object> argument in uriArguments)
+            var template = new UriTemplate(BaseUri + url.TrimStart('/'));
+            var variables = new Dictionary<string, object>();
+            foreach (KeyValuePair<string, object> property in uriArguments)
             {
-                string value = String.Empty;
-                if (argument.Value != null)
-                {
-                    TypeConverter typeConverter = TypeDescriptor.GetConverter(argument.Value.GetType());
-                    if ((typeConverter != null) && (typeConverter.CanConvertTo(typeof(string))))
-                    {
-                        value = typeConverter.ConvertToInvariantString(argument.Value) ?? String.Empty;
-                    }
-                    else
-                    {
-                        value = argument.Value.ToString();
-                    }
-                }
-
-                url = Regex.Replace(url, String.Format("{{\\?{0}}}", argument.Key), value);
+                variables[property.Key] = property.Value.ToString();
             }
 
-            return new Uri(BaseUri, url);
+            return template.ResolveUri(variables);
         }
 
         /// <summary>Calls the ReST service using specified HTTP verb.</summary>
@@ -87,10 +77,10 @@ namespace URSA.Web.Http
         /// <param name="uriArguments">The URI template arguments.</param>
         /// <param name="bodyArguments">The body arguments.</param>
         /// <returns>Result of the call.</returns>
-        protected internal T Call<T>(Verb verb, string url, IEnumerable<string> mediaTypes, IEnumerable<string> contentType, dynamic uriArguments, params object[] bodyArguments)
+        protected internal T Call<T>(Verb verb, string url, IEnumerable<string> mediaTypes, IEnumerable<string> contentType, ExpandoObject uriArguments, params object[] bodyArguments)
         {
             var result = Call(verb, url, mediaTypes, contentType, typeof(T), uriArguments, bodyArguments);
-            return (result == null ? default(T) : Convert.ChangeType(result, typeof(T)));
+            return (result == null ? default(T) : (result is T ? (T)result : (T)Convert.ChangeType(result, typeof(T))));
         }
 
         /// <summary>Calls the ReST service using specified HTTP verb.</summary>
@@ -100,7 +90,7 @@ namespace URSA.Web.Http
         /// <param name="contentType">Enumeration of possible content type media types.</param>
         /// <param name="uriArguments">The URI template arguments.</param>
         /// <param name="bodyArguments">The body arguments.</param>
-        protected void Call(Verb verb, string url, IEnumerable<string> accept, IEnumerable<string> contentType, dynamic uriArguments, params object[] bodyArguments)
+        protected void Call(Verb verb, string url, IEnumerable<string> accept, IEnumerable<string> contentType, ExpandoObject uriArguments, params object[] bodyArguments)
         {
             Call(verb, url, accept, contentType, uriArguments, bodyArguments);
         }
@@ -114,9 +104,8 @@ namespace URSA.Web.Http
         /// <param name="uriArguments">The URI template arguments.</param>
         /// <param name="bodyArguments">The body arguments.</param>
         /// <returns>Result of the call.</returns>
-        protected object Call(Verb verb, string url, IEnumerable<string> accept, IEnumerable<string> contentType, Type responseType, dynamic uriArguments, params object[] bodyArguments)
+        protected object Call(Verb verb, string url, IEnumerable<string> accept, IEnumerable<string> contentType, Type responseType, ExpandoObject uriArguments, params object[] bodyArguments)
         {
-            RequestInfo fakeRequest;
             var uri = BuildUri(url, uriArguments);
             var validAccept = (!accept.Any() ? _converterProvider.SupportedMediaTypes :
                 _converterProvider.SupportedMediaTypes.Join(accept, outer => outer, inner => inner, (outer, inner) => inner));
@@ -125,39 +114,64 @@ namespace URSA.Web.Http
             request.Method = verb.ToString();
             if ((bodyArguments != null) && (bodyArguments.Length > 0))
             {
-                fakeRequest = new RequestInfo(verb, uri, new MemoryStream(), new Header(Header.Accept, accepted.ToArray()));
-                ResponseInfo fakeResponse = CreateFakeResponseInfo(fakeRequest, contentType, bodyArguments);
-                using (var target = request.GetRequestStream())
-                using (var source = fakeResponse.Body)
-                {
-                    source.CopyTo(target);
-                }
-
-                foreach (var header in fakeResponse.Headers)
-                {
-                    switch (header.Name)
-                    {
-                        case Header.ContentLength:
-                            break;
-                        case Header.ContentType:
-                            request.ContentType = header.Value;
-                            break;
-                        default:
-                            request.Headers.Add(header.Name, header.Value);
-                            break;
-                    }
-                }
+                FillRequestBody(verb, uri, request, contentType, accepted, bodyArguments);
             }
 
             var response = (HttpWebResponse)request.GetResponse();
+            ParseContentRange(response, uriArguments);
             if (responseType == null)
             {
                 return null;
             }
 
-            fakeRequest = new RequestInfo(verb, uri, response.GetResponseStream(), HeaderCollection.Parse(response.Headers.ToString()));
+            RequestInfo fakeRequest = new RequestInfo(verb, uri, response.GetResponseStream(), HeaderCollection.Parse(response.Headers.ToString()));
             var result = _resultBinder.BindResults(responseType, fakeRequest);
             return result.FirstOrDefault(responseType.IsInstanceOfType);
+        }
+
+        private void FillRequestBody(Verb verb, Uri uri, WebRequest request, IEnumerable<string> contentType, IEnumerable<string> accepted, params object[] bodyArguments)
+        {
+            RequestInfo fakeRequest = new RequestInfo(verb, uri, new MemoryStream(), new Header(Header.Accept, accepted.ToArray()));
+            ResponseInfo fakeResponse = CreateFakeResponseInfo(fakeRequest, contentType, bodyArguments);
+            using (var target = request.GetRequestStream())
+            using (var source = fakeResponse.Body)
+            {
+                source.CopyTo(target);
+            }
+
+            foreach (var header in fakeResponse.Headers)
+            {
+                switch (header.Name)
+                {
+                    case Header.ContentLength:
+                        break;
+                    case Header.ContentType:
+                        request.ContentType = header.Value;
+                        break;
+                    default:
+                        request.Headers.Add(header.Name, header.Value);
+                        break;
+                }
+            }
+        }
+
+        private void ParseContentRange(HttpWebResponse response, dynamic uriArguments)
+        {
+            try
+            {
+                if ((uriArguments.totalEntities == 0) && (!String.IsNullOrEmpty(response.Headers["Content-Range"])))
+                {
+                    uriArguments.totalEntities = Int32.Parse(Regex.Match(response.Headers["Content-Range"], "[0-9]+\\-[0-9]+/(?<TotalEntities>[0-9]+)").Groups["TotalEntities"].Value);
+                }
+            }
+            catch (FormatException error)
+            {
+                throw;
+            }
+            catch
+            {
+                // Ignore any other exceptions.
+            }
         }
 
         private ResponseInfo CreateFakeResponseInfo(RequestInfo fakeRequest, IEnumerable<string> contentType, params object[] bodyArguments)

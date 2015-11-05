@@ -50,7 +50,7 @@ namespace URSA.Web.Http.Mapping
             }
 
             Uri uri = MakeUri(context.Parameter, context.RequestMapping.MethodRoute, context.RequestMapping.Operation);
-            string template = UriTemplate.VariableTemplateRegex.Replace(uri.ToString(), "(?<Value>[^/\\?]+)");
+            string template = UriTemplateBuilder.VariableTemplateRegex.Replace(uri.ToString(), "(?<Value>[^/\\?]+)");
             Match match = Regex.Match(context.Request.Uri.ToRelativeUri().ToString(), template);
             return (match.Success ? _converterProvider.ConvertTo(match.Groups["Value"].Value, context.Parameter.ParameterType, context.Request) : null);
         }

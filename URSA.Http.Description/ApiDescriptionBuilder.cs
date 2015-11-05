@@ -77,7 +77,8 @@ namespace URSA.Web.Http.Description
             _namedGraphSelectorFactory = namedGraphSelectorFactory;
         }
 
-        private Type SpecializationType
+        /// <inheritdoc />
+        public Type SpecializationType
         {
             get
             {
@@ -196,7 +197,7 @@ namespace URSA.Web.Http.Description
                 if (template != null)
                 {
                     ITemplatedLink templatedLink = context.ApiDocumentation.Context.Create<ITemplatedLink>(template.Id.Uri.AbsoluteUri.Replace("#template", "#withTemplate"));
-                    templatedLink.Operations.Add(operationDefinition);
+                    templatedLink.SupportedOperations.Add(operationDefinition);
                     context.ApiDocumentation.Context.Store.ReplacePredicateValues(
                         specializationType.Id,
                         Node.ForUri(templatedLink.Id.Uri),
@@ -287,10 +288,8 @@ namespace URSA.Web.Http.Description
             var linqBehaviors = mapping.Parameter.GetCustomAttributes<LinqServerBehaviorAttribute>(true);
             if (linqBehaviors.Any())
             {
-                IClass range = (context.ContainsType(typeof(int)) ? context[typeof(int)] : context.TypeDescriptionBuilder.BuildTypeDescription(context.ForType(typeof(int))));
-                range = context.SubClass(range);
-                range.SingleValue = range.SingleValue;
-                range.MediaTypes.AddRange(range.MediaTypes);
+                IClass range = (context.ContainsType(mapping.Parameter.ParameterType) ? context[mapping.Parameter.ParameterType] :
+                    context.TypeDescriptionBuilder.BuildTypeDescription(context.ForType(mapping.Parameter.ParameterType)));
                 foreach (var visitor in _serverBehaviorAttributeVisitors)
                 {
                     linqBehaviors.Accept(visitor, templateMapping);

@@ -42,6 +42,9 @@ namespace URSA.Web.Http.Description
         }
 
         /// <inheritdoc />
+        public Type SpecializationType { get { return typeof(IApiDocumentation); } }
+
+        /// <inheritdoc />
         public Uri EntryPoint { get; set; }
 
         /// <inheritdoc />

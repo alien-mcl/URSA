@@ -13,6 +13,14 @@ namespace URSA.Example
             var person = new Person() { Firstname = "Test", Lastname = "Testing", Roles = new[] { "Role" } };
             person.Key = client.Create(person);
             Console.WriteLine("Created person '{0}'.", person.Key);
+            int totalEntities;
+            var persons = client.List(out totalEntities, 0, 0);
+            Console.WriteLine("Listing all {0} person(s):", totalEntities);
+            foreach (var item in persons)
+            {
+                Console.WriteLine("Person {0}", person.Key);
+            }
+
             Console.ReadLine();
         }
     }

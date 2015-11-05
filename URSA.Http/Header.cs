@@ -12,6 +12,9 @@ namespace URSA.Web.Http
     public class Header
     {
         /// <summary>Defines the 'Access-Control-Request-Method' header name.</summary>
+        public const string AccessControlAllowOrigin = "Access-Control-Allow-Origin";
+
+        /// <summary>Defines the 'Access-Control-Request-Method' header name.</summary>
         public const string AccessControlRequestMethod = "Access-Control-Request-Method";
 
         /// <summary>Defines the 'Warning' header name.</summary>
@@ -28,6 +31,9 @@ namespace URSA.Web.Http
 
         /// <summary>Defines the 'Content-Encoding' header name.</summary>
         public const string ContentEncoding = "Content-Encoding";
+
+        /// <summary>Defines the 'Content-Range' header name.</summary>
+        public const string ContentRange = "Content-Range";
 
         /// <summary>Defines the 'Accept' header name.</summary>
         public const string Accept = "Accept";

@@ -97,6 +97,11 @@ namespace URSA.Web.Handlers
         private void HandleDocumentationStylesheet(HttpContext context)
         {
             context.Response.ContentType = "text/xsl";
+            if (!String.IsNullOrEmpty(context.Request.Headers[Header.Origin]))
+            {
+                context.Response.Headers[Header.AccessControlAllowOrigin] = context.Request.Headers[Header.Origin];
+            }
+
             using (var source = new StreamReader(GetType().Assembly.GetManifestResourceStream("URSA.Web.DocumentationStylesheet.xslt")))
             {
                 context.Response.Output.Write(source.ReadToEnd());

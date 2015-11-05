@@ -7,6 +7,9 @@ namespace URSA.Web.Http.Description
     /// <summary>Provides a contract of the API description building facility.</summary>
     public interface IApiDescriptionBuilder
     {
+        /// <summary>Gets the type a given controller specializes in.</summary>
+        Type SpecializationType { get; }
+
         /// <summary>Builds an API description.</summary>
         /// <param name="apiDocumentation">API documentation.</param>
         /// <param name="profiles">Requested media type profiles if any.</param>

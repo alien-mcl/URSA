@@ -49,7 +49,7 @@ namespace URSA.Web.Http.Mapping
             }
 
             string template;
-            var variableMatch = UriTemplate.VariableTemplateRegex.Match(context.ParameterSource.UriTemplate);
+            var variableMatch = UriTemplateBuilder.VariableTemplateRegex.Match(context.ParameterSource.UriTemplate);
             template = variableMatch.Success ? 
                 String.Format("{0}=(?<Value>[^&]+)", (variableMatch.Groups["ExpansionType"].Success ? variableMatch.Groups["ParameterName"].Value : context.Parameter.Name)) :
                 context.ParameterSource.UriTemplate.Replace(FromQueryStringAttribute.Key, "&" + context.Parameter.Name + "=");

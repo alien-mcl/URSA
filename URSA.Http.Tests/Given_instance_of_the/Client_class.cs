@@ -19,7 +19,7 @@ namespace Given_instance_of_the
     [TestClass]
     public class Client_class
     {
-        private const string RelativeUri = "/test/person/{?id}";
+        private const string RelativeUri = "/test/person/{id}";
         private static readonly Uri CallUri = new Uri("http://temp.uri/");
         private static readonly dynamic Arguments = new ExpandoObject();
         private static readonly Person Person = new Person() { Key = 1, FirstName = "test", LastName = "test" };
@@ -39,7 +39,7 @@ namespace Given_instance_of_the
 
             Uri result = _client.BuildUri(RelativeUri, Arguments);
 
-            result.Should().Be(new Uri(CallUri.AbsoluteUri + RelativeUri.Substring(1).Replace("{?id}", "1")));
+            result.Should().Be(new Uri(CallUri.AbsoluteUri + RelativeUri.Substring(1).Replace("{id}", "1")));
         }
 
         [TestMethod]

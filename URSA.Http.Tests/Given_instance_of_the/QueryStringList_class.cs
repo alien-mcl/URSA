@@ -12,7 +12,7 @@ namespace Given_instance_of_the
         [TestMethod]
         public void it_should_build_uri_template_properly()
         {
-            var segments = new UriTemplate.QueryStringList(null, false);
+            var segments = new UriTemplateBuilder.QueryStringList(null, false);
             segments.Add("id={?id}", new FromQueryStringAttribute("&id={?id}"), typeof(CrudController).GetMethod("Update").GetParameters()[0]);
             segments.Add("person={?person}", new FromQueryStringAttribute("&person={?person}"), typeof(CrudController).GetMethod("Update").GetParameters()[1]);
 
@@ -24,7 +24,7 @@ namespace Given_instance_of_the
         [TestMethod]
         public void it_should_build_uri_regex_properly()
         {
-            var segments = new UriTemplate.QueryStringList(null, true);
+            var segments = new UriTemplateBuilder.QueryStringList(null, true);
             segments.Add("id=[^&]+", new FromQueryStringAttribute("&id={?id}"), typeof(CrudController).GetMethod("Update").GetParameters()[0]);
             segments.Add("person=[^&]+", new FromQueryStringAttribute("&person={?person}"), typeof(CrudController).GetMethod("Update").GetParameters()[1]);
 

@@ -1,4 +1,6 @@
-﻿using RomanticWeb.Mapping.Attributes;
+﻿using System.Collections;
+using System.Collections.Generic;
+using RomanticWeb.Mapping.Attributes;
 
 namespace URSA.Web.Http.Description.Hydra
 {
@@ -6,5 +8,8 @@ namespace URSA.Web.Http.Description.Hydra
     [Class("hydra", "TemplatedLink")]
     public interface ITemplatedLink : Rdfs.IProperty, IResource
     {
+        /// <summary>Gets the supported operations.</summary>
+        [Collection("hydra", "supportedOperation")]
+        ICollection<IOperation> SupportedOperations { get; }
     }
 }

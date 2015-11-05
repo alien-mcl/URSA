@@ -43,6 +43,10 @@
     <Reference Include="Newtonsoft.Json">
       <HintPath>..\packages\Newtonsoft.Json.6.0.8\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
+    <Reference Include="Resta.UriTemplates, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Resta.UriTemplates.1.2.0\lib\net35-client\Resta.UriTemplates.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
@@ -75,7 +79,7 @@
     <Compile Include="Description\DefaultValueRelationSelector.cs" />
     <Compile Include="Description\IDefaultValueRelationSelector.cs" />
     <Compile Include="Description\OptionsController.cs" />
-    <Compile Include="Description\UriTemplate.cs" />
+    <Compile Include="Description\UriTemplateBuilder.cs" />
     <Compile Include="ExceptionExtensions.cs" />
     <Compile Include="DelegateMapper.cs" />
     <Compile Include="Header.cs" />

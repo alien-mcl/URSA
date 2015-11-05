@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace URSA.Web.Http.Description.CodeGen
 {
@@ -18,16 +15,17 @@ namespace URSA.Web.Http.Description.CodeGen
                 throw new ArgumentNullException("uri");
             }
 
-            if (uri.Scheme != "urn")
+            if ((uri.Scheme != "urn") && (uri.Scheme != "javascript"))
             {
                 return UriParserCompatibility.None;
             }
 
             string segment = null;
-            if ((uri.Segments.Length > 0) && ((segment = uri.Segments.First()) != null) &&
-                ((segment.StartsWith(URSA.Reflection.TypeExtensions.DotNetSymbol)) ||
-                 (segment.StartsWith(URSA.Reflection.TypeExtensions.DotNetListSymbol)) ||
-                 (segment.StartsWith(URSA.Reflection.TypeExtensions.HydraSymbol))))
+            ////((segment.StartsWith(URSA.Reflection.TypeExtensions.DotNetSymbol)) ||
+            //// (segment.StartsWith(URSA.Reflection.TypeExtensions.DotNetListSymbol)) ||
+            //// (segment.StartsWith(URSA.Reflection.TypeExtensions.HydraSymbol))))
+            if ((uri.Scheme == URSA.Reflection.TypeExtensions.JavascriptSymbol) ||
+                ((uri.Segments.Length > 0) && ((segment = uri.Segments.First()) != null) && (segment.StartsWith(URSA.Reflection.TypeExtensions.HydraSymbol))))
             {
                 return UriParserCompatibility.ExactMatch;
             }
@@ -51,12 +49,17 @@ namespace URSA.Web.Http.Description.CodeGen
                 language = name.Substring(0, colonIndex);
                 name = name.Substring(colonIndex + 1);
             }
+            else
+            {
+                language = uri.Scheme;
+            }
 
             switch (language)
             {
-                case URSA.Reflection.TypeExtensions.DotNetListSymbol:
-                case URSA.Reflection.TypeExtensions.DotNetEnumerableSymbol:
-                case URSA.Reflection.TypeExtensions.DotNetSymbol:
+                ////case URSA.Reflection.TypeExtensions.DotNetListSymbol:
+                ////case URSA.Reflection.TypeExtensions.DotNetEnumerableSymbol:
+                ////case URSA.Reflection.TypeExtensions.DotNetSymbol:
+                case URSA.Reflection.TypeExtensions.JavascriptSymbol:
                 case URSA.Reflection.TypeExtensions.HydraSymbol:
                     break;
                 default:

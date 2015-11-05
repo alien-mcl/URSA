@@ -12,7 +12,7 @@ namespace Given_instance_of_the
         [TestMethod]
         public void it_should_build_uri_template_properly()
         {
-            var segments = new UriTemplate.SegmentList(null, false);
+            var segments = new UriTemplateBuilder.SegmentList(null, false);
             segments.Add("/api", null, typeof(CrudController));
             segments.Add("person", new RouteAttribute("/person"), typeof(CrudController).GetMethod("Update"));
             segments.Add("id/{?id}", new FromUriAttribute("/id/{?value}"), typeof(CrudController).GetMethod("Update").GetParameters()[0]);
@@ -26,7 +26,7 @@ namespace Given_instance_of_the
         [TestMethod]
         public void it_should_build_uri_regex_properly()
         {
-            var segments = new UriTemplate.SegmentList(null, true);
+            var segments = new UriTemplateBuilder.SegmentList(null, true);
             segments.Add("api", null, typeof(CrudController));
             segments.Add("person", new RouteAttribute("/person"), typeof(CrudController).GetMethod("Update"));
             segments.Add("id/[^/?]+", new FromUriAttribute("/id/{?value}"), typeof(CrudController).GetMethod("Update").GetParameters()[0]);

@@ -133,14 +133,14 @@ namespace URSA.Web.Description.Http
                 entityType = implementation.GetGenericArguments()[0];
             }
 
-            UriTemplate templateRegex = new UriTemplate(entityType, true);
+            UriTemplateBuilder templateRegex = new UriTemplateBuilder(entityType, true);
             templateRegex.Add(prefix.Uri.ToString(), prefix, typeof(T));
             templateRegex.Add(route.Uri.ToString(), route, method);
             Uri uri = new Uri(templateRegex.ToString(), UriKind.RelativeOrAbsolute);
             IList<OperationInfo> result = new List<OperationInfo>();
             foreach (var item in verbs)
             {
-                UriTemplate uriTemplate = templateRegex.Clone(false);
+                UriTemplateBuilder uriTemplate = templateRegex.Clone(false);
                 var parameters = BuildParameterDescriptors(method, item.Verb, templateRegex, ref uriTemplate);
                 var regex = new Regex("^" + templateRegex + "$", RegexOptions.IgnoreCase);
                 result.Add(new OperationInfo<Verb>(method, uri, uriTemplate, regex, item.Verb, parameters));
@@ -149,7 +149,7 @@ namespace URSA.Web.Description.Http
             return result;
         }
 
-        private ValueInfo[] BuildParameterDescriptors(MethodInfo method, Verb verb, UriTemplate templateRegex, ref UriTemplate uriTemplate)
+        private ValueInfo[] BuildParameterDescriptors(MethodInfo method, Verb verb, UriTemplateBuilder templateRegex, ref UriTemplateBuilder uriTemplate)
         {
             bool restUriTemplate = true;
             IList<ValueInfo> result = new List<ValueInfo>();
@@ -175,7 +175,7 @@ namespace URSA.Web.Description.Http
                     continue;
                 }
 
-                string variableName = (isBodyParameter ? null : UriTemplate.VariableTemplateRegex.Match(parameterUriTemplate).Groups["ParameterName"].Value.ToLowerCamelCase());
+                string variableName = (isBodyParameter ? null : UriTemplateBuilder.VariableTemplateRegex.Match(parameterUriTemplate).Groups["ParameterName"].Value.ToLowerCamelCase());
                 if (parameterTemplateRegex != null)
                 {
                     restUriTemplate = false;

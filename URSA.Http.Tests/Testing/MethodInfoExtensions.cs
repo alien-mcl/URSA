@@ -52,14 +52,14 @@ namespace URSA.Web.Http.Tests.Testing
                     var target = parameter.GetParameterTarget();
                     if (target is FromUriAttribute)
                     {
-                        var temp = String.Format("/{{?{0}}}", parameter.Name);
+                        var temp = String.Format("/{{{0}}}", parameter.Name);
                         uriTemplate = (methodUri += temp);
                         targetUriTemplate += temp;
                         actualCallUri += temp;
                     }
                     else if (target is FromQueryStringAttribute)
                     {
-                        queryString += (queryString.Length == 0 ? "?" : "&") + String.Format("{0}={{?{0}}}", parameter.Name);
+                        queryString += (queryString.Length == 0 ? "?" : "&") + String.Format("{0}={{{0}}}", parameter.Name);
                         uriTemplate = methodUri + queryString;
                     }
 
@@ -78,7 +78,7 @@ namespace URSA.Web.Http.Tests.Testing
             targetUriTemplate += queryString;
             var queryStringParameters = Regex.Matches(callUri, "[?&]([^=]+)=[^&]+").Cast<Match>();
             var queryStringRegex = (queryStringParameters.Any() ? "[?&](" + String.Join("|", queryStringParameters.Select(item => item.Groups[1].Value)) + ")=[^&]+" : String.Empty);
-            var methodRegex = new Regex("^" + Regex.Replace(actualCallUri, "/{\\?[^}]+}", "/[^\\/]+") + queryStringRegex + "$");
+            var methodRegex = new Regex("^" + Regex.Replace(actualCallUri, "/{[^}]+}", "/[^\\/]+") + queryStringRegex + "$");
             return new OperationInfo<T>(method, new Uri(methodUri, UriKind.RelativeOrAbsolute), targetUriTemplate, methodRegex, verb, (ValueInfo[])arguments);
         }
 

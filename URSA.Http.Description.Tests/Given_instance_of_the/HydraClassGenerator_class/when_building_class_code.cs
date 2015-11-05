@@ -31,7 +31,7 @@ namespace Given_instance_of_the.HydraClassGenerator_class
         private const string Name = "Type";
         private const string Namespace = "Test";
         private const string HttpMethod = "GET";
-        private static readonly Uri ClassUri = new Uri(String.Format("urn:net:{0}.{1}", Namespace, Name));
+        private static readonly Uri ClassUri = new Uri(String.Format("javascript:{0}.{1}", Namespace, Name));
         private static readonly EntityId ClassId = new EntityId(ClassUri);
         private static readonly Uri HydraSupportedOperation = new Uri(EntityConverter.Hydra.AbsoluteUri + "supportedOperation");
         private static readonly Uri HydraIriTemplate = new Uri(EntityConverter.Hydra.AbsoluteUri + "IriTemplate");
@@ -190,7 +190,7 @@ namespace Given_instance_of_the.HydraClassGenerator_class
             var templatedLinkId = new EntityId(templatedLinkUri);
             var templatedLink = new Mock<ITemplatedLink>(MockBehavior.Strict);
             templatedLink.SetupGet(instance => instance.Id).Returns(templatedLinkId);
-            templatedLink.SetupGet(instance => instance.Operations).Returns(new[] { getOperation.Object });
+            templatedLink.SetupGet(instance => instance.SupportedOperations).Returns(new[] { getOperation.Object });
             templatedLink.As<ITypedEntity>().SetupGet(instance => instance.Types).Returns(new[] { new EntityId(HydraTemplatedLink) });
 
             var iriTemplateUri = new Uri(baseUri.AbsoluteUri + "template");

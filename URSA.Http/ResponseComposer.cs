@@ -190,11 +190,9 @@ namespace URSA.Web.Http
             {
                 int skip = (int)arguments[1];
                 int take = (int)arguments[2];
-                if (take > 0)
-                {
-                    var contentRangeHeaderValue = String.Format("members {0}-{1}/{2}", skip, Math.Max(0, Math.Min(take, resultingValues.Cast<object>().Count()) - 1), totalItems);
-                    result.Headers.Add(new Header("Content-Range", contentRangeHeaderValue));
-                }
+                take = (take == 0 ? totalItems : Math.Min(take, resultingValues.Cast<object>().Count()));
+                var contentRangeHeaderValue = String.Format("members {0}-{1}/{2}", skip, Math.Max(0, take - 1), totalItems);
+                result.Headers.Add(new Header("Content-Range", contentRangeHeaderValue));
             }
 
             return ObjectResponseInfo<object>.CreateInstance(
@@ -244,7 +242,7 @@ namespace URSA.Web.Http
                              from method in controllerType.GetInterfaceMap(@interface).TargetMethods
                              join operation in controllerDescriptor.Operations on method equals operation.UnderlyingMethod
                              select operation).First();
-            result.Headers.Add(new Header(Header.Location, getMethod.UriTemplate.Replace("{?" + getMethod.Arguments.First().VariableName + "}", value.ToString())));
+            result.Headers.Add(new Header(Header.Location, getMethod.UriTemplate.Replace("{" + getMethod.Arguments.First().VariableName + "}", value.ToString())));
             result.Status = HttpStatusCode.Created;
             return result;
         }

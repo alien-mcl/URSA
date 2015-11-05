@@ -9,6 +9,7 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using RomanticWeb;
+using RomanticWeb.NamedGraphs;
 using URSA.CodeGen;
 using URSA.ComponentModel;
 using URSA.Configuration;
@@ -16,6 +17,7 @@ using URSA.Web.Converters;
 using URSA.Web.Http;
 using URSA.Web.Http.Converters;
 using URSA.Web.Http.Description.Hydra;
+using URSA.Web.Http.Description.NamedGraphs;
 
 namespace URSA.Web.Http.Client.Proxy
 {
@@ -85,7 +87,8 @@ namespace URSA.Web.Http.Client.Proxy
                 ((IDictionary<string, string>)headers)[Header.ContentType] = contentType;
             }
 
-            var httpRequest = new RequestInfo(Verb.Parse(Method), new Uri(url + "/#"), responseStream, headers);
+            var apiDocumentationId = new Uri(url + "#");
+            var httpRequest = new RequestInfo(Verb.Parse(Method), apiDocumentationId, responseStream, headers);
             var converterProvider = container.Resolve<IConverterProvider>();
             var converter = converterProvider.FindBestInputConverter<IApiDocumentation>(httpRequest);
             if (converter == null)
@@ -93,7 +96,8 @@ namespace URSA.Web.Http.Client.Proxy
                 throw new NotSupportedException(String.Format("Content type of '{0}' is not supported.", contentType));
             }
 
-            return converter.ConvertTo<IApiDocumentation>(httpRequest);
+            converter.ConvertTo<IApiDocumentation>(httpRequest);
+            return _container.Resolve<IEntityContext>().Load<IApiDocumentation>(apiDocumentationId);
         }
 
         private static Stream GetResponse(string method, Uri url, out string contentType)
@@ -109,6 +113,12 @@ namespace URSA.Web.Http.Client.Proxy
 
         private static void CreateProxy(string targetDirectory, Uri url)
         {
+            var namedGraphSelector = _container.Resolve<INamedGraphSelector>() as ILocallyControlledNamedGraphSelector;
+            if (namedGraphSelector != null)
+            {
+                namedGraphSelector.NamedGraph = url;
+            }
+
             var apiDocumentation = GetApiDocumentation(url);
             if (apiDocumentation == null)
             {
@@ -124,6 +134,11 @@ namespace URSA.Web.Http.Client.Proxy
             foreach (var @class in apiDocumentation.SupportedClasses.Select(supportedClass => generator.CreateCode(supportedClass)).SelectMany(classes => classes))
             {
                 File.WriteAllText(Path.Combine(targetDirectory, @class.Key), @class.Value);
+            }
+
+            if (namedGraphSelector != null)
+            {
+                namedGraphSelector.NamedGraph = null;
             }
         }
     }

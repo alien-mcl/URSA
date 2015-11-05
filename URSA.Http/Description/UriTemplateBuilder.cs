@@ -8,7 +8,7 @@ using URSA.Web.Mapping;
 
 namespace URSA.Web.Description.Http
 {
-    internal class UriTemplate : ICloneable
+    internal class UriTemplateBuilder : ICloneable
     {
         internal static readonly Regex VariableTemplateRegex = new Regex("\\{(?<ExpansionType>[/?&#\\.;])*(?<ParameterName>[^*}]+)(?<ListIndicator>[*]*)\\}");
         private readonly bool _isRegexMode;
@@ -16,12 +16,12 @@ namespace URSA.Web.Description.Http
         private readonly SegmentList _segments;
         private readonly QueryStringList _queryString;
 
-        internal UriTemplate(Type controlledEntityType, bool isRegexMode = false)
+        internal UriTemplateBuilder(Type controlledEntityType, bool isRegexMode = false)
             : this(new SegmentList(controlledEntityType, isRegexMode), new QueryStringList(controlledEntityType, isRegexMode), controlledEntityType, isRegexMode)
         {
         }
 
-        private UriTemplate(SegmentList segments, QueryStringList queryString, Type controlledEntityType, bool isRegexMode = false)
+        private UriTemplateBuilder(SegmentList segments, QueryStringList queryString, Type controlledEntityType, bool isRegexMode = false)
         {
             _controlledEntityType = controlledEntityType;
             _isRegexMode = isRegexMode;
@@ -33,10 +33,10 @@ namespace URSA.Web.Description.Http
 
         internal string QueryString { get { return _queryString.ToString(); } }
 
-        /// <summary>Performs an implicit conversion from <see cref="UriTemplate"/> to <see cref="String"/>.</summary>
+        /// <summary>Performs an implicit conversion from <see cref="UriTemplateBuilder"/> to <see cref="String"/>.</summary>
         /// <param name="uriTemplate">The URI template.</param>
         /// <returns>The result of the conversion.</returns>
-        public static implicit operator String(UriTemplate uriTemplate)
+        public static implicit operator String(UriTemplateBuilder uriTemplate)
         {
             return uriTemplate == null ? null : uriTemplate.ToString();
         }
@@ -72,9 +72,9 @@ namespace URSA.Web.Description.Http
             (source is FromQueryStringAttribute ? (UriTemplatePartList)_queryString : _segments).Add(part, source, member, hasDefaultValue);
         }
 
-        internal UriTemplate Clone(bool? isRegexMode = null)
+        internal UriTemplateBuilder Clone(bool? isRegexMode = null)
         {
-            return new UriTemplate(
+            return new UriTemplateBuilder(
                 new SegmentList(_controlledEntityType, isRegexMode ?? _isRegexMode, _segments),
                 new QueryStringList(_controlledEntityType, isRegexMode ?? _isRegexMode, _queryString),
                 _controlledEntityType,

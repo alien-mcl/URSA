@@ -66,6 +66,18 @@ namespace URSA.Web.Description.Http
                 return new ToHeaderAttribute(Header.Location);
             }
 
+            if (parameter.Member is MethodInfo)
+            {
+                var methodInfo = (MethodInfo)parameter.Member;
+                Type implementation = null;
+                if ((methodInfo.DeclaringType.GetInterfaces()
+                    .Any(@interface => (@interface.IsGenericType) && (typeof(IController<>) == @interface.GetGenericTypeDefinition()) && ((implementation = @interface) != null))) && 
+                    (methodInfo.DeclaringType.GetInterfaceMap(implementation).TargetMethods[0] == methodInfo) && (parameter.Position == 0))
+                {
+                    return new ToHeaderAttribute(Header.ContentRange);
+                }
+            }
+
             return new ToBodyAttribute();
         }
 

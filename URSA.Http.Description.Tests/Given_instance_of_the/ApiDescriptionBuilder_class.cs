@@ -294,7 +294,7 @@ namespace Given_instance_of_the
         {
             var result = new Mock<ITemplatedLink>(MockBehavior.Strict);
             result.SetupGet(instance => instance.Id).Returns(id);
-            result.SetupGet(instance => instance.Operations).Returns(new List<IOperation>());
+            result.SetupGet(instance => instance.SupportedOperations).Returns(new List<IOperation>());
             return result.Object;
         }
     }

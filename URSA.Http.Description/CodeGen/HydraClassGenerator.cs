@@ -11,6 +11,8 @@ using RomanticWeb.Entities;
 using RomanticWeb.Vocabularies;
 using URSA.Web;
 using URSA.Web.Description.Http;
+using URSA.Web.Http.Converters;
+using URSA.Web.Http.Description;
 using URSA.Web.Http.Description.CodeGen;
 using URSA.Web.Http.Description.Entities;
 using URSA.Web.Http.Description.Hydra;
@@ -206,7 +208,7 @@ namespace URSA.CodeGen
                     where (quad.Subject.IsUri) && (quad.Object.IsUri) && (AbsoluteUriComparer.Default.Equals(quad.Subject.Uri, supportedClass.Id.Uri)) &&
                         (quad.PredicateIs(supportedClass.Context, supportedClass.Context.Mappings.MappingFor<ITemplatedLink>().Classes.First().Uri))
                     let templatedLink = supportedClass.Context.Load<ITemplatedLink>(quad.Predicate.ToEntityId())
-                    from operation in templatedLink.Operations
+                    from operation in templatedLink.SupportedOperations
                     select new KeyValuePair<IOperation, IIriTemplate>(operation, supportedClass.Context.Load<IIriTemplate>(quad.Object.ToEntityId())));
             foreach (var operationDescriptor in supportedOperations)
             {
@@ -216,6 +218,7 @@ namespace URSA.CodeGen
             return operations.ToString();
         }
 
+        // TODO: Add support for header out parameters like totalItems.
         private void AnalyzeOperation(IClass supportedClass, string supportedClassFullName, IOperation operation, IIriTemplate template, StringBuilder operations, IDictionary<string, string> classes)
         {
             foreach (var method in operation.Method)
@@ -231,14 +234,15 @@ namespace URSA.CodeGen
                 var uri = operation.Id.Uri.ToRelativeUri().ToString();
                 var returnedType = String.Empty;
                 var isReturns = String.Empty;
+                bool isContentRangeHeaderParameterAdded = false;
                 if (template != null)
                 {
                     uri = template.Template;
-                    AnalyzeTemplate(template.Mappings, parameters, uriArguments, out singleValueExpected);
+                    isContentRangeHeaderParameterAdded = AnalyzeTemplate(template.Template, template.Mappings, parameters, uriArguments, out singleValueExpected);
                 }
 
                 singleValueExpected |= operation.Is(supportedClass.Context.Mappings.MappingFor<ICreateResourceOperation>().Classes.Select(item => item.Uri).First());
-                AnalyzeBody(supportedClassFullName, operation.Expects, parameters, bodyArguments, contentType);
+                AnalyzeBody(supportedClassFullName, operation.Expects, parameters, bodyArguments, contentType, operation.MediaTypes);
                 if (parameters.Length > 2)
                 {
                     parameters.Remove(parameters.Length - 2, 2);
@@ -246,8 +250,8 @@ namespace URSA.CodeGen
 
                 if (operation.Returns.Any())
                 {
-                    isReturns = "return ";
-                    returns = AnalyzeResult(supportedClassFullName, operationName, operation.Returns, classes, singleValueExpected, accept);
+                    isReturns = "var result = ";
+                    returns = AnalyzeResult(supportedClassFullName, operationName, operation.Returns, classes, singleValueExpected, accept, operation.MediaTypes);
                     returnedType = String.Format("<{0}>", returns);
                 }
 
@@ -262,27 +266,45 @@ namespace URSA.CodeGen
                 }
 
                 var isStatic = ((operation.Expects.Any(expected => expected == supportedClass)) && (method == "POST") ? " static" : String.Empty);
-                operations.AppendFormat(OperationTemplate, isStatic, returns, operationName, parameters, method, uri, uriArguments, bodyArguments, isReturns, returnedType, accept, contentType);
+                operations.AppendFormat(
+                    OperationTemplate,
+                    isStatic,
+                    returns,
+                    operationName,
+                    parameters,
+                    method,
+                    uri,
+                    uriArguments,
+                    bodyArguments,
+                    isReturns,
+                    returnedType,
+                    accept,
+                    contentType,
+                    (isContentRangeHeaderParameterAdded ? "            totalEntities = uriArguments.totalEntities;" + Environment.NewLine : String.Empty),
+                    (isReturns.Length > 0 ? "            return result;" + Environment.NewLine : String.Empty));
             }
         }
 
-        private void AnalyzeTemplate(IEnumerable<IIriTemplateMapping> mappings, StringBuilder parameters, StringBuilder uriArguments, out bool expectSingleValue)
+        private bool AnalyzeTemplate(string template, IEnumerable<IIriTemplateMapping> mappings, StringBuilder parameters, StringBuilder uriArguments, out bool expectSingleValue)
         {
             expectSingleValue = false;
+            bool expectContentRangeHeader = false;
+            bool isContentRangeHeaderParameterAdded = false;
             foreach (var mapping in mappings)
             {
+                bool isMultipleValueMapping = Regex.IsMatch(template, mapping.Variable + "\\*[,}]");
                 var variableName = mapping.Variable.ToLowerCamelCase();
                 IClass expected = null;
                 if (mapping.Property != null)
                 {
-                    if (mapping.Property.GetTypes().Any(type => AbsoluteUriComparer.Default.Equals(type.Uri, mapping.Context.Mappings.MappingFor<IInverseFunctionalProperty>().Classes.First().Uri)))
+                    var inverseFunctionalPropertyMapping = mapping.Context.Mappings.MappingFor<IInverseFunctionalProperty>().Classes.First();
+                    expectSingleValue |= mapping.Property.Is(inverseFunctionalPropertyMapping.Uri);
+                    expectContentRangeHeader |= (mapping.Property.Id.Uri.ToString() == DescriptionController.VocabularyBaseUri + "skip") ||
+                        (mapping.Property.Id.Uri.ToString() == DescriptionController.VocabularyBaseUri + "take");
+                    if ((mapping.Property.Range.Any()) && ((expected = mapping.Property.Range.First().AsEntity<IClass>()) != null) && 
+                        (expected.Id is BlankId) && (expected.SubClassOf.Any()))
                     {
-                        expectSingleValue = true;
-                    }
-
-                    if (mapping.Property.Range.Any())
-                    {
-                        expected = mapping.Property.Range.First().AsEntity<IClass>();
+                        expected = expected.SubClassOf.First().AsEntity<IClass>();
                     }
                 }
 
@@ -290,28 +312,39 @@ namespace URSA.CodeGen
                 var name = "Object";
                 if (expected != null)
                 {
-                    if ((expected.Id is BlankId) && (expected.SubClassOf.Any()))
-                    {
-                        expected = expected.SubClassOf.First().AsEntity<IClass>();
-                    }
-
                     @namespace = CreateNamespace(expected);
                     name = CreateName(expected);
                 }
 
-                parameters.AppendFormat("{0}.{1} {2}, ", @namespace, name, variableName);
+                if ((expectContentRangeHeader) && (!isContentRangeHeaderParameterAdded))
+                {
+                    parameters.Append("out System.Int32 totalEntities, ");
+                    uriArguments.AppendFormat("            uriArguments.totalEntities = totalEntities = 0;{0}", Environment.NewLine);
+                    isContentRangeHeaderParameterAdded = true;
+                }
+
+                parameters.AppendFormat(isMultipleValueMapping ? "System.Collections.Generic.IEnumerable<{0}.{1}> {2}, " : "{0}.{1} {2}, ", @namespace, name, variableName);
                 uriArguments.AppendFormat("            uriArguments.{0} = {0};{1}", variableName, Environment.NewLine);
             }
+
+            return isContentRangeHeaderParameterAdded;
         }
 
-        private void AnalyzeBody(string supportedClassFullName, IEnumerable<IClass> expects, StringBuilder parameters, StringBuilder bodyArguments, StringBuilder contentType)
+        private void AnalyzeBody(
+            string supportedClassFullName,
+            IEnumerable<IClass> expects,
+            StringBuilder parameters,
+            StringBuilder bodyArguments,
+            StringBuilder contentType,
+            IEnumerable<string> operationMediaTypes)
         {
-            var validMediaTypes = new List<string>();
+            IEnumerable<string> validMediaTypes = new List<string>();
+            var validMediaTypesList = (IList<string>)validMediaTypes;
             foreach (var expected in expects)
             {
                 string variableName = expected.Label.ToLowerCamelCase();
                 string @namespace;
-                string name = AnalyzeType(supportedClassFullName, expected, out @namespace, validMediaTypes);
+                string name = AnalyzeType(supportedClassFullName, expected, out @namespace, validMediaTypesList);
                 parameters.AppendFormat(
                     "{3}{0}.{1}{4} {2}, ",
                     @namespace,
@@ -322,7 +355,7 @@ namespace URSA.CodeGen
                 bodyArguments.AppendFormat(", {0}", variableName);
             }
 
-            if (validMediaTypes.Count > 0)
+            if ((validMediaTypesList.Count == 0 ? validMediaTypes = operationMediaTypes : validMediaTypes).Any())
             {
                 contentType.AppendFormat(
                     "            var contentType = new string[] {{\r\n                {0} }};",
@@ -330,12 +363,20 @@ namespace URSA.CodeGen
             }
         }
 
-        private string AnalyzeResult(string supportedClassFullName, string operationName, IEnumerable<IClass> returns, IDictionary<string, string> classes, bool singleValueExpected, StringBuilder accept)
+        private string AnalyzeResult(
+            string supportedClassFullName,
+            string operationName,
+            IEnumerable<IClass> returns,
+            IDictionary<string, string> classes,
+            bool singleValueExpected,
+            StringBuilder accept,
+            IEnumerable<string> operationMediaTypes)
         {
             string result;
             string @namespace;
             string name;
-            var validMediaTypes = new List<string>();
+            IEnumerable<string> validMediaTypes = new List<string>();
+            var validMediaTypesList = (IList<string>)validMediaTypes;
 
             if (returns.Count() > 1)
             {
@@ -346,8 +387,8 @@ namespace URSA.CodeGen
                     var properties = new StringBuilder(256);
                     foreach (var returned in returns)
                     {
-                        name = AnalyzeType(supportedClassFullName, returned, out @namespace, validMediaTypes);
-                        properties.AppendFormat(PropertyTemplate, name, " get;", String.Empty, @namespace, name);
+                        name = AnalyzeType(supportedClassFullName, returned, out @namespace, validMediaTypesList);
+                        properties.AppendFormat(PropertyTemplate, name, " get;", String.Empty, @namespace, String.Empty, String.Empty);
                     }
 
                     includes.AppendFormat(ResponseClassTemplate, result, properties);
@@ -356,7 +397,13 @@ namespace URSA.CodeGen
             }
             else
             {
-                name = AnalyzeType(supportedClassFullName, returns.First(), out @namespace, validMediaTypes);
+                name = AnalyzeType(supportedClassFullName, returns.First(), out @namespace, validMediaTypesList);
+                if (!(validMediaTypesList.Count == 0 ? operationMediaTypes : validMediaTypes)
+                    .Join(EntityConverter.MediaTypes, outer => outer, inner => inner, (outer, inner) => inner).Any())
+                {
+                    name = name.TrimStart('I');
+                }
+
                 result = String.Format("{0}.{1}", @namespace, name);
                 if (!singleValueExpected)
                 {
@@ -364,7 +411,7 @@ namespace URSA.CodeGen
                 }
             }
 
-            if (validMediaTypes.Count > 0)
+            if ((validMediaTypesList.Count == 0 ? validMediaTypes = operationMediaTypes : validMediaTypes).Any())
             {
                 accept.AppendFormat(
                     "            var accept = new string[] {{\r\n                {0} }};",

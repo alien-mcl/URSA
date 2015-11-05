@@ -146,20 +146,40 @@
             
         var createMethod = function(supportedClass, supportedOperation, currentFlavour) {
             var returns = "void";
+            var parameters = "";
             if (supportedOperation.returns.length > 0) {
+                var returnedTypes = [];
+                var hasTotalEntities = false;
+                for (var index = 0; index < supportedOperation.mappings.length; index++) {
+                    var mapping = supportedOperation.mappings[index];
+                    if ((mapping.property["@id"] == window.ursa + "take") || (mapping.property["@id"] == window.ursa + "skip")) {
+                        hasTotalEntities = true;
+                        switch (currentFlavour) {
+                            case "UML": parameters += "<<out>> totalEntities: Integer, "; break;
+                            case "Java": parameters += "int[] totalEntities, "; break;
+                            case "C#": parameters += "out int totalEntities, "; break;
+                        }
+                        
+                        break;
+                    }
+                }
+                
+                for (var index = (hasTotalEntities ? 1 : 0); index < supportedOperation.returns.length; index++) {
+                    returnedTypes.push(supportedOperation.returns[index]);
+                }
+                
                 returns = "";
-                if (supportedOperation.returns.length > 1) {
+                if (returnedTypes.length > 1) {
                     returns = supportedOperation.label + "Result";
                 }
                 else {
-                    returns = mapType(supportedOperation.returns[0], currentFlavour);
+                    returns = mapType(returnedTypes[0], currentFlavour);
                     if (returns.replace(/\[\]$/, "") === mapType(supportedClass["@id"], currentFlavour)) {
                         returns = supportedClass.label + (returns.replace(/\[\]$/, "") === returns ? "" : "[]");
                     }
                 }
             }
                 
-            var parameters = "";
             if ((supportedOperation.template) && (supportedOperation.mappings)) {
                 for (var index = 0; index < supportedOperation.mappings.length; index++) {
                     var mapping = supportedOperation.mappings[index];
@@ -201,11 +221,12 @@
         };
             
         var createProperty = function(supportedClass, supportedProperty, currentFlavour) {
-            var result = mapType(supportedProperty.type, currentFlavour) + " " + supportedProperty.label;
+            var result = mapType(supportedProperty.type, currentFlavour) + " " + 
+                (currentFlavour === "Java" ? supportedProperty.label.charAt(0).toLowerCase() + supportedProperty.label.substr(1) : supportedProperty.label);
             switch (currentFlavour) {
                 case "C#": result += " { " + (supportedProperty.readable ? "get; " : "") + (supportedProperty.writeable ? "set; " : "") + "}"; break;
                 case "Java": result = (supportedProperty.readable ? "@Getter " : "") + (supportedProperty.writeable ? "@Setter " : "") + " " + result; break;
-                case "UML": result = ((supportedProperty.readable) && (supportedProeprty.writeable) ? "<<property>>" : (supportedProperty.readable ? "<<readonly>>" : "<<writeonly>>")) + " " + result; break; 
+                case "UML": result = ((supportedProperty.readable) && (supportedProperty.writeable) ? "<<property>>" : (supportedProperty.readable ? "<<readonly>>" : "<<writeonly>>")) + " " + result; break; 
             }
             
             return result;
@@ -247,7 +268,12 @@
             $scope.currentMember = null;
             $scope.createMember = createMember;
             $scope.currentFlavour = defaultFlavour;
+            $scope.hasTotalEntities = false;
             $scope.mapType = function(supportedClass, type, currentFlavour) {
+                if ((type === undefined) || (type == null)) {
+                    return "";
+                }
+                
                 var result = mapType(type, currentFlavour);
                 if (type.replace(/\[\]$/, "") === mapType(supportedClass["@id"], currentFlavour)) {
                     result = supportedClass.label + (result.replace(/\[\]$/, "") === result ? "" : "[]");
@@ -264,6 +290,17 @@
             $scope.$root.$on("MemberSelected", function(e, currentClass, currentMember) {
                 $scope.currentClass = currentClass;
                 $scope.currentMember = currentMember;
+                $scope.hasTotalEntities = false;
+                $scope.xsd = window.xsd;
+                if (currentMember.mappings) {
+                    for (var index = 0; index < currentMember.mappings.length; index++) {
+                        var mapping = currentMember.mappings[index];
+                        if ((mapping.property["@id"] == window.ursa + "take") || (mapping.property["@id"] == window.ursa + "skip")) {
+                            $scope.hasTotalEntities = true;
+                            break;
+                        }
+                    }
+                }
             });
             $scope.$root.$on("FlavourChanged", function(e, newFlavour) {
                 $scope.currentFlavour = newFlavour;
@@ -327,6 +364,14 @@
                                         <th>Type</th>
                                         <th>Description</th>
                                     </tr>
+                                    <tr ng-show="hasTotalEntities">
+                                        <td>totalEntities</td>
+                                        <xsl:element name="td">
+                                            <xsl:attribute name="title"><xsl:value-of select="'&xsd;int'" /></xsl:attribute>
+                                            <xsl:text>{{ mapType(currentClass, xsd.int, currentFlavour) }}</xsl:text>
+                                        </xsl:element>
+                                        <td>Number of total entities in the collection.</td>
+                                    </tr>
                                     <tr ng-repeat="mapping in currentMember.mappings">
                                         <td>{{ mapping.variable }}</td>
                                         <td ng-attr-title="mapping.property ? mapping.property.type : ''">{{ mapping.property ? mapType(currentClass, mapping.property.type, currentFlavour) : "object" }}</td>
@@ -351,8 +396,11 @@
     </xsl:template>
 
     <xsl:template match="hydra:ApiDocumentation">
-        window.hydra = new String("http://www.w3.org/ns/hydra/core#");
+        window.xsd = new String("<xsl:value-of select="'&xsd;'"/>");
+        xsd.int = xsd + "int";
+        window.hydra = new String("<xsl:value-of select="'hydra'"/>");
         hydra.supportedProperty = hydra + "supportedProperty";
+        window.ursa = new String("<xsl:value-of select="'&ursa;'"/>");
         var supportedClasses = [];<xsl:for-each select="hydra:supportedClass"><xsl:variable name="id" select="@rdf:resource" />
         supportedClasses.push(<xsl:call-template name="hydra-Class">
                 <xsl:with-param name="class" select="/rdf:RDF/hydra:Class[@rdf:about = $id]|/rdf:RDF/*[rdf:type/@rdf:resource = '&hydra;Class' and @rdf:about = $id]" />
@@ -398,7 +446,7 @@
                     </xsl:call-template>,</xsl:for-each><xsl:for-each select="$class/*[@rdf:resource]">
                     <xsl:variable name="templatedLink" select="concat(namespace-uri(current()), local-name(current()))" />
                     <xsl:variable name="iriTemplate" select="@rdf:resource" />
-                    <xsl:for-each select="/rdf:RDF/hydra:TemplatedLink[@rdf:about = $templatedLink]/hydra:operation">
+                    <xsl:for-each select="/rdf:RDF/hydra:TemplatedLink[@rdf:about = $templatedLink]/hydra:supportedOperation">
                         <xsl:variable name="operation" select="@rdf:resource" />
                         <xsl:for-each select="/rdf:RDF/hydra:Operation[@rdf:about = $operation]|/rdf:RDF/*[rdf:type/@rdf:resource = '&hydra;Operation' and @rdf:about = $operation]">
                             <xsl:variable name="id" select="@rdf:resource|@rdf:about" />
@@ -435,19 +483,22 @@
                 <xsl:otherwise>true</xsl:otherwise>
             </xsl:choose>
         </xsl:variable>
+        <xsl:variable name="hasTotalEntities" select="/rdf:RDF/*[@rdf:about = $template/hydra:mapping/@rdf:resource]/hydra:property/@rdf:resource = '&ursa;take' or /rdf:RDF/*[@rdf:about = $template/hydra:mapping/@rdf:resource]/hydra:property/@rdf:resource = '&ursa;skip'" />
                     {
                         "@id": "<xsl:value-of select="$supportedOperation/@rdf:about" />",
                         "@type": hydra.supportedOperation,
                         "label": "<xsl:value-of select="$supportedOperation/rdfs:label" />",<xsl:if test="$template">
                         "template": "<xsl:value-of select="$template/hydra:template" />",</xsl:if><xsl:if test="$supportedOperation/rdfs:comment">
                         "description": "<xsl:value-of select="$supportedOperation/rdfs:comment/text()"/>",</xsl:if>
-                        "returns": [<xsl:for-each select="$supportedOperation/hydra:returns">"<xsl:variable name="current" select="./@rdf:nodeID" 
+                        "returns": [<xsl:if test="$hasTotalEntities">"<xsl:value-of select="'&xsd;int'" />"<xsl:if test="$supportedOperation/hydra:returns">, </xsl:if></xsl:if
+                            ><xsl:for-each select="$supportedOperation/hydra:returns">"<xsl:variable name="current" select="./@rdf:nodeID" 
                             /><xsl:variable name="resource" select="/rdf:RDF/*[@rdf:nodeID = $current]" 
                             /><xsl:variable name="enumerable"><xsl:choose><xsl:when test="$resource/ursa:singleValue/text() = 'true'">false</xsl:when><xsl:otherwise>true</xsl:otherwise></xsl:choose></xsl:variable><xsl:call-template name="type"
                                 ><xsl:with-param name="type" select="/rdf:RDF/*[@rdf:nodeID = $current]/rdfs:subClassOf/@rdf:resource" 
                                 /><xsl:with-param name="isEnumerable" select="$enumerable" 
                                 /></xsl:call-template
-                            >"<xsl:if test="position() != last()">, </xsl:if></xsl:for-each>],
+                            >"<xsl:if test="position() != last()">, </xsl:if></xsl:for-each>
+                        ],
                         "expects": [<xsl:for-each select="$supportedOperation/hydra:expects">
                             {   <xsl:variable name="current" select="./@rdf:nodeID" />
                                 <xsl:variable name="resource" select="/rdf:RDF/*[@rdf:nodeID = $current]" />
@@ -469,12 +520,10 @@
                                     "@id": "<xsl:value-of select="hydra:property/@rdf:resource" />",
                                     "type": "<xsl:value-of select="/rdf:RDF/*[@rdf:nodeID = $targetProperty/rdfs:range/@rdf:nodeID]/rdfs:subClassOf/@rdf:resource | $targetProperty/rdfs:range/@rdf:resource" />",
                                 }</xsl:if>
-                            }<xsl:if test="position() != last()">,</xsl:if>
-                        </xsl:for-each>
+                            }<xsl:if test="position() != last()">,</xsl:if></xsl:for-each>
                         ],
                         "method": [<xsl:for-each select="$supportedOperation/hydra:method">
-                            "<xsl:value-of select="." />"<xsl:if test="position() != last()">,</xsl:if>
-            </xsl:for-each>
+                            "<xsl:value-of select="." />"<xsl:if test="position() != last()">,</xsl:if></xsl:for-each>
                         ]
                     }</xsl:template>
 
