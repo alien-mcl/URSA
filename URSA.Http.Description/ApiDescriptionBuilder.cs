@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
@@ -19,29 +20,27 @@ using IClass = URSA.Web.Http.Description.Hydra.IClass;
 namespace URSA.Web.Http.Description
 {
     /// <summary>Builds API description.</summary>
-    /// <typeparam name="T">Type of the API to describe</typeparam>
-    public class ApiDescriptionBuilder<T> : IApiDescriptionBuilder<T> where T : IController
+    public abstract class ApiDescriptionBuilder : IApiDescriptionBuilder
     {
-        private static readonly string[] RdfMediaTypes = EntityConverter.MediaTypes;
-        private static readonly string[] NonRdfMediaTypes = { JsonConverter.ApplicationJson, XmlConverter.ApplicationXml, XmlConverter.TextXml };
+        internal static readonly string[] RdfMediaTypes = EntityConverter.MediaTypes;
+        internal static readonly string[] NonRdfMediaTypes = { JsonConverter.ApplicationJson, XmlConverter.ApplicationXml, XmlConverter.TextXml };
 
-        private readonly IHttpControllerDescriptionBuilder<T> _descriptionBuilder;
+        private readonly IHttpControllerDescriptionBuilder _descriptionBuilder;
         private readonly IXmlDocProvider _xmlDocProvider;
         private readonly IEnumerable<ITypeDescriptionBuilder> _typeDescriptionBuilders;
         private readonly IEnumerable<IServerBehaviorAttributeVisitor> _serverBehaviorAttributeVisitors;
         private readonly INamedGraphSelectorFactory _namedGraphSelectorFactory;
-        private Type _specializationType;
 
-        /// <summary>Initializes a new instance of the <see cref="ApiDescriptionBuilder{T}" /> class.</summary>
+        /// <summary>Initializes a new instance of the <see cref="ApiDescriptionBuilder" /> class.</summary>
         /// <param name="descriptionBuilder">Description builder.</param>
         /// <param name="xmlDocProvider">The XML documentation provider.</param>
         /// <param name="typeDescriptionBuilders">Type description builders.</param>
         /// <param name="serverBehaviorAttributeVisitors">Server behavior attribute visitors.</param>
         /// <param name="namedGraphSelectorFactory">Named graph selector factory.</param>
-        public ApiDescriptionBuilder(
-            IHttpControllerDescriptionBuilder<T> descriptionBuilder, 
-            IXmlDocProvider xmlDocProvider, 
-            IEnumerable<ITypeDescriptionBuilder> typeDescriptionBuilders, 
+        protected ApiDescriptionBuilder(
+            IHttpControllerDescriptionBuilder descriptionBuilder,
+            IXmlDocProvider xmlDocProvider,
+            IEnumerable<ITypeDescriptionBuilder> typeDescriptionBuilders,
             IEnumerable<IServerBehaviorAttributeVisitor> serverBehaviorAttributeVisitors,
             INamedGraphSelectorFactory namedGraphSelectorFactory)
         {
@@ -78,17 +77,7 @@ namespace URSA.Web.Http.Description
         }
 
         /// <inheritdoc />
-        public Type SpecializationType
-        {
-            get
-            {
-                return _specializationType ??
-                    (_specializationType = (from @interface in typeof(T).GetInterfaces()
-                                            where (@interface.IsGenericType) && (typeof(IController<>).IsAssignableFrom(@interface.GetGenericTypeDefinition()))
-                                            from type in @interface.GetGenericArguments()
-                                            select type).FirstOrDefault() ?? typeof(object));
-            }
-        }
+        public abstract Type SpecializationType { get; }
 
         /// <summary>Builds an API description.</summary>
         /// <param name="apiDocumentation">API documentation.</param>
@@ -154,7 +143,7 @@ namespace URSA.Web.Http.Description
                     parameterType = (context.ContainsType(parameter.ParameterType) ? context[parameter.ParameterType] : context.BuildTypeDescription());
                 }
 
-                if (supportedProperty.Property.Range.Any(range => (range.Id == parameterType.Id) || 
+                if (supportedProperty.Property.Range.Any(range => (range.Id == parameterType.Id) ||
                     ((range is IClass) && (((IClass)range).SubClassOf.Any(subClass => subClass.Id == parameterType.Id)))))
                 {
                     resultCandidate = supportedProperty.Property;
@@ -201,7 +190,7 @@ namespace URSA.Web.Http.Description
                     context.ApiDocumentation.Context.Store.ReplacePredicateValues(
                         specializationType.Id,
                         Node.ForUri(templatedLink.Id.Uri),
-                        () => new Node[] { Node.ForUri(template.Id.Uri) },
+                        () => new[] { Node.ForUri(template.Id.Uri) },
                         graphUri,
                         CultureInfo.InvariantCulture);
                 }
@@ -217,7 +206,7 @@ namespace URSA.Web.Http.Description
             IOperation result = operation.AsOperation(context.ApiDocumentation);
             result.Label = operation.UnderlyingMethod.Name;
             result.Description = _xmlDocProvider.GetDescription(operation.UnderlyingMethod);
-            result.Method.Add(_descriptionBuilder.GetMethodVerb(operation.UnderlyingMethod).ToString());
+            result.Method.Add(operation.ProtocolSpecificCommand.ToString());
             template = BuildTemplate(context, operation, result);
             bool isRdfRequired;
             bool requiresRdf = context.RequiresRdf(SpecializationType);
@@ -306,6 +295,43 @@ namespace URSA.Web.Http.Description
             }
 
             return templateMapping;
+        }
+    }
+
+    /// <summary>Builds API description.</summary>
+    /// <typeparam name="T">Type of the API to describe</typeparam>
+    [SuppressMessage("StyleCop.CSharp.MaintainabilityRules", "SA1402:FileMayOnlyContainASingleClass", Justification = "Suppression is OK - generic and non-generic class.")]
+    public class ApiDescriptionBuilder<T> : ApiDescriptionBuilder where T : IController
+    {
+        private Type _specializationType;
+
+        /// <summary>Initializes a new instance of the <see cref="ApiDescriptionBuilder{T}" /> class.</summary>
+        /// <param name="descriptionBuilder">Description builder.</param>
+        /// <param name="xmlDocProvider">The XML documentation provider.</param>
+        /// <param name="typeDescriptionBuilders">Type description builders.</param>
+        /// <param name="serverBehaviorAttributeVisitors">Server behavior attribute visitors.</param>
+        /// <param name="namedGraphSelectorFactory">Named graph selector factory.</param>
+        public ApiDescriptionBuilder(
+            IHttpControllerDescriptionBuilder<T> descriptionBuilder, 
+            IXmlDocProvider xmlDocProvider, 
+            IEnumerable<ITypeDescriptionBuilder> typeDescriptionBuilders, 
+            IEnumerable<IServerBehaviorAttributeVisitor> serverBehaviorAttributeVisitors,
+            INamedGraphSelectorFactory namedGraphSelectorFactory) :
+            base(descriptionBuilder, xmlDocProvider, typeDescriptionBuilders, serverBehaviorAttributeVisitors, namedGraphSelectorFactory)
+        {
+        }
+
+        /// <inheritdoc />
+        public override Type SpecializationType
+        {
+            get
+            {
+                return _specializationType ??
+                    (_specializationType = (from @interface in typeof(T).GetInterfaces()
+                                            where (@interface.IsGenericType) && (typeof(IController<>).IsAssignableFrom(@interface.GetGenericTypeDefinition()))
+                                            from type in @interface.GetGenericArguments()
+                                            select type).FirstOrDefault() ?? typeof(object));
+            }
         }
     }
 }

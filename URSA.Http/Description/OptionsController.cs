@@ -39,10 +39,7 @@ namespace URSA.Web.Http.Description
                 return;
             }
 
-            ((IDictionary<string, string>)response.Headers)["Access-Control-Allow-Origin"] = response.Request.Headers.Origin;
-            ((IDictionary<string, string>)response.Headers)["Access-Control-Allow-Methods"] = String.Join(", ", _allowed);
-            ((IDictionary<string, string>)response.Headers)["Access-Control-Allow-Headers"] = "Content-Type, Content-Length, Accept, Accept-Language, Accept-Charser, Accept-Encoding, Authorization";
-            ((IDictionary<string, string>)response.Headers)["Access-Control-Expose-Headers"] = "Allow";
+            ((IDictionary<string, string>)response.Headers)[Header.AccessControlAllowMethods] = String.Join(", ", _allowed);
         }
     }
 }

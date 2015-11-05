@@ -90,6 +90,13 @@ namespace URSA.Web.Handlers
                 }
             }
 
+            if (!String.IsNullOrEmpty(context.Request.Headers[Header.Origin]))
+            {
+                context.Response.Headers[Header.AccessControlAllowOrigin] = context.Request.Headers[Header.Origin];
+                context.Response.Headers[Header.AccessControlExposeHeaders] = String.Join(", ", context.Response.Headers.Keys.Cast<string>());
+                context.Response.Headers[Header.AccessControlAllowHeaders] = "Content-Type, Content-Length, Accept, Accept-Language, Accept-Charser, Accept-Encoding, Accept-Ranges, Authorization, X-Auth-Token";
+            }
+
             response.Body.CopyTo(context.Response.OutputStream);
         }
 

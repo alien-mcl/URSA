@@ -44,9 +44,9 @@ namespace Given_instance_of_the
             IXmlDocProvider xmlDocProvider;
             ITypeDescriptionBuilder typeDescriptionBuilder;
             INamedGraphSelectorFactory namedGraphSelectorFactory;
-            var handlerMapper = SetupInfrastucture(out apiDocumentation, out xmlDocProvider, out typeDescriptionBuilder, out namedGraphSelectorFactory);
+            var descriptionBuilder = SetupInfrastucture(out apiDocumentation, out xmlDocProvider, out typeDescriptionBuilder, out namedGraphSelectorFactory);
             var apiDescriptionBuilder = new ApiDescriptionBuilder<TestController>(
-                handlerMapper,
+                descriptionBuilder,
                 xmlDocProvider,
                 new[] { typeDescriptionBuilder },
                 new IServerBehaviorAttributeVisitor[0],
@@ -68,9 +68,9 @@ namespace Given_instance_of_the
             ITypeDescriptionBuilder shaclTypeDescriptionBuilder = SetupTypeDescriptionBuilder(EntityConverter.Shacl);
             ITypeDescriptionBuilder hydraTypeDescriptionBuilder;
             INamedGraphSelectorFactory namedGraphSelectorFactory;
-            var handlerMapper = SetupInfrastucture(out apiDocumentation, out xmlDocProvider, out hydraTypeDescriptionBuilder, out namedGraphSelectorFactory);
+            var descriptionBuilder = SetupInfrastucture(out apiDocumentation, out xmlDocProvider, out hydraTypeDescriptionBuilder, out namedGraphSelectorFactory);
             var apiDescriptionBuilder = new ApiDescriptionBuilder<TestController>(
-                handlerMapper,
+                descriptionBuilder,
                 xmlDocProvider,
                 new[] { hydraTypeDescriptionBuilder, shaclTypeDescriptionBuilder },
                 new IServerBehaviorAttributeVisitor[0],
@@ -90,9 +90,9 @@ namespace Given_instance_of_the
             ITypeDescriptionBuilder shaclTypeDescriptionBuilder = SetupTypeDescriptionBuilder(EntityConverter.Shacl);
             ITypeDescriptionBuilder hydraTypeDescriptionBuilder;
             INamedGraphSelectorFactory namedGraphSelectorFactory;
-            var handlerMapper = SetupInfrastucture(out apiDocumentation, out xmlDocProvider, out hydraTypeDescriptionBuilder, out namedGraphSelectorFactory);
+            var descriptionBuilder = SetupInfrastucture(out apiDocumentation, out xmlDocProvider, out hydraTypeDescriptionBuilder, out namedGraphSelectorFactory);
             var apiDescriptionBuilder = new ApiDescriptionBuilder<TestController>(
-                handlerMapper,
+                descriptionBuilder,
                 xmlDocProvider,
                 new[] { hydraTypeDescriptionBuilder, shaclTypeDescriptionBuilder },
                 new IServerBehaviorAttributeVisitor[0],
@@ -196,13 +196,13 @@ namespace Given_instance_of_the
                 .Select(method => CreateOperation(method, verbs[method.Name]));
 
             ControllerInfo<TestController> controllerInfo = new ControllerInfo<TestController>(null, new Uri("/", UriKind.Relative), operations.ToArray());
-            Mock<IHttpControllerDescriptionBuilder<TestController>> descriptionBuilder = new Mock<IHttpControllerDescriptionBuilder<TestController>>();
-            descriptionBuilder.Setup(instance => instance.BuildDescriptor()).Returns(controllerInfo);
-            descriptionBuilder.Setup(instance => instance.GetMethodVerb(It.IsAny<MethodInfo>())).Returns<MethodInfo>(method => verbs[method.Name]);
+            Mock<IHttpControllerDescriptionBuilder<TestController>> descriptionBuilder = new Mock<IHttpControllerDescriptionBuilder<TestController>>(MockBehavior.Strict);
+            descriptionBuilder.As<IHttpControllerDescriptionBuilder>().Setup(instance => instance.BuildDescriptor()).Returns(controllerInfo);
+            descriptionBuilder.As<IHttpControllerDescriptionBuilder>().Setup(instance => instance.GetMethodVerb(It.IsAny<MethodInfo>())).Returns<MethodInfo>(method => verbs[method.Name]);
             foreach (var operation in operations)
             {
                 IEnumerable<ArgumentInfo> parameterMapping = operation.Arguments;
-                descriptionBuilder.Setup(instance => instance.GetOperationUriTemplate(operation.UnderlyingMethod, out parameterMapping))
+                descriptionBuilder.As<IHttpControllerDescriptionBuilder>().Setup(instance => instance.GetOperationUriTemplate(operation.UnderlyingMethod, out parameterMapping))
                     .Returns<MethodInfo, IEnumerable<ArgumentInfo>>((method, parameters) => operation.UriTemplate);
             }
 

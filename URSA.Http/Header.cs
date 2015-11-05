@@ -11,11 +11,20 @@ namespace URSA.Web.Http
     /// <summary>Describes an HTTP header.</summary>
     public class Header
     {
-        /// <summary>Defines the 'Access-Control-Request-Method' header name.</summary>
+        /// <summary>Defines the 'Access-Control-Request-Origin' header name.</summary>
         public const string AccessControlAllowOrigin = "Access-Control-Allow-Origin";
+
+        /// <summary>Defines the 'Access-Control-Allow-Headers' header name.</summary>
+        public const string AccessControlAllowHeaders = "Access-Control-Allow-Headers";
+
+        /// <summary>Defines the 'Access-Control-Allow-Methods' header name.</summary>
+        public const string AccessControlAllowMethods = "Access-Control-Allow-Methods";
 
         /// <summary>Defines the 'Access-Control-Request-Method' header name.</summary>
         public const string AccessControlRequestMethod = "Access-Control-Request-Method";
+
+        /// <summary>Defines the 'Access-Control-Expose-Headers' header name.</summary>
+        public const string AccessControlExposeHeaders = "Access-Control-Expose-Headers";
 
         /// <summary>Defines the 'Warning' header name.</summary>
         public const string Warning = "Warning";

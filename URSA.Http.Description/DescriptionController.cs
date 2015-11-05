@@ -116,7 +116,7 @@ namespace URSA.Web.Http.Description
         /// <returns><see cref="IApiDocumentation" /> instance.</returns>
         [Route("/")]
         [OnGet]
-        public IApiDocumentation GetApiEntryPointDescription(OutputFormats format)
+        public IApiDocumentation GetApiEntryPointDescription(OutputFormats format = OutputFormats.Xml)
         {
             return GetApiEntryPointDescription(OverrideAcceptedMediaType(format));
         }
@@ -132,12 +132,6 @@ namespace URSA.Web.Http.Description
 
         private IApiDocumentation GetApiEntryPointDescription(string fileExtension)
         {
-            ResponseInfo response = (ResponseInfo)Response;
-            if (response.Request.Method == Verb.OPTIONS)
-            {
-                ((IDictionary<string, string>)response.Headers)[Header.AccessControlAllowOrigin] = response.Request.Headers.Origin;
-            }
-
             var namedGraphSelector = _namedGraphSelectorFactory.NamedGraphSelector;
             ILocallyControlledNamedGraphSelector locallyControlledNamedGraphSelector = namedGraphSelector as ILocallyControlledNamedGraphSelector;
             return locallyControlledNamedGraphSelector != null ?

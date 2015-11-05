@@ -9,24 +9,10 @@ namespace URSA.Reflection
     {
         internal const string HydraSymbol = "hydra";
         internal const string JavascriptSymbol = "javascript";
-        internal const string DotNetSymbol = "net";
-        internal const string DotNetEnumerableSymbol = "net-enumerable";
-        internal const string DotNetListSymbol = "net-list";
 
         internal static Uri MakeUri(this Type type)
         {
-            string subScheme = JavascriptSymbol;
-            ////if (type.IsList())
-            ////{
-            ////    subScheme = DotNetListSymbol;
-            ////    type = type.FindItemType();
-            ////}
-            ////else if (System.Reflection.TypeExtensions.IsEnumerable(type))
-            ////{
-            ////    subScheme = DotNetEnumerableSymbol;
-            ////}
-
-            return new Uri(String.Format("{1}:{0}", type.FullName.Replace("&", String.Empty), subScheme));
+            return new Uri(String.Format("{1}:{0}", type.FullName.Replace("&", String.Empty), JavascriptSymbol));
         }
 
         internal static Uri MakeUri(this PropertyInfo property, Type declaringTypeOverride = null)

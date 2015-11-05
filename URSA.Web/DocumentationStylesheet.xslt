@@ -335,7 +335,7 @@
                             <div class="panel panel-default" ng-repeat="supportedClass in supportedClasses">
                                 <div class="panel-heading">
                                     <h4 class="panel-title">
-                                        <a data-toggle="collapse" data-parent="#SupportedClasses" href="#collapse{{{{ $index }}}}">{{ supportedClass.label }}</a>
+                                        <a data-toggle="collapse" data-parent="#SupportedClasses" ng-attr-href="#collapse{{{{ $index }}}}">{{ supportedClass.label }}</a>
                                     </h4>
                                 </div>
                                 <div id="collapse{{{{ $index }}}}" class="panel-collapse collapse">
@@ -401,11 +401,11 @@
         window.hydra = new String("<xsl:value-of select="'hydra'"/>");
         hydra.supportedProperty = hydra + "supportedProperty";
         window.ursa = new String("<xsl:value-of select="'&ursa;'"/>");
-        var supportedClasses = [];<xsl:for-each select="hydra:supportedClass"><xsl:variable name="id" select="@rdf:resource" />
+        var supportedClasses = [];<xsl:for-each select="hydra:supportedClass"><xsl:variable name="id" select="@rdf:resource" /><xsl:if test="$id != '&hydra;ApiDocumentation'">
         supportedClasses.push(<xsl:call-template name="hydra-Class">
                 <xsl:with-param name="class" select="/rdf:RDF/hydra:Class[@rdf:about = $id]|/rdf:RDF/*[rdf:type/@rdf:resource = '&hydra;Class' and @rdf:about = $id]" />
             </xsl:call-template>);
-        supportedClasses[supportedClasses.length - 1].supportedOperations.pop();</xsl:for-each>
+        supportedClasses[supportedClasses.length - 1].supportedOperations.pop();</xsl:if></xsl:for-each>
     </xsl:template>
 
     <xsl:template name="hydra-Class">

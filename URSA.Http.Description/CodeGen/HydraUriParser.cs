@@ -21,9 +21,6 @@ namespace URSA.Web.Http.Description.CodeGen
             }
 
             string segment = null;
-            ////((segment.StartsWith(URSA.Reflection.TypeExtensions.DotNetSymbol)) ||
-            //// (segment.StartsWith(URSA.Reflection.TypeExtensions.DotNetListSymbol)) ||
-            //// (segment.StartsWith(URSA.Reflection.TypeExtensions.HydraSymbol))))
             if ((uri.Scheme == URSA.Reflection.TypeExtensions.JavascriptSymbol) ||
                 ((uri.Segments.Length > 0) && ((segment = uri.Segments.First()) != null) && (segment.StartsWith(URSA.Reflection.TypeExtensions.HydraSymbol))))
             {
@@ -56,9 +53,6 @@ namespace URSA.Web.Http.Description.CodeGen
 
             switch (language)
             {
-                ////case URSA.Reflection.TypeExtensions.DotNetListSymbol:
-                ////case URSA.Reflection.TypeExtensions.DotNetEnumerableSymbol:
-                ////case URSA.Reflection.TypeExtensions.DotNetSymbol:
                 case URSA.Reflection.TypeExtensions.JavascriptSymbol:
                 case URSA.Reflection.TypeExtensions.HydraSymbol:
                     break;

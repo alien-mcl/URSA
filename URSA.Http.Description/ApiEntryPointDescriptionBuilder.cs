@@ -3,10 +3,16 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Resta.UriTemplates;
+using RomanticWeb.Entities;
+using URSA.Reflection;
 using URSA.Web.Description;
 using URSA.Web.Description.Http;
+using URSA.Web.Http.Description;
 using URSA.Web.Http.Description.Hydra;
+using URSA.Web.Mapping;
 
 namespace URSA.Web.Http.Description
 {
@@ -50,6 +56,8 @@ namespace URSA.Web.Http.Description
         /// <inheritdoc />
         public void BuildDescription(IApiDocumentation apiDocumentation, IEnumerable<Uri> profiles)
         {
+            ControllerInfo entryPointControllerInfo = null;
+            IHttpControllerDescriptionBuilder<EntryPointDescriptionController> entryPointcontrollerDescriptionBuilder = null;
             foreach (var controllerDescriptionBuilder in _controllerDescriptionBuilders)
             {
                 var controllerDescriptionBuilderType = controllerDescriptionBuilder.GetType();
@@ -63,6 +71,13 @@ namespace URSA.Web.Http.Description
                 }
 
                 var controllerDescription = controllerDescriptionBuilder.BuildDescriptor();
+                if (controllerDescriptionBuilder is IHttpControllerDescriptionBuilder<EntryPointDescriptionController>)
+                {
+                    entryPointcontrollerDescriptionBuilder = (IHttpControllerDescriptionBuilder<EntryPointDescriptionController>)controllerDescriptionBuilder;
+                    entryPointControllerInfo = controllerDescription;
+                    continue;
+                }
+
                 if ((controllerDescription.EntryPoint == null) || (controllerDescription.EntryPoint.ToString() != EntryPoint.ToString()))
                 {
                     continue;
@@ -71,6 +86,44 @@ namespace URSA.Web.Http.Description
                 var apiDescriptionBuilder = _apiDescriptionBuilderFactory.Create(targetImplementation);
                 apiDescriptionBuilder.BuildDescription(apiDocumentation, profiles);
             }
+
+            if (entryPointControllerInfo != null)
+            {
+                BuildEntryPointDescription(apiDocumentation, entryPointControllerInfo, entryPointcontrollerDescriptionBuilder);
+            }
+        }
+
+        private void BuildEntryPointDescription(
+            IApiDocumentation apiDocumentation,
+            ControllerInfo entryPointControllerInfo,
+            IHttpControllerDescriptionBuilder<EntryPointDescriptionController> entryPointcontrollerDescriptionBuilder)
+        {
+            var classUri = apiDocumentation.Context.Mappings.MappingFor(typeof(IApiDocumentation)).Classes.Select(item => item.Uri).FirstOrDefault();
+            var apiDocumentationClass = apiDocumentation.Context.Create<IClass>(classUri);
+            var baseUri = apiDocumentation.Context.BaseUriSelector.SelectBaseUri(new EntityId(new Uri("/", UriKind.Relative)));
+            foreach (OperationInfo<Verb> operation in entryPointControllerInfo.Operations)
+            {
+                var url = operation.Uri;
+                if (operation.UriTemplate != null)
+                {
+                    var template = new UriTemplate(baseUri + operation.UriTemplate.TrimStart('/'));
+                    var variables = operation.UnderlyingMethod.GetParameters().ToDictionary(parameter => parameter.Name, parameter => (object)parameter.DefaultValue.ToString());
+                    url = template.ResolveUri(variables);
+                }
+
+                var operationId = new EntityId(url.Combine(baseUri));
+                var supportedOperation = operation.AsOperation(apiDocumentation, operationId);
+                supportedOperation.MediaTypes.AddRange(ApiDescriptionBuilder.RdfMediaTypes);
+                supportedOperation.Label = operation.UnderlyingMethod.Name;
+                supportedOperation.Method.Add(operation.ProtocolSpecificCommand.ToString());
+                var returned = apiDocumentation.Context.Create<IClass>(apiDocumentation.CreateBlankId());
+                returned.SubClassOf.Add(apiDocumentationClass);
+                returned.SingleValue = true;
+                supportedOperation.Returns.Add(returned);
+                apiDocumentationClass.SupportedOperations.Add(supportedOperation);
+            }
+
+            apiDocumentation.SupportedClasses.Add(apiDocumentationClass);
         }
     }
 }

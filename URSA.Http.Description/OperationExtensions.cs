@@ -28,9 +28,9 @@ namespace URSA.Web.Http.Description
             return new EntityId(uri);
         }
 
-        internal static IOperation AsOperation<T>(this OperationInfo<T> operation, IApiDocumentation apiDocumentation)
+        internal static IOperation AsOperation<T>(this OperationInfo<T> operation, IApiDocumentation apiDocumentation, EntityId id = null)
         {
-            var methodId = operation.CreateId(apiDocumentation.Context.BaseUriSelector.SelectBaseUri(new EntityId(new Uri("/", UriKind.Relative))));
+            var methodId = id ?? operation.CreateId(apiDocumentation.Context.BaseUriSelector.SelectBaseUri(new EntityId(new Uri("/", UriKind.Relative))));
             if (operation.IsWriteControllerOperation())
             {
                 switch (operation.UnderlyingMethod.Name)
