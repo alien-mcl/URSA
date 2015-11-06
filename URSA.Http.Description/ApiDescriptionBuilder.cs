@@ -219,6 +219,7 @@ namespace URSA.Web.Http.Description
                 var expected = childContext.BuildTypeDescription(out isRdfRequired);
                 expected = childContext.SubClass(expected);
                 expected.Label = value.Name ?? "instance";
+                expected.Description = _xmlDocProvider.GetDescription(operation.UnderlyingMethod, value);
                 result.Expects.Add(expected);
                 requiresRdf |= isRdfRequired;
             }
@@ -228,6 +229,7 @@ namespace URSA.Web.Http.Description
                 var childContext = context.ForType(value.ParameterType);
                 var returned = childContext.BuildTypeDescription(out isRdfRequired);
                 returned = childContext.SubClass(returned);
+                returned.Description = _xmlDocProvider.GetDescription(operation.UnderlyingMethod, value);
                 result.Returns.Add(returned);
                 requiresRdf |= isRdfRequired;
             }

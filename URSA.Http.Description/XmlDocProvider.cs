@@ -57,10 +57,12 @@ namespace URSA.Web.Http.Description
 
             EnsureAssemblyDocumentation(method.DeclaringType.Assembly);
             string memberName = CreateMemberName(method);
+            var targetNode = (method.ReturnParameter == parameter ? "returns" : "param");
             return GetText(
                 AssemblyCache[method.DeclaringType.Assembly],
                 element => (element.Attribute("name") != null) && (element.Attribute("name").Value == memberName),
-                element => (element.Name.LocalName == "param") && (element.Attribute("name") != null) && (element.Attribute("name").Value == parameter.Name));
+                element => (element.Name.LocalName == targetNode) && ((targetNode == "returns") || 
+                    ((element.Attribute("name") != null) && (element.Attribute("name").Value == parameter.Name))));
         }
 
         /// <inheritdoc />
@@ -146,10 +148,22 @@ namespace URSA.Web.Http.Description
             var element = (XElement)node;
             if ((element.IsEmpty) && (element.HasAttributes))
             {
-                return String.Join(" ", element.Attributes().Select(attribute => attribute.Value));
+                return String.Join(" ", element.Attributes().Select(GetText));
             }
 
             return String.Join(String.Empty, element.DescendantNodes().Select(GetText));
+        }
+
+        private static string GetText(XAttribute attribute)
+        {
+            char[] memberMarkers = new[] { 'M', 'T', 'P' };
+            string result = attribute.Value;
+            if ((result.Length > 1) && (result[1] == ':') && (memberMarkers.Contains(result[0])))
+            {
+                return result.Substring(2);
+            }
+
+            return result;
         }
 
         private static void EnsureAssemblyDocumentation(Assembly assembly)

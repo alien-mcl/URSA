@@ -173,7 +173,7 @@
                     returns = supportedOperation.label + "Result";
                 }
                 else {
-                    returns = mapType(returnedTypes[0], currentFlavour);
+                    returns = mapType(returnedTypes[0]["@id"], currentFlavour);
                     if (returns.replace(/\[\]$/, "") === mapType(supportedClass["@id"], currentFlavour)) {
                         returns = supportedClass.label + (returns.replace(/\[\]$/, "") === returns ? "" : "[]");
                     }
@@ -380,12 +380,13 @@
                                     <tr ng-repeat="expected in currentMember.expects">
                                         <td>{{ expected.variable }}</td>
                                         <td ng-attr-title="expected.type">{{ mapType(currentClass, expected.type, currentFlavour) }}</td>
-                                        <td></td>
+                                        <td>{{ expected.description }}</td>
                                     </tr>
                                 </table>
                                 <p ng-show="returns(currentMember)">
                                     {{ currentMember.type ? "Type:" : "Returns:" }}
-                                    {{ returns(currentMember) ? mapType(currentClass, currentMember.type || currentMember.returns[0], currentFlavour) : "" }}
+                                    {{ returns(currentMember) ? mapType(currentClass, currentMember.type || currentMember.returns[0]["@id"], currentFlavour) : "" }}
+                                    {{ currentMember.returns[0].description ? "; " + currentMember.returns[0].description : "" }}
                                 </p>
                             </div>
                         </div>
@@ -490,14 +491,19 @@
                         "label": "<xsl:value-of select="$supportedOperation/rdfs:label" />",<xsl:if test="$template">
                         "template": "<xsl:value-of select="$template/hydra:template" />",</xsl:if><xsl:if test="$supportedOperation/rdfs:comment">
                         "description": "<xsl:value-of select="$supportedOperation/rdfs:comment/text()"/>",</xsl:if>
-                        "returns": [<xsl:if test="$hasTotalEntities">"<xsl:value-of select="'&xsd;int'" />"<xsl:if test="$supportedOperation/hydra:returns">, </xsl:if></xsl:if
-                            ><xsl:for-each select="$supportedOperation/hydra:returns">"<xsl:variable name="current" select="./@rdf:nodeID" 
-                            /><xsl:variable name="resource" select="/rdf:RDF/*[@rdf:nodeID = $current]" 
-                            /><xsl:variable name="enumerable"><xsl:choose><xsl:when test="$resource/ursa:singleValue/text() = 'true'">false</xsl:when><xsl:otherwise>true</xsl:otherwise></xsl:choose></xsl:variable><xsl:call-template name="type"
-                                ><xsl:with-param name="type" select="/rdf:RDF/*[@rdf:nodeID = $current]/rdfs:subClassOf/@rdf:resource" 
-                                /><xsl:with-param name="isEnumerable" select="$enumerable" 
-                                /></xsl:call-template
-                            >"<xsl:if test="position() != last()">, </xsl:if></xsl:for-each>
+                        "returns": [<xsl:if test="$hasTotalEntities">
+                            {
+                                "@id": "<xsl:value-of select="'&xsd;int'" />",
+                                "description": "Total items in collection"
+                            }<xsl:if test="$supportedOperation/hydra:returns">, </xsl:if></xsl:if
+                            ><xsl:for-each select="$supportedOperation/hydra:returns"><xsl:variable name="current" select="./@rdf:nodeID" 
+                                /><xsl:variable name="resource" select="/rdf:RDF/*[@rdf:nodeID = $current]" 
+                                /><xsl:variable name="enumerable"><xsl:choose><xsl:when test="$resource/ursa:singleValue/text() = 'true'">false</xsl:when><xsl:otherwise>true</xsl:otherwise></xsl:choose
+                                ></xsl:variable>
+                            {
+                                "@id": "<xsl:call-template name="type"><xsl:with-param name="type" select="/rdf:RDF/*[@rdf:nodeID = $current]/rdfs:subClassOf/@rdf:resource" /><xsl:with-param name="isEnumerable" select="$enumerable" /></xsl:call-template>",
+                                "description": "<xsl:value-of select="$resource/rdfs:comment" />"
+                            }<xsl:if test="position() != last()">, </xsl:if></xsl:for-each>
                         ],
                         "expects": [<xsl:for-each select="$supportedOperation/hydra:expects">
                             {   <xsl:variable name="current" select="./@rdf:nodeID" />
@@ -508,7 +514,8 @@
                                     ><xsl:with-param name="type" select="/rdf:RDF/*[@rdf:nodeID = $current]/rdfs:subClassOf/@rdf:resource" 
                                     /><xsl:with-param name="isEnumerable" select="$enumerable" 
                                     /></xsl:call-template
-                                >"
+                                >",
+                                "description": "<xsl:value-of select="$resource/rdfs:comment" />"
                             }<xsl:if test="position() != last()">, </xsl:if></xsl:for-each>
                         ],
                         "mappings": [<xsl:for-each select="/rdf:RDF/*[@rdf:about = $template/hydra:mapping/@rdf:resource]">
