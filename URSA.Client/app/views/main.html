@@ -1,2 +1,12 @@
 <div class="row">
+    <nav class="col-lg-3 col-md-12 panel-group">
+        <uib-accordion close-others="true">
+            <uib-accordion-group ng-repeat="supportedClass in apiDocumentation.supportedClasses" ng-hide="supportedClass.id == apiDocumentationId" heading="{{ supportedClass.label}}">
+                <a href ng-repeat="supportedOperation in supportedClass.supportedOperations" ng-show="filterOperation(supportedOperation)" ng-click="onOperationClick(supportedOperation)">{{ supportedOperation.label }}</a>
+            </uib-accordion-group>
+        </uib-accordion>
+    </nav>
+    <div class="col-lg-9 col-md-12">
+        <ursa-api-member-view api-member="selectedOperation"></ursa-api-member-view>
+    </div>
 </div>

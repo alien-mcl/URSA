@@ -1,15 +1,15 @@
-/*globals application */
+/*globals application, angular */
 (function() {
-"use strict";
+    "use strict";
 
-/**
- * @ngdoc function
- * @name ursaclientApp.controller:AboutCtrl
- * @description
- * # AboutCtrl
- * Controller of the ursaclientApp
- */
-application.
-controller("AboutCtrl", function() {
-});
+    /**
+     * @ngdoc function
+     * @name ursaclientApp.controller:AboutCtrl
+     * @description
+     * # AboutCtrl
+     * Controller of the ursaclientApp
+     */
+    application.
+    controller("AboutCtrl", [function() {
+    }]);
 }());

@@ -18,7 +18,9 @@ window.application = angular
             "ngRoute",
             "ngSanitize",
             "ngTouch",
-            "ursa"
+            "ui.bootstrap",
+            "ursa",
+            "jsonld"
         ])
         .config(function($routeProvider) {
             $routeProvider
@@ -35,5 +37,10 @@ window.application = angular
                 .otherwise({
                     redirectTo: "/"
                 });
-        });
+        }).
+        filter("trustAsResourceUrl", ["$sce", function($sce) {
+            return function(val) {
+                return $sce.trustAsResourceUrl(val);
+            };
+        }]);
 }());
