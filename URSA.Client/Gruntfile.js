@@ -460,7 +460,8 @@ module.exports = function(grunt) {
                 src: ["app/scripts/ursa/*.js"],
                 options: {
                     destination: "doc",
-                    recurse: true
+                    recurse: true,
+                    template: "<%= yeoman.app %>/../node_modules/ink-docstrap/template"
                 }
             }
         }
