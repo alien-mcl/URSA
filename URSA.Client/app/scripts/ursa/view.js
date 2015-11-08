@@ -197,7 +197,6 @@
         ViewRenderer.prototype.isApplicableTo.apply(this, arguments);
         return apiMember instanceof ursa.model.SupportedProperty;
     };
-    // TODO: Add validation.
     SupportedPropertyRenderer.prototype.render = function(scope, http, jsonld, apiMember, classNames) {
         ViewRenderer.prototype.render.apply(this, arguments);
         if (!(apiMember instanceof ursa.model.SupportedProperty)) {
@@ -221,13 +220,19 @@
             scope.supportedPropertyReadonly[apiMember.id] = true;
         }
 
-        var format = String.format("<input {0}ng-model=\"{1}\" ng-readonly=\"supportedPropertyKeys['{2}'] || supportedPropertyNulls['{2}'] || supportedPropertyReadonly['{2}']\" ", classNames, valueSelector, apiMember.id);
+        var format = String.format(
+            "<input {0}ng-model=\"{1}\" name=\"{4}\" ng-readonly=\"isPropertyReadonly('{2}')\" {3}",
+            classNames,
+            valueSelector,
+            apiMember.id,
+            ((apiMember.required) && (!apiMember.key) ? "required " : ""),
+            propertyName);
         var parameters = [propertyName];
         var dataType = SupportedPropertyRenderer.dataTypes[apiMember.range.id] || { type: "text" };
         for (var property in dataType) {
             if ((dataType.hasOwnProperty(property)) && (dataType[property] !== undefined) && (dataType[property] !== null)) {
-                format += property + "=\"{" + parameters.length + "}\" ";
-                parameters.push(dataType[property]);
+                format += (property === "pattern" ? "ng-" + property : property) + "=\"{" + parameters.length + "}\" ";
+                parameters.push(property === "pattern" ? "/" + dataType[property] + "/" : dataType[property]);
             }
         }
 
@@ -237,21 +242,29 @@
         if (apiMember.maxOccurances === 1) {
             var isNull = (!(scope.supportedPropertyNulls[apiMember.id] = (apiMember.minOccurances === 0)) ? "" : String.format(
                 "<span class=\"input-group-addon\"><input type=\"checkbox\" title=\"Null\" checked ng-model=\"supportedPropertyNulls['{0}']\" ng-change=\"onIsNullCheckedChanged('{0}')\" /></span>", apiMember.id));
-            return String.format("<div class=\"input-group\"><span class=\"input-group-addon\">{0}</span>{1}{2}</div>", apiMember.label, result, isNull);
+            return String.format("<div class=\"input-group\"><span ng-class=\"styleFor('{3}', null)\">{0}</span>{1}{2}</div>", apiMember.label, result, isNull, apiMember.id);
         }
 
         scope.supportedPropertyNewValues[propertyName] = apiMember.createInstance();
         return String.format(
             "<div class=\"input-group\" ng-repeat=\"value in {1}{4}\">" + 
-                "<span class=\"input-group-addon\">{0}</span>" +
+                "<span ng-class=\"styleFor('{3}', $index)\">{0}</span>" +
                 "{2}" +
                 "<span class=\"input-group-btn\"><button class=\"btn btn-default\" ng-click=\"removePropertyItem('{3}', $index)\"><span class=\"glyphicon glyphicon-remove\"></span></button></span>" +
-            "</div>", apiMember.label, String.format(propertySelector, propertyName), result, apiMember.id, (literalSelector === "value" ? "" : " track by value")) + String.format(
+            "</div>",
+            apiMember.label,
+            String.format(propertySelector, propertyName),
+            result.replace(" name=\"" + propertyName + "\"", " ng-attr-name=\"{{'" + propertyName + "_' + $index}}\""),
+            apiMember.id,
+            (literalSelector === "value" ? "" : " track by value")) + String.format(
             "<div class=\"input-group\">" + 
-                "<span class=\"input-group-addon\">{0}</span>" +
+                "<span ng-class=\"styleFor('{2}', -1)\">{0}</span>" +
                 "{1}" +
                 "<span class=\"input-group-btn\"><button class=\"btn btn-default\" ng-click=\"addPropertyItem('{2}')\"><span class=\"glyphicon glyphicon-plus\"></span></button></span>" +
-            "</div>", apiMember.label, result.replace(literalSelector, "supportedPropertyNewValues['" + propertyName + "']"), apiMember.id);
+            "</div>",
+            apiMember.label,
+            result.replace(literalSelector, "supportedPropertyNewValues['" + propertyName + "']").replace(" name=\"" + propertyName + "\"", " name=\"" + propertyName + "_new\""),
+            apiMember.id);
     };
     SupportedPropertyRenderer.prototype._setupPropertyScope = function(scope, apiMember) {
         scope.editedEntityNulls = {};
@@ -260,6 +273,42 @@
         scope.supportedPropertyKeys = {};
         scope.supportedPropertyReadonly = {};
         scope.supportedProperties = apiMember.owner.supportedProperties;
+        scope.isPropertyReadonly = function(supportedPropertyId) {
+            return scope.supportedPropertyKeys[supportedPropertyId] ||
+                scope.supportedPropertyNulls[supportedPropertyId] ||
+                scope.supportedPropertyReadonly[supportedPropertyId];
+        };
+        scope.styleFor = function(supportedPropertyId, index) {
+            var result = "input-group-addon";
+            var supportedProperty = scope.supportedProperties.getById(supportedPropertyId);
+            if ((!supportedProperty.required) || (supportedProperty.key)) {
+                return result;
+            }
+
+            var propertyName = supportedProperty.propertyName(scope.operation);
+            var currentValue = scope[scope.targetInstance] || null;
+            switch (index) {
+                case null:
+                    if (currentValue !== null) {
+                        currentValue = currentValue[propertyName];
+                        currentValue = (currentValue.length > 0 ? currentValue[0]["@value"] : null);
+                    }
+
+                    break;
+                case -1:
+                    currentValue = scope.supportedPropertyNewValues[propertyName];
+                    break;
+                default:
+                    if (currentValue !== null) {
+                        currentValue = currentValue[propertyName];
+                        currentValue = (currentValue.length > 0 ? currentValue[index]["@value"] : null);
+                    }
+
+                    break;
+            }
+
+            return result + ((currentValue === undefined) || (currentValue === null) || ((typeof(currentValue) === "string") && (currentValue.length === 0)) ? " danger" : "");
+        };
         scope.addPropertyItem = function(supportedPropertyId) {
             var supportedProperty = scope.supportedProperties.getById(supportedPropertyId);
             var propertyName = supportedProperty.propertyName(scope.operation);
@@ -441,7 +490,7 @@
      * @name ursa.view.SupportedPropertyRenderer#"http://www.w3.org/2001/XMLSchema#base64Binary"
      * @type {ursa.view.DatatypeDescriptor}
      */
-    SupportedPropertyRenderer.dataTypes[guid.guid] = new DatatypeDescriptor("text", null, null, null, "00000000-0000-0000-0000-000000000000", "^[A-F0-9]{8}(?:-[A-F0-9]{4}){3}-[A-F0-9]{12}$");
+    SupportedPropertyRenderer.dataTypes[guid.guid] = new DatatypeDescriptor("text", null, null, null, "00000000-0000-0000-0000-000000000000", "^[A-Fa-f0-9]{8}-[A-Fa-f0-9]{4}-[A-Fa-f0-9]{4}-[A-Fa-f0-9]{4}-[A-Fa-f0-9]{12}$");
 
     /**
      * Default renderer for {@link ursa.model.Class}.
@@ -462,7 +511,10 @@
     };
     ClassRenderer.prototype.render = function(scope, http, jsonld, apiMember, classNames) {
         ViewRenderer.prototype.render.apply(this, arguments);
-        var result = String.format("<div class=\"panel{0}\"><div class=\"panel-body\">", (typeof (classNames) === "string" ? " " + classNames : ""));
+        var result = String.format(
+            "<div class=\"panel{0}\"><div class=\"panel-body\"><form{1}>",
+            (typeof (classNames) === "string" ? " " + classNames : ""),
+            (scope.uniqueId ? " name=\"" + scope.uniqueId + "\"" : ""));
         for (var index = 0; index < apiMember.supportedProperties.length; index++) {
             var supportedProperty = apiMember.supportedProperties[index];
             if (!supportedProperty.readable) {
@@ -482,7 +534,7 @@
             result += propertyView;
         }
 
-        result += "</div></div>";
+        result += "</form></div></div>";
         return result;
     };
 
@@ -546,19 +598,19 @@
                         (scope.deleteOperation !== null ? "<button class=\"btn btn-default\" title=\"Delete\" ng-click=\"delete(entity, $event)\"><span class=\"glyphicon glyphicon-remove\"></span></button>" : "") +
                     "</div></td>" +
                 "</tr>", scope.keyProperty, (scope.keyProperty !== "" ? " track by entity['" + scope.keyProperty + "']" : "")) + String.format(
-                "<tr ng-repeat-end ng-show=\"entityEquals(entity)\">" +
-                    "<td colspan=\"{0}\"><ursa-api-member-view api-member=\"operation.owner\" target-instance=\"editedEntity\"></ursa-api-member-view></td>" +
+                "<tr ng-repeat-end ng-show=\"entityEquals(entity)\" ng-init=\"initialize($index)\">" +
+                    "<td colspan=\"{0}\"><ursa-api-member-view api-member=\"operation.owner\" target-instance=\"editedEntity\" unique-id=\"{{ uniqueId[$index] }}\"></ursa-api-member-view></td>" +
                     "<td><div class=\"btn-block\">" +
-                        (scope.updateOperation !== null ? "<button class=\"btn btn-default\" title=\"Update\" ng-click=\"update(editedEntity)\"><span class=\"glyphicon glyphicon-floppy-disk\"></span></button>" : "") +
+                        (scope.updateOperation !== null ? "<button class=\"btn btn-default\" title=\"Update\" ng-disabled=\"isFormDisabled(uniqueId[$index])\" ng-click=\"update(editedEntity)\"><span class=\"glyphicon glyphicon-floppy-disk\"></span></button>" : "") +
                         "<button class=\"btn btn-default\" title=\"Cancel\" ng-click=\"cancel()\"><span class=\"glyphicon glyphicon-repeat\"></span></button>" +
                     "</div></td>" +
                 "</tr>", scope.supportedProperties.length - 1) + String.format(
-                "<tr ng-hide=\"editedEntity !== null\">" +
-                    "<td colspan=\"{0}\"><ursa-api-member-view api-member=\"operation.owner\" target-instance=\"newInstance\"></ursa-api-member-view></td>" +
+                "<tr ng-hide=\"editedEntity !== null\" ng-init=\"initialize(-1)\">" +
+                    "<td colspan=\"{0}\"><ursa-api-member-view api-member=\"operation.owner\" target-instance=\"newInstance\" unique-id=\"{{ uniqueId.footer }}\"></ursa-api-member-view></td>" +
                     "<td><div class=\"btn-block\">" +
-                        (scope.createOperation !== null ? "<button class=\"btn btn-default\" title=\"Create\" ng-click=\"create(newInstance)\"><span class=\"glyphicon glyphicon-plus\"></span></button>" : "") +
+                        (scope.createOperation !== null ? "<button class=\"btn btn-default\" title=\"Create\" ng-disabled=\"isFormDisabled(uniqueId.footer)\" ng-click=\"create(newInstance)\"><span class=\"glyphicon glyphicon-plus\"></span></button>" : "") +
                     "</div></td>" +
-                "</tr>", scope.supportedProperties.length - 1) +
+                "</tr>", scope.supportedProperties.length - 1, "instance_" + Math.random().toString().replace(".", "").substr(1)) +
                 pager +
             "</table>";
         scope.list();
@@ -566,6 +618,7 @@
     };
     OperationRenderer.prototype._setupListScope = function(scope, http, jsonld, apiMember) {
         var that = this;
+        scope.uniqueId = [];
         scope.deleteOperation = this._findEntityCrudOperation(apiMember, "DELETE");
         scope.updateOperation = this._findEntityCrudOperation(apiMember, "PUT");
         scope.getOperation = this._findEntityCrudOperation(apiMember, "GET");
@@ -604,6 +657,8 @@
         scope.update = function(instance) { that._updateEntity(scope, http, jsonld, scope.updateOperation, instance); };
         scope.delete = function(instance, e) { that._deleteEntity(scope, http, jsonld, scope.deleteOperation, instance, e); };
         scope.entityEquals = function(entity) { return that._entityEquals(entity, scope.editedEntity, scope.operation); };
+        scope.initialize = function(index) { that._initialize(scope, index); };
+        scope.isFormDisabled = function(name) { return that._isFormDisabled(scope, name); };
     };
     OperationRenderer.prototype._findEntityCrudOperation = function(apiMember, method) {
         var supportedOperations = apiMember.owner.supportedOperations;
@@ -780,5 +835,16 @@
         }
 
         return instance;
+    };
+    OperationRenderer.prototype._initialize = function(scope, index) {
+        if (index === -1) {
+            scope.uniqueId.footer = "instance_" + Math.random().toString().replace(".", "").substr(1);
+        }
+        else {
+            scope.uniqueId[index] = "instance_" + Math.random().toString().replace(".", "").substr(1);
+        }
+    };
+    OperationRenderer.prototype._isFormDisabled = function(scope, name) {
+        return angular.element(document.getElementsByName(name)[0]).scope()[name].$invalid;
     };
 }(namespace("ursa.view")));

@@ -146,11 +146,23 @@
             return format;
         }
 
-        var result = format;
+        var parameters = [];
         for (var index = 1; index < arguments.length; index++) {
-            result = result.replace(new RegExp("\\{" + (index - 1) + "\\}", "g"), arguments[index]);
+            parameters.push(((arguments[index] === undefined) || (arguments[index] === null) ? "" : arguments[index].toString())
+                .replace(/(\{|\})/g, function(match) { return "_\\" + match; }));
         }
 
-        return result;
+        var result = format.replace(/(\{\{\d\}\}|\{\d\})/g, function(match) {
+            if (match.substr(0, 2) === "{{") {
+                return match;
+            }
+
+            var index = parseInt(match.substr(1, match.length - 2));
+            return parameters[index];
+        });
+
+        return result.replace(/(_\\\{|_\\\})/g, function(match) {
+            return match.substr(2, 1);
+        });
     };
 }());

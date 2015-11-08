@@ -17,7 +17,7 @@ namespace URSA.Reflection
 
         internal static Uri MakeUri(this PropertyInfo property, Type declaringTypeOverride = null)
         {
-            return new Uri(String.Format("{2}:{0}.{1}", declaringTypeOverride ?? property.DeclaringType, property.Name, HydraSymbol));
+            return new Uri(String.Format("urn:{2}:{0}.{1}", declaringTypeOverride ?? property.DeclaringType, property.Name, HydraSymbol));
         }
 
         internal static Type GetInterfaceImplementation(this Type implementour, Type implementation)

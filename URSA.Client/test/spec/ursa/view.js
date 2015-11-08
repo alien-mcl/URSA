@@ -34,8 +34,8 @@
                 it("it should render it's view correctly", function () {
                     var expected = String.format(
                         "<div class=\"input-group\">" +
-                            "<span class=\"input-group-addon\">{0}</span>" +
-                            "<input class=\"form-control\" ng-model=\"{1}['{3}'][0]['@value']\" ng-readonly=\"supportedPropertyKeys['{2}'] || supportedPropertyNulls['{2}'] || supportedPropertyReadonly['{2}']\" " +
+                            "<span ng-class=\"styleFor('{2}', null)\">{0}</span>" +
+                            "<input class=\"form-control\" ng-model=\"{1}['{3}'][0]['@value']\" name=\"{3}\" ng-readonly=\"isPropertyReadonly('{2}')\" " +
                             "type=\"number\" step=\"1\" min=\"-2147483648\" max=\"2147483647\" placeholder=\"[-2147483648, 2147483647]\" />" +
                             "<span class=\"input-group-addon\"><input type=\"checkbox\" title=\"Null\" checked ng-model=\"supportedPropertyNulls['{2}']\" ng-change=\"onIsNullCheckedChanged('{2}')\" /></span>" +
                         "</div>",
@@ -55,13 +55,13 @@
                 it("it should render it's view correctly", function () {
                     var expected = String.format(
                         "<div class=\"input-group\" ng-repeat=\"value in {1}['{3}'] track by value\">" +
-                            "<span class=\"input-group-addon\">{0}</span>" +
-                            "<input class=\"form-control\" ng-model=\"{1}['{3}'][$index]['@value']\" ng-readonly=\"supportedPropertyKeys['{2}'] || supportedPropertyNulls['{2}'] || supportedPropertyReadonly['{2}']\" type=\"text\" placeholder=\"text\" />" +
+                            "<span ng-class=\"styleFor('{2}', $index)\">{0}</span>" +
+                            "<input class=\"form-control\" ng-model=\"{1}['{3}'][$index]['@value']\" ng-attr-name=\"{{'{3}_' + $index}}\" ng-readonly=\"isPropertyReadonly('{2}')\" type=\"text\" placeholder=\"text\" />" +
                             "<span class=\"input-group-btn\"><button class=\"btn btn-default\" ng-click=\"removePropertyItem('{2}', $index)\"><span class=\"glyphicon glyphicon-remove\"></span></button></span>" +
                         "</div>" +
                         "<div class=\"input-group\">" + 
-                            "<span class=\"input-group-addon\">{0}</span>" +
-                            "<input class=\"form-control\" ng-model=\"supportedPropertyNewValues['{3}']['@value']\" ng-readonly=\"supportedPropertyKeys['{2}'] || supportedPropertyNulls['{2}'] || supportedPropertyReadonly['{2}']\" type=\"text\" placeholder=\"text\" />" +
+                            "<span ng-class=\"styleFor('{2}', -1)\">{0}</span>" +
+                            "<input class=\"form-control\" ng-model=\"supportedPropertyNewValues['{3}']['@value']\" name=\"{3}_new\" ng-readonly=\"isPropertyReadonly('{2}')\" type=\"text\" placeholder=\"text\" />" +
                             "<span class=\"input-group-btn\"><button class=\"btn btn-default\" ng-click=\"addPropertyItem('{2}')\"><span class=\"glyphicon glyphicon-plus\"></span></button></span>" +
                         "</div>",
                         apiMember.label,
@@ -103,14 +103,14 @@
                                     "<button class=\"btn btn-default\" title=\"Edit\" ng-click=\"get(entity)\"><span class=\"glyphicon glyphicon-pencil\"></span></button>" +
                                 "</div></td>" +
                             "</tr>" +
-                            "<tr ng-repeat-end ng-show=\"entityEquals(entity)\">" +
-                                "<td colspan=\"{1}\"><ursa-api-member-view api-member=\"operation.owner\" target-instance=\"editedEntity\"></ursa-api-member-view></td>" +
+                            "<tr ng-repeat-end ng-show=\"entityEquals(entity)\" ng-init=\"initialize($index)\">" +
+                                "<td colspan=\"{1}\"><ursa-api-member-view api-member=\"operation.owner\" target-instance=\"editedEntity\" unique-id=\"{{ uniqueId[$index] }}\"></ursa-api-member-view></td>" +
                                 "<td><div class=\"btn-block\">" +
                                     "<button class=\"btn btn-default\" title=\"Cancel\" ng-click=\"cancel()\"><span class=\"glyphicon glyphicon-repeat\"></span></button>" +
                                 "</div></td>" +
                             "</tr>" +
-                            "<tr ng-hide=\"editedEntity !== null\">" +
-                                "<td colspan=\"{1}\"><ursa-api-member-view api-member=\"operation.owner\" target-instance=\"newInstance\"></ursa-api-member-view></td>" +
+                            "<tr ng-hide=\"editedEntity !== null\" ng-init=\"initialize(-1)\">" +
+                                "<td colspan=\"{1}\"><ursa-api-member-view api-member=\"operation.owner\" target-instance=\"newInstance\" unique-id=\"{{ uniqueId.footer }}\"></ursa-api-member-view></td>" +
                                 "<td><div class=\"btn-block\">" +
                                 "</div></td>" +
                             "</tr>" +

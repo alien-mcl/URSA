@@ -32,7 +32,8 @@
             transclude: "element",
             scope: {
                 apiMember: "=",
-                targetInstance: "@"
+                targetInstance: "@",
+                uniqueId: "@"
             },
             controller: angular.noop,
             compile: function(element, attr) {
