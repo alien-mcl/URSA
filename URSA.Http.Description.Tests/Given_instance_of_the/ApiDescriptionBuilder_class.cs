@@ -246,6 +246,7 @@ namespace Given_instance_of_the
             var result = new Mock<IClass>(MockBehavior.Strict);
             result.SetupGet(instance => instance.Id).Returns(new EntityId(String.Format("urn:net:" + context.Type.FullName)));
             result.SetupSet(instance => instance.Label = It.IsAny<string>());
+            result.SetupSet(instance => instance.Description = It.IsAny<string>());
             result.SetupGet(instance => instance.MediaTypes).Returns(new List<string>());
             if (context.Type == typeof(Person))
             {

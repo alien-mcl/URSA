@@ -35,7 +35,7 @@
                     var expected = String.format(
                         "<div class=\"input-group\">" +
                             "<span class=\"input-group-addon\">{0}</span>" +
-                            "<input class=\"form-control\" ng-model=\"{1}['{3}'][0]['@value']\" ng-readonly=\"supportedPropertyKeys['{2}'] || supportedPropertyNulls['{2}']\" " +
+                            "<input class=\"form-control\" ng-model=\"{1}['{3}'][0]['@value']\" ng-readonly=\"supportedPropertyKeys['{2}'] || supportedPropertyNulls['{2}'] || supportedPropertyReadonly['{2}']\" " +
                             "type=\"number\" step=\"1\" min=\"-2147483648\" max=\"2147483647\" placeholder=\"[-2147483648, 2147483647]\" />" +
                             "<span class=\"input-group-addon\"><input type=\"checkbox\" title=\"Null\" checked ng-model=\"supportedPropertyNulls['{2}']\" ng-change=\"onIsNullCheckedChanged('{2}')\" /></span>" +
                         "</div>",
@@ -56,12 +56,12 @@
                     var expected = String.format(
                         "<div class=\"input-group\" ng-repeat=\"value in {1}['{3}'] track by value\">" +
                             "<span class=\"input-group-addon\">{0}</span>" +
-                            "<input class=\"form-control\" ng-model=\"{1}['{3}'][$index]['@value']\" ng-readonly=\"supportedPropertyKeys['{2}'] || supportedPropertyNulls['{2}']\" type=\"text\" placeholder=\"text\" />" +
+                            "<input class=\"form-control\" ng-model=\"{1}['{3}'][$index]['@value']\" ng-readonly=\"supportedPropertyKeys['{2}'] || supportedPropertyNulls['{2}'] || supportedPropertyReadonly['{2}']\" type=\"text\" placeholder=\"text\" />" +
                             "<span class=\"input-group-btn\"><button class=\"btn btn-default\" ng-click=\"removePropertyItem('{2}', $index)\"><span class=\"glyphicon glyphicon-remove\"></span></button></span>" +
                         "</div>" +
                         "<div class=\"input-group\">" + 
                             "<span class=\"input-group-addon\">{0}</span>" +
-                            "<input class=\"form-control\" ng-model=\"supportedPropertyNewValues['{3}']['@value']\" ng-readonly=\"supportedPropertyKeys['{2}'] || supportedPropertyNulls['{2}']\" type=\"text\" placeholder=\"text\" />" +
+                            "<input class=\"form-control\" ng-model=\"supportedPropertyNewValues['{3}']['@value']\" ng-readonly=\"supportedPropertyKeys['{2}'] || supportedPropertyNulls['{2}'] || supportedPropertyReadonly['{2}']\" type=\"text\" placeholder=\"text\" />" +
                             "<span class=\"input-group-btn\"><button class=\"btn btn-default\" ng-click=\"addPropertyItem('{2}')\"><span class=\"glyphicon glyphicon-plus\"></span></button></span>" +
                         "</div>",
                         apiMember.label,

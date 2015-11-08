@@ -197,6 +197,7 @@
         ViewRenderer.prototype.isApplicableTo.apply(this, arguments);
         return apiMember instanceof ursa.model.SupportedProperty;
     };
+    // TODO: Add validation.
     SupportedPropertyRenderer.prototype.render = function(scope, http, jsonld, apiMember, classNames) {
         ViewRenderer.prototype.render.apply(this, arguments);
         if (!(apiMember instanceof ursa.model.SupportedProperty)) {
@@ -216,7 +217,11 @@
             scope.supportedPropertyKeys[apiMember.id] = true;
         }
 
-        var format = String.format("<input {0}ng-model=\"{1}\" ng-readonly=\"supportedPropertyKeys['{2}'] || supportedPropertyNulls['{2}']\" ", classNames, valueSelector, apiMember.id);
+        if (!apiMember.writeable) {
+            scope.supportedPropertyReadonly[apiMember.id] = true;
+        }
+
+        var format = String.format("<input {0}ng-model=\"{1}\" ng-readonly=\"supportedPropertyKeys['{2}'] || supportedPropertyNulls['{2}'] || supportedPropertyReadonly['{2}']\" ", classNames, valueSelector, apiMember.id);
         var parameters = [propertyName];
         var dataType = SupportedPropertyRenderer.dataTypes[apiMember.range.id] || { type: "text" };
         for (var property in dataType) {
@@ -253,6 +258,7 @@
         scope.supportedPropertyNewValues = {};
         scope.supportedPropertyNulls = {};
         scope.supportedPropertyKeys = {};
+        scope.supportedPropertyReadonly = {};
         scope.supportedProperties = apiMember.owner.supportedProperties;
         scope.addPropertyItem = function(supportedPropertyId) {
             var supportedProperty = scope.supportedProperties.getById(supportedPropertyId);
@@ -459,6 +465,10 @@
         var result = String.format("<div class=\"panel{0}\"><div class=\"panel-body\">", (typeof (classNames) === "string" ? " " + classNames : ""));
         for (var index = 0; index < apiMember.supportedProperties.length; index++) {
             var supportedProperty = apiMember.supportedProperties[index];
+            if (!supportedProperty.readable) {
+                continue;
+            }
+
             var viewRenderer = ViewRenderer.viewRenderers.find(supportedProperty);
             if (viewRenderer === null) {
                 continue;
@@ -495,27 +505,18 @@
     };
     OperationRenderer.prototype.render = function(scope, http, jsonld, apiMember, classNames) {
         ViewRenderer.prototype.render.apply(this, arguments);
-        if (this.isEntityList(apiMember)) {
-            return this.renderEntityList(scope, http, jsonld, apiMember, classNames);
+        if (this._isEntityList(apiMember)) {
+            return this._renderEntityList(scope, http, jsonld, apiMember, classNames);
         }
 
         return "";
     };
-    OperationRenderer.prototype.isEntityList = function(apiMember) {
+    OperationRenderer.prototype._isEntityList = function(apiMember) {
         return apiMember.owner.maxOccurances === Number.MAX_VALUE;
     };
-    OperationRenderer.prototype.renderEntityList = function(scope, http, jsonld, apiMember, classNames) {
+    OperationRenderer.prototype._renderEntityList = function(scope, http, jsonld, apiMember, classNames) {
         if (!scope.supportedProperties) {
-            this.setupListScope(scope, http, jsonld, apiMember);
-        }
-
-        var keyProperty = (apiMember.isRdf ? "@id" : "");
-        for (var index = 0; index < apiMember.owner.supportedProperties.length; index++) {
-            var supportedProperty = apiMember.owner.supportedProperties[index];
-            if (supportedProperty.key) {
-                keyProperty = supportedProperty.propertyName(apiMember) + (apiMember.isRdf ? "'][0]['@value" : "");
-                break;
-            }
+            this._setupListScope(scope, http, jsonld, apiMember);
         }
 
         var pager = "";
@@ -538,13 +539,13 @@
                     "<th ng-repeat=\"supportedProperty in supportedProperties track by supportedProperty.id\" ng-hide=\"supportedProperty.key\">{{ supportedProperty.label }}</th>" +
                     "<th>{0}</th>" +
                 "</tr>", pages) + String.format(
-                "<tr ng-repeat-start=\"entity in entities{1}\" ng-hide=\"entityEquals(entity)\"" + (keyProperty !== "" ? " title=\"{{ entity['{0}'] | asId }}\"" : "") + ">" + 
+                "<tr ng-repeat-start=\"entity in entities{1}\" ng-hide=\"entityEquals(entity)\"" + (scope.keyProperty !== "" ? " title=\"{{ entity['{0}'] | asId }}\"" : "") + ">" + 
                     "<td ng-repeat=\"supportedProperty in supportedProperties track by supportedProperty.id\" ng-hide=\"supportedProperty.key\">{{ getPropertyValue(entity, supportedProperty, operation) | stringify }}</td>" +
                     "<td><div class=\"btn-block\">" +
                         (scope.getOperation !== null ? "<button class=\"btn btn-default\" title=\"Edit\" ng-click=\"get(entity)\"><span class=\"glyphicon glyphicon-pencil\"></span></button>" : "") +
                         (scope.deleteOperation !== null ? "<button class=\"btn btn-default\" title=\"Delete\" ng-click=\"delete(entity, $event)\"><span class=\"glyphicon glyphicon-remove\"></span></button>" : "") +
                     "</div></td>" +
-                "</tr>", keyProperty, (keyProperty !== "" ? " track by entity['" + keyProperty + "']" : "")) + String.format(
+                "</tr>", scope.keyProperty, (scope.keyProperty !== "" ? " track by entity['" + scope.keyProperty + "']" : "")) + String.format(
                 "<tr ng-repeat-end ng-show=\"entityEquals(entity)\">" +
                     "<td colspan=\"{0}\"><ursa-api-member-view api-member=\"operation.owner\" target-instance=\"editedEntity\"></ursa-api-member-view></td>" +
                     "<td><div class=\"btn-block\">" +
@@ -563,7 +564,7 @@
         scope.list();
         return result;
     };
-    OperationRenderer.prototype.setupListScope = function(scope, http, jsonld, apiMember) {
+    OperationRenderer.prototype._setupListScope = function(scope, http, jsonld, apiMember) {
         var that = this;
         scope.deleteOperation = this._findEntityCrudOperation(apiMember, "DELETE");
         scope.updateOperation = this._findEntityCrudOperation(apiMember, "PUT");
@@ -580,10 +581,15 @@
             scope.totalEntities = 0;
         }
 
+        scope.keyProperty = (apiMember.isRdf ? "@id" : "");
         scope.supportedProperties = new ursa.model.ApiMemberCollection();
         for (var index = 0; index < apiMember.owner.supportedProperties.length; index++) {
             var supportedProperty = apiMember.owner.supportedProperties[index];
-            if (supportedProperty.maxOccurances === 1) {
+            if (supportedProperty.key) {
+                scope.keyProperty = supportedProperty.propertyName(apiMember) + (apiMember.isRdf ? "'][0]['@value" : "");
+            }
+
+            if ((supportedProperty.maxOccurances === 1) && (supportedProperty.readable)) {
                 scope.supportedProperties.push(supportedProperty);
             }
         }

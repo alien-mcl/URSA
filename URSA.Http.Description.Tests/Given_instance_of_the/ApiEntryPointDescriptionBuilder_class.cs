@@ -67,7 +67,10 @@ namespace URSA.Http.Description.Tests.Given_instance_of_the
             var mappings = new Mock<IMappingsRepository>(MockBehavior.Strict);
             mappings.Setup(instance => instance.MappingFor(typeof(IApiDocumentation))).Returns(mapping.Object);
             var classEntity = new Mock<IClass>(MockBehavior.Strict);
+            var baseUriSelector = new Mock<IBaseUriSelectionPolicy>(MockBehavior.Strict);
+            baseUriSelector.Setup(instance => instance.SelectBaseUri(It.IsAny<EntityId>())).Returns(new Uri("http://temp.uri/"));
             var context = new Mock<IEntityContext>(MockBehavior.Strict);
+            context.SetupGet(instance => instance.BaseUriSelector).Returns(baseUriSelector.Object);
             context.SetupGet(instance => instance.Mappings).Returns(mappings.Object);
             context.Setup(instance => instance.Create<IClass>(It.IsAny<EntityId>())).Returns(classEntity.Object);
             _apiDocumentation = new Mock<IApiDocumentation>(MockBehavior.Strict);
