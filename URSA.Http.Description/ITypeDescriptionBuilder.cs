@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Reflection;
 using RomanticWeb.Entities;
 using URSA.Web.Http.Description.Hydra;
 
@@ -21,6 +22,12 @@ namespace URSA.Web.Http.Description
         /// <param name="requiresRdf">Flag determining whether the context's type requires an RDF approach.</param>
         /// <returns>Context's type description</returns>
         IClass BuildTypeDescription(DescriptionContext context, out bool requiresRdf);
+
+        /// <summary>Gets the supported property identifier.</summary>
+        /// <param name="property">The property.</param>
+        /// <param name="declaringType">Optional type declaring the property overriding property's settings.</param>
+        /// <returns><see cref="EntityId" /> for a given <paramref name="property" />.</returns>
+        EntityId GetSupportedPropertyId(PropertyInfo property, Type declaringType = null);
 
         /// <summary>Creates a sub-class of the given <paramref name="class" />.</summary>
         /// <param name="context">The context.</param>

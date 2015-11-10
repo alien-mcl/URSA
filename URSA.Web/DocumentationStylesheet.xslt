@@ -415,46 +415,65 @@
                 "@id": "<xsl:value-of select="$class/@rdf:about" />",
                 "label": "<xsl:value-of select="$class/rdfs:label" />",
                 "supportedProperties": [<xsl:for-each select="$class/hydra:supportedProperty">
-                    <xsl:variable name="id" select="@rdf:resource" />
-                    <xsl:variable name="supportedProperty" select="/rdf:RDF/hydra:SupportedProperty[@rdf:about = $id]|/rdf:RDF/*[rdf:type/@rdf:resource = '&hydra;SupportedProperty' and @rdf:about = $id]" />
-                    <xsl:variable name="property" select="/rdf:RDF/rdf:Property[@rdf:about = $supportedProperty/hydra:property/@rdf:resource]|/rdf:RDF/*[rdf:type/@rdf:resource = '&rdf;Property' and @rdf:about = $supportedProperty/hydra:property/@rdf:resource]" />
-                    <xsl:variable name="isEnumerable">
-                        <xsl:choose>
-                            <xsl:when test="/rdf:RDF/owl:Restriction[owl:onProperty[@rdf:resource = $property/@rdf:about] and owl:maxCardinality/text() = '1']">false</xsl:when>
-                            <xsl:otherwise>true</xsl:otherwise>
-                        </xsl:choose>
-                    </xsl:variable>
-                    <xsl:call-template name="hydra-SupportedProperty">
-                        <xsl:with-param name="supportedProperty" select="$supportedProperty" />
-                        <xsl:with-param name="isEnumerable" select="$isEnumerable" />
-                    </xsl:call-template><xsl:if test="position() != last()">,</xsl:if>
-                </xsl:for-each>
+                        <xsl:variable name="id" select="@rdf:resource" />
+                        <xsl:variable name="supportedProperty" select="/rdf:RDF/hydra:SupportedProperty[@rdf:about = $id]|/rdf:RDF/*[rdf:type/@rdf:resource = '&hydra;SupportedProperty' and @rdf:about = $id]" />
+                        <xsl:variable name="property" select="/rdf:RDF/rdf:Property[@rdf:about = $supportedProperty/hydra:property/@rdf:resource]|/rdf:RDF/*[rdf:type/@rdf:resource = '&rdf;Property' and @rdf:about = $supportedProperty/hydra:property/@rdf:resource]" />
+                        <xsl:variable name="isEnumerable">
+                            <xsl:choose>
+                                <xsl:when test="/rdf:RDF/owl:Restriction[owl:onProperty[@rdf:resource = $property/@rdf:about] and owl:maxCardinality/text() = '1']">false</xsl:when>
+                                <xsl:otherwise>true</xsl:otherwise>
+                            </xsl:choose>
+                        </xsl:variable>
+                        <xsl:call-template name="hydra-SupportedProperty">
+                            <xsl:with-param name="supportedProperty" select="$supportedProperty" />
+                            <xsl:with-param name="isEnumerable" select="$isEnumerable" />
+                        </xsl:call-template><xsl:if test="position() != last()">,</xsl:if>
+                    </xsl:for-each>
                 ],
-                "supportedOperations": [<xsl:for-each select="/rdf:RDF/hydra:Operation[@rdf:about = $class/*/@rdf:resource]|/rdf:RDF/*[rdf:type/@rdf:resource = '&hydra;Operation' and @rdf:about = $class/*/@rdf:resource]">
-                    <xsl:variable name="id" select="@rdf:resource|@rdf:about" />
-                    <xsl:variable name="localName" select="local-name($class/*[@rdf:resource = $id])" />
-                    <xsl:variable name="namespace" select="namespace-uri($class/*[@rdf:resource = $id])" />
-                    <xsl:variable name="name">
-                        <xsl:choose>
-                            <xsl:when test="$localName != 'supportedProperty' and $namespace != '&hydra;'">
-                                <xsl:value-of select="concat($namespace, $localName)" />
-                            </xsl:when>
-                        </xsl:choose>
-                    </xsl:variable>
-                    <xsl:call-template name="hydra-SupportedOperation">
-                        <xsl:with-param name="supportedOperation" select="/rdf:RDF/hydra:Operation[@rdf:about = $id]|/rdf:RDF/*[rdf:type/@rdf:resource = '&hydra;Operation' and @rdf:about = $id]" />
-                        <xsl:with-param name="template" select="/rdf:RDF/hydra:IriTemplate[@rdf:about = $name]|/rdf:RDF/*[rdf:type/@rdf:resource = '&hydra;IriTemplate' and @rdf:about = $name]" />
-                    </xsl:call-template>,</xsl:for-each><xsl:for-each select="$class/*[@rdf:resource]">
-                    <xsl:variable name="templatedLink" select="concat(namespace-uri(current()), local-name(current()))" />
-                    <xsl:variable name="iriTemplate" select="@rdf:resource" />
-                    <xsl:for-each select="/rdf:RDF/hydra:TemplatedLink[@rdf:about = $templatedLink]/hydra:supportedOperation">
-                        <xsl:variable name="operation" select="@rdf:resource" />
-                        <xsl:for-each select="/rdf:RDF/hydra:Operation[@rdf:about = $operation]|/rdf:RDF/*[rdf:type/@rdf:resource = '&hydra;Operation' and @rdf:about = $operation]">
-                            <xsl:variable name="id" select="@rdf:resource|@rdf:about" />
-                            <xsl:call-template name="hydra-SupportedOperation">
-                                <xsl:with-param name="supportedOperation" select="/rdf:RDF/hydra:Operation[@rdf:about = $id]|/rdf:RDF/*[rdf:type/@rdf:resource = '&hydra;Operation' and @rdf:about = $id]" />
-                                <xsl:with-param name="template" select="/rdf:RDF/hydra:IriTemplate[@rdf:about = $iriTemplate]|/rdf:RDF/*[rdf:type/@rdf:resource = '&hydra;IriTemplate' and @rdf:about = $iriTemplate]" />
-                            </xsl:call-template>,</xsl:for-each></xsl:for-each></xsl:for-each>
+                    "supportedOperations": [<xsl:for-each select="/rdf:RDF/hydra:Operation[@rdf:about = $class/*/@rdf:resource]|/rdf:RDF/*[rdf:type/@rdf:resource = '&hydra;Operation' and @rdf:about = $class/*/@rdf:resource]">
+                        <xsl:variable name="id" select="@rdf:resource|@rdf:about" />
+                        <xsl:variable name="localName" select="local-name($class/*[@rdf:resource = $id])" />
+                        <xsl:variable name="namespace" select="namespace-uri($class/*[@rdf:resource = $id])" />
+                        <xsl:variable name="name">
+                            <xsl:choose>
+                                <xsl:when test="$localName != 'supportedProperty' and $namespace != '&hydra;'">
+                                    <xsl:value-of select="concat($namespace, $localName)" />
+                                </xsl:when>
+                            </xsl:choose>
+                        </xsl:variable>
+                        <xsl:call-template name="hydra-SupportedOperation">
+                            <xsl:with-param name="supportedOperation" select="/rdf:RDF/hydra:Operation[@rdf:about = $id]|/rdf:RDF/*[rdf:type/@rdf:resource = '&hydra;Operation' and @rdf:about = $id]" />
+                            <xsl:with-param name="template" select="/rdf:RDF/hydra:IriTemplate[@rdf:about = $name]|/rdf:RDF/*[rdf:type/@rdf:resource = '&hydra;IriTemplate' and @rdf:about = $name]" />
+                        </xsl:call-template>,</xsl:for-each
+                    ><xsl:for-each select="$class/*[@rdf:resource]">
+                        <xsl:variable name="templatedLink" select="concat(namespace-uri(current()), local-name(current()))" />
+                        <xsl:variable name="iriTemplate" select="@rdf:resource" />
+                        <xsl:for-each select="/rdf:RDF/hydra:TemplatedLink[@rdf:about = $templatedLink]/hydra:supportedOperation">
+                            <xsl:variable name="operation" select="@rdf:resource" />
+                            <xsl:for-each select="/rdf:RDF/hydra:Operation[@rdf:about = $operation]|/rdf:RDF/*[rdf:type/@rdf:resource = '&hydra;Operation' and @rdf:about = $operation]">
+                                <xsl:variable name="id" select="@rdf:resource|@rdf:about" />
+                                <xsl:call-template name="hydra-SupportedOperation">
+                                    <xsl:with-param name="supportedOperation" select="/rdf:RDF/hydra:Operation[@rdf:about = $id]|/rdf:RDF/*[rdf:type/@rdf:resource = '&hydra;Operation' and @rdf:about = $id]" />
+                                    <xsl:with-param name="template" select="/rdf:RDF/hydra:IriTemplate[@rdf:about = $iriTemplate]|/rdf:RDF/*[rdf:type/@rdf:resource = '&hydra;IriTemplate' and @rdf:about = $iriTemplate]" />
+                                </xsl:call-template>,</xsl:for-each
+                        ></xsl:for-each>
+                    </xsl:for-each>
+                    <xsl:for-each select="$class/hydra:supportedProperty[@rdf:resource]">
+                        <xsl:variable name="supportedProperty" select="/rdf:RDF/hydra:SupportedProperty[@rdf:about = current()/@rdf:resource]" />
+                        <xsl:for-each select="$supportedProperty/*[@rdf:resource]">
+                            <xsl:variable name="templatedLink" select="concat(namespace-uri(current()), local-name(current()))" />
+                            <xsl:variable name="iriTemplate" select="@rdf:resource" />
+                            <xsl:for-each select="/rdf:RDF/hydra:TemplatedLink[@rdf:about = $templatedLink]/hydra:supportedOperation">
+                                <xsl:variable name="operation" select="@rdf:resource" />
+                                <xsl:for-each select="/rdf:RDF/hydra:Operation[@rdf:about = $operation]|/rdf:RDF/*[rdf:type/@rdf:resource = '&hydra;Operation' and @rdf:about = $operation]">
+                                    <xsl:variable name="id" select="@rdf:resource|@rdf:about" />
+                                    <xsl:call-template name="hydra-SupportedOperation">
+                                        <xsl:with-param name="supportedOperation" select="/rdf:RDF/hydra:Operation[@rdf:about = $id]|/rdf:RDF/*[rdf:type/@rdf:resource = '&hydra;Operation' and @rdf:about = $id]" />
+                                        <xsl:with-param name="template" select="/rdf:RDF/hydra:IriTemplate[@rdf:about = $iriTemplate]|/rdf:RDF/*[rdf:type/@rdf:resource = '&hydra;IriTemplate' and @rdf:about = $iriTemplate]" />
+                                    </xsl:call-template>,</xsl:for-each
+                            ></xsl:for-each>
+                        </xsl:for-each>
+                    </xsl:for-each>
                     {
                     }
                 ]

@@ -7,6 +7,7 @@ using System.Reflection;
 using RomanticWeb.Entities;
 using RomanticWeb.Model;
 using RomanticWeb.NamedGraphs;
+using URSA.Reflection;
 using URSA.Web.Description;
 using URSA.Web.Description.Http;
 using URSA.Web.Http.Converters;
@@ -100,6 +101,20 @@ namespace URSA.Web.Http.Description
             BuildDescription(context, specializationType);
         }
 
+        internal IResource DetermineOperationOwner(OperationInfo<Verb> operation, DescriptionContext context, IClass specializationType)
+        {
+            IResource result = specializationType;
+            PropertyInfo matchingProperty;
+            if ((!typeof(IReadController<,>).IsAssignableFromSpecificGeneric(_descriptionBuilder.BuildDescriptor().ControllerType)) ||
+                ((matchingProperty = operation.UnderlyingMethod.MatchesPropertyOf(context.Type, typeof(IControlledEntity<>).GetProperties().First().Name)) == null))
+            {
+                return result;
+            }
+
+            var propertyId = context.TypeDescriptionBuilder.GetSupportedPropertyId(matchingProperty, context.Type);
+            return context.ApiDocumentation.Context.Load<ISupportedProperty>(propertyId);
+        }
+
         private static void BuildOperationMediaType(IOperation result, bool requiresRdf)
         {
             foreach (var mediaType in (requiresRdf ? RdfMediaTypes : NonRdfMediaTypes))
@@ -183,12 +198,13 @@ namespace URSA.Web.Http.Description
             {
                 IIriTemplate template;
                 var operationDefinition = BuildOperation(context, operation, out template);
+                IResource operationOwner = DetermineOperationOwner(operation, context, specializationType);
                 if (template != null)
                 {
                     ITemplatedLink templatedLink = context.ApiDocumentation.Context.Create<ITemplatedLink>(template.Id.Uri.AbsoluteUri.Replace("#template", "#withTemplate"));
                     templatedLink.SupportedOperations.Add(operationDefinition);
                     context.ApiDocumentation.Context.Store.ReplacePredicateValues(
-                        specializationType.Id,
+                        operationOwner.Id,
                         Node.ForUri(templatedLink.Id.Uri),
                         () => new[] { Node.ForUri(template.Id.Uri) },
                         graphUri,
@@ -196,7 +212,7 @@ namespace URSA.Web.Http.Description
                 }
                 else
                 {
-                    specializationType.SupportedOperations.Add(operationDefinition);
+                    (operationOwner is ISupportedOperationsOwner ? ((ISupportedOperationsOwner)operationOwner).SupportedOperations : operationOwner.Operations).Add(operationDefinition);
                 }
             }
         }

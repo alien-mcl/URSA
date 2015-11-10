@@ -27,6 +27,7 @@ using URSA.Web.Http.Description.Rdfs;
 using URSA.Web.Http.Description.Testing;
 using URSA.Web.Http.Description.Tests;
 using URSA.Web.Http.Description.Tests.Data;
+using URSA.Web.Http.Tests.Testing;
 using URSA.Web.Mapping;
 using IClass = URSA.Web.Http.Description.Hydra.IClass;
 using IResource = URSA.Web.Http.Description.Hydra.IResource;
@@ -102,6 +103,30 @@ namespace Given_instance_of_the
             Mock.Get(hydraTypeDescriptionBuilder).VerifyGet(instance => instance.SupportedProfiles, Times.Once);
             Mock.Get(shaclTypeDescriptionBuilder).VerifyGet(instance => instance.SupportedProfiles, Times.Once);
             Mock.Get(hydraTypeDescriptionBuilder).Verify(instance => instance.BuildTypeDescription(It.IsAny<DescriptionContext>()), Times.Never);
+        }
+
+        [TestMethod]
+        public void it_should_determine_property_owning_an_operation()
+        {
+            IApiDocumentation apiDocumentation;
+            IXmlDocProvider xmlDocProvider;
+            ITypeDescriptionBuilder typeDescriptionBuilder;
+            INamedGraphSelectorFactory namedGraphSelectorFactory;
+            var descriptionBuilder = SetupInfrastucture(out apiDocumentation, out xmlDocProvider, out typeDescriptionBuilder, out namedGraphSelectorFactory);
+            var apiDescriptionBuilder = new ApiDescriptionBuilder<TestController>(
+                descriptionBuilder,
+                xmlDocProvider,
+                new[] { typeDescriptionBuilder },
+                new IServerBehaviorAttributeVisitor[0],
+                namedGraphSelectorFactory);
+
+            var operationOwner = apiDescriptionBuilder.DetermineOperationOwner(
+                typeof(TestController).GetMethod("SetRoles").ToOperationInfo("http://temp.uri/", Verb.POST),
+                DescriptionContext.ForType(apiDocumentation, typeof(Person), typeDescriptionBuilder),
+                new Mock<IClass>(MockBehavior.Strict).Object);
+
+            operationOwner.Should().BeAssignableTo<ISupportedProperty>();
+            operationOwner.Id.ToString().Should().Be("urn:hydra:" + typeof(Person).FullName + ".Roles");
         }
 
         private static IHttpControllerDescriptionBuilder<TestController> SetupInfrastucture(
@@ -186,7 +211,8 @@ namespace Given_instance_of_the
                 { "List", Verb.GET },
                 { "Create", Verb.POST },
                 { "Update", Verb.PUT },
-                { "Delete", Verb.DELETE }
+                { "Delete", Verb.DELETE },
+                { "SetRoles", Verb.POST }
             };
 
             var operations = typeof(TestController)
@@ -213,10 +239,16 @@ namespace Given_instance_of_the
         {
             bool requiresRdf;
             Mock<ITypeDescriptionBuilder> typeDescriptionBuilder = new Mock<ITypeDescriptionBuilder>(MockBehavior.Strict);
-            typeDescriptionBuilder.SetupGet(instance => instance.SupportedProfiles).Returns(new[] { supportedProfile ?? EntityConverter.Hydra });
-            typeDescriptionBuilder.Setup(instance => instance.BuildTypeDescription(It.IsAny<DescriptionContext>())).Returns<DescriptionContext>(context => CreateDescription(context, out requiresRdf));
-            typeDescriptionBuilder.Setup(instance => instance.BuildTypeDescription(It.IsAny<DescriptionContext>(), out requiresRdf)).Returns<DescriptionContext, bool>((context, rdf) => CreateDescription(context, out rdf));
-            typeDescriptionBuilder.Setup(instance => instance.SubClass(It.IsAny<DescriptionContext>(), It.IsAny<IClass>(), null)).Returns<DescriptionContext, IClass, EntityId>((context, @class, id) => @class);
+            typeDescriptionBuilder.SetupGet(instance => instance.SupportedProfiles)
+                .Returns(new[] { supportedProfile ?? EntityConverter.Hydra });
+            typeDescriptionBuilder.Setup(instance => instance.BuildTypeDescription(It.IsAny<DescriptionContext>()))
+                .Returns<DescriptionContext>(context => CreateDescription(context, out requiresRdf));
+            typeDescriptionBuilder.Setup(instance => instance.BuildTypeDescription(It.IsAny<DescriptionContext>(), out requiresRdf))
+                .Returns<DescriptionContext, bool>((context, rdf) => CreateDescription(context, out rdf));
+            typeDescriptionBuilder.Setup(instance => instance.SubClass(It.IsAny<DescriptionContext>(), It.IsAny<IClass>(), null))
+                .Returns<DescriptionContext, IClass, EntityId>((context, @class, id) => @class);
+            typeDescriptionBuilder.Setup(instance => instance.GetSupportedPropertyId(It.IsAny<PropertyInfo>(), It.IsAny<Type>()))
+                .Returns<PropertyInfo, Type>((property, declaringType) => new EntityId(String.Format("urn:hydra:{0}.{1}", property.DeclaringType ?? declaringType, property.Name)));
             return typeDescriptionBuilder.Object;
         }
 
@@ -238,6 +270,7 @@ namespace Given_instance_of_the
             entityContext.Setup(instance => instance.Create<IIriTemplateMapping>(It.IsAny<EntityId>())).Returns<EntityId>(CreateIriTemplateMapping);
             entityContext.Setup(instance => instance.Create<IIriTemplate>(It.IsAny<EntityId>())).Returns<EntityId>(CreateIriTemplate);
             entityContext.Setup(instance => instance.Create<ITemplatedLink>(It.IsAny<EntityId>())).Returns<EntityId>(CreateTemplatedLink);
+            entityContext.Setup(instance => instance.Load<ISupportedProperty>(It.IsAny<EntityId>())).Returns<EntityId>(CreateProperty);
             return entityContext.Object;
         }
 
@@ -255,6 +288,13 @@ namespace Given_instance_of_the
             }
 
             context.Describe(result.Object, requiresRdf = false);
+            return result.Object;
+        }
+
+        private static ISupportedProperty CreateProperty(EntityId id)
+        {
+            var result = new Mock<ISupportedProperty>(MockBehavior.Strict);
+            result.SetupGet(instance => instance.Id).Returns(id);
             return result.Object;
         }
 

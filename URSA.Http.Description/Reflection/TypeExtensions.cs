@@ -1,7 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using RomanticWeb.Entities;
 using URSA.Web;
+using URSA.Web.Http.Description.Reflection;
 
 namespace URSA.Reflection
 {
@@ -42,6 +45,23 @@ namespace URSA.Reflection
         internal static bool Matches(this PropertyInfo leftOperand, PropertyInfo rightOperand)
         {
             return (leftOperand.Name == rightOperand.Name) && (leftOperand.PropertyType == rightOperand.PropertyType);
+        }
+
+        internal static IEnumerable<PropertyInfo> GetProperties(this Type type, params Type[] exceptInterface)
+        {
+            return type.GetProperties(BindingFlags.Instance | BindingFlags.Public)
+                .Union(type.GetInterfaces().Except(exceptInterface).SelectMany(@interface => @interface.GetProperties()))
+                .Distinct(PropertyEqualityComparer.Default);
+        }
+
+        internal static PropertyInfo MatchesPropertyOf(this MethodInfo method, Type targetType, params string[] exceptNamedProperty)
+        {
+            return (from parameter in method.GetParameters()
+                    from property in targetType.GetProperties(typeof(IEntity))
+                    where ((parameter.ParameterType == property.PropertyType) || (parameter.ParameterType.IsAssignableFrom(property.PropertyType))) && 
+                        (StringComparer.OrdinalIgnoreCase.Equals(parameter.Name, property.Name.ToLower())) &&
+                        (!exceptNamedProperty.Contains(property.Name, StringComparer.OrdinalIgnoreCase))
+                    select property).FirstOrDefault();
         }
     }
 }

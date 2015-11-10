@@ -46,5 +46,9 @@ namespace URSA.Web.Http.Description.Tests
         public void Delete(Guid id)
         {
         }
+
+        public void SetRoles(Guid id, IEnumerable<string> roles)
+        {
+        }
     }
 }

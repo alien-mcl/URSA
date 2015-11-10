@@ -48,7 +48,10 @@ namespace URSA.Web.Description
         public Uri EntryPoint { get; private set; }
 
         /// <summary>Gets the optional arguments to be used when creating a controller instance.</summary>
-        public IDictionary<string, object> Arguments { get; private set; } 
+        public IDictionary<string, object> Arguments { get; private set; }
+
+        /// <summary>Gets the type of the controller.</summary>
+        public abstract Type ControllerType { get; }
     }
 
     /// <summary>Describes a controller.</summary>
@@ -64,5 +67,8 @@ namespace URSA.Web.Description
         public ControllerInfo(Uri entryPoint, Uri uri, params OperationInfo[] operations) : base(entryPoint, uri, operations)
         {
         }
+
+        /// <inheritdoc />
+        public override Type ControllerType { get { return typeof(T); } }
     }
 }

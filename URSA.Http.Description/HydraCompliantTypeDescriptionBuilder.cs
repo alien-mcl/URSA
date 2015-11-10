@@ -95,6 +95,17 @@ namespace URSA.Web.Http.Description
         }
 
         /// <inheritdoc />
+        public EntityId GetSupportedPropertyId(PropertyInfo property, Type declaringType = null)
+        {
+            if (property == null)
+            {
+                throw new ArgumentNullException("property");
+            }
+
+            return new EntityId(property.MakeUri(declaringType ?? property.DeclaringType));
+        }
+
+        /// <inheritdoc />
         public IClass SubClass(DescriptionContext context, IClass @class, EntityId id = null)
         {
             if (context == null)
@@ -136,9 +147,7 @@ namespace URSA.Web.Http.Description
             }
             else
             {
-                var properties = context.Type.GetProperties(BindingFlags.Instance | BindingFlags.Public)
-                    .Union(context.Type.GetInterfaces().Except(new[] { typeof(IEntity) }).SelectMany(@interface => @interface.GetProperties()))
-                    .Distinct(PropertyEqualityComparer.Default);
+                var properties = context.Type.GetProperties(typeof(IEntity));
                 foreach (var property in properties)
                 {
                     @class.SupportedProperties.Add(BuildSupportedProperty(context, @class, context.Type, property));
@@ -170,7 +179,7 @@ namespace URSA.Web.Http.Description
 
         private ISupportedProperty BuildSupportedProperty(DescriptionContext context, IClass @class, Type declaringType, PropertyInfo property)
         {
-            var propertyId = new EntityId(property.MakeUri(declaringType));
+            var propertyId = GetSupportedPropertyId(property, declaringType);
             var propertyUri = (!typeof(IEntity).IsAssignableFrom(context.Type) ? @class.Id.Uri.AddName(property.Name) :
                 context.ApiDocumentation.Context.Mappings.MappingFor(context.Type).PropertyFor(property.Name).Uri);
             var result = context.ApiDocumentation.Context.Create<ISupportedProperty>(propertyId);

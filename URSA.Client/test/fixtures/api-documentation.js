@@ -11,6 +11,7 @@
     };
 
     var listRdfTemplatedLink = { "@id": "http://temp.uri/api/list-rdf#GETwithTake", "@type": [hydra.TemplatedLink] };
+    var setRolesTemplatedLink = { "@id": "http://temp.uri/api/person/{id}/roles#SETwithId", "@type": [hydra.TemplatedLink] };
 
     var takeMapping = { "@id": "_:takeMapping", "@type": [hydra.IriTemplateMapping] };
     takeMapping[hydra.variable] = [{ "@value": "take" }];
@@ -20,9 +21,16 @@
     skipMapping[hydra.variable] = [{ "@value": "skip" }];
     skipMapping[hydra.property] = [{ "@id": ursa + "skip" }];
 
+    var idMapping = { "@id": "_:idMapping", "@type": [hydra.IriTemplateMapping] };
+    idMapping[hydra.variable] = [{ "@value": "id" }];
+
     var listRdfIriTemplate = { "@id": "_:listRdfIriTemplate", "@type": [hydra.IriTemplate] };
     listRdfIriTemplate[hydra.template] = [{ "@value": "/api/list-rdf{?take,skip}" }];
     listRdfIriTemplate[hydra.mapping] = [{ "@id": takeMapping["@id"] }, { "@id": skipMapping["@id"] }];
+
+    var setRolesIriTemplate = { "@id": "_:setRolesIriTemplate", "@type": [hydra.IriTemplate] };
+    setRolesIriTemplate[hydra.template] = [{ "@value": "/api/person/{id}/roles" }];
+    setRolesIriTemplate[hydra.mapping] = [{ "@id": idMapping["@id"] }];
 
     var personClass = { "@id": "http://temp.uri/vocab#Person", "@type": [hydra.Class] };
     var emailSupportedProperty = { "@id": "urn:eMail", "@type": [hydra.SupportedProperty] };
@@ -54,6 +62,7 @@
     var rolesProperty = { "@id": "http://temp.uri/vocab#role", "@type": [rdf.Property] };
     rolesProperty[rdfs.range] = [{ "@id": xsd.string }];
     rolesProperty[rdfs.label] = [{ "@value": "Roles" }];
+    idMapping[hydra.property] = [{ "@id": rolesProperty["@id"] }];
 
     var xsdString = { "@id": xsd.string, "@type": [hydra.Class] };
     var xsdInt = { "@id": xsd.int, "@type": [hydra.Class] };
@@ -73,10 +82,15 @@
     ageSupportedProperty[hydra.readable] = [{ "@value": true }];
     ageSupportedProperty[hydra.writeable] = [{ "@value": true }];
 
+    var setRolesOperation = { "@id": "http://temp.uri/api/person/id/roles", "@type": [hydra.Operation] };
+    setRolesOperation[ursa.mediaType] = [{ "@value": "application/ld+json" }];
+    setRolesOperation[hydra.method] = [{ "@value": "POST" }];
+    setRolesTemplatedLink[hydra.supportedOperation] = [{ "@id": setRolesOperation["@id"] }];
     rolesSupportedProperty[hydra.property] = [{ "@id": rolesProperty["@id"] }];
     rolesSupportedProperty[hydra.required] = [{ "@value": false }];
     rolesSupportedProperty[hydra.readable] = [{ "@value": true }];
     rolesSupportedProperty[hydra.writeable] = [{ "@value": true }];
+    rolesSupportedProperty[setRolesTemplatedLink["@id"]] = [{ "@id": setRolesIriTemplate["@id"] }];
 
     var personSubClass = { "@id": "_:personSubClass", "@type": [hydra.Class] };
     personSubClass[rdfs.comment] = [{ "@value": "Person of given key." }];
@@ -128,6 +142,10 @@
     window.apiDocumentation.push(window.apiDocumentation.skipMapping = skipMapping);
     window.apiDocumentation.push(window.apiDocumentation.listRdfIriTemplate = listRdfIriTemplate);
     window.apiDocumentation.push(window.apiDocumentation.listRdfTemplatedLink = listRdfTemplatedLink);
+    window.apiDocumentation.push(window.apiDocumentation.idMapping = idMapping);
+    window.apiDocumentation.push(window.apiDocumentation.setRolesIriTemplate = setRolesIriTemplate);
+    window.apiDocumentation.push(window.apiDocumentation.setRolesTemplatedLink = setRolesTemplatedLink);
+    window.apiDocumentation.push(window.apiDocumentation.setRolesOperation = setRolesOperation);
     window.apiDocumentation.push(window.apiDocumentation.xsdString = xsdString);
     window.apiDocumentation.push(window.apiDocumentation.xsdInt = xsdInt);
     window.apiDocumentation.getById = function(id) { return getById.call(window.apiDocumentation, id); };

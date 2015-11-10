@@ -144,6 +144,17 @@
                     expect(supportedProperty.createInstance()).toBe("");
                 });
             });
+
+            describe("which defines a dedicated operation", function() {
+                beforeEach(function() {
+                    supportedProperty = apiDocumentation.supportedClasses[0].supportedProperties[2];
+                });
+
+                it("it should initialize an instance correctly", function () {
+                    expect(supportedProperty.supportedOperations.length).toBe(1);
+                    expect(supportedProperty.supportedOperations[0].id).toBe(window.apiDocumentation.setRolesOperation["@id"]);
+                });
+            });
         });
     });
 }());

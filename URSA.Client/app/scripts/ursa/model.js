@@ -124,7 +124,7 @@
         return result;
     };
 
-    var getClass = function(owner, graph, supportedClasses, supportedProperties, supportedOperations, templatedLinks) {
+    var getClass = function(owner, graph) {
         var $class = this;
         var originalClass = this;
         var result = null;
@@ -142,7 +142,7 @@
                 return result;
             }
 
-            result = new Class(owner, $class, graph, supportedClasses, supportedProperties, supportedOperations, templatedLinks);
+            result = new Class(owner, $class, graph);
             if ($class !== originalClass) {
                 TypeConstrainedApiMember.prototype.constructor.call(result, owner, originalClass);
             }
@@ -186,6 +186,41 @@
         }
 
         return result;
+    };
+
+    var getOperations = function(resource, graph, predicate) {
+        if (predicate === undefined) {
+            predicate = hydra.supportedOperation;
+        }
+
+        var index;
+        if (resource[predicate]) {
+            for (index = 0; index < resource[predicate].length; index++) {
+                var supportedOperation = graph.getById(resource[predicate][index]["@id"]);
+                this.supportedOperations.push(new Operation(this, supportedOperation, null, graph));
+            }
+        }
+
+        for (var propertyName in resource) {
+            if ((resource.hasOwnProperty(propertyName)) && (propertyName.match(/^[a-zA-Z][a-zA-Z0-9\+\-\.]*:/) !== null) &&
+            (propertyName.indexOf(xsd) === -1) && (propertyName.indexOf(rdf) === -1) && (propertyName.indexOf(rdfs) === -1) &&
+            (propertyName.indexOf(owl) === -1) && (propertyName.indexOf(guid) === -1) && (propertyName.indexOf(hydra) === -1) &&
+            (propertyName.indexOf(shacl) === -1) && (propertyName.indexOf(ursa) === -1)) {
+                var property = graph.getById(propertyName);
+                if ((!property) || (property["@type"].indexOf(hydra.TemplatedLink) === -1) || (!property[hydra.supportedOperation])) {
+                    continue;
+                }
+
+                var operation = graph.getById(property[hydra.supportedOperation][0]["@id"]);
+                var templates = resource[propertyName];
+                for (index = 0; index < templates.length; index++) {
+                    var template = graph.getById(templates[index]["@id"]);
+                    if (template["@type"].indexOf(hydra.IriTemplate) !== -1) {
+                        this.supportedOperations.push(new Operation(this, operation, template, graph));
+                    }
+                }
+            }
+        }
     };
     
     /**
@@ -431,7 +466,7 @@
      * @param {object} [resource] JSON-LD resource describing this API member.
      * @param {object} [graph] JSON-LD graph of resources.
      */
-    var RangeTypeConstrainedApiMember = namespace.RangeTypeConstrainedApiMember = function(owner, resource, graph, supportedClasses, supportedProperties, supportedOperations, templatedLinks) {
+    var RangeTypeConstrainedApiMember = namespace.RangeTypeConstrainedApiMember = function(owner, resource, graph) {
         TypeConstrainedApiMember.prototype.constructor.apply(this, arguments);
         if ((arguments.length === 1) && (arguments[0] instanceof RangeTypeConstrainedApiMember)) {
             RangeTypeConstrainedApiMember.prototype.clone.call(this, owner);
@@ -450,7 +485,7 @@
                 range = graph.getById(range["@id"]);
                 var value;
                 this.maxOccurances = (((value = getValue.call(range, ursa.singleValue)) !== undefined ? value : false) ? 1 : this.maxOccurances);
-                this.range = getClass.call(range, this, graph, supportedClasses, supportedProperties, supportedOperations, templatedLinks);
+                this.range = getClass.call(range, this, graph);
             }
         }
     };
@@ -509,6 +544,7 @@
     var SupportedProperty = namespace.SupportedProperty = function(owner, supportedProperty, graph) {
         RangeTypeConstrainedApiMember.prototype.constructor.apply(this, arguments);
         if ((arguments.length === 1) && (arguments[0] instanceof SupportedProperty)) {
+            this.supportedOperations = [];
             SupportedProperty.prototype.clone.call(this, owner);
             return;
         }
@@ -520,6 +556,8 @@
             this.description = (this.description || getValue.call(property, rdfs.comment)) || "";
             this.readable = getValue.call(supportedProperty, hydra.readable) || true;
             this.writeable = getValue.call(supportedProperty, hydra.writeable) || true;
+            this.supportedOperations = [];
+            getOperations.call(this, supportedProperty, graph, hydra.operation);
         }
     };
     SupportedProperty.prototype = new RangeTypeConstrainedApiMember(_ctor);
@@ -551,6 +589,14 @@
      * @default false
      */
     SupportedProperty.prototype.key = false;
+        /**
+     * List of supported operations.
+     * @memberof ursa.model.SupportedProperty
+     * @instance
+     * @public
+     * @member {Array.<ursa.model.Operation>} supportedOperations
+     */
+    SupportedProperty.prototype.supportedOperations = null;
     SupportedProperty.prototype.clone = function(source) {
         if (arguments.length === 0) {
             return new SupportedProperty(this);
@@ -560,6 +606,9 @@
         this.readable = source.readable;
         this.writeable = source.writeable;
         this.required = source.required;
+        for (var index = 0; index < source.supportedOperations.length; index++) {
+            this.supportedOperations.push(new Operation(source.supportedOperations[index]));
+        }
     };
     /**
      * Creates an instance of value accepted by this property.
@@ -661,7 +710,7 @@
      * @param {object} [template] JSON-LD resource describing this API member.
      * @param {object} [graph] JSON-LD graph of resources.
      */
-    var Operation = namespace.Operation = function(owner, supportedOperation, template, graph, supportedClasses, supportedProperties, supportedOperations, templatedLinks) {
+    var Operation = namespace.Operation = function(owner, supportedOperation, template, graph) {
         ApiMember.prototype.constructor.apply(this, arguments);
         if ((arguments.length === 1) && (arguments[0] instanceof Operation)) {
             this.returns = [];
@@ -688,7 +737,7 @@
 
                 this.mappings = new ApiMemberCollection(this);
                 for (index = 0; index < template[hydra.mapping].length; index++) {
-                    this.mappings.push(new Mapping(this, graph.getById(template[hydra.mapping][index]["@id"]), graph, supportedClasses, supportedProperties, supportedOperations, templatedLinks));
+                    this.mappings.push(new Mapping(this, graph.getById(template[hydra.mapping][index]["@id"]), graph));
                 }
             }
             else {
@@ -716,7 +765,7 @@
                 }
 
                 for (index = 0; index < source.length; index++) {
-                    target.push(getClass.call(graph.getById(source[index]["@id"]), this, graph, supportedClasses, supportedProperties, supportedOperations, templatedLinks));
+                    target.push(getClass.call(graph.getById(source[index]["@id"]), this, graph));
                 }
             };
             setupTypeCollection.call(this, supportedOperation[hydra.returns], this.returns);
@@ -899,7 +948,7 @@
      * @param {object} [supportedOperation] JSON-LD resource describing this API member.
      * @param {object} [graph] JSON-LD graph of resources.
      */
-    var Class = namespace.Class = function(owner, supportedClass, graph, supportedClasses, supportedProperties, supportedOperations, templatedLinks) {
+    var Class = namespace.Class = function(owner, supportedClass, graph) {
         TypeConstrainedApiMember.prototype.constructor.apply(this, arguments);
         var index;
         if ((arguments.length === 1) && (arguments[0] instanceof Class)) {
@@ -916,7 +965,7 @@
             if (supportedClass[hydra.supportedProperty]) {
                 for (index = 0; index < supportedClass[hydra.supportedProperty].length; index++) {
                     var supportedPropertyResource = graph.getById(supportedClass[hydra.supportedProperty][index]["@id"]);
-                    var supportedProperty = new SupportedProperty(this, supportedPropertyResource, graph, supportedClasses, supportedProperties, supportedOperations, templatedLinks);
+                    var supportedProperty = new SupportedProperty(this, supportedPropertyResource, graph);
                     for (var restrictionIndex = 0; restrictionIndex < subClassOf.length; restrictionIndex++) {
                         var restriction = graph.getById(subClassOf[restrictionIndex]["@id"]);
                         if ((restriction["@type"]) && (restriction["@type"].indexOf(owl.Restriction) !== -1) &&
@@ -930,33 +979,7 @@
                 }
             }
 
-            if (supportedClass[hydra.supportedOperation]) {
-                for (index = 0; index < supportedClass[hydra.supportedOperation].length; index++) {
-                    var supportedOperation = graph.getById(supportedClass[hydra.supportedOperation][index]["@id"]);
-                    this.supportedOperations.push(new Operation(this, supportedOperation, null, graph, supportedClasses, supportedProperties, supportedOperations, templatedLinks));
-                }
-            }
-
-            for (var propertyName in supportedClass) {
-                if ((supportedClass.hasOwnProperty(propertyName)) && (propertyName.match(/^[a-zA-Z][a-zA-Z0-9\+\-\.]*:/) !== null) &&
-                (propertyName.indexOf(xsd) === -1) && (propertyName.indexOf(rdf) === -1) && (propertyName.indexOf(rdfs) === -1) &&
-                (propertyName.indexOf(owl) === -1) && (propertyName.indexOf(guid) === -1) && (propertyName.indexOf(hydra) === -1) &&
-                (propertyName.indexOf(shacl) === -1) && (propertyName.indexOf(ursa) === -1)) {
-                    var property = graph.getById(propertyName);
-                    if ((!property) || (property["@type"].indexOf(hydra.TemplatedLink) === -1) || (!property[hydra.supportedOperation])) {
-                        continue;
-                    }
-
-                    var operation = graph.getById(property[hydra.supportedOperation][0]["@id"]);
-                    var templates = supportedClass[propertyName];
-                    for (index = 0; index < templates.length; index++) {
-                        var template = graph.getById(templates[index]["@id"]);
-                        if (template["@type"].indexOf(hydra.IriTemplate) !== -1) {
-                            this.supportedOperations.push(new Operation(this, operation, template, graph, supportedClasses, supportedProperties, supportedOperations, templatedLinks));
-                        }
-                    }
-                }
-            }
+            getOperations.call(this, supportedClass, graph);
         }
     };
     Class.prototype = new TypeConstrainedApiMember(_ctor);
@@ -1129,31 +1152,10 @@
             this.entryPoints = [];
             this.supportedClasses = [];
             graph.getById = function(id) { return getById.call(graph, id); };
-            var supportedClasses = [];
-            supportedClasses.getById = function(id) { return getById.call(supportedClasses, id); };
-            var supportedOperations = [];
-            supportedOperations.getById = function(id) { return getById.call(supportedOperations, id); };
-            var supportedProperties = [];
-            supportedProperties.getById = function(id) { return getById.call(supportedProperties, id); };
-            var templatedLinks = [];
-            templatedLinks.getById = function(id) { return getById.call(templatedLinks, id); };
             var apiDocumentation = null;
             for (index = 0; index < graph.length; index++) {
                 var resource = graph[index];
-                if ((resource["@type"].indexOf(hydra.Class) !== -1) && (resource["@id"].charAt(0) !== "_") &&
-                    (resource["@id"].indexOf(xsd) === -1) && (resource["@id"].indexOf(guid) === -1)) {
-                    supportedClasses.push(resource);
-                }
-                else if (resource["@type"].indexOf(hydra.SupportedProperty) !== -1) {
-                    supportedProperties.push(resource);
-                }
-                else if (resource["@type"].indexOf(hydra.TemplatedLink) !== -1) {
-                    templatedLinks.push(resource);
-                }
-                else if (resource["@type"].indexOf(hydra.Operation) !== -1) {
-                    supportedOperations.push(resource);
-                }
-                else if (resource["@type"].indexOf(hydra.ApiDocumentation) !== -1) {
+                if (resource["@type"].indexOf(hydra.ApiDocumentation) !== -1) {
                     apiDocumentation = resource;
                     this.id = resource["@id"];
                     this.title = getValue.call(resource, hydra.title) || "";
@@ -1162,12 +1164,14 @@
                     if (this.entryPoints.length === 0) {
                         this.entryPoints.push(this.id.match(/^http[s]*:\/\/[^\/]+\//)[0]);
                     }
+
+                    break;
                 }
             }
 
             if ((apiDocumentation != null) && (apiDocumentation[hydra.supportedClass] instanceof Array)) {
                 for (index = 0; index < apiDocumentation[hydra.supportedClass].length; index++) {
-                    this.supportedClasses.push(new Class(this, graph.getById(apiDocumentation[hydra.supportedClass][index]["@id"]), graph, supportedClasses, supportedProperties, supportedOperations));
+                    this.supportedClasses.push(new Class(this, graph.getById(apiDocumentation[hydra.supportedClass][index]["@id"]), graph));
                 }
             }
         }

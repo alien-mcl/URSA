@@ -110,6 +110,7 @@
     <Compile Include="EntryPointControllerDescriptionBuilder.cs" />
     <Compile Include="EntryPointDescriptionController.cs" />
     <Compile Include="Hydra\IApiDocumentation.cs" />
+    <Compile Include="Hydra\ISupportedOperationsOwner.cs" />
     <Compile Include="Hydra\IReplaceResourceOperation.cs" />
     <Compile Include="Hydra\IDeleteResourceOperation.cs" />
     <Compile Include="Hydra\ICreateResourceOperation.cs" />
