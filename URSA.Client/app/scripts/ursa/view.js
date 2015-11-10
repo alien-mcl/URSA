@@ -1,4 +1,4 @@
-﻿/*globals namespace, container, xsd, guid, ursa, jsonld */
+﻿/*globals namespace, container, xsd, guid, ursa, confirm */
 (function (namespace) {
     "use strict";
 
@@ -650,7 +650,7 @@
         scope.entities = null;
         scope.editedEntity = null;
         scope.getPropertyValue = function(entity, supportedProperty, operation) { return entity[supportedProperty.propertyName(operation)]; };
-        scope.cancel = function() { scope.editedEntity = null };
+        scope.cancel = function() { scope.editedEntity = null; };
         scope.list = function(page) { that._loadEntityList(scope, http, jsonld, scope.operation, page); };
         scope.get = function(instance) { that._loadEntity(scope, http, jsonld, scope.getOperation, instance); };
         scope.create = function(instance) { that._createEntity(scope, http, jsonld, scope.createOperation, instance); };
@@ -739,8 +739,8 @@
         var candidateMethod = this._findEntityListMethod(listOperation);
         if (candidateMethod !== null) {
             var instance = null;
-            if ((listOperation.mappings != null) && (listOperation.mappings.getByProperty(ursa + "skip", "property") != null) &&
-                (listOperation.mappings.getByProperty(ursa + "take", "property") != null)) {
+            if ((listOperation.mappings !== null) && (listOperation.mappings.getByProperty(ursa + "skip", "property") !== null) &&
+                (listOperation.mappings.getByProperty(ursa + "take", "property") !== null)) {
                 if (typeof(page) !== "number") {
                     page = scope.currentPage;
                 }

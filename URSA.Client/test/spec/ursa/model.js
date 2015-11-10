@@ -1,5 +1,6 @@
 ﻿/// <reference path="/scripts/_references.js"/>
 //ReSharperReporter.prototype.jasmineDone = function() { };
+/*globals ursa, rdfs, hydra, owl, matchers */
 (function() {
     "use strict";
 

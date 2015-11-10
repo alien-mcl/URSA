@@ -1,4 +1,4 @@
-﻿/*globals application, jsonld */
+﻿/*globals jsonld */
 (function() {
     "use strict";
 

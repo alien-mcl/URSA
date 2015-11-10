@@ -24,8 +24,9 @@
         apiDocumentationProvider.load(configuration.entryPoint).
             then(function(apiDocumentation) {
                 $scope.apiDocumentation = apiDocumentation;
+                var index;
                 var apiDocumentationClass = null;
-                for (var index = 0; index < apiDocumentation.supportedClasses.length; index++) {
+                for (index = 0; index < apiDocumentation.supportedClasses.length; index++) {
                     var supportedClass = apiDocumentation.supportedClasses[index];
                     if (supportedClass.id === hydra.ApiDocumentation) {
                         apiDocumentationClass = supportedClass;
@@ -35,7 +36,7 @@
 
                 var apiDocumentationOperation = null;
                 if (apiDocumentationClass !== null) {
-                    for (var index = 0; index < apiDocumentationClass.supportedOperations.length; index++) {
+                    for (index = 0; index < apiDocumentationClass.supportedOperations.length; index++) {
                         var supportedOperation = apiDocumentationClass.supportedOperations[index];
                         if (supportedOperation.methods.indexOf("GET") !== -1) {
                             apiDocumentationOperation = supportedOperation;

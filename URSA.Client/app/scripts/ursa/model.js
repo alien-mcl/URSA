@@ -855,7 +855,7 @@
                         propertyValue = propertyValue[0];
                     }
 
-                    if ((this.isRdf) && (propertyValue != null)) {
+                    if ((this.isRdf) && (propertyValue !== null)) {
                         propertyValue = propertyValue["@value"] || propertyValue["@id"];
                     }
                 }
@@ -1039,7 +1039,7 @@
 
         return result;
     };
-    Class.prototype._createRdfInstance = function(operation) {
+    Class.prototype._createRdfInstance = function() {
         var result = { "@id": "_:bnode" + Math.random().toString().replace(".", "").substr(1) };
         if (this.id.indexOf("_") !== 0) {
             result["@type"] = this.id;
@@ -1169,7 +1169,7 @@
                 }
             }
 
-            if ((apiDocumentation != null) && (apiDocumentation[hydra.supportedClass] instanceof Array)) {
+            if ((apiDocumentation !== null) && (apiDocumentation[hydra.supportedClass] instanceof Array)) {
                 for (index = 0; index < apiDocumentation[hydra.supportedClass].length; index++) {
                     this.supportedClasses.push(new Class(this, graph.getById(apiDocumentation[hydra.supportedClass][index]["@id"]), graph));
                 }
@@ -1201,5 +1201,5 @@
      * @public
      * @method clone
      */
-    ApiDocumentation.prototype.clone = function() { throw new "Not supported."; }
+    ApiDocumentation.prototype.clone = function() { throw "Not supported."; };
 }(namespace("ursa.model")));

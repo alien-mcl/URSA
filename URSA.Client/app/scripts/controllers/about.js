@@ -1,4 +1,4 @@
-/*globals application, angular */
+/*globals application */
 (function() {
     "use strict";
 
