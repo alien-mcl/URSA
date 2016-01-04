@@ -344,11 +344,10 @@ namespace URSA.Web.Http.Description
         {
             get
             {
-                return _specializationType ??
-                    (_specializationType = (from @interface in typeof(T).GetInterfaces()
-                                            where (@interface.IsGenericType) && (typeof(IController<>).IsAssignableFrom(@interface.GetGenericTypeDefinition()))
-                                            from type in @interface.GetGenericArguments()
-                                            select type).FirstOrDefault() ?? typeof(object));
+                return _specializationType ?? (_specializationType = 
+                    (_specializationType = typeof(T).GetImplementationOfAny(typeof(IController<>), typeof(IAsyncController<>))) != null ? 
+                    _specializationType.GetGenericArguments()[0] : 
+                    typeof(object));
             }
         }
     }

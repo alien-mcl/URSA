@@ -11,6 +11,7 @@ using URSA.Web.Converters;
 using URSA.Web.Description;
 using URSA.Web.Description.Http;
 using URSA.Web.Http.Converters;
+using URSA.Web.Http.Reflection;
 using URSA.Web.Mapping;
 
 namespace URSA.Web.Http
@@ -70,8 +71,7 @@ namespace URSA.Web.Http
                     resultingValues.Add(output);
                 }
 
-                if (requestMapping.Target.GetType().GetInterfaces()
-                    .Any(@interface => (@interface.IsGenericType) && (typeof(IController<>).IsAssignableFrom(@interface.GetGenericTypeDefinition()))))
+                if (requestMapping.Target.GetType().GetImplementationOfAny(typeof(IController<>), typeof(IAsyncController<>)) != null)
                 {
                     result = HandleCrudRequest(requestMapping, resultingValues, arguments, out success);
                 }
@@ -108,20 +108,20 @@ namespace URSA.Web.Http
                 }
 
                 var definition = @interface.GetGenericTypeDefinition();
-                if (typeof(IController<>).IsAssignableFrom(definition))
+                if ((typeof(IWriteController<,>).IsAssignableFrom(definition)) || (typeof(IAsyncWriteController<,>).IsAssignableFrom(definition)))
                 {
-                    result[new Verb(String.Empty)] = controllerType.GetInterfaceMap(@interface).TargetMethods.First();
+                    var write = @interface;
+                    result[Verb.POST] = controllerType.GetInterfaceMap(write).TargetMethods.First(method => method.Name.StartsWith("Create"));
+                    result[Verb.PUT] = controllerType.GetInterfaceMap(write).TargetMethods.First(method => method.Name.StartsWith("Update"));
+                    result[Verb.DELETE] = controllerType.GetInterfaceMap(write).TargetMethods.First(method => method.Name.StartsWith("Delete"));
                 }
-                else if (typeof(IReadController<,>).IsAssignableFrom(definition))
+                else if ((typeof(IReadController<,>).IsAssignableFrom(definition)) || (typeof(IAsyncReadController<,>).IsAssignableFrom(definition)))
                 {
                     result[Verb.GET] = controllerType.GetInterfaceMap(@interface).TargetMethods.First();
                 }
-                else if (typeof(IWriteController<,>).IsAssignableFrom(definition))
+                else if ((typeof(IController<>).IsAssignableFrom(definition)) || (typeof(IAsyncController<>).IsAssignableFrom(definition)))
                 {
-                    var write = @interface;
-                    result[Verb.POST] = controllerType.GetInterfaceMap(write).TargetMethods.First(method => method.Name == "Create");
-                    result[Verb.PUT] = controllerType.GetInterfaceMap(write).TargetMethods.First(method => method.Name == "Update");
-                    result[Verb.DELETE] = controllerType.GetInterfaceMap(write).TargetMethods.First(method => method.Name == "Delete");
+                    result[new Verb(String.Empty)] = controllerType.GetInterfaceMap(@interface).TargetMethods.First();
                 }
             }
 

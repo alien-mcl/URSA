@@ -71,8 +71,11 @@
     <Compile Include="Web\Converters\IConverter.cs" />
     <Compile Include="Web\Description\IControllerDescriptionBuilder.cs" />
     <Compile Include="Web\IControlledEntity.cs" />
+    <Compile Include="Web\IAsyncController.cs" />
     <Compile Include="Web\IControllerActivator.cs" />
+    <Compile Include="Web\IAsyncReadController.cs" />
     <Compile Include="Web\IReadController.cs" />
+    <Compile Include="Web\IAsyncWriteController.cs" />
     <Compile Include="Web\IWriteController.cs" />
     <Compile Include="Web\Mapping\IArgumentBinder.cs" />
     <Compile Include="Web\IController.cs" />

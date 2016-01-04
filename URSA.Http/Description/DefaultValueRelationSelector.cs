@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Reflection;
 using URSA.Web.Http;
+using URSA.Web.Http.Reflection;
 using URSA.Web.Mapping;
 
 namespace URSA.Web.Description.Http
@@ -9,13 +10,7 @@ namespace URSA.Web.Description.Http
     /// <summary>Provides a default source or target of a parameter.</summary>
     public class DefaultValueRelationSelector : IDefaultValueRelationSelector
     {
-        private static readonly string[] PopularIdentifierPropertyNames = new string[]
-        {
-            "Id",
-            "Identifier",
-            "Identity",
-            "Key"
-        };
+        private static readonly string[] PopularIdentifierPropertyNames = { "Id", "Identifier", "Identity", "Key" };
 
         /// <inheritdoc />
         public ParameterSourceAttribute ProvideDefault(ParameterInfo parameter, Verb verb)
@@ -42,14 +37,13 @@ namespace URSA.Web.Description.Http
         private static ParameterSourceAttribute GetDefaultParameterSource(ParameterInfo parameter)
         {
             if ((typeof(Guid) == parameter.ParameterType) || (typeof(DateTime) == parameter.ParameterType) ||
-                ((IsIdentity(parameter.ParameterType)) &&
-                (PopularIdentifierPropertyNames.Contains(parameter.Name, StringComparer.OrdinalIgnoreCase))))
+                ((parameter.ParameterType.IsIdentity()) && (PopularIdentifierPropertyNames.Contains(parameter.Name, StringComparer.OrdinalIgnoreCase))))
             {
                 return FromUriAttribute.For(parameter);
             }
             
             if ((!parameter.ParameterType.IsValueType) && (typeof(string) != parameter.ParameterType) &&
-                (!((parameter.ParameterType.IsEnumerable()) && (IsNumber(parameter.ParameterType.GetItemType())))))
+                (!((parameter.ParameterType.IsEnumerable()) && (parameter.ParameterType.GetItemType().IsNumber()))))
             {
                 return FromBodyAttribute.For(parameter);
             }
@@ -59,9 +53,9 @@ namespace URSA.Web.Description.Http
 
         private static ResultTargetAttribute GetDefaultResultTarget(ParameterInfo parameter)
         {
-            if ((typeof(Guid).MakeByRefType() == parameter.ParameterType) || (typeof(DateTime).MakeByRefType() == parameter.ParameterType) ||
-                ((IsIdentity(parameter.ParameterType)) &&
-                (PopularIdentifierPropertyNames.Contains(parameter.Name, StringComparer.OrdinalIgnoreCase))))
+            var parameterType = parameter.ParameterType.UnwrapIfTask();
+            if ((typeof(Guid).MakeByRefType() == parameterType) || (typeof(DateTime).MakeByRefType() == parameterType) ||
+                ((parameterType.IsIdentity()) && (PopularIdentifierPropertyNames.Contains(parameter.Name, StringComparer.OrdinalIgnoreCase))))
             {
                 return new ToHeaderAttribute(Header.Location);
             }
@@ -69,9 +63,8 @@ namespace URSA.Web.Description.Http
             if (parameter.Member is MethodInfo)
             {
                 var methodInfo = (MethodInfo)parameter.Member;
-                Type implementation = null;
-                if ((methodInfo.DeclaringType.GetInterfaces()
-                    .Any(@interface => (@interface.IsGenericType) && (typeof(IController<>) == @interface.GetGenericTypeDefinition()) && ((implementation = @interface) != null))) && 
+                Type implementation;
+                if (((implementation = methodInfo.DeclaringType.GetImplementationOfAny(typeof(IController<>), typeof(IAsyncController<>))) != null) &&
                     (methodInfo.DeclaringType.GetInterfaceMap(implementation).TargetMethods[0] == methodInfo) && (parameter.Position == 0))
                 {
                     return new ToHeaderAttribute(Header.ContentRange);
@@ -79,19 +72,6 @@ namespace URSA.Web.Description.Http
             }
 
             return new ToBodyAttribute();
-        }
-
-        private static bool IsIdentity(Type type)
-        {
-            return ((typeof(Int32) == type) || (typeof(UInt32) == type) || (typeof(Int64) == type) || (typeof(UInt64) == type) ||
-                (typeof(Int32).MakeByRefType() == type) || (typeof(UInt32).MakeByRefType() == type) || (typeof(Int64).MakeByRefType() == type) || (typeof(UInt64).MakeByRefType() == type));
-        }
-
-        private static bool IsNumber(Type type)
-        {
-            return (typeof(SByte) == type) || (typeof(Byte) == type) || (typeof(Int16) == type) || (typeof(UInt16) == type) ||
-                (typeof(Int32) == type) || (typeof(UInt32) == type) || (typeof(Int64) == type) || (typeof(UInt64) == type) ||
-                (typeof(Single) == type) || (typeof(Double) == type) || (typeof(Decimal) == type);
         }
     }
 }

@@ -144,6 +144,18 @@ namespace System.Reflection
             return CreateEnumerable(values, targetType, itemType ?? typeof(object));
         }
 
+        /// <summary>Gets the first encountered actual type definition of any generic <paramref name="implementations"/> provided.</summary>
+        /// <param name="type">The type to check for implementation.</param>
+        /// <param name="implementations">The implementations to be searched for.</param>
+        /// <returns>First encountered type definition matching any of the <paramref name="implementations" /> provided.</returns>
+        public static Type GetImplementationOfAny(this Type type, params Type[] implementations)
+        {
+            return (from implementation in implementations
+                    from @interface in type.GetInterfaces()
+                    where (@interface.IsGenericType) && (implementation == @interface.GetGenericTypeDefinition())
+                    select @interface).FirstOrDefault();
+        }
+
         private static IEnumerable CreateEnumerable(IEnumerable<object> values, Type type, Type itemType)
         {
             if (values.GetType() == type)

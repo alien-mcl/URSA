@@ -1,13 +1,6 @@
 ﻿using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
 using System.Reflection;
-using System.Text;
-using URSA.Web.Converters;
-using URSA.Web.Description.Http;
-using URSA.Web.Http.Mapping;
+using System.Threading.Tasks;
 using URSA.Web.Mapping;
 
 namespace URSA.Web.Http
@@ -60,13 +53,43 @@ namespace URSA.Web.Http
                 requestMapping.Target.Response = response;
                 var arguments = _argumentBinder.BindArguments(request, requestMapping);
                 ValidateArguments(requestMapping.Operation.UnderlyingMethod.GetParameters(), arguments);
-                object output = requestMapping.Invoke(arguments);
+                object output = HandleRequestInternal(requestMapping, arguments);
                 return _responseComposer.ComposeResponse(requestMapping, output, arguments);
             }
             catch (Exception exception)
             {
                 return new ExceptionResponseInfo(request, exception);
             }
+        }
+
+        private static object HandleRequestInternal(IRequestMapping requestMapping, object[] arguments)
+        {
+            object output = null;
+            Task.Run(async () =>
+                {
+                    object handlerResult = requestMapping.Invoke(arguments);
+                    if (handlerResult == null)
+                    {
+                        return;
+                    }
+
+                    Task task = handlerResult as Task;
+                    if (task == null)
+                    {
+                        output = handlerResult;
+                        return;
+                    }
+
+                    if ((task.GetType().IsGenericType) && (typeof(Task<>).IsAssignableFrom(task.GetType().GetGenericTypeDefinition())))
+                    {
+                        output = task.GetType().GetProperty("Result", BindingFlags.Instance | BindingFlags.Public).GetValue(task);
+                        return;
+                    }
+
+                    await task;
+                }).Wait();
+
+            return output;
         }
 
         private static void ValidateArguments(ParameterInfo[] parameters, object[] arguments)

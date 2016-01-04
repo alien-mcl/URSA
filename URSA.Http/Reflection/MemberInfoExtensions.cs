@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using URSA.Web.Description.Http;
@@ -101,6 +100,24 @@ namespace URSA.Web.Http.Reflection
             methodInfo.Invoke(null, arguments);
             parameterTemplateRegex = (string)arguments[2];
             return true;
+        }
+
+        internal static Type UnwrapIfTask(this Type type)
+        {
+            return ((type.IsGenericType) && (typeof(Task<>).IsAssignableFrom(type.GetGenericTypeDefinition())) ? type.GetGenericArguments()[0] : type);
+        }
+
+        internal static bool IsIdentity(this Type type)
+        {
+            return ((typeof(Int32) == type) || (typeof(UInt32) == type) || (typeof(Int64) == type) || (typeof(UInt64) == type) ||
+                (typeof(Int32).MakeByRefType() == type) || (typeof(UInt32).MakeByRefType() == type) || (typeof(Int64).MakeByRefType() == type) || (typeof(UInt64).MakeByRefType() == type));
+        }
+
+        internal static bool IsNumber(this Type type)
+        {
+            return (typeof(SByte) == type) || (typeof(Byte) == type) || (typeof(Int16) == type) || (typeof(UInt16) == type) ||
+                (typeof(Int32) == type) || (typeof(UInt32) == type) || (typeof(Int64) == type) || (typeof(UInt64) == type) ||
+                (typeof(Single) == type) || (typeof(Double) == type) || (typeof(Decimal) == type);
         }
 
         [ExcludeFromCodeCoverage]
