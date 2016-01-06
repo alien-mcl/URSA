@@ -17,11 +17,11 @@ namespace URSA.Example.WebApplication.Data
     {
         System.Guid Key { get; set; }
 
-        System.String Firstname { get; set; }
-
         System.String Lastname { get; set; }
 
         System.Collections.Generic.IEnumerable<System.String> Roles { get; set; }
+
+        System.String Firstname { get; set; }
     }
 
     [System.CodeDom.Compiler.GeneratedCode("URSA HTTP client proxy generation tool", "1.0")]
@@ -35,10 +35,10 @@ namespace URSA.Example.WebApplication.Data
 
         public System.Guid Key { get; set; }
 
-        public System.String Firstname { get; set; }
-
         public System.String Lastname { get; set; }
 
         public System.Collections.Generic.IEnumerable<System.String> Roles { get; set; }
+
+        public System.String Firstname { get; set; }
     }
 }

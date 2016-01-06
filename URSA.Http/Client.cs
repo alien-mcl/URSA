@@ -164,7 +164,7 @@ namespace URSA.Web.Http
                     uriArguments.totalEntities = Int32.Parse(Regex.Match(response.Headers["Content-Range"], "[0-9]+\\-[0-9]+/(?<TotalEntities>[0-9]+)").Groups["TotalEntities"].Value);
                 }
             }
-            catch (FormatException error)
+            catch (FormatException)
             {
                 throw;
             }

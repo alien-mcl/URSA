@@ -33,7 +33,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{8F3DC0
 		.nuget\NuGet.exe = .nuget\NuGet.exe
 		.nuget\NuGet.targets = .nuget\NuGet.targets
 		NuGetBuild\URSA.CastleWindsor\URSA.CastleWindsor.nuspec = NuGetBuild\URSA.CastleWindsor\URSA.CastleWindsor.nuspec
+		NuGetBuild\URSA.Http.CastleWindsor\URSA.Http.CastleWindsor.nuspec = NuGetBuild\URSA.Http.CastleWindsor\URSA.Http.CastleWindsor.nuspec
+		NuGetBuild\URSA.Http\URSA.Http.nuspec = NuGetBuild\URSA.Http\URSA.Http.nuspec
 		NuGetBuild\URSA\URSA.nuspec = NuGetBuild\URSA\URSA.nuspec
+		NuGetBuild\URSA.Owin\URSA.Owin.nuspec = NuGetBuild\URSA.Owin\URSA.Owin.nuspec
+		NuGetBuild\URSA.Web\URSA.Web.nuspec = NuGetBuild\URSA.Web\URSA.Web.nuspec
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".build", ".build", "{51605562-D2FE-498F-9D18-6F7B30796842}"
@@ -65,6 +69,12 @@ Project("{E24C65DC-7377-472B-9ABA-BC803B73C61A}") = "URSA.Client", "http://local
 		SlnRelativePath = "URSA.Client\"
 		DefaultWebSiteLanguage = "Visual C#"
 	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "URSA.Owin", "URSA.Owin\URSA.Owin.csproj", "{723761C1-90D9-45FE-B9C6-A84087DF7096}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "URSA.Example.OwinApplication", "URSA.Example.OwinApplication\URSA.Example.OwinApplication.csproj", "{6792490A-CEF9-4B80-A874-F89011F4D589}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "URSA.Http.CastleWindsor", "URSA.Http.CastleWindsor\URSA.Http.CastleWindsor.csproj", "{F3348ED4-2300-4A5E-BDE0-3961660397AF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -122,6 +132,18 @@ Global
 		{433E0693-2669-4DF1-B366-8330CF5AC0CE}.Release|Any CPU.Build.0 = Release|Any CPU
 		{96C34881-396A-4F51-AEF0-F0B5F96545FB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{96C34881-396A-4F51-AEF0-F0B5F96545FB}.Release|Any CPU.ActiveCfg = Debug|Any CPU
+		{723761C1-90D9-45FE-B9C6-A84087DF7096}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{723761C1-90D9-45FE-B9C6-A84087DF7096}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{723761C1-90D9-45FE-B9C6-A84087DF7096}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{723761C1-90D9-45FE-B9C6-A84087DF7096}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6792490A-CEF9-4B80-A874-F89011F4D589}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6792490A-CEF9-4B80-A874-F89011F4D589}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6792490A-CEF9-4B80-A874-F89011F4D589}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6792490A-CEF9-4B80-A874-F89011F4D589}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F3348ED4-2300-4A5E-BDE0-3961660397AF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F3348ED4-2300-4A5E-BDE0-3961660397AF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F3348ED4-2300-4A5E-BDE0-3961660397AF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F3348ED4-2300-4A5E-BDE0-3961660397AF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -101,6 +101,7 @@
     <Compile Include="CodeGen\HydraUriParser.cs" />
     <Compile Include="CodeGen\IClassGenerator.cs" />
     <Compile Include="CodeGen\IUriParser.cs" />
+    <Compile Include="Configuration\ComponentProviderExtensions.cs" />
     <Compile Include="Configuration\DescriptionConfigurationSection.cs" />
     <Compile Include="Converters\EntityConverter.cs" />
     <Compile Include="DescriptionContext.cs" />
@@ -166,6 +167,9 @@
     <Compile Include="XmlDocProvider.cs" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="Method.png" />
+    <EmbeddedResource Include="Property.png" />
+    <EmbeddedResource Include="DocumentationStylesheet.xslt" />
     <Content Include="FodyWeavers.xml" />
   </ItemGroup>
   <ItemGroup>

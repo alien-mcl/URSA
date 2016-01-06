@@ -60,15 +60,18 @@ namespace URSA.Web.Handlers
                 }
             }
 
-            HandleReuqest(context);
+            HandleRequest(context);
         }
 
-        private void HandleReuqest(HttpContext context)
+        private void HandleRequest(HttpContext context)
         {
             var headers = new HeaderCollection();
-            foreach (string headerName in context.Request.Headers)
+            context.Request.Headers.ForEach(headerName => ((IDictionary<string, string>)headers)[(string)headerName] = context.Request.Headers[(string)headerName]);
+            if (!String.IsNullOrEmpty(context.Request.Headers[Header.Origin]))
             {
-                ((IDictionary<string, string>)headers)[headerName] = context.Request.Headers[headerName];
+                context.Response.Headers[Header.AccessControlAllowOrigin] = context.Request.Headers[Header.Origin];
+                context.Response.Headers[Header.AccessControlExposeHeaders] = String.Join(", ", context.Response.Headers.Keys.Cast<string>());
+                context.Response.Headers[Header.AccessControlAllowHeaders] = "Content-Type, Content-Length, Accept, Accept-Language, Accept-Charser, Accept-Encoding, Accept-Ranges, Authorization, X-Auth-Token";
             }
 
             var requestInfo = new RequestInfo(Verb.Parse(context.Request.HttpMethod), new Uri(context.Request.Url.AbsoluteUri.TrimEnd('/')), context.Request.InputStream, headers);
@@ -90,25 +93,14 @@ namespace URSA.Web.Handlers
                 }
             }
 
-            if (!String.IsNullOrEmpty(context.Request.Headers[Header.Origin]))
-            {
-                context.Response.Headers[Header.AccessControlAllowOrigin] = context.Request.Headers[Header.Origin];
-                context.Response.Headers[Header.AccessControlExposeHeaders] = String.Join(", ", context.Response.Headers.Keys.Cast<string>());
-                context.Response.Headers[Header.AccessControlAllowHeaders] = "Content-Type, Content-Length, Accept, Accept-Language, Accept-Charser, Accept-Encoding, Accept-Ranges, Authorization, X-Auth-Token";
-            }
-
             response.Body.CopyTo(context.Response.OutputStream);
         }
 
         private void HandleDocumentationStylesheet(HttpContext context)
         {
             context.Response.ContentType = "text/xsl";
-            if (!String.IsNullOrEmpty(context.Request.Headers[Header.Origin]))
-            {
-                context.Response.Headers[Header.AccessControlAllowOrigin] = context.Request.Headers[Header.Origin];
-            }
-
-            using (var source = new StreamReader(GetType().Assembly.GetManifestResourceStream("URSA.Web.DocumentationStylesheet.xslt")))
+            HandleCors(context);
+            using (var source = new StreamReader(typeof(DescriptionController).Assembly.GetManifestResourceStream("URSA.Web.Http.Description.DocumentationStylesheet.xslt")))
             {
                 context.Response.Output.Write(source.ReadToEnd());
             }
@@ -117,11 +109,20 @@ namespace URSA.Web.Handlers
         private void HandleIcon(HttpContext context, string imagePath)
         {
             context.Response.ContentType = "image/png";
-            using (var stream = GetType().Assembly.GetManifestResourceStream(String.Format("URSA.Web.{0}.png", imagePath)))
+            HandleCors(context);
+            using (var stream = typeof(DescriptionController).Assembly.GetManifestResourceStream(String.Format("URSA.Web.Http.Description.{0}.png", imagePath)))
             {
                 byte[] buffer = new byte[stream.Length];
                 stream.Read(buffer, 0, buffer.Length);
                 context.Response.BinaryWrite(buffer);
+            }
+        }
+
+        private void HandleCors(HttpContext context)
+        {
+            if (!String.IsNullOrEmpty(context.Request.Headers[Header.Origin]))
+            {
+                context.Response.Headers[Header.AccessControlAllowOrigin] = context.Request.Headers[Header.Origin];
             }
         }
     }

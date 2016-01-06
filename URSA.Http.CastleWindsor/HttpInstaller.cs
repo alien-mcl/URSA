@@ -8,7 +8,6 @@ using RomanticWeb.DotNetRDF;
 using System;
 using System.Configuration;
 using System.Reflection;
-using System.Web;
 using Castle.Facilities.TypedFactory;
 using RomanticWeb.Configuration;
 using RomanticWeb.NamedGraphs;
@@ -19,6 +18,7 @@ using URSA.Configuration;
 using URSA.Web;
 using URSA.Web.Description.Http;
 using URSA.Web.Http;
+using URSA.Web.Http.Configuration;
 using URSA.Web.Http.Converters;
 using URSA.Web.Http.Description;
 using URSA.Web.Http.Description.CodeGen;
@@ -92,28 +92,6 @@ namespace URSA.CastleWindsor
             container.Register(Component.For<IApiDescriptionBuilderFactory>().AsFactory(typedFactory).LifestyleSingleton());
         }
 
-        private static Uri GetBaseUri()
-        {
-            try
-            {
-                if (HttpContext.Current == null)
-                {
-                    return null;
-                }
-
-                var baseUrl = String.Format(
-                    "{0}://{1}{2}/",
-                    HttpContext.Current.Request.Url.Scheme,
-                    HttpContext.Current.Request.Url.Host,
-                    ((HttpContext.Current.Request.Url.Port != 80) && (HttpContext.Current.Request.Url.Port > 0) ? String.Format(":{0}", HttpContext.Current.Request.Url.Port) : String.Empty));
-                return new Uri(baseUrl);
-            }
-            catch (HttpException)
-            {
-                return null;
-            }
-        }
-
         private IEntityContext CreateEntityContext(IKernel kernel, CreationContext context)
         {
             IEntityContext result = null;
@@ -128,7 +106,7 @@ namespace URSA.CastleWindsor
 
                 if (!_isBaseUriInitialized)
                 {
-                    var baseUri = GetBaseUri();
+                    var baseUri = kernel.Resolve<IHttpServerConfiguration>().BaseUri;
                     if (baseUri != null)
                     {
                         _isBaseUriInitialized = true;

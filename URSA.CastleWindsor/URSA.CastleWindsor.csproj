@@ -48,10 +48,6 @@
     <Reference Include="Castle.Windsor">
       <HintPath>..\packages\Castle.Windsor.3.3.0\lib\net45\Castle.Windsor.dll</HintPath>
     </Reference>
-    <Reference Include="Castle.Windsor.Lifestyles, Version=0.4.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Castle.Windsor.Lifestyles.0.4.0\lib\net45\Castle.Windsor.Lifestyles.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
     <Reference Include="dotNetRDF">
       <HintPath>..\packages\dotNetRDF.1.0.3\lib\net40\dotNetRDF.dll</HintPath>
     </Reference>
@@ -95,9 +91,7 @@
     <Compile Include="ComponentModel\HandlerEqualityComparer.cs" />
     <Compile Include="ComponentModel\NonPublicComponentActivator.cs" />
     <Compile Include="ComponentModel\DefaultGenericImplementationMatchingStrategy.cs" />
-    <Compile Include="ComponentModel\UrsaCustomTypedFactory.cs" />
     <Compile Include="ComponentModel\WindsorComponentProvider.cs" />
-    <Compile Include="HttpInstaller.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="..\.build\CommonAssemblyInfo.cs">
       <Link>Properties\CommonAssemblyInfo.cs</Link>

@@ -18,7 +18,6 @@ namespace URSA.Http.Description.Tests.Given_instance_of_the
     {
         private static readonly Uri BaseUri = new Uri("http://temp.uri/");
         private static readonly Uri EntryPoint = new Uri("/api/person", UriKind.Relative);
-        private OperationInfo _operation;
         private INamedGraphSelector _selector;
 
         [TestMethod]

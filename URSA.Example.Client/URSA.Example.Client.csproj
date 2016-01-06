@@ -66,6 +66,12 @@
     <Compile Include="IProductClient.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="..\.build\CommonAssemblyInfo.cs">
+      <Link>Properties\CommonAssemblyInfo.cs</Link>
+    </Compile>
+    <Compile Include="..\.build\VersionAssemblyInfo.cs">
+      <Link>Properties\VersionAssemblyInfo.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\URSA.CastleWindsor\URSA.CastleWindsor.csproj">
@@ -75,6 +81,10 @@
     <ProjectReference Include="..\URSA.Core\URSA.Core.csproj">
       <Project>{643795dc-2ce4-4aa6-a480-92b92023da25}</Project>
       <Name>URSA.Core</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\URSA.Http.CastleWindsor\URSA.Http.CastleWindsor.csproj">
+      <Project>{f3348ed4-2300-4a5e-bde0-3961660397af}</Project>
+      <Name>URSA.Http.CastleWindsor</Name>
     </ProjectReference>
     <ProjectReference Include="..\URSA.Http\URSA.Http.csproj">
       <Project>{322c5bbc-5a06-4059-ab73-8f81487ce00c}</Project>

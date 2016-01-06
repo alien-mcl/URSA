@@ -4,6 +4,7 @@ using System.Runtime.Serialization;
 namespace URSA.Web
 {
     /// <summary>Describes an exception when a given entity does not exist.</summary>
+    [Serializable]
     public class AlreadyExistsException : Exception
     {
         /// <summary>Initializes a new instance of the <see cref="AlreadyExistsException"/> class.</summary>

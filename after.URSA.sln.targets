@@ -6,6 +6,10 @@
 
     <Target Name="PepitaPackage" AfterTargets="GitHubLink">
         <MSBuild Projects="$(MSBuildProjectDirectory)\NuGetBuild\NugetBuild.targets" Targets="CopyCoreBinaries;PackageCore" />
+        <MSBuild Projects="$(MSBuildProjectDirectory)\NuGetBuild\NugetBuild.targets" Targets="CopyHttpBinaries;PackageHttp" />
         <MSBuild Projects="$(MSBuildProjectDirectory)\NuGetBuild\NugetBuild.targets" Targets="CopyCastleWindsorBinaries;PackageCastleWindsor" />
+        <MSBuild Projects="$(MSBuildProjectDirectory)\NuGetBuild\NugetBuild.targets" Targets="CopyHttpCastleWindsorBinaries;PackageHttpCastleWindsor" />
+        <MSBuild Projects="$(MSBuildProjectDirectory)\NuGetBuild\NugetBuild.targets" Targets="CopyWebBinaries;PackageWeb" />
+        <MSBuild Projects="$(MSBuildProjectDirectory)\NuGetBuild\NugetBuild.targets" Targets="CopyOwinBinaries;PackageOwin" />
     </Target>
 </Project>

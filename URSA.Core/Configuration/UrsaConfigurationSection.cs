@@ -107,10 +107,12 @@ namespace URSA.Configuration
             return ComponentProvider;
         }
 
-        internal static IEnumerable<Assembly> GetInstallerAssemblies()
+        /// <summary>Gets the default installer assemblies.</summary>
+        /// <returns>Enumeration of assemblies used by the container initialization.</returns>
+        public static IEnumerable<Assembly> GetInstallerAssemblies()
         {
-            UrsaConfigurationSection configuration = 
-                (UrsaConfigurationSection)ConfigurationManager.GetSection(UrsaConfigurationSection.ConfigurationSectionName) ??
+            UrsaConfigurationSection configuration =
+                (UrsaConfigurationSection)ConfigurationManager.GetSection(UrsaConfigurationSection.ConfigurationSection) ??
                 new UrsaConfigurationSection();
             return GetInstallerAssemblies(configuration.InstallerAssemblyNameMask ?? DefaultInstallerAssemblyNameMask);
         }
@@ -128,7 +130,7 @@ namespace URSA.Configuration
                 let fileName = Path.GetFileNameWithoutExtension(filePath)
                 where !appDomainAssemblyFiles.Contains(fileName, StringComparer.OrdinalIgnoreCase)
                 select Assembly.LoadFrom(filePath);
-            return appDomainAssemblies.Concat(fileAssemblies);
+            return appDomainAssemblies.Concat(fileAssemblies).Distinct();
         }
     }
 }

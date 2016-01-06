@@ -23,34 +23,16 @@ namespace Vocab
         {
             dynamic uriArguments = new ExpandoObject();
             var accept = new string[] {
-                "application/owl+xml",
-                "application/rdf+xml",
+                "application/ld+json",
                 "text/turtle",
-                "application/ld+json" };
+                "application/owl+xml",
+                "application/rdf+xml" };
             var contentType = new string[] {
-                "application/owl+xml",
-                "application/rdf+xml",
+                "application/ld+json",
                 "text/turtle",
-                "application/ld+json" };
+                "application/owl+xml",
+                "application/rdf+xml" };
             var result = Call<System.Guid>(Verb.POST, "/api/product/#POSTProduct", accept, contentType, uriArguments, product);
-            return result;
-        }
-
-        public Vocab.IIProduct Get(System.Guid id)
-        {
-            dynamic uriArguments = new ExpandoObject();
-            var accept = new string[] {
-                "text/turtle",
-                "application/ld+json",
-                "application/owl+xml",
-                "application/rdf+xml" };
-            var contentType = new string[] {
-                "text/turtle",
-                "application/ld+json",
-                "application/owl+xml",
-                "application/rdf+xml" };
-            uriArguments.id = id;
-            var result = Call<Vocab.IIProduct>(Verb.GET, "/api/product/{id}", accept, contentType, uriArguments);
             return result;
         }
 
@@ -59,8 +41,8 @@ namespace Vocab
             dynamic uriArguments = new ExpandoObject();
             var accept = new string[0];
             var contentType = new string[] {
-                "text/turtle",
                 "application/ld+json",
+                "text/turtle",
                 "application/owl+xml",
                 "application/rdf+xml" };
             uriArguments.id = id;
@@ -71,20 +53,38 @@ namespace Vocab
         {
             dynamic uriArguments = new ExpandoObject();
             var accept = new string[] {
+                "application/owl+xml",
                 "application/rdf+xml",
                 "text/turtle",
-                "application/ld+json",
-                "application/owl+xml" };
+                "application/ld+json" };
             var contentType = new string[] {
+                "application/owl+xml",
                 "application/rdf+xml",
                 "text/turtle",
-                "application/ld+json",
-                "application/owl+xml" };
+                "application/ld+json" };
             uriArguments.totalEntities = totalEntities = 0;
             uriArguments.skip = skip;
             uriArguments.take = take;
             var result = Call<System.Collections.Generic.IEnumerable<Vocab.IIProduct>>(Verb.GET, "/api/product{?skip,take}", accept, contentType, uriArguments);
             totalEntities = uriArguments.totalEntities;
+            return result;
+        }
+
+        public Vocab.IIProduct Get(System.Guid id)
+        {
+            dynamic uriArguments = new ExpandoObject();
+            var accept = new string[] {
+                "application/owl+xml",
+                "text/turtle",
+                "application/rdf+xml",
+                "application/ld+json" };
+            var contentType = new string[] {
+                "application/owl+xml",
+                "text/turtle",
+                "application/rdf+xml",
+                "application/ld+json" };
+            uriArguments.id = id;
+            var result = Call<Vocab.IIProduct>(Verb.GET, "/api/product/{id}", accept, contentType, uriArguments);
             return result;
         }
 
@@ -94,8 +94,8 @@ namespace Vocab
             var accept = new string[0];
             var contentType = new string[] {
                 "application/ld+json",
-                "application/rdf+xml",
                 "application/owl+xml",
+                "application/rdf+xml",
                 "text/turtle" };
             uriArguments.id = id;
             Call(Verb.DELETE, "/api/product/{id}", accept, contentType, uriArguments);

@@ -118,13 +118,13 @@ namespace Given_instance_of_the.HydraCompliantTypeDescriptionBuilder_class
             return result.Object;
         }
 
-        private static T CreateProperty<T>(IEntityContext entityContext, EntityId id) where T : class, IProperty
+        private static TProperty CreateProperty<TProperty>(IEntityContext entityContext, EntityId id) where TProperty : class, IProperty
         {
             var propertyFullName = id.Uri.AbsoluteUri.Substring(id.Uri.AbsoluteUri.LastIndexOf(':') + 1);
             var declaringTypeName = propertyFullName.Substring(0, propertyFullName.LastIndexOf('.'));
             var propertyName = propertyFullName.Substring(declaringTypeName.Length + 1);
             var propertyInfo = Type.GetType(declaringTypeName).GetProperty(propertyName);
-            var result = new Mock<T>(MockBehavior.Strict);
+            var result = new Mock<TProperty>(MockBehavior.Strict);
             string label = null;
             string description = null;
             result.SetupSet(instance => instance.Label = propertyInfo.Name).Callback<string>(value => label = value);

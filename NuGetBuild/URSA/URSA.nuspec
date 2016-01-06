@@ -14,11 +14,6 @@
         <projectUrl>http://alien-mcl.github.io/URSA/</projectUrl>
         <copyright>Copyright  © 2015</copyright>
         <tags>hydra rest api rdf semanticweb semantic</tags>
-        <dependencies>
-            <dependency id="Newtonsoft.Json" />
-            <dependency id="RomanticWeb" />
-            <dependency id="RomanticWeb.dotNetRDF" />
-        </dependencies>
         <frameworkAssemblies>
             <frameworkAssembly assemblyName="System.Configuration" />
         </frameworkAssemblies>

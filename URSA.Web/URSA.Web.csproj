@@ -63,6 +63,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Configuration\HttpContextBoundServerConfiguration.cs" />
     <Compile Include="Handlers\UrsaHandler.cs" />
     <Compile Include="HttpApplicationExtesions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -94,13 +95,6 @@
   <ItemGroup>
     <None Include="app.config" />
     <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="DocumentationStylesheet.xslt" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Method.png" />
-    <EmbeddedResource Include="Property.png" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="FodyWeavers.xml" />

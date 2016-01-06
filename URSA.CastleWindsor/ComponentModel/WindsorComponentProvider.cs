@@ -6,13 +6,11 @@ using Castle.MicroKernel.Resolvers.SpecializedResolvers;
 using Castle.Windsor;
 using Castle.Windsor.Installer;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Castle.Core;
 using URSA.CastleWindsor.ComponentModel;
-using URSA.ComponentModel;
 
 namespace URSA.ComponentModel
 {

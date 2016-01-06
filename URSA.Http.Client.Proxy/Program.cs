@@ -15,6 +15,7 @@ using URSA.ComponentModel;
 using URSA.Configuration;
 using URSA.Web.Converters;
 using URSA.Web.Http;
+using URSA.Web.Http.Configuration;
 using URSA.Web.Http.Converters;
 using URSA.Web.Http.Description.Hydra;
 using URSA.Web.Http.Description.NamedGraphs;
@@ -80,6 +81,7 @@ namespace URSA.Web.Http.Client.Proxy
             string contentType;
             var responseStream = new UnclosableStream(GetResponse(Method, url, out contentType));
             var container = UrsaConfigurationSection.InitializeComponentProvider();
+            container.Register<IHttpServerConfiguration>(new StaticHttpServerConfiguration(url));
             var headers = new HeaderCollection();
             if (!String.IsNullOrEmpty(contentType))
             {

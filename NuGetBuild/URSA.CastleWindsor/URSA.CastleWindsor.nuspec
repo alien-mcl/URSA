@@ -1,12 +1,12 @@
 <?xml version="1.0"?>
 <package>
     <metadata>
-        <id>URSA</id>
+        <id>URSA.CastleWindsor</id>
         <version>$version$</version>
         <authors>alien-mcl</authors>
         <owners>alien-mcl</owners>
         <requireLicenseAcceptance>false</requireLicenseAcceptance>
-        <title>Ultimate ReSt Api</title>
+        <title>Ultimate ReSt Api Castle Windsor integration</title>
         <description>$description$</description>
         <releaseNotes>Initial release.</releaseNotes>
         <licenseUrl>http://opensource.org/licenses/BSD-3-Clause</licenseUrl>
@@ -15,9 +15,11 @@
         <copyright>Copyright  © 2015</copyright>
         <tags>hydra rest api rdf semanticweb semantic</tags>
         <dependencies>
+            <dependency id="Castle.Windsor" />
             <dependency id="Newtonsoft.Json" />
             <dependency id="RomanticWeb" />
             <dependency id="RomanticWeb.dotNetRDF" />
+            <dependency id="URSA" />
         </dependencies>
         <frameworkAssemblies>
             <frameworkAssembly assemblyName="System.Configuration" />
