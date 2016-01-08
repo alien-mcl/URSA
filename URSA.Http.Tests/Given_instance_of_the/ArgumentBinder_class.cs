@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
+using URSA.Security;
 using URSA.Web;
 using URSA.Web.Converters;
 using URSA.Web.Description;
@@ -184,7 +185,7 @@ namespace Given_instance_of_the
                 verb,
                 arguments.ToArray());
             return _binder.BindArguments(
-                new RequestInfo(Verb.GET, new Uri("http://temp.uri" + callUri), new MemoryStream()),
+                new RequestInfo(Verb.GET, new Uri("http://temp.uri" + callUri), new MemoryStream(), new BasicClaimBasedIdentity()),
                 new RequestMapping(GetControllerInstance(), operation, new Uri(methodUri, UriKind.Relative)));
         }
 

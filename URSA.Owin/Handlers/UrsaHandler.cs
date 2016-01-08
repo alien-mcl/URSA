@@ -6,6 +6,7 @@ using System.Net;
 using System.Threading.Tasks;
 using Microsoft.Owin;
 using URSA.Configuration;
+using URSA.Owin.Security;
 using URSA.Web;
 using URSA.Web.Http;
 using URSA.Web.Http.Configuration;
@@ -92,7 +93,12 @@ namespace URSA.Owin.Handlers
                 context.Response.Headers[Header.AccessControlAllowHeaders] = "Content-Type, Content-Length, Accept, Accept-Language, Accept-Charser, Accept-Encoding, Accept-Ranges, Authorization, X-Auth-Token";
             }
 
-            var requestInfo = new RequestInfo(Verb.Parse(context.Request.Method), new Uri(context.Request.Uri.AbsoluteUri.TrimEnd('/')), context.Request.Body, headers);
+            var requestInfo = new RequestInfo(
+                Verb.Parse(context.Request.Method),
+                new Uri(context.Request.Uri.AbsoluteUri.TrimEnd('/')),
+                context.Request.Body,
+                new OwinPrincipal(context.Authentication.User),
+                headers);
             var response = await _requestHandler.HandleRequestAsync(requestInfo);
             if ((IsResponseNoMatchingRouteFoundException(response)) && (Next != null))
             {

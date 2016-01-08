@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Text.RegularExpressions;
+using URSA.Security;
 using URSA.Web;
 using URSA.Web.Description;
 using URSA.Web.Description.Http;
@@ -24,7 +25,7 @@ namespace Given_instance_of_the
         [TestMethod]
         public void it_should_map_Add_method_correctly()
         {
-            var mapping = _mapper.MapRequest(new RequestInfo(Verb.GET, new Uri("http://temp.uri/api/test/add?operandA=1&operandB=2"), new MemoryStream()));
+            var mapping = _mapper.MapRequest(new RequestInfo(Verb.GET, new Uri("http://temp.uri/api/test/add?operandA=1&operandB=2"), new MemoryStream(), new BasicClaimBasedIdentity()));
 
             mapping.Should().NotBeNull();
             mapping.Target.Should().NotBeNull();
@@ -35,7 +36,7 @@ namespace Given_instance_of_the
         [TestMethod]
         public void it_should_map_Add_method_correctly_with_reversed_query_string_parameters()
         {
-            var mapping = _mapper.MapRequest(new RequestInfo(Verb.GET, new Uri("http://temp.uri/api/test/add?operandB=2&operandA=1"), new MemoryStream()));
+            var mapping = _mapper.MapRequest(new RequestInfo(Verb.GET, new Uri("http://temp.uri/api/test/add?operandB=2&operandA=1"), new MemoryStream(), new BasicClaimBasedIdentity()));
 
             mapping.Should().NotBeNull();
             mapping.Target.Should().NotBeNull();

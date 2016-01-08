@@ -8,6 +8,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
+using URSA.Security;
 using URSA.Web.Converters;
 using URSA.Web.Description;
 using URSA.Web.Description.Http;
@@ -82,7 +83,7 @@ namespace URSA.Web.Http.Testing
                 .First()
                 .Invoke(new object[]
                     {
-                        new RequestInfo(httpVerb, RequestUri, (body != null ? new MemoryStream(Encoding.UTF8.GetBytes(body)) : new MemoryStream()), headers),
+                        new RequestInfo(httpVerb, RequestUri, (body != null ? new MemoryStream(Encoding.UTF8.GetBytes(body)) : new MemoryStream()), new BasicClaimBasedIdentity(), headers),
                         new RequestMapping(new TestController(), operation, MethodUri),
                         method.GetParameters().FirstOrDefault(item => item.GetCustomAttribute<I>(true) != null) ?? method.GetParameters()[0],
                         0,

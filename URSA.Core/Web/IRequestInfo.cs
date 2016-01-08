@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using URSA.Security;
 
 namespace URSA.Web
 {
@@ -18,5 +19,8 @@ namespace URSA.Web
 
         /// <summary>Gets the uri of the request.</summary>
         Uri Uri { get; }
+
+        /// <summary>Gets the identity of this request.</summary>
+        IClaimBasedIdentity Identity { get; }
     }
 }

@@ -11,6 +11,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using URSA.ComponentModel;
 using URSA.Configuration;
+using URSA.Security;
 using URSA.Web;
 using URSA.Web.Converters;
 using URSA.Web.Description;
@@ -37,7 +38,7 @@ namespace Given_instance_of_the
         {
             var handler = SetupEnvironment(1, true);
 
-            handler.HandleRequest(new RequestInfo(Verb.GET, new Uri("http://temp.uri/api/test"), new MemoryStream()));
+            handler.HandleRequest(new RequestInfo(Verb.GET, new Uri("http://temp.uri/api/test"), new MemoryStream(), new BasicClaimBasedIdentity()));
 
             _responseComposer.Verify(instance => instance.ComposeResponse(It.IsAny<IRequestMapping>(), It.IsAny<object>(), It.IsAny<object[]>()), Times.Once);
         }
@@ -47,7 +48,7 @@ namespace Given_instance_of_the
         {
             var handler = SetupEnvironment(1, true);
 
-            handler.HandleRequest(new RequestInfo(Verb.GET, new Uri("http://temp.uri/api/test"), new MemoryStream()));
+            handler.HandleRequest(new RequestInfo(Verb.GET, new Uri("http://temp.uri/api/test"), new MemoryStream(), new BasicClaimBasedIdentity()));
 
             _argumentBinder.Verify(instance => instance.BindArguments(It.IsAny<RequestInfo>(), It.IsAny<IRequestMapping>()), Times.Once);
         }
@@ -57,7 +58,7 @@ namespace Given_instance_of_the
         {
             var handler = SetupEnvironment(1, true);
 
-            handler.HandleRequest(new RequestInfo(Verb.GET, new Uri("http://temp.uri/api/test"), new MemoryStream()));
+            handler.HandleRequest(new RequestInfo(Verb.GET, new Uri("http://temp.uri/api/test"), new MemoryStream(), new BasicClaimBasedIdentity()));
 
             _delegateMapper.Verify(instance => instance.MapRequest(It.IsAny<RequestInfo>()), Times.Once);
         }
@@ -68,7 +69,7 @@ namespace Given_instance_of_the
             var expected = 1;
             var handler = SetupEnvironmentAsync(expected, true);
 
-            var result = handler.HandleRequest(new RequestInfo(Verb.GET, new Uri("http://temp.uri/api/test"), new MemoryStream()));
+            var result = handler.HandleRequest(new RequestInfo(Verb.GET, new Uri("http://temp.uri/api/test"), new MemoryStream(), new BasicClaimBasedIdentity()));
 
             result.Should().BeOfType<ObjectResponseInfo<int>>();
             ((ObjectResponseInfo<int>)result).Value.Should().Be(expected);

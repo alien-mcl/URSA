@@ -6,6 +6,7 @@ using System.Net;
 using FluentAssertions;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using URSA.Security;
 using URSA.Web.Http;
 using URSA.Web.Http.Converters;
 
@@ -22,7 +23,7 @@ namespace Given_instance_of_the.converter_of
         {
             var message = "Test exception";
             var exception = MakeException(message);
-            var response = new ExceptionResponseInfo(new RequestInfo(Verb.GET, new Uri("http://temp.uri/"), new MemoryStream()), exception);
+            var response = new ExceptionResponseInfo(new RequestInfo(Verb.GET, new Uri("http://temp.uri/"), new MemoryStream(), new BasicClaimBasedIdentity()), exception);
 
             _converter.ConvertFrom(exception, response);
             response.Body.Seek(0, SeekOrigin.Begin);

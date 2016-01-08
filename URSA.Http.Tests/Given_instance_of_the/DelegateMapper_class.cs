@@ -7,6 +7,7 @@ using System.Text.RegularExpressions;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using URSA.Security;
 using URSA.Web;
 using URSA.Web.Description;
 using URSA.Web.Description.Http;
@@ -28,7 +29,7 @@ namespace Given_instance_of_the
         [TestMethod]
         public void it_should_map_request()
         {
-            var result = _delegateMapper.MapRequest(new RequestInfo(Verb.GET, new Uri("http://temp.uri/api/test/add?operandA=1&operandB=2"), new MemoryStream()));
+            var result = _delegateMapper.MapRequest(new RequestInfo(Verb.GET, new Uri("http://temp.uri/api/test/add?operandA=1&operandB=2"), new MemoryStream(), new BasicClaimBasedIdentity()));
 
             result.Should().NotBeNull();
             result.Target.Should().Be(_controller);
@@ -39,7 +40,7 @@ namespace Given_instance_of_the
         [TestMethod]
         public void it_should_map_OPTIONS_request()
         {
-            var result = _delegateMapper.MapRequest(new RequestInfo(Verb.OPTIONS, new Uri("http://temp.uri/api/test/add?operandA=1&operandB=2"), new MemoryStream()));
+            var result = _delegateMapper.MapRequest(new RequestInfo(Verb.OPTIONS, new Uri("http://temp.uri/api/test/add?operandA=1&operandB=2"), new MemoryStream(), new BasicClaimBasedIdentity()));
 
             result.Should().NotBeNull();
             result.Target.Should().BeOfType<OptionsController>();

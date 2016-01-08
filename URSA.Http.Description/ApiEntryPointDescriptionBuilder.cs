@@ -78,7 +78,7 @@ namespace URSA.Web.Http.Description
                     continue;
                 }
 
-                if ((controllerDescription.EntryPoint == null) || (controllerDescription.EntryPoint.ToString() != EntryPoint.ToString()))
+                if ((controllerDescription.EntryPoint == null) || (controllerDescription.EntryPoint.Uri.ToString() != EntryPoint.ToString()))
                 {
                     continue;
                 }

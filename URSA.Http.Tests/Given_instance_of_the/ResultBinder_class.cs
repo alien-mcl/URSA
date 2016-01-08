@@ -4,6 +4,7 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Newtonsoft.Json;
+using URSA.Security;
 using URSA.Web.Converters;
 using URSA.Web.Http;
 using URSA.Web.Http.Mapping;
@@ -25,7 +26,7 @@ namespace Given_instance_of_the
             var body = new MemoryStream();
             new JsonSerializer().Serialize(new StreamWriter(body), expected);
             body.Seek(0, SeekOrigin.Begin);
-            var request = new RequestInfo(Verb.GET, new Uri("http://temp.uri/"), body, new Header("Content-Type", "application/json"));
+            var request = new RequestInfo(Verb.GET, new Uri("http://temp.uri/"), body, new BasicClaimBasedIdentity(), new Header("Content-Type", "application/json"));
             _converterProvider.Setup(instance => instance.FindBestInputConverter(typeof(Person), request, false)).Returns(_converter.Object);
             _converter.Setup(instance => instance.ConvertTo(typeof(Person), request)).Returns(expected);
 
@@ -43,6 +44,7 @@ namespace Given_instance_of_the
                 Verb.GET,
                 new Uri("http://temp.uri/"),
                 new MemoryStream(),
+                new BasicClaimBasedIdentity(),
                 new Header("Content-Type", "text/plain"),
                 new Header("Location", "http://temp.uri/" + expected));
             _converterProvider.Setup(instance => instance.FindBestInputConverter(typeof(Guid), request, false)).Returns((IConverter)null);

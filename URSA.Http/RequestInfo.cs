@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using URSA.Security;
 
 namespace URSA.Web.Http
 {
@@ -18,9 +19,10 @@ namespace URSA.Web.Http
         /// <param name="method">HTTP method verb of the request.</param>
         /// <param name="uri">Address requested.</param>
         /// <param name="body">Body of the request.</param>
+        /// <param name="identity">Identity of this request.</param>
         /// <param name="headers">Headers of the request.</param>
         [ExcludeFromCodeCoverage]
-        public RequestInfo(Verb method, Uri uri, Stream body, params Header[] headers)
+        public RequestInfo(Verb method, Uri uri, Stream body, IClaimBasedIdentity identity, params Header[] headers)
         {
             if (method == null)
             {
@@ -37,9 +39,15 @@ namespace URSA.Web.Http
                 throw new ArgumentNullException("body");
             }
 
+            if (identity == null)
+            {
+                throw new ArgumentNullException("identity");
+            }
+
             Method = method;
             Uri = uri;
             Body = new UnclosableStream(_stream = body);
+            Identity = identity;
             Headers = new HeaderCollection();
             headers.ForEach(header => Headers.Add(header));
         }
@@ -48,9 +56,10 @@ namespace URSA.Web.Http
         /// <param name="method">HTTP method verb of the request.</param>
         /// <param name="uri">Address requested.</param>
         /// <param name="body">Body of the request.</param>
+        /// <param name="identity">Identity of this request.</param>
         /// <param name="headers">Headers of the request.</param>
         [ExcludeFromCodeCoverage]
-        public RequestInfo(Verb method, Uri uri, Stream body, HeaderCollection headers)
+        public RequestInfo(Verb method, Uri uri, Stream body, IClaimBasedIdentity identity, HeaderCollection headers)
         {
             if (method == null)
             {
@@ -67,9 +76,15 @@ namespace URSA.Web.Http
                 throw new ArgumentNullException("body");
             }
 
+            if (identity == null)
+            {
+                throw new ArgumentNullException("identity");
+            }
+
             Method = method;
             Uri = uri;
             Body = new UnclosableStream(_stream = body);
+            Identity = identity;
             Headers = headers ?? new HeaderCollection();
         }
 
@@ -84,6 +99,9 @@ namespace URSA.Web.Http
 
         /// <summary>Gets the request headers.</summary>
         public HeaderCollection Headers { get; private set; }
+
+        /// <inheritdoc />
+        public IClaimBasedIdentity Identity { get; private set; }
 
         /// <inheritdoc />
         public bool OutputNeutral { get { return (Headers.Accept.IndexOf(AnyAny) != -1); } }
@@ -132,7 +150,7 @@ namespace URSA.Web.Http
             string[] parts = Regex.Split(message, "\r\n\r\n");
             Encoding encoding = Encoding.UTF8;
             HeaderCollection headers = HeaderCollection.Parse(parts[0]);
-            return new RequestInfo(method, uri, (parts.Length > 1 ? new MemoryStream(encoding.GetBytes(parts[1].Trim('\r', '\n'))) : new MemoryStream()), headers);
+            return new RequestInfo(method, uri, (parts.Length > 1 ? new MemoryStream(encoding.GetBytes(parts[1].Trim('\r', '\n'))) : new MemoryStream()), new BasicClaimBasedIdentity(), headers);
         }
 
         /// <inheritdoc />

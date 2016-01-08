@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using FluentAssertions;
+using URSA.Security;
 using URSA.Web.Converters;
 
 namespace URSA.Web.Http.Testing
@@ -220,6 +221,7 @@ namespace URSA.Web.Http.Testing
                 Verb.Parse(method),
                 new Uri(BaseUri, handler + "/"),
                 (body != null ? new MemoryStream(Encoding.UTF8.GetBytes(body)) : new MemoryStream()),
+                new BasicClaimBasedIdentity(),
                 headers);
         }
 

@@ -62,9 +62,11 @@
     <Compile Include="ComponentModel\IComponentProvider.cs" />
     <Compile Include="Configuration\ConfigurationSectionExtensions.cs" />
     <Compile Include="Configuration\UrsaConfigurationSection.cs" />
+    <Compile Include="Security\BasicClaimBasedIdentity.cs" />
     <Compile Include="Security\ClaimBasedSecurityConstraintAttribute.cs" />
     <Compile Include="Security\DenyClaimAttribute.cs" />
     <Compile Include="Security\AllowClaimAttribute.cs" />
+    <Compile Include="Security\IClaimBasedIdentity.cs" />
     <Compile Include="Security\ResourceSecurityInfo.cs" />
     <Compile Include="Security\SecurableResourceInfoExtensions.cs" />
     <Compile Include="Security\SecuritySpecificationInfo.cs" />

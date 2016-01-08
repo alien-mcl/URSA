@@ -11,6 +11,7 @@ using System.Text.RegularExpressions;
 using Resta.UriTemplates;
 using URSA.ComponentModel;
 using URSA.Configuration;
+using URSA.Security;
 using URSA.Web.Converters;
 using URSA.Web.Http.Mapping;
 
@@ -124,14 +125,14 @@ namespace URSA.Web.Http
                 return null;
             }
 
-            RequestInfo fakeRequest = new RequestInfo(verb, uri, response.GetResponseStream(), HeaderCollection.Parse(response.Headers.ToString()));
+            RequestInfo fakeRequest = new RequestInfo(verb, uri, response.GetResponseStream(), new BasicClaimBasedIdentity(), HeaderCollection.Parse(response.Headers.ToString()));
             var result = _resultBinder.BindResults(responseType, fakeRequest);
             return result.FirstOrDefault(responseType.IsInstanceOfType);
         }
 
         private void FillRequestBody(Verb verb, Uri uri, WebRequest request, IEnumerable<string> contentType, IEnumerable<string> accepted, params object[] bodyArguments)
         {
-            RequestInfo fakeRequest = new RequestInfo(verb, uri, new MemoryStream(), new Header(Header.Accept, accepted.ToArray()));
+            RequestInfo fakeRequest = new RequestInfo(verb, uri, new MemoryStream(), new BasicClaimBasedIdentity(), new Header(Header.Accept, accepted.ToArray()));
             ResponseInfo fakeResponse = CreateFakeResponseInfo(fakeRequest, contentType, bodyArguments);
             using (var target = request.GetRequestStream())
             using (var source = fakeResponse.Body)

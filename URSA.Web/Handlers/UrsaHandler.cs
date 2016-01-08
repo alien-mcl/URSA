@@ -8,6 +8,7 @@ using URSA.Web.Description;
 using URSA.Web.Http;
 using URSA.Web.Http.Converters;
 using URSA.Web.Http.Description;
+using URSA.Web.Security;
 
 namespace URSA.Web.Handlers
 {
@@ -74,7 +75,12 @@ namespace URSA.Web.Handlers
                 context.Response.Headers[Header.AccessControlAllowHeaders] = "Content-Type, Content-Length, Accept, Accept-Language, Accept-Charser, Accept-Encoding, Accept-Ranges, Authorization, X-Auth-Token";
             }
 
-            var requestInfo = new RequestInfo(Verb.Parse(context.Request.HttpMethod), new Uri(context.Request.Url.AbsoluteUri.TrimEnd('/')), context.Request.InputStream, headers);
+            var requestInfo = new RequestInfo(
+                Verb.Parse(context.Request.HttpMethod),
+                new Uri(context.Request.Url.AbsoluteUri.TrimEnd('/')),
+                context.Request.InputStream,
+                new HttpContextPrincipal(context.User),
+                headers);
             var response = _requestHandler.HandleRequest(requestInfo);
             context.Response.ContentEncoding = context.Response.HeaderEncoding = response.Encoding;
             context.Response.StatusCode = (int)response.Status;

@@ -13,6 +13,7 @@ using RomanticWeb.NamedGraphs;
 using URSA.CodeGen;
 using URSA.ComponentModel;
 using URSA.Configuration;
+using URSA.Security;
 using URSA.Web.Converters;
 using URSA.Web.Http;
 using URSA.Web.Http.Configuration;
@@ -90,7 +91,7 @@ namespace URSA.Web.Http.Client.Proxy
             }
 
             var apiDocumentationId = new Uri(url + "#");
-            var httpRequest = new RequestInfo(Verb.Parse(Method), apiDocumentationId, responseStream, headers);
+            var httpRequest = new RequestInfo(Verb.Parse(Method), apiDocumentationId, responseStream, new BasicClaimBasedIdentity(), headers);
             var converterProvider = container.Resolve<IConverterProvider>();
             var converter = converterProvider.FindBestInputConverter<IApiDocumentation>(httpRequest);
             if (converter == null)
