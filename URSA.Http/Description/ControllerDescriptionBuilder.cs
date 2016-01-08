@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
+using URSA.Security;
 using URSA.Web.Http;
 using URSA.Web.Http.Mapping;
 using URSA.Web.Http.Reflection;
@@ -66,13 +66,13 @@ namespace URSA.Web.Description.Http
 
             argumentMapping = new ArgumentInfo[0];
             OperationInfo method = _description.Value.Operations.FirstOrDefault(operation => operation.UnderlyingMethod == methodInfo);
-            if (method != null)
+            if (method == null)
             {
-                argumentMapping = method.Arguments;
-                return method.UriTemplate;
+                return null;
             }
 
-            return null;
+            argumentMapping = method.Arguments;
+            return method.UriTemplate;
         }
 
         /// <inheritdoc />
@@ -98,27 +98,29 @@ namespace URSA.Web.Description.Http
         /// <returns>Controller information.</returns>
         protected virtual ControllerInfo<T> BuildDescriptorInternal()
         {
-            var globalRoutePrefix = (typeof(T).IsGenericType) && 
-                (typeof(T).GetGenericArguments()[0].GetInterfaces().Contains(typeof(IController))) ? 
-                typeof(T).GetGenericArguments()[0].Assembly.GetCustomAttribute<RouteAttribute>() : 
-                typeof(T).Assembly.GetCustomAttribute<RouteAttribute>();
+            var assembly = (typeof(T).IsGenericType) &&
+                (typeof(T).GetGenericArguments()[0].GetInterfaces().Contains(typeof(IController))) ?
+                typeof(T).GetGenericArguments()[0].Assembly : typeof(T).Assembly;
+            var globalRoutePrefix = assembly.GetCustomAttribute<RouteAttribute>();
             var prefix = GetControllerRoute();
+            EntryPointInfo entryPoint = null;
             if (globalRoutePrefix != null)
             {
                 prefix = new RouteAttribute(prefix.Uri.Combine(globalRoutePrefix.Uri).ToString());
+                entryPoint = new EntryPointInfo(globalRoutePrefix.Uri).WithSecurityDetailsFrom(assembly);
             }
 
             IList<OperationInfo> operations = new List<OperationInfo>();
             var methods = typeof(T).GetMethods(BindingFlags.Public | BindingFlags.Instance)
                 .Except(typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance)
-                    .SelectMany(property => new MethodInfo[] { property.GetGetMethod(), property.GetSetMethod() }))
+                    .SelectMany(property => new[] { property.GetGetMethod(), property.GetSetMethod() }))
                 .Where(item => item.DeclaringType != typeof(object));
             foreach (var method in methods)
             {
                 operations.AddRange(BuildMethodDescriptor(method, prefix));
             }
 
-            return new ControllerInfo<T>((globalRoutePrefix != null ? globalRoutePrefix.Uri : null), prefix.Uri, operations.ToArray());
+            return new ControllerInfo<T>(entryPoint, prefix.Uri, operations.ToArray()).WithSecurityDetailsFrom(typeof(T));
         }
 
         private IEnumerable<OperationInfo> BuildMethodDescriptor(MethodInfo method, RouteAttribute prefix)
@@ -143,7 +145,7 @@ namespace URSA.Web.Description.Http
                 UriTemplateBuilder uriTemplate = templateRegex.Clone(false);
                 var parameters = BuildParameterDescriptors(method, item.Verb, templateRegex, ref uriTemplate);
                 var regex = new Regex("^" + templateRegex + "$", RegexOptions.IgnoreCase);
-                result.Add(new OperationInfo<Verb>(method, uri, uriTemplate, regex, item.Verb, parameters));
+                result.Add(new OperationInfo<Verb>(method, uri, uriTemplate, regex, item.Verb, parameters).WithSecurityDetailsFrom(method));
             }
 
             return result;

@@ -9,49 +9,37 @@ namespace URSA.Web.Description
     /// <summary>Describes a controller.</summary>
     [ExcludeFromCodeCoverage]
     [DebuggerDisplay("{Uri}", Name = "{Uri}")]
-    public abstract class ControllerInfo
+    public abstract class ControllerInfo : SecurableResourceInfo
     {
         /// <summary>Initializes a new instance of the <see cref="ControllerInfo" /> class.</summary>
-        /// <param name="entryPoint">Entry point Uri prefix.</param>
+        /// <param name="entryPoint">An entry point.</param>
         /// <param name="uri">Base uri of the controller including the <paramref name="entryPoint" /> prefix if any.</param>
         /// <param name="operations">Operation details.</param>
-        protected ControllerInfo(Uri entryPoint, Uri uri, params OperationInfo[] operations)
+        protected ControllerInfo(EntryPointInfo entryPoint, Uri uri, params OperationInfo[] operations) : base(uri)
         {
-            if ((entryPoint != null) && (entryPoint.IsAbsoluteUri))
-            {
-                throw new ArgumentOutOfRangeException("entryPoint");
-            }
-
-            if (uri == null)
-            {
-                throw new ArgumentNullException("uri");
-            }
-
-            if (uri.IsAbsoluteUri)
-            {
-                throw new ArgumentOutOfRangeException("uri");
-            }
-
             EntryPoint = entryPoint;
-            Uri = uri;
-            Operations = (operations ?? new OperationInfo[0]);
+            foreach (var operation in Operations = (operations ?? new OperationInfo[0]))
+            {
+                operation.Controller = this;
+            }
+
             Arguments = new ConcurrentDictionary<string, object>();
         }
-
-        /// <summary>Gets the base uri of the controller.</summary>
-        public Uri Uri { get; private set; }
 
         /// <summary>Gets the operation descriptors.</summary>
         public IEnumerable<OperationInfo> Operations { get; private set; }
 
         /// <summary>Gets the entry point Uri prefix.</summary>
-        public Uri EntryPoint { get; private set; }
+        public EntryPointInfo EntryPoint { get; private set; }
 
         /// <summary>Gets the optional arguments to be used when creating a controller instance.</summary>
         public IDictionary<string, object> Arguments { get; private set; }
 
         /// <summary>Gets the type of the controller.</summary>
         public abstract Type ControllerType { get; }
+
+        /// <inheritdoc />
+        public override SecurableResourceInfo Owner { get { return EntryPoint; } }
     }
 
     /// <summary>Describes a controller.</summary>
@@ -61,10 +49,10 @@ namespace URSA.Web.Description
     public class ControllerInfo<T> : ControllerInfo where T : IController
     {
         /// <summary>Initializes a new instance of the <see cref="ControllerInfo{T}" /> class.</summary>
-        /// <param name="entryPoint">Entry point Uri prefix.</param>
+        /// <param name="entryPoint">An entry point.</param>
         /// <param name="uri">Base uri of the controller including the <paramref name="entryPoint" /> prefix if any.</param>
         /// <param name="operations">Operation details.</param>
-        public ControllerInfo(Uri entryPoint, Uri uri, params OperationInfo[] operations) : base(entryPoint, uri, operations)
+        public ControllerInfo(EntryPointInfo entryPoint, Uri uri, params OperationInfo[] operations) : base(entryPoint, uri, operations)
         {
         }
 

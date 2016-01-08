@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Diagnostics.CodeAnalysis;
+using System.Security.Claims;
+using URSA.Security;
 using URSA.Web.Http;
 using URSA.Web.Http.Mapping;
 using URSA.Web.Mapping;
@@ -8,6 +10,8 @@ namespace URSA.Web.Tests
 {
     [ExcludeFromCodeCoverage]
     [Route("api/test")]
+    [AllowClaim(ClaimTypes.Name, "allowed_controller_name")]
+    [DenyClaim(ClaimTypes.Name, "denied_controller_name")]
     public class TestController : IController
     {
         public ResponseInfo Response { get; set; }
@@ -102,6 +106,12 @@ namespace URSA.Web.Tests
             another = 1;
             key = 2;
             return 3;
+        }
+
+        [AllowClaim(ClaimTypes.Name, "allowed_operation_name")]
+        [DenyClaim(ClaimTypes.Name, "denied_operation_name")]
+        public void Secured()
+        {
         }
     }
 }

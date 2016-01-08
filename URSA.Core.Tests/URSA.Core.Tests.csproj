@@ -76,8 +76,11 @@
   <ItemGroup>
     <Compile Include="Given_instance_of\DefaultConverterProvider_class.cs" />
     <Compile Include="Given_instance_of\DefaultControllerActivator_class.cs" />
+    <Compile Include="Given_instance_of\ResourceSecurityInfo_class.cs" />
+    <Compile Include="Given_instance_of\SecurableResourceInfo_class.cs" />
     <Compile Include="Given_instance_of\UrsaConfigurationSection_class.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Web\TestController.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />

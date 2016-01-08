@@ -22,7 +22,7 @@ namespace URSA.Http.Description.Tests.Given_instance_of_the
     [TestClass]
     public class ApiEntryPointDescriptionBuilder_class
     {
-        private static readonly Uri EntryPoint = new Uri("/api", UriKind.Relative);
+        private static readonly EntryPointInfo EntryPoint = new EntryPointInfo(new Uri("/api", UriKind.Relative));
         private Mock<IApiDescriptionBuilder> _irrelevantApiDescriptionBuilder;
         private Mock<IApiDescriptionBuilder<TestController>> _apiDescriptionBuilder;
         private Mock<IApiDescriptionBuilderFactory> _apiDescriptionBuilderFactory;

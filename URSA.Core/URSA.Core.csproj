@@ -44,6 +44,7 @@
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
+    <Reference Include="System.IdentityModel" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -61,7 +62,15 @@
     <Compile Include="ComponentModel\IComponentProvider.cs" />
     <Compile Include="Configuration\ConfigurationSectionExtensions.cs" />
     <Compile Include="Configuration\UrsaConfigurationSection.cs" />
+    <Compile Include="Security\ClaimBasedSecurityConstraintAttribute.cs" />
+    <Compile Include="Security\DenyClaimAttribute.cs" />
+    <Compile Include="Security\AllowClaimAttribute.cs" />
+    <Compile Include="Security\ResourceSecurityInfo.cs" />
+    <Compile Include="Security\SecurableResourceInfoExtensions.cs" />
+    <Compile Include="Security\SecuritySpecificationInfo.cs" />
     <Compile Include="Web\DefaultControllerActivator.cs" />
+    <Compile Include="Web\Description\EntryPointInfo.cs" />
+    <Compile Include="Web\Description\SecurableResourceInfo.cs" />
     <Compile Include="Web\Description\ValueInfo.cs" />
     <Compile Include="Web\Description\ResultInfo.cs" />
     <Compile Include="Web\Description\ArgumentInfo.cs" />

@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
 
@@ -11,7 +10,7 @@ namespace URSA.Web.Description
     /// <summary>Describes an controller operation.</summary>
     [ExcludeFromCodeCoverage]
     [DebuggerDisplay("{ProtocolSpecificCommand} {UriTemplate}", Name = "{Uri}")]
-    public abstract class OperationInfo
+    public abstract class OperationInfo : SecurableResourceInfo
     {
         /// <summary>Initializes a new instance of the <see cref="OperationInfo" /> class.</summary>
         /// <param name="underlyingMethod">Actual underlying method.</param>
@@ -19,7 +18,7 @@ namespace URSA.Web.Description
         /// <param name="uriTemplate">Relative uri template with all arguments included.</param>
         /// <param name="templateRegex">Regular expression template with all arguments included.</param>
         /// <param name="values">Values descriptions.</param>
-        protected OperationInfo(MethodInfo underlyingMethod, Uri uri, string uriTemplate, Regex templateRegex, params ValueInfo[] values)
+        protected OperationInfo(MethodInfo underlyingMethod, Uri uri, string uriTemplate, Regex templateRegex, params ValueInfo[] values) : base(uri)
         {
             if (underlyingMethod == null)
             {
@@ -29,16 +28,6 @@ namespace URSA.Web.Description
             if (!typeof(IController).IsAssignableFrom(underlyingMethod.DeclaringType))
             {
                 throw new ArgumentOutOfRangeException("underlyingMethod");
-            }
-
-            if (uri == null)
-            {
-                throw new ArgumentNullException("uri");
-            }
-
-            if (uri.IsAbsoluteUri)
-            {
-                throw new ArgumentOutOfRangeException("uri");
             }
 
             if (!String.IsNullOrEmpty(uriTemplate))
@@ -60,7 +49,6 @@ namespace URSA.Web.Description
             }
 
             UnderlyingMethod = underlyingMethod;
-            Uri = uri;
             UriTemplate = uriTemplate;
             TemplateRegex = templateRegex;
             var arguments = new List<ArgumentInfo>();
@@ -84,9 +72,6 @@ namespace URSA.Web.Description
         /// <summary>Gets the actual underlying method.</summary>
         public MethodInfo UnderlyingMethod { get; private set; }
 
-        /// <summary>Gets the base uri of the method without arguments.</summary>
-        public Uri Uri { get; private set; }
-
         /// <summary>Gets the uri template with all arguments included.</summary>
         public string UriTemplate { get; private set; }
 
@@ -98,6 +83,11 @@ namespace URSA.Web.Description
 
         /// <summary>Gets the result descriptions.</summary>
         public IEnumerable<ResultInfo> Results { get; private set; }
+
+        /// <inheritdoc />
+        public override SecurableResourceInfo Owner { get { return Controller; } }
+
+        internal ControllerInfo Controller { get; set; }
     }
 
     /// <summary>Describes an controller operation.</summary>
