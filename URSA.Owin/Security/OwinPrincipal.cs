@@ -26,7 +26,7 @@ namespace URSA.Owin.Security
         }
 
         /// <inheritdoc />
-        public bool IsAuthenticated { get { return _principal.Identity.IsAuthenticated; } }
+        public bool IsAuthenticated { get { return (_principal.Identity.IsAuthenticated) || (this[ClaimTypes.Anonymous].Any()); } }
 
         /// <inheritdoc />
         public IEnumerable<string> this[string claimType]
@@ -38,7 +38,8 @@ namespace URSA.Owin.Security
                     throw new ArgumentNullException("claimType");
                 }
 
-                return _principal.Claims.Where(claim => claim.Type == claimType).Select(claim => claim.Value);
+                var result = _principal.Claims.Where(claim => claim.Type == claimType).Select(claim => claim.Value);
+                return (result.Any() ? result : null);
             }
         }
     }

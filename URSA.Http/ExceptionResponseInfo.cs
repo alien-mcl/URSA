@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Diagnostics.CodeAnalysis;
-using System.Runtime.Serialization;
 using System.Text;
 using URSA.Web.Converters;
 using URSA.Web.Http.Converters;

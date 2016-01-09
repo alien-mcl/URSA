@@ -4,7 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 namespace URSA.Security
 {
     /// <summary>Denies identities with a given claims an access to a restricted resource.</summary>
-    [AttributeUsage(AttributeTargets.Assembly | AttributeTargets.Class | AttributeTargets.Method)]
+    [AttributeUsage(AttributeTargets.Assembly | AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = true)]
     [ExcludeFromCodeCoverage]
     public sealed class DenyClaimAttribute : ClaimBasedSecurityConstraintAttribute
     {

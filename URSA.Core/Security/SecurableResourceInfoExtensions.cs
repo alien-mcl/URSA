@@ -1,4 +1,7 @@
-﻿using System.Reflection;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 using URSA.Web.Description;
 
 namespace URSA.Security
@@ -29,6 +32,54 @@ namespace URSA.Security
             }
 
             return securableResource;
+        }
+
+        /// <summary>Checks if a given <paramref name="identity" /> is allowed to operate on a given <paramref name="securableResource" />.</summary>
+        /// <param name="securableResource">The securable resource to check.</param>
+        /// <param name="identity">The identity.</param>
+        /// <returns><b>true</b> if a <paramref name="identity" /> meets the <paramref name="securableResource" />'s requirements; otherwise <b>false</b>.</returns>
+        public static bool Allows(this SecurableResourceInfo securableResource, IClaimBasedIdentity identity)
+        {
+            if (securableResource == null)
+            {
+                throw new ArgumentNullException("securableResource");
+            }
+
+            if (identity == null)
+            {
+                throw new ArgumentNullException("identity");
+            }
+
+            var securityRequirements = securableResource.UnifiedSecurityRequirements;
+            return (!securityRequirements.Denied.Matches(identity)) && 
+                ((!securityRequirements.Allowed.Any()) || (securityRequirements.Allowed.Matches(identity)));
+        }
+
+        private static bool Matches(this SecuritySpecificationInfo securitySpecificationInfo, IClaimBasedIdentity identity)
+        {
+            foreach (var claimType in securitySpecificationInfo)
+            {
+                IEnumerable<string> claims;
+                if ((claims = identity[claimType]) == null)
+                {
+                    continue;
+                }
+
+                var claimValues = securitySpecificationInfo[claimType];
+                if (claimValues == null)
+                {
+                    continue;
+                }
+
+                var anyValues = claimValues.Any();
+                var matchingClaims = from value in claimValues join claim in claims on value equals claim select claim;
+                if ((!anyValues) || (matchingClaims.Any()))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
     }
 }

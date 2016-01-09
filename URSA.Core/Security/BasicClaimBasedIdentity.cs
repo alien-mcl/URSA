@@ -2,6 +2,8 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
+using System.Security.Claims;
 
 namespace URSA.Security
 {
@@ -9,10 +11,25 @@ namespace URSA.Security
     [ExcludeFromCodeCoverage]
     public class BasicClaimBasedIdentity : IClaimBasedIdentity
     {
-        private readonly IDictionary<string, IEnumerable<string>> _claims = new ConcurrentDictionary<string, IEnumerable<string>>();
+        private static readonly string[] Anonymous = { "anonymous" };
+
+        private readonly IEnumerable<string> _userName;
+
+        /// <summary>Initializes a new instance of the <see cref="BasicClaimBasedIdentity"/> class.</summary>
+        public BasicClaimBasedIdentity()
+        {
+            _userName = null;
+        }
+
+        /// <summary>Initializes a new instance of the <see cref="BasicClaimBasedIdentity"/> class.</summary>
+        /// <param name="userName">Name of the user if the identity should be authenticated.</param>
+        public BasicClaimBasedIdentity(string userName)
+        {
+            _userName = (!String.IsNullOrEmpty(userName) ? new[] { userName } : null);
+        }
 
         /// <inheritdoc />
-        public bool IsAuthenticated { get { return false; } }
+        public bool IsAuthenticated { get { return _userName != null; } }
 
         /// <inheritdoc />
         public IEnumerable<string> this[string claimType]
@@ -24,8 +41,15 @@ namespace URSA.Security
                     throw new ArgumentNullException("claimType");
                 }
 
-                IEnumerable<string> result;
-                return (_claims.TryGetValue(claimType, out result) ? result : null);
+                switch (claimType)
+                {
+                    case ClaimTypes.Anonymous:
+                        return (_userName != null ? null : Anonymous);
+                    case ClaimTypes.Name:
+                        return _userName;
+                    default:
+                        return null;
+                }
             }
         }
     }

@@ -1,10 +1,8 @@
 ﻿using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.IO;
+using System.Linq;
 using System.Net;
-using System.Runtime.Serialization;
-using System.Runtime.Serialization.Formatters.Binary;
 using System.Web;
 using URSA.Web;
 using URSA.Web.Http;
@@ -19,11 +17,11 @@ namespace System
         static ExceptionExtensions()
         {
             ExceptionHttpStatusCodeMap = new ConcurrentDictionary<Type, HttpStatusCode>();
+            ExceptionHttpStatusCodeMap[typeof(ArgumentException)] = HttpStatusCode.BadRequest;
             ExceptionHttpStatusCodeMap[typeof(NotFoundException)] = HttpStatusCode.NotFound;
             ExceptionHttpStatusCodeMap[typeof(AlreadyExistsException)] = HttpStatusCode.Conflict;
-            ExceptionHttpStatusCodeMap[typeof(ArgumentException)] = HttpStatusCode.BadRequest;
-            ExceptionHttpStatusCodeMap[typeof(ArgumentNullException)] = HttpStatusCode.BadRequest;
-            ExceptionHttpStatusCodeMap[typeof(ArgumentOutOfRangeException)] = HttpStatusCode.BadRequest;
+            ExceptionHttpStatusCodeMap[typeof(UnauthenticatedAccessException)] = HttpStatusCode.Unauthorized;
+            ExceptionHttpStatusCodeMap[typeof(AccessDeniedException)] = HttpStatusCode.Forbidden;
             ExceptionHttpStatusCodeMap[typeof(NotImplementedException)] = HttpStatusCode.NotImplemented;
             ExceptionHttpStatusCodeMap[typeof(UnauthorizedAccessException)] = HttpStatusCode.Unauthorized;
         }
@@ -44,12 +42,7 @@ namespace System
                 return (ProtocolException)exception;
             }
 
-            HttpStatusCode httpStatusCode = (exception is HttpException ? (HttpStatusCode)((HttpException)exception).WebEventCode : HttpStatusCode.InternalServerError);
-            if (ExceptionHttpStatusCodeMap.ContainsKey(exception.GetType()))
-            {
-                httpStatusCode = ExceptionHttpStatusCodeMap[exception.GetType()];
-            }
-
+            HttpStatusCode httpStatusCode = (exception is HttpException ? (HttpStatusCode)((HttpException)exception).WebEventCode : ExceptionHttpStatusCodeMap.Contains(exception));
             try
             {
                 throw new ProtocolException(httpStatusCode, exception);
@@ -58,6 +51,22 @@ namespace System
             {
                 return result;
             }
+        }
+
+        private static HttpStatusCode Contains(this IDictionary<Type, HttpStatusCode> exceptionHttpStatusCodeMap, Exception exception)
+        {
+            HttpStatusCode result;
+            if (exceptionHttpStatusCodeMap.TryGetValue(exception.GetType(), out result))
+            {
+                return result;
+            }
+
+            foreach (var map in from statusMap in exceptionHttpStatusCodeMap where statusMap.Key.IsInstanceOfType(exception) select statusMap)
+            {
+                return map.Value;
+            }
+
+            return HttpStatusCode.InternalServerError;
         }
     }
 }

@@ -7,8 +7,6 @@ namespace URSA.Security
     /// <summary>Provides a claims specification of a resource.</summary>
     public class SecuritySpecificationInfo : IEnumerable<string>, ICloneable
     {
-        private static readonly IEnumerable<string> DefaultClaimValues = new string[0];
-
         private readonly IDictionary<string, IDictionary<string, string>> _claimValues;
 
         internal SecuritySpecificationInfo()
@@ -29,7 +27,7 @@ namespace URSA.Security
                 }
 
                 IDictionary<string, string> claimValues;
-                return (_claimValues.TryGetValue(claimType, out claimValues) ? claimValues.Keys : DefaultClaimValues);
+                return (_claimValues.TryGetValue(claimType, out claimValues) ? claimValues.Keys : null);
             }
         }
 

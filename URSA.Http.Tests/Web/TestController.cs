@@ -113,5 +113,10 @@ namespace URSA.Web.Tests
         public void Secured()
         {
         }
+
+        [DenyClaim(ClaimTypes.Anonymous)]
+        public void Authenticated()
+        {
+        }
     }
 }

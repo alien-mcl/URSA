@@ -8,6 +8,8 @@ namespace URSA.Web.Description
     [ExcludeFromCodeCoverage]
     public abstract class SecurableResourceInfo
     {
+        private ResourceSecurityInfo _unifiedResourceSecurityInfo;
+
         /// <summary>Initializes a new instance of the <see cref="SecurableResourceInfo"/> class.</summary>
         /// <param name="uri">The URI of the resource.</param>
         protected SecurableResourceInfo(Uri uri)
@@ -37,15 +39,20 @@ namespace URSA.Web.Description
         {
             get
             {
+                if (_unifiedResourceSecurityInfo != null)
+                {
+                    return _unifiedResourceSecurityInfo;
+                }
+
                 var current = this;
-                ResourceSecurityInfo result = current.SecurityRequirements;
+                _unifiedResourceSecurityInfo = current.SecurityRequirements;
                 while (current.Owner != null)
                 {
-                    result = current.Owner.SecurityRequirements.OverrideWith(result);
+                    _unifiedResourceSecurityInfo = current.Owner.SecurityRequirements.OverrideWith(_unifiedResourceSecurityInfo);
                     current = current.Owner;
                 }
 
-                return result;
+                return _unifiedResourceSecurityInfo;
             }
         }
 

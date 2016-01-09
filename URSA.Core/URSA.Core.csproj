@@ -70,6 +70,8 @@
     <Compile Include="Security\ResourceSecurityInfo.cs" />
     <Compile Include="Security\SecurableResourceInfoExtensions.cs" />
     <Compile Include="Security\SecuritySpecificationInfo.cs" />
+    <Compile Include="Web\UnauthenticatedAccessException.cs" />
+    <Compile Include="Web\AccessDeniedException.cs" />
     <Compile Include="Web\DefaultControllerActivator.cs" />
     <Compile Include="Web\Description\EntryPointInfo.cs" />
     <Compile Include="Web\Description\SecurableResourceInfo.cs" />

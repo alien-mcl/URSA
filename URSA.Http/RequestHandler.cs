@@ -1,6 +1,10 @@
 ﻿using System;
+using System.Linq;
 using System.Reflection;
+using System.Security.Claims;
 using System.Threading.Tasks;
+using URSA.Security;
+using URSA.Web.Description;
 using URSA.Web.Mapping;
 
 namespace URSA.Web.Http
@@ -55,30 +59,31 @@ namespace URSA.Web.Http
                     throw new NoMatchingRouteFoundException(String.Format("No API resource handles requested url '{0}'.", request.Uri));
                 }
 
+                ValidateSecurityRequirements(requestMapping.Operation, request.Identity);
                 ResponseInfo response = new StringResponseInfo(null, request);
                 requestMapping.Target.Response = response;
                 var arguments = _argumentBinder.BindArguments(request, requestMapping);
                 ValidateArguments(requestMapping.Operation.UnderlyingMethod.GetParameters(), arguments);
-                object output = requestMapping.Invoke(arguments);
-                Task task = output as Task;
-                if (task != null)
-                {
-                    await task;
-                    if ((task.GetType().IsGenericType) && (typeof(Task<>).IsAssignableFrom(task.GetType().GetGenericTypeDefinition())))
-                    {
-                        output = task.GetType().GetProperty("Result", BindingFlags.Instance | BindingFlags.Public).GetValue(task);
-                    }
-                    else
-                    {
-                        output = null;
-                    }
-                }
-
+                object output = await ProcessResult(requestMapping.Invoke(arguments));
                 return _responseComposer.ComposeResponse(requestMapping, output, arguments);
             }
             catch (Exception exception)
             {
                 return new ExceptionResponseInfo(request, exception);
+            }
+        }
+
+        private static void ValidateSecurityRequirements(OperationInfo operation, IClaimBasedIdentity identity)
+        {
+            var securityRequirements = operation.UnifiedSecurityRequirements;
+            if ((securityRequirements.Denied[ClaimTypes.Anonymous] != null) && (!identity.IsAuthenticated))
+            {
+                throw new UnauthenticatedAccessException(String.Format("Anonymous access to the requested resource is denied."));
+            }
+
+            if (!operation.Allows(identity))
+            {
+                throw new AccessDeniedException("Access to the requested resource is denied.");
             }
         }
 
@@ -92,6 +97,23 @@ namespace URSA.Web.Http
                     throw new ArgumentNullException(parameter.Name);
                 }
             }
+        }
+
+        private async Task<object> ProcessResult(object output)
+        {
+            Task task = output as Task;
+            if (task == null)
+            {
+                return output;
+            }
+
+            await task;
+            if ((task.GetType().IsGenericType) && (typeof(Task<>).IsAssignableFrom(task.GetType().GetGenericTypeDefinition())))
+            {
+                return task.GetType().GetProperty("Result", BindingFlags.Instance | BindingFlags.Public).GetValue(task);
+            }
+
+            return null;
         }
     }
 }

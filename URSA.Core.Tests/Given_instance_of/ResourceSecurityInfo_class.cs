@@ -27,7 +27,7 @@ namespace Given_instance_of
                 .Allow(ExpectedClaim, ExpectedValue)
                 .Disallow(ExpectedClaim, ExpectedValue);
 
-            _resourceSecurityInfo.Allowed[ExpectedClaim].Should().BeEmpty();
+            _resourceSecurityInfo.Allowed[ExpectedClaim].Should().BeNull();
         }
 
         [TestMethod]
@@ -35,7 +35,7 @@ namespace Given_instance_of
         {
             _resourceSecurityInfo.Allow(ExpectedClaim, ExpectedValue);
 
-            _resourceSecurityInfo.Denied[ExpectedClaim].Should().BeEmpty();
+            _resourceSecurityInfo.Denied[ExpectedClaim].Should().BeNull();
         }
 
         [TestMethod]
@@ -53,7 +53,7 @@ namespace Given_instance_of
                 .Deny(ExpectedClaim, ExpectedValue)
                 .Undeny(ExpectedClaim, ExpectedValue);
 
-            _resourceSecurityInfo.Denied[ExpectedClaim].Should().BeEmpty();
+            _resourceSecurityInfo.Denied[ExpectedClaim].Should().BeNull();
         }
 
         [TestMethod]
@@ -61,7 +61,7 @@ namespace Given_instance_of
         {
             _resourceSecurityInfo.Deny(ExpectedClaim, ExpectedValue);
 
-            _resourceSecurityInfo.Allowed[ExpectedClaim].Should().BeEmpty();
+            _resourceSecurityInfo.Allowed[ExpectedClaim].Should().BeNull();
         }
 
         [TestMethod]
@@ -71,7 +71,7 @@ namespace Given_instance_of
 
             _resourceSecurityInfo.Deny(ExpectedClaim, ExpectedValue);
 
-            _resourceSecurityInfo.Allowed[ExpectedClaim].Should().BeEmpty();
+            _resourceSecurityInfo.Allowed[ExpectedClaim].Should().BeNull();
             _resourceSecurityInfo.Denied[ExpectedClaim].Should().Contain(ExpectedValue);
         }
 
@@ -83,7 +83,7 @@ namespace Given_instance_of
             _resourceSecurityInfo.Allow(ExpectedClaim, ExpectedValue);
 
             _resourceSecurityInfo.Allowed[ExpectedClaim].Should().Contain(ExpectedValue);
-            _resourceSecurityInfo.Denied[ExpectedClaim].Should().BeEmpty();
+            _resourceSecurityInfo.Denied[ExpectedClaim].Should().BeNull();
         }
 
         [TestMethod]

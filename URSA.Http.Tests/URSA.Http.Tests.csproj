@@ -81,6 +81,7 @@
   </Choose>
   <ItemGroup>
     <Compile Include="Data\Person.cs" />
+    <Compile Include="FluentAssertions\CustomAssertions.cs" />
     <Compile Include="Given_instance_of_the\ArgumentBinder_class.cs" />
     <Compile Include="Given_instance_of_the\binder\FromQueryStringArgumentBinder_class.cs" />
     <Compile Include="Given_instance_of_the\binder\FromBodyArgumentBinder_class.cs" />

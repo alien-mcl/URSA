@@ -9,7 +9,7 @@ namespace URSA.Web.Description
 {
     /// <summary>Describes an controller operation.</summary>
     [ExcludeFromCodeCoverage]
-    [DebuggerDisplay("{ProtocolSpecificCommand} {UriTemplate}", Name = "{Uri}")]
+    [DebuggerDisplay("{UriTemplate}", Name = "{Uri}")]
     public abstract class OperationInfo : SecurableResourceInfo
     {
         /// <summary>Initializes a new instance of the <see cref="OperationInfo" /> class.</summary>

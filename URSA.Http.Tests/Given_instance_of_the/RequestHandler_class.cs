@@ -75,10 +75,53 @@ namespace Given_instance_of_the
             ((ObjectResponseInfo<int>)result).Value.Should().Be(expected);
         }
 
+        [TestMethod]
+        public void it_should_deny_access_to_secured_resourcefor_an_unauthenticated_identity()
+        {
+            var handler = SetupEnvironment((object)null, true, "Secured");
+
+            var result = handler.HandleRequest(new RequestInfo(Verb.GET, new Uri("http://temp.uri/api/test"), new MemoryStream(), new BasicClaimBasedIdentity()));
+
+            result.Should().BeOfType<ExceptionResponseInfo>();
+            ((ExceptionResponseInfo)result).Value.Should().BeOfType<AccessDeniedException>();
+        }
+
+        [TestMethod]
+        public void it_should_deny_access_to_secured_resourcefor_an_authenticated_identity()
+        {
+            var handler = SetupEnvironment((object)null, true, "Secured");
+
+            var result = handler.HandleRequest(new RequestInfo(Verb.GET, new Uri("http://temp.uri/api/test"), new MemoryStream(), new BasicClaimBasedIdentity("test")));
+
+            result.Should().BeOfType<ExceptionResponseInfo>();
+            ((ExceptionResponseInfo)result).Value.Should().BeOfType<AccessDeniedException>();
+        }
+
+        [TestMethod]
+        public void it_should_deny_access_for_unauthenticated_identity()
+        {
+            var handler = SetupEnvironment((object)null, true, "Authenticated");
+
+            var result = handler.HandleRequest(new RequestInfo(Verb.GET, new Uri("http://temp.uri/api/test"), new MemoryStream(), new BasicClaimBasedIdentity()));
+
+            result.Should().BeOfType<ExceptionResponseInfo>();
+            ((ExceptionResponseInfo)result).Value.Should().BeOfType<UnauthenticatedAccessException>();
+        }
+
+        [TestMethod]
+        public void it_should_allow_authenticated_identity_to_access_a_resource()
+        {
+            var handler = SetupEnvironment((object)null, true, "Authenticated");
+
+            var result = handler.HandleRequest(new RequestInfo(Verb.GET, new Uri("http://temp.uri/api/test"), new MemoryStream(), new BasicClaimBasedIdentity("test")));
+
+            result.Should().NotBeOfType<ExceptionResponseInfo>();
+        }
+
         private RequestHandler SetupEnvironmentAsync<T>(T result = default(T), bool useDefaultArguments = false)
         {
             var converter = new Mock<IConverter>(MockBehavior.Strict);
-            converter.Setup(instance => instance.ConvertFrom<T>(result, It.IsAny<IResponseInfo>()));
+            converter.Setup(instance => instance.ConvertFrom(result, It.IsAny<IResponseInfo>()));
             var converterProvider = new Mock<IConverterProvider>(MockBehavior.Strict);
             converterProvider.Setup(instance => instance.FindBestOutputConverter<T>(It.IsAny<IResponseInfo>())).Returns(converter.Object);
             var requestHandler = SetupEnvironment(Task.FromResult(result), useDefaultArguments);
@@ -88,9 +131,9 @@ namespace Given_instance_of_the
             return requestHandler;
         }
 
-        private RequestHandler SetupEnvironment<T>(T result = default(T), bool useDefaultArguments = false)
+        private RequestHandler SetupEnvironment<T>(T result = default(T), bool useDefaultArguments = false, string methodName = "Substract")
         {
-            var operation = CreateOperation();
+            var operation = CreateOperation(methodName);
             _arguments = operation.UnderlyingMethod.GetParameters().Select(parameter =>
                 (useDefaultArguments ? Activator.CreateInstance(parameter.ParameterType) : null)).ToArray(); 
 
@@ -116,11 +159,18 @@ namespace Given_instance_of_the
             return new RequestHandler(_argumentBinder.Object, _delegateMapper.Object, _responseComposer.Object);
         }
 
-        private OperationInfo<Verb> CreateOperation()
+        private OperationInfo<Verb> CreateOperation(string methodName)
         {
-            var method = typeof(TestController).GetMethod("Substract");
+            var method = typeof(TestController).GetMethod(methodName);
             var arguments = method.GetParameters().Select(parameter => (ValueInfo)new ArgumentInfo(parameter, FromQueryStringAttribute.For(parameter), "test", "test"));
-            return new OperationInfo<Verb>(method, new Uri("/", UriKind.Relative), "test", new Regex(".*"), Verb.GET, arguments.ToArray());
+            return new OperationInfo<Verb>(
+                method,
+                new Uri("/", UriKind.Relative),
+                (arguments.Any() ? "test" : null),
+                new Regex(".*"),
+                Verb.GET,
+                arguments.ToArray())
+                .WithSecurityDetailsFrom(method);
         }
     }
 }
