@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
+using System.Net;
 using System.Reflection;
 using RomanticWeb.Entities;
 using RomanticWeb.Model;
@@ -250,6 +251,7 @@ namespace URSA.Web.Http.Description
                 requiresRdf |= isRdfRequired;
             }
 
+            BuildStatusCodes(result, operation);
             BuildOperationMediaType(result, result.Returns, operation, requiresRdf);
             BuildOperationMediaType(result, result.Expects, operation, requiresRdf);
             if (!result.MediaTypes.Any())
@@ -258,6 +260,14 @@ namespace URSA.Web.Http.Description
             }
 
             return result;
+        }
+
+        private void BuildStatusCodes(IOperation result, OperationInfo<Verb> operation)
+        {
+            result.StatusCodes.AddRange(operation.UnderlyingMethod.DiscoverCrudStatusCodeNumbers(operation.ProtocolSpecificCommand, operation.Controller.ControllerType));
+            result.StatusCodes.AddRange((
+                from exceptionTypeName in _xmlDocProvider.GetExceptions(operation.UnderlyingMethod)
+                select (int)exceptionTypeName.ToHttpStatusCode()).Distinct());
         }
 
         private IIriTemplate BuildTemplate(DescriptionContext context, OperationInfo<Verb> operation, IOperation operationDocumentation)

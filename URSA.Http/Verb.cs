@@ -9,6 +9,9 @@ namespace URSA.Web.Http
     /// <summary>Represents an HTTP method verb.</summary>
     public class Verb
     {
+        /// <summary>Represents an empty HTTP method, which may be used as a fake in situations when the verb is not specified.</summary>
+        public static readonly Verb Empty = new Verb(String.Empty);
+
         /// <summary>Represents an HTTP OPTIONS method.</summary>
         public static readonly Verb OPTIONS = new Verb("OPTIONS");
 

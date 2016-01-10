@@ -43,8 +43,22 @@ namespace URSA.Web.Http.Description.Tests
         {
         }
 
+        /// <summary>Deletes an entity.</summary>
+        /// <param name="id">Identifier of the entity to be deleted.</param>
+        /// <exception cref="System.ArgumentNullException">Thrown when an identifier is not provided.</exception>
+        /// <exception cref="System.ArgumentOutOfRangeException">Thrown when an identifier is empty.</exception>
+        /// <exception cref="URSA.Web.UnauthenticatedAccessException">Thrown when an identity is not authenticated.</exception>
         public void Delete(Guid id)
         {
+            if (id == null)
+            {
+                throw new ArgumentNullException("id");
+            }
+
+            if (id == Guid.Empty)
+            {
+                throw new ArgumentOutOfRangeException("id");
+            }
         }
 
         public void SetRoles(Guid id, IEnumerable<string> roles)

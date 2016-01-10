@@ -79,6 +79,23 @@ namespace URSA.Web.Http.Description
                 element => (element.Attribute("name") != null) && (element.Attribute("name").Value == CreateMemberName(property)));
         }
 
+        /// <inheritdoc />
+        public IEnumerable<string> GetExceptions(MethodInfo method)
+        {
+            if (method == null)
+            {
+                throw new ArgumentNullException("method");
+            }
+
+            EnsureAssemblyDocumentation(method.DeclaringType.Assembly);
+            string memberName = CreateMemberName(method);
+            return from element in AssemblyCache[method.DeclaringType.Assembly].Descendants("member")
+                   where (element.Attribute("name") != null) && (element.Attribute("name").Value == memberName)
+                   from exception in element.Descendants("exception")
+                   where (exception.Attribute("cref") != null) && (!String.IsNullOrEmpty(exception.Attribute("cref").Value))
+                   select exception.Attribute("cref").Value.Substring(2);
+        }
+
         private static string CreateMemberName(MemberInfo member)
         {
             if (member is ConstructorInfo)

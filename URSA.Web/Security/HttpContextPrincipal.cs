@@ -44,7 +44,7 @@ namespace URSA.Web.Security
                 switch (claimType)
                 {
                     case ClaimTypes.Name:
-                        result = (!String.IsNullOrEmpty(_principal.Identity.Name) ? new[] {_principal.Identity.Name} : result);
+                        result = (!String.IsNullOrEmpty(_principal.Identity.Name) ? new[] { _principal.Identity.Name } : result);
                         break;
                     case ClaimTypes.AuthenticationMethod:
                         result = (!String.IsNullOrEmpty(_principal.Identity.AuthenticationType) ? new[] { _principal.Identity.AuthenticationType } : result);

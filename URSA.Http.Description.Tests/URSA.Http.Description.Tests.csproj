@@ -111,6 +111,7 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
+    <Compile Include="Collections\Generic\CollectionExtensions.cs" />
     <Compile Include="Data\IProduct.cs" />
     <Compile Include="Data\Person.cs" />
     <Compile Include="Given_instance_of_the\ApiDescriptionBuilder_class.cs" />

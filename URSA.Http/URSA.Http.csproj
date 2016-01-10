@@ -78,6 +78,7 @@
     <Compile Include="Converters\StringConverter.cs" />
     <Compile Include="Converters\TimeSpanConverter.cs" />
     <Compile Include="Converters\UriConverter.cs" />
+    <Compile Include="Description\ControllerTypeExtensions.cs" />
     <Compile Include="Description\DefaultValueRelationSelector.cs" />
     <Compile Include="Description\IDefaultValueRelationSelector.cs" />
     <Compile Include="Description\OptionsController.cs" />

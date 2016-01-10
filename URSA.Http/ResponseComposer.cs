@@ -11,6 +11,7 @@ using URSA.Web.Converters;
 using URSA.Web.Description;
 using URSA.Web.Description.Http;
 using URSA.Web.Http.Converters;
+using URSA.Web.Http.Description;
 using URSA.Web.Http.Reflection;
 using URSA.Web.Mapping;
 
@@ -19,8 +20,6 @@ namespace URSA.Web.Http
     /// <summary>Composes a response.</summary>
     public class ResponseComposer : IResponseComposer
     {
-        private static readonly IDictionary<Type, IDictionary<Verb, MethodInfo>> ControllerCrudMethodsCache = new ConcurrentDictionary<Type, IDictionary<Verb, MethodInfo>>();
-
         private readonly IConverterProvider _converterProvider;
         private readonly Lazy<IEnumerable<ControllerInfo>> _controllerDescriptors;
 
@@ -91,47 +90,10 @@ namespace URSA.Web.Http
             return result;
         }
 
-        private static IDictionary<Verb, MethodInfo> GetCrudMethods(Type controllerType)
-        {
-            IDictionary<Verb, MethodInfo> result;
-            if (ControllerCrudMethodsCache.TryGetValue(controllerType, out result))
-            {
-                return result;
-            }
-
-            ControllerCrudMethodsCache[controllerType] = result = new Dictionary<Verb, MethodInfo>();
-            foreach (var @interface in controllerType.GetInterfaces())
-            {
-                if (!@interface.IsGenericType)
-                {
-                    continue;
-                }
-
-                var definition = @interface.GetGenericTypeDefinition();
-                if ((typeof(IWriteController<,>).IsAssignableFrom(definition)) || (typeof(IAsyncWriteController<,>).IsAssignableFrom(definition)))
-                {
-                    var write = @interface;
-                    result[Verb.POST] = controllerType.GetInterfaceMap(write).TargetMethods.First(method => method.Name.StartsWith("Create"));
-                    result[Verb.PUT] = controllerType.GetInterfaceMap(write).TargetMethods.First(method => method.Name.StartsWith("Update"));
-                    result[Verb.DELETE] = controllerType.GetInterfaceMap(write).TargetMethods.First(method => method.Name.StartsWith("Delete"));
-                }
-                else if ((typeof(IReadController<,>).IsAssignableFrom(definition)) || (typeof(IAsyncReadController<,>).IsAssignableFrom(definition)))
-                {
-                    result[Verb.GET] = controllerType.GetInterfaceMap(@interface).TargetMethods.First();
-                }
-                else if ((typeof(IController<>).IsAssignableFrom(definition)) || (typeof(IAsyncController<>).IsAssignableFrom(definition)))
-                {
-                    result[new Verb(String.Empty)] = controllerType.GetInterfaceMap(@interface).TargetMethods.First();
-                }
-            }
-
-            return result;
-        }
-
         private ResponseInfo HandleCrudRequest(IRequestMapping requestMapping, IList<object> resultingValues, object[] arguments, out bool success)
         {
             success = true;
-            var methods = GetCrudMethods(requestMapping.Target.GetType());
+            var methods = requestMapping.Target.GetType().DiscoverCrudMethods();
             var method = methods.FirstOrDefault(entry => entry.Value == requestMapping.Operation.UnderlyingMethod);
             if (!Equals(method, default(KeyValuePair<Verb, MethodInfo>)))
             {

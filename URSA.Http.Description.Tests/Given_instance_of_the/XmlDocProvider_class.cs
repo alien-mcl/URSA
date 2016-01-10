@@ -40,6 +40,17 @@ namespace Given_instance_of_the
         }
 
         [TestMethod]
+        public void it_should_extract_method_exceptions_thrown()
+        {
+            var exceptions = _provider.GetExceptions(typeof(TestController).GetMethod("Delete"));
+
+            exceptions.Should().HaveCount(3);
+            exceptions.Should().Contain("System.ArgumentNullException");
+            exceptions.Should().Contain("System.ArgumentOutOfRangeException");
+            exceptions.Should().Contain("URSA.Web.UnauthenticatedAccessException");
+        }
+
+        [TestMethod]
         public void it_should_extract_method_parameter_description()
         {
             var method = typeof(TestController).GetMethod("Create");

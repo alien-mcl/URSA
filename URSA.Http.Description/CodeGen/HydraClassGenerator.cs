@@ -200,19 +200,10 @@ namespace URSA.CodeGen
         private string AnalyzeOperations(IClass supportedClass, string supportedClassFullName, IDictionary<string, string> classes)
         {
             var operations = new StringBuilder(1024);
-            var supportedOperations = (
-                    from operation in supportedClass.SupportedOperations
-                    select new KeyValuePair<IOperation, IIriTemplate>(operation, null))
-                .Union(
-                    from quad in supportedClass.Context.Store.Quads.ToList()
-                    where (quad.Subject.IsUri) && (quad.Object.IsUri) && (AbsoluteUriComparer.Default.Equals(quad.Subject.Uri, supportedClass.Id.Uri)) &&
-                        (quad.PredicateIs(supportedClass.Context, supportedClass.Context.Mappings.MappingFor<ITemplatedLink>().Classes.First().Uri))
-                    let templatedLink = supportedClass.Context.Load<ITemplatedLink>(quad.Predicate.ToEntityId())
-                    from operation in templatedLink.SupportedOperations
-                    select new KeyValuePair<IOperation, IIriTemplate>(operation, supportedClass.Context.Load<IIriTemplate>(quad.Object.ToEntityId())));
+            var supportedOperations = supportedClass.GetSupportedOperations();
             foreach (var operationDescriptor in supportedOperations)
             {
-                AnalyzeOperation(supportedClass, supportedClassFullName, operationDescriptor.Key, operationDescriptor.Value, operations, classes);
+                AnalyzeOperation(supportedClass, supportedClassFullName, operationDescriptor.Operation, operationDescriptor.IriTemplate, operations, classes);
             }
 
             return operations.ToString();

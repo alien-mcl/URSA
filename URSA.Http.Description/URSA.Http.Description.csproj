@@ -110,11 +110,13 @@
     <Compile Include="Entities\IEntityContextProvider.cs" />
     <Compile Include="EntryPointControllerDescriptionBuilder.cs" />
     <Compile Include="EntryPointDescriptionController.cs" />
+    <Compile Include="Hydra\ClassExtensions.cs" />
     <Compile Include="Hydra\IApiDocumentation.cs" />
     <Compile Include="Hydra\ISupportedOperationsOwner.cs" />
     <Compile Include="Hydra\IReplaceResourceOperation.cs" />
     <Compile Include="Hydra\IDeleteResourceOperation.cs" />
     <Compile Include="Hydra\ICreateResourceOperation.cs" />
+    <Compile Include="Hydra\LinkedOperation.cs" />
     <Compile Include="IApiDescriptionBuilder.cs" />
     <Compile Include="IApiDescriptionBuilderFactory.cs" />
     <Compile Include="IApiEntryPointDescriptionBuilder.cs" />

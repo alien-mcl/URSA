@@ -87,7 +87,8 @@ namespace URSA.Web.Description
         /// <inheritdoc />
         public override SecurableResourceInfo Owner { get { return Controller; } }
 
-        internal ControllerInfo Controller { get; set; }
+        /// <summary>Gets or sets the controller descriptor.</summary>
+        public ControllerInfo Controller { get; set; }
     }
 
     /// <summary>Describes an controller operation.</summary>
