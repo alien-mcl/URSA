@@ -1020,9 +1020,9 @@
         }
 
         var entityFormat = ((operation !== null) && (operation.isRdf) ? EntityFormat.RDF : EntityFormat.JSON);
-        return (entityFormat === EntityFormat.RDF ? this._createRdfInstance(operation) : this._createJsonInstance(operation));
+        return (entityFormat === EntityFormat.RDF ? classCreateRdfInstance.call(this, operation) : classCreateJsonInstance.call(this, operation));
     };
-    Class.prototype._createJsonInstance = function(operation) {
+    var classCreateJsonInstance = function(operation) {
         var result = {};
         for (var index = 0; index < this.supportedProperties.length; index++) {
             var supportedProperty = this.supportedProperties[index];
@@ -1044,7 +1044,7 @@
 
         return result;
     };
-    Class.prototype._createRdfInstance = function() {
+    var classCreateRdfInstance = function() {
         var result = { "@id": "_:bnode" + Math.random().toString().replace(".", "").substr(1) };
         if (this.id.indexOf("_") !== 0) {
             result["@type"] = this.id;

@@ -204,13 +204,13 @@
         }
 
         if (!scope.supportedPropertyNewValues) {
-            this._setupPropertyScope(scope, apiMember);
+            supportedPropertyRendererSetupPropertyScope.call(this, scope, apiMember);
         }
 
         classNames = String.format("class=\"form-control{0}\" ", (typeof(classNames) === "string" ? classNames : ""));
         var propertyName = apiMember.propertyName(scope.operation);
         var propertySelector = scope.targetInstance + (!scope.operation.isRdf ? "['{0}']" : "['{0}']" + (apiMember.maxOccurances > 1 ? "" : "[0]['@value']"));
-        var literalSelector = (this._isLiteralRange(apiMember) ? String.format(propertySelector, propertyName) + "[$index]" : "value");
+        var literalSelector = (supportedPropertyRendererIsLiteralRange.call(this, apiMember) ? String.format(propertySelector, propertyName) + "[$index]" : "value");
         var valueSelector = (apiMember.maxOccurances <= 1 ? propertySelector : literalSelector + (!scope.operation.isRdf ? "" : "['@value']"));
         if (apiMember.key) {
             scope.supportedPropertyKeys[apiMember.id] = true;
@@ -266,7 +266,7 @@
             result.replace(literalSelector, "supportedPropertyNewValues['" + propertyName + "']").replace(" name=\"" + propertyName + "\"", " name=\"" + propertyName + "_new\""),
             apiMember.id);
     };
-    SupportedPropertyRenderer.prototype._setupPropertyScope = function(scope, apiMember) {
+    var supportedPropertyRendererSetupPropertyScope = function(scope, apiMember) {
         scope.editedEntityNulls = {};
         scope.supportedPropertyNewValues = {};
         scope.supportedPropertyNulls = {};
@@ -335,7 +335,7 @@
             }
         };
     };
-    SupportedPropertyRenderer.prototype._isLiteralRange = function(apiMember) {
+    var supportedPropertyRendererIsLiteralRange = function(apiMember) {
         return ((apiMember.range !== null) && ((apiMember.range.id.indexOf(xsd) === 0) || (apiMember.range.id.indexOf(guid) === 0)));
     };
     /**
@@ -538,6 +538,8 @@
         return result;
     };
 
+    var bodylessVerbs = ["DELETE", "HEAD", "OPTIONS"];
+
     /**
      * Default renderer for {@link ursa.model.Operation}.
      * @memberof ursa.view
@@ -557,18 +559,15 @@
     };
     OperationRenderer.prototype.render = function(scope, http, jsonld, authentication, apiMember, classNames) {
         ViewRenderer.prototype.render.apply(this, arguments);
-        if (this._isEntityList(apiMember)) {
-            return this._renderEntityList(scope, http, jsonld, authentication, apiMember, classNames);
+        if (apiMember.owner.maxOccurances === Number.MAX_VALUE) {
+            return operationRendererRenderEntityList.call(this, scope, http, jsonld, authentication, apiMember, classNames);
         }
 
         return "";
     };
-    OperationRenderer.prototype._isEntityList = function(apiMember) {
-        return apiMember.owner.maxOccurances === Number.MAX_VALUE;
-    };
-    OperationRenderer.prototype._renderEntityList = function(scope, http, jsonld, authentication, apiMember, classNames) {
+    var operationRendererRenderEntityList = function(scope, http, jsonld, authentication, apiMember, classNames) {
         if (!scope.supportedProperties) {
-            this._setupListScope(scope, http, jsonld, authentication, apiMember);
+            operationRendererSetupListScope.call(this, scope, http, jsonld, authentication, apiMember);
         }
 
         var pager = "";
@@ -616,13 +615,13 @@
         scope.list();
         return result;
     };
-    OperationRenderer.prototype._setupListScope = function(scope, http, jsonld, authentication, apiMember) {
+    var operationRendererSetupListScope = function(scope, http, jsonld, authentication, apiMember) {
         var that = this;
         scope.uniqueId = [];
-        scope.deleteOperation = this._findEntityCrudOperation(apiMember, "DELETE");
-        scope.updateOperation = this._findEntityCrudOperation(apiMember, "PUT");
-        scope.getOperation = this._findEntityCrudOperation(apiMember, "GET");
-        if ((scope.createOperation = this._findEntityCrudOperation(apiMember, "POST")) !== null) {
+        scope.deleteOperation = operationRendererFindEntityCrudOperation.call(this, apiMember, "DELETE");
+        scope.updateOperation = operationRendererFindEntityCrudOperation.call(this, apiMember, "PUT");
+        scope.getOperation = operationRendererFindEntityCrudOperation.call(this, apiMember, "GET");
+        if ((scope.createOperation = operationRendererFindEntityCrudOperation.call(this, apiMember, "POST")) !== null) {
             scope.newInstance = apiMember.owner.createInstance(apiMember);
             scope.footerVisible = false;
         }
@@ -652,16 +651,16 @@
         scope.editedEntity = null;
         scope.getPropertyValue = function(entity, supportedProperty, operation) { return entity[supportedProperty.propertyName(operation)]; };
         scope.cancel = function() { scope.editedEntity = null; };
-        scope.list = function(page) { that._loadEntityList(scope, http, jsonld, authentication, scope.operation, null, page); };
-        scope.get = function(instance) { that._loadEntity(scope, http, jsonld, authentication, scope.getOperation, instance); };
-        scope.create = function(instance) { that._createEntity(scope, http, jsonld, authentication, scope.createOperation, instance); };
-        scope.update = function(instance) { that._updateEntity(scope, http, jsonld, authentication, scope.updateOperation, instance); };
-        scope.delete = function(instance, e) { that._deleteEntity(scope, http, jsonld, authentication, scope.deleteOperation, instance, e); };
-        scope.entityEquals = function(entity) { return that._entityEquals(entity, scope.editedEntity, scope.operation); };
-        scope.initialize = function(index) { that._initialize(scope, index); };
-        scope.isFormDisabled = function(name) { return that._isFormDisabled(scope, name); };
+        scope.list = function(page) { operationRendererLoadEntityList.call(that, scope, http, jsonld, authentication, scope.operation, null, page); };
+        scope.get = function(instance) { operationRendererLoadEntity.call(that, scope, http, jsonld, authentication, scope.getOperation, instance); };
+        scope.create = function(instance) { operationRendererCreateEntity.call(that, scope, http, jsonld, authentication, scope.createOperation, instance); };
+        scope.update = function(instance) { perationRendererUpdateEntity.call(that, scope, http, jsonld, authentication, scope.updateOperation, instance); };
+        scope.delete = function(instance, e) { operationRendererDeleteEntity.call(that, scope, http, jsonld, authentication, scope.deleteOperation, instance, e); };
+        scope.entityEquals = function(entity) { return operationRendererEntityEquals.call(that, entity, scope.editedEntity, scope.operation); };
+        scope.initialize = function(index) { operationRendererInitialize.call(that, scope, index); };
+        scope.isFormDisabled = function(name) { return operationRendererIsFormDisabled.call(that, scope, name); };
     };
-    OperationRenderer.prototype._findEntityCrudOperation = function(apiMember, method) {
+    var operationRendererFindEntityCrudOperation = function(apiMember, method) {
         var supportedOperations = apiMember.owner.supportedOperations;
         for (var index = 0; index < supportedOperations.length; index++) {
             var operation = supportedOperations[index];
@@ -683,8 +682,8 @@
             scope.editedEntity = response.data;
         }
     };
-    OperationRenderer.prototype._loadEntity = function (scope, http, jsonld, authentication, getOperation, instance) {
-        this._handleOperation(scope, http, jsonld, authentication, getOperation, null, instance, operationRendererOnLoadEntitySuccess, null, OperationRenderer.prototype._loadEntity);
+    var operationRendererLoadEntity = function (scope, http, jsonld, authentication, getOperation, instance) {
+        operationRendererHandleOperation.call(this, scope, http, jsonld, authentication, getOperation, null, instance, operationRendererOnLoadEntitySuccess, null, operationRendererLoadEntity);
     };
     var operationRendererCreateEntitySuccess = function(scope, http, jsonld, authentication, createOperation) {
         scope.newInstance = createOperation.owner.createInstance(createOperation);
@@ -696,13 +695,13 @@
             delete instance["@id"];
         }
     };
-    OperationRenderer.prototype._createEntity = function(scope, http, jsonld, authentication, createOperation, instance) {
+    var operationRendererCreateEntity = function(scope, http, jsonld, authentication, createOperation, instance) {
         if (!scope.footerVisible) {
             scope.footerVisible = true;
             return;
         }
 
-        this._handleOperation(scope, http, jsonld, authentication, createOperation, null, instance, operationRendererCreateEntitySuccess, operationRendererCreateEntityFailure, OperationRenderer.prototype._createEntity);
+        operationRendererHandleOperation.call(this, scope, http, jsonld, authentication, createOperation, null, instance, operationRendererCreateEntitySuccess, operationRendererCreateEntityFailure, operationRendererCreateEntity);
     };
     var operationRendererOnUpdateEntitySuccess = function(scope) {
         scope.editedEntity = null;
@@ -713,20 +712,20 @@
             delete instance["@id"];
         }
     };
-    OperationRenderer.prototype._updateEntity = function(scope, http, jsonld, authentication, updateOperation, instance) {
-        this._handleOperation(scope, http, jsonld, authentication, updateOperation, null, instance, operationRendererOnUpdateEntitySuccess, operationRendererOnUpdateEntityFailure, OperationRenderer.prototype._updateEntity);
+    var perationRendererUpdateEntity = function(scope, http, jsonld, authentication, updateOperation, instance) {
+        operationRendererHandleOperation.call(this, scope, http, jsonld, authentication, updateOperation, null, instance, operationRendererOnUpdateEntitySuccess, operationRendererOnUpdateEntityFailure, perationRendererUpdateEntity);
     };
     var operationRendererOnDeleteEntitySuccess = function(scope) {
         scope.list(1);
     };
-    OperationRenderer.prototype._deleteEntity = function(scope, http, jsonld, authentication, deleteOperation, instance, e) {
+    var operationRendererDeleteEntity = function(scope, http, jsonld, authentication, deleteOperation, instance, e) {
         if ((e) && (!confirm("Are you sure you want to delete this item?"))) {
             e.preventDefault();
             e.stopPropagation();
             return;
         }
 
-        this._handleOperation(scope, http, jsonld, authentication, deleteOperation, null, instance, operationRendererOnDeleteEntitySuccess, null, OperationRenderer.prototype._deleteEntity);
+        operationRendererHandleOperation.call(this, scope, http, jsonld, authentication, deleteOperation, null, instance, operationRendererOnDeleteEntitySuccess, null, operationRendererDeleteEntity);
     };
     var operationRendererOnLoadEntityListSuccess = function(scope, http, jsonld, authentication, deleteOperation, instance, request, response) {
         var contentRange = response.headers("Content-Range");
@@ -753,8 +752,8 @@
             scope.entities = response.data;
         }
     };
-    OperationRenderer.prototype._loadEntityList = function (scope, http, jsonld, authentication, listOperation, instance, page) {
-        var candidateMethod = this._findEntityListMethod(listOperation);
+    var operationRendererLoadEntityList = function (scope, http, jsonld, authentication, listOperation, instance, page) {
+        var candidateMethod = operationRendererFindEntityListMethod.call(this, listOperation);
         if (candidateMethod === null) {
             return;
         }
@@ -770,9 +769,9 @@
             instance[(listOperation.isRdf ? ursa : "") + "take"] = (listOperation.isRdf ? [{ "@value": scope.itemsPerPage }] : scope.itemsPerPage);
         }
 
-        this._handleOperation(scope, http, jsonld, authentication, listOperation, candidateMethod, instance, operationRendererOnLoadEntityListSuccess, null, OperationRenderer.prototype._loadEntityList, page);
+        operationRendererHandleOperation.call(this, scope, http, jsonld, authentication, listOperation, candidateMethod, instance, operationRendererOnLoadEntityListSuccess, null, operationRendererLoadEntityList, page);
     };
-    OperationRenderer.prototype._entityEquals = function(leftOperand, rightOperand, operation) {
+    var operationRendererEntityEquals = function(leftOperand, rightOperand, operation) {
         if ((!leftOperand) || (!rightOperand)) {
             return false;
         }
@@ -795,7 +794,7 @@
 
         return (leftOperand["@id"] === rightOperand["@id"]);
     };
-    OperationRenderer.prototype._findEntityListMethod = function(listOperation) {
+    var operationRendererFindEntityListMethod = function(listOperation) {
         var candidateMethod = null;
         for (var index = 0; index < listOperation.methods.length; index++) {
             if ((candidateMethod !== null) && (listOperation.methods[index] !== "GET")) {
@@ -810,7 +809,7 @@
 
         return candidateMethod;
     };
-    OperationRenderer.prototype._sanitizeEntity = function(instance, operation) {
+    var operationRendererSanitizeEntity = function(instance, operation) {
         if (!operation.isRdf) {
             return instance;
         }
@@ -822,7 +821,7 @@
                 }
                 else {
                     for (var index = 0; instance < instance[property].length; index++) {
-                        this._sanitizeEntity(instance[property][index], operation);
+                        operationRendererSanitizeEntity.call(this, instance[property][index], operation);
                     }
                 }
             }
@@ -830,7 +829,7 @@
 
         return instance;
     };
-    OperationRenderer.prototype._initialize = function(scope, index) {
+    var operationRendererInitialize = function(scope, index) {
         if (index === -1) {
             scope.uniqueId.footer = "instance_" + Math.random().toString().replace(".", "").substr(1);
         }
@@ -838,11 +837,11 @@
             scope.uniqueId[index] = "instance_" + Math.random().toString().replace(".", "").substr(1);
         }
     };
-    OperationRenderer.prototype._isFormDisabled = function(scope, name) {
+    var operationRendererIsFormDisabled = function(scope, name) {
         var forms = document.getElementsByName(name);
         return (forms.length > 0 ? angular.element(forms[0]).scope()[name].$invalid : true) && (scope.footerVisible);
     };
-    OperationRenderer.prototype._handleUnauthorized = function(scope, authentication, challenge, callback) {
+    var operationRendererHandleUnauthorized = function(scope, authentication, challenge, callback) {
         if (this._authenticationEventHandler) {
             this._authenticationEventHandler();
             delete this._authenticationEventHandler;
@@ -859,7 +858,7 @@
 
         scope.$emit(Events.AuthenticationRequired);
     };
-    OperationRenderer.prototype._handleAuthorized = function(scope, authentication) {
+    var operationRendererHandleAuthorized = function(scope, authentication) {
         if (this._authenticationEventHandler) {
             this._authenticationEventHandler();
             delete this._authenticationEventHandler;
@@ -872,8 +871,7 @@
 
         scope.$emit(Events.Authenticated);
     };
-    var bodylessVerbs = ["DELETE", "HEAD", "OPTIONS"];
-    OperationRenderer.prototype._prepareRequest = function (operation, methodOverride, instance) {
+    var operationRendererPrepareRequest = function (operation, methodOverride, instance) {
         var request = {
             method: methodOverride || operation.methods[0],
             headers: { Accept: operation.mediaTypes.join() },
@@ -891,23 +889,23 @@
         }
 
         request.url = url;
-        request.data = JSON.stringify(this._sanitizeEntity(instance, operation));
+        request.data = JSON.stringify(operationRendererSanitizeEntity.call(this, instance, operation));
         if (this._authorization) {
             request.headers.Authorization = this._authorization;
         }
 
         return request;
     };
-    OperationRenderer.prototype._handleOperation = function(scope, http, jsonld, authentication, operation, methodOverride, instance, success, failure, callbackMethod, context) {
+    var operationRendererHandleOperation = function(scope, http, jsonld, authentication, operation, methodOverride, instance, success, failure, callbackMethod, context) {
         var that = this;
-        var request = this._prepareRequest(operation, methodOverride, instance);
+        var request = operationRendererPrepareRequest.call(this, operation, methodOverride, instance);
         var promise = http(request).
             then(function(response) {
                 if (typeof(success) === "function") {
                     success.call(that, scope, http, jsonld, authentication, operation, instance, request, response);
                 }
 
-                that._handleAuthorized(scope, authentication);
+                operationRendererHandleAuthorized.call(that, scope, authentication);
                 return response;
             });
 
@@ -923,7 +921,7 @@
                 else {
                     var callback = function() { callbackMethod.call(that, scope, http, jsonld, authentication, operation, instance, context); };
                     var challenge = ((response.headers("WWW-Authenticate")) || (response.headers("X-WWW-Authenticate"))).split(/[ ;]/g)[0].toLowerCase();
-                    that._handleUnauthorized(scope, authentication, challenge, callback);
+                    operationRendererHandleUnauthorized.call(that, scope, authentication, challenge, callback);
                 }
             }
 

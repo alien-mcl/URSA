@@ -5,17 +5,17 @@
     var invalidArgumentPassed = "Invalid {0} passed.";
     var rdfMediaTypes = "application/ld+json, application/json";
 
-    var ApiDocumentationService = function($http, $q) {
-        if (($http === undefined) || ($http === null)) {
-            throw new Error(invalidArgumentPassed.replace("{0}", "$http"));
+    var ApiDocumentationService = function(http, promise) {
+        if ((http === undefined) || (http === null)) {
+            throw new Error(invalidArgumentPassed.replace("{0}", "http"));
         }
 
-        if (($q === undefined) || ($q === null)) {
-            throw new Error(invalidArgumentPassed.replace("{0}", "$q"));
+        if ((promise === undefined) || (promise === null)) {
+            throw new Error(invalidArgumentPassed.replace("{0}", "promise"));
         }
 
-        this.$http = $http;
-        this.$q = $q;
+        this.http = http;
+        this.promise = promise;
     };
     ApiDocumentationService.prototype.constructor = ApiDocumentationService;
     ApiDocumentationService.prototype.load = function(entryPoint) {
@@ -35,7 +35,7 @@
             throw new Error(invalidArgumentPassed.replace("{0}", "entryPoint"));
         }
 
-        var deferred = this.$q.defer();
+        var deferred = this.promise.defer();
         var onExpanded = function(error, expanded) {
             if (error) {
                 throw new Error(error);
@@ -44,13 +44,13 @@
             deferred.resolve(new ursa.model.ApiDocumentation(expanded));
         };
 
-        this.$http({ method: "OPTIONS", url: entryPoint, headers: { "Accept": rdfMediaTypes } }).
+        this.http({ method: "OPTIONS", url: entryPoint, headers: { "Accept": rdfMediaTypes } }).
             then(function(response) { jsonld.expand(response.data, onExpanded); }).
             catch(function(response) { deferred.reject(response.data); });
         return deferred.promise;
     };
-    ApiDocumentationService.prototype.$http = null;
-    ApiDocumentationService.prototype.$q = null;
+    ApiDocumentationService.prototype.http = null;
+    ApiDocumentationService.prototype.promise = null;
 
     var module;
     try {

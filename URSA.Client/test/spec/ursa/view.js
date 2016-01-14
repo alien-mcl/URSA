@@ -18,7 +18,8 @@
             jasmine.addMatchers(matchers);
             scope = {
                 targetInstance: "newInstance",
-                operation: apiDocumentation.supportedClasses[0].supportedOperations[0]
+                operation: apiDocumentation.supportedClasses[0].supportedOperations[0],
+                $emit: function() { }
             };
         });
 
@@ -84,7 +85,12 @@
                     apiMember = apiDocumentation.supportedClasses[0].supportedOperations[1];
                     httpResult = {
                         then: function(handler) {
-                            handler({ headers:function() { return "application/json"; }, data: [apiDocumentation.supportedClasses[0].createInstance(apiMember)] });
+                            handler({ headers: function () { return "application/json"; }, data: [apiDocumentation.supportedClasses[0].createInstance(apiMember)] });
+                            return httpResult;
+                        },
+                        catch: function(handler) {
+                            handler({ status:200 });
+                            return httpResult;
                         }
                     };
 
