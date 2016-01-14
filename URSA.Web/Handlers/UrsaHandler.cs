@@ -2,12 +2,14 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Web;
 using System.Web.Routing;
-using URSA.Web.Description;
+using URSA.Security;
 using URSA.Web.Http;
 using URSA.Web.Http.Converters;
 using URSA.Web.Http.Description;
+using URSA.Web.Http.Security;
 using URSA.Web.Security;
 
 namespace URSA.Web.Handlers
@@ -18,10 +20,12 @@ namespace URSA.Web.Handlers
         where T : IController
     {
         private readonly IRequestHandler<RequestInfo, ResponseInfo> _requestHandler;
+        private readonly IEnumerable<IAuthenticationProvider> _authenticationProviders;
 
         /// <summary>Initializes a new instance of the <see cref="UrsaHandler{T}" /> class.</summary>
         /// <param name="requestHandler">Request handler.</param>
-        public UrsaHandler(IRequestHandler<RequestInfo, ResponseInfo> requestHandler)
+        /// <param name="authenticationProviders">Authentication providers.</param>
+        public UrsaHandler(IRequestHandler<RequestInfo, ResponseInfo> requestHandler, IEnumerable<IAuthenticationProvider> authenticationProviders)
         {
             if (requestHandler == null)
             {
@@ -29,6 +33,7 @@ namespace URSA.Web.Handlers
             }
 
             _requestHandler = requestHandler;
+            _authenticationProviders = authenticationProviders ?? new IAuthenticationProvider[0];
         }
 
         /// <inheritdoc />
@@ -66,21 +71,7 @@ namespace URSA.Web.Handlers
 
         private void HandleRequest(HttpContext context)
         {
-            var headers = new HeaderCollection();
-            context.Request.Headers.ForEach(headerName => ((IDictionary<string, string>)headers)[(string)headerName] = context.Request.Headers[(string)headerName]);
-            if (!String.IsNullOrEmpty(context.Request.Headers[Header.Origin]))
-            {
-                context.Response.Headers[Header.AccessControlAllowOrigin] = context.Request.Headers[Header.Origin];
-                context.Response.Headers[Header.AccessControlExposeHeaders] = String.Join(", ", context.Response.Headers.Keys.Cast<string>());
-                context.Response.Headers[Header.AccessControlAllowHeaders] = "Content-Type, Content-Length, Accept, Accept-Language, Accept-Charser, Accept-Encoding, Accept-Ranges, Authorization, X-Auth-Token";
-            }
-
-            var requestInfo = new RequestInfo(
-                Verb.Parse(context.Request.HttpMethod),
-                new Uri(context.Request.Url.AbsoluteUri.TrimEnd('/')),
-                context.Request.InputStream,
-                new HttpContextPrincipal(context.User),
-                headers);
+            var requestInfo = AuthenticateRequest(context);
             var response = _requestHandler.HandleRequest(requestInfo);
             context.Response.ContentEncoding = context.Response.HeaderEncoding = response.Encoding;
             context.Response.StatusCode = (int)response.Status;
@@ -100,6 +91,39 @@ namespace URSA.Web.Handlers
             }
 
             response.Body.CopyTo(context.Response.OutputStream);
+        }
+
+        private HeaderCollection ParseHeaders(HttpContext context)
+        {
+            var result = new HeaderCollection();
+            context.Request.Headers.ForEach(headerName => ((IDictionary<string, string>)result)[(string)headerName] = context.Request.Headers[(string)headerName]);
+            return result;
+        }
+
+        private RequestInfo AuthenticateRequest(HttpContext context)
+        {
+            var requestInfo = new RequestInfo(
+                Verb.Parse(context.Request.HttpMethod),
+                new Uri(context.Request.Url.AbsoluteUri.TrimEnd('/')),
+                context.Request.InputStream,
+                new HttpContextPrincipal(context.User),
+                ParseHeaders(context));
+            var authorization = requestInfo.Headers.Authorization;
+            int indexOf;
+            if ((String.IsNullOrEmpty(authorization)) || ((indexOf = authorization.IndexOf(' ')) == -1))
+            {
+                return requestInfo;
+            }
+
+            var authenticationProvider = (from provider in _authenticationProviders
+                                          where provider.Scheme == authorization.Substring(0, indexOf)
+                                          select provider).FirstOrDefault();
+            if (authenticationProvider != null)
+            {
+                authenticationProvider.Authenticate(requestInfo);
+            }
+
+            return requestInfo;
         }
 
         private void HandleDocumentationStylesheet(HttpContext context)

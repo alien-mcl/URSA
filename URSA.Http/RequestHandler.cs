@@ -1,10 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using URSA.Security;
 using URSA.Web.Description;
+using URSA.Web.Http.Security;
 using URSA.Web.Mapping;
 
 namespace URSA.Web.Http
@@ -15,12 +17,24 @@ namespace URSA.Web.Http
         private readonly IResponseComposer _responseComposer;
         private readonly IArgumentBinder<RequestInfo> _argumentBinder;
         private readonly IDelegateMapper<RequestInfo> _handlerMapper;
+        private readonly IPreRequestHandler[] _preRequestHandlers;
+        private readonly IPostRequestHandler[] _postRequestHandlers;
+        private readonly IDefaultAuthenticationScheme _defaultAuthenticationScheme;
 
         /// <summary>Initializes a new instance of the <see cref="RequestHandler"/> class.</summary>
         /// <param name="argumentBinder">Argument binder.</param>
         /// <param name="delegateMapper">Delegate mapper.</param>
         /// <param name="responseComposer">Response composer.</param>
-        public RequestHandler(IArgumentBinder<RequestInfo> argumentBinder, IDelegateMapper<RequestInfo> delegateMapper, IResponseComposer responseComposer)
+        /// <param name="preRequestHandlers">Handlers executed before the request is processed.</param>
+        /// <param name="postRequestHandlers">Handlers executed after the request is processed.</param>
+        /// <param name="defaultAuthenticationScheme">Default authentication scheme selector.</param>
+        public RequestHandler(
+            IArgumentBinder<RequestInfo> argumentBinder,
+            IDelegateMapper<RequestInfo> delegateMapper,
+            IResponseComposer responseComposer,
+            IEnumerable<IPreRequestHandler> preRequestHandlers,
+            IEnumerable<IPostRequestHandler> postRequestHandlers,
+            IDefaultAuthenticationScheme defaultAuthenticationScheme)
         {
             if (argumentBinder == null)
             {
@@ -40,6 +54,9 @@ namespace URSA.Web.Http
             _responseComposer = responseComposer;
             _argumentBinder = argumentBinder;
             _handlerMapper = delegateMapper;
+            _preRequestHandlers = (preRequestHandlers ?? new IPreRequestHandler[0]).ToArray();
+            _postRequestHandlers = (postRequestHandlers ?? new IPostRequestHandler[0]).ToArray();
+            _defaultAuthenticationScheme = defaultAuthenticationScheme;
         }
 
         /// <inheritdoc />
@@ -64,8 +81,22 @@ namespace URSA.Web.Http
                 requestMapping.Target.Response = response;
                 var arguments = _argumentBinder.BindArguments(request, requestMapping);
                 ValidateArguments(requestMapping.Operation.UnderlyingMethod.GetParameters(), arguments);
+                ProcessPreRequestHandlers(request);
                 object output = await ProcessResult(requestMapping.Invoke(arguments));
-                return _responseComposer.ComposeResponse(requestMapping, output, arguments);
+                response = _responseComposer.ComposeResponse(requestMapping, output, arguments);
+                ProcessPostRequestHandlers(response);
+                return response;
+            }
+            catch (UnauthenticatedAccessException exception)
+            {
+                if (_defaultAuthenticationScheme == null)
+                {
+                    throw new InvalidOperationException("Cannot perform authentication without default authentication scheme set for challenge.");
+                }
+
+                var result = new ExceptionResponseInfo(request, exception);
+                _defaultAuthenticationScheme.Challenge(result);
+                return result;
             }
             catch (Exception exception)
             {
@@ -78,7 +109,7 @@ namespace URSA.Web.Http
             var securityRequirements = operation.UnifiedSecurityRequirements;
             if ((securityRequirements.Denied[ClaimTypes.Anonymous] != null) && (!identity.IsAuthenticated))
             {
-                throw new UnauthenticatedAccessException(String.Format("Anonymous access to the requested resource is denied."));
+                throw new UnauthenticatedAccessException("Anonymous access to the requested resource is denied.");
             }
 
             if (!operation.Allows(identity))
@@ -114,6 +145,28 @@ namespace URSA.Web.Http
             }
 
             return null;
+        }
+
+        private void ProcessPreRequestHandlers(RequestInfo requestInfo)
+        {
+            Task[] handlers = new Task[_preRequestHandlers.Length];
+            for (int index = 0; index < _preRequestHandlers.Length; index++)
+            {
+                handlers[index] = _preRequestHandlers[index].Process(requestInfo);
+            }
+
+            Task.WaitAll(handlers);
+        }
+
+        private void ProcessPostRequestHandlers(ResponseInfo responseInfo)
+        {
+            Task[] handlers = new Task[_postRequestHandlers.Length];
+            for (int index = 0; index < _postRequestHandlers.Length; index++)
+            {
+                handlers[index] = _postRequestHandlers[index].Process(responseInfo);
+            }
+
+            Task.WaitAll(handlers);
         }
     }
 }

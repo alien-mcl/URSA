@@ -7,12 +7,14 @@ using System.Web;
 using System.Web.Routing;
 using URSA.ComponentModel;
 using URSA.Configuration;
+using URSA.Security;
 using URSA.Web.Configuration;
 using URSA.Web.Description;
 using URSA.Web.Handlers;
 using URSA.Web.Http;
 using URSA.Web.Http.Configuration;
 using URSA.Web.Http.Converters;
+using URSA.Web.Http.Security;
 
 namespace URSA.Web
 {
@@ -27,8 +29,9 @@ namespace URSA.Web
         private static readonly object Lock = new Object();
 
         /// <summary>Registers all APIs into the ASP.net pipeline.</summary>
-        /// <param name="application">Application to work with.</param>
-        public static void RegisterApis(this HttpApplication application)
+        /// <param name="application">The application to work with.</param>
+        /// <returns>The application itself.</returns>
+        public static HttpApplication RegisterApis(this HttpApplication application)
         {
             if (application == null)
             {
@@ -48,12 +51,74 @@ namespace URSA.Web
 
                 routes.ForEach(route => RouteTable.Routes.Add(route.Key, route.Value));
             }
+
+            return application;
+        }
+
+        /// <summary>Registers the Cross-Origin Resource Sharing component to be used.</summary>
+        /// <param name="application">The application to work with.</param>
+        /// <param name="allowedOrigins">Allowed origins.</param>
+        /// <param name="allowedHeaders">Allowed headers.</param>
+        /// <param name="exposedHeaders">Exposed headers.</param>
+        /// <returns>The application itself.</returns>
+        public static HttpApplication WithCorsEnabled(
+            this HttpApplication application,
+            IEnumerable<string> allowedOrigins = null,
+            IEnumerable<string> allowedHeaders = null,
+            IEnumerable<string> exposedHeaders = null)
+        {
+            if (application == null)
+            {
+                throw new ArgumentNullException("application");
+            }
+
+            var handler = new CorsPostRequestHandler(
+                allowedOrigins ?? CorsPostRequestHandler.WithAny,
+                allowedHeaders ?? CorsPostRequestHandler.WithAny,
+                exposedHeaders ?? CorsPostRequestHandler.WithAny);
+            var container = UrsaConfigurationSection.InitializeComponentProvider();
+            container.Register("CORS", handler);
+            return application;
+        }
+
+        /// <summary>Registers the Basic authentication mechanism and sets it as a default one.</summary>
+        /// <param name="application">The application to work with.</param>
+        /// <returns>The application itself.</returns>
+        public static HttpApplication WithBasicAuthentication(this HttpApplication application)
+        {
+            if (application == null)
+            {
+                throw new ArgumentNullException("application");
+            }
+
+            var container = UrsaConfigurationSection.InitializeComponentProvider();
+            container.Register<IAuthenticationProvider, BasicAuthenticationProvider>("Basic", lifestyle: Lifestyles.Singleton);
+            container.Register<IDefaultAuthenticationScheme, BasicAuthenticationProvider>(lifestyle: Lifestyles.Singleton);
+            return application;
+        }
+
+        /// <summary>Registers an identity provider.</summary>
+        /// <typeparam name="T">Type of the identity provider to use.</typeparam>
+        /// <param name="application">The application to work with.</param>
+        /// <returns>The application itself.</returns>
+        public static HttpApplication WithIdentityProvider<T>(this HttpApplication application) where T : IIdentityProvider
+        {
+            if (application == null)
+            {
+                throw new ArgumentNullException("application");
+            }
+
+            var container = UrsaConfigurationSection.InitializeComponentProvider();
+            container.Register<IIdentityProvider, T>(lifestyle: Lifestyles.Singleton);
+            return application;
         }
 
         private static IDictionary<string, Route> RegisterApi<T>(IComponentProvider container, ControllerInfo<T> description) where T : IController
         {
-            var handler = new UrsaHandler<T>(container.Resolve<IRequestHandler<RequestInfo, ResponseInfo>>());
-            string globalRoutePrefix = (description.EntryPoint != null ? description.EntryPoint.ToString().Substring(1) + "/" : String.Empty);
+            var handler = new UrsaHandler<T>(
+                container.Resolve<IRequestHandler<RequestInfo, ResponseInfo>>(),
+                container.ResolveAll<IAuthenticationProvider>());
+            string globalRoutePrefix = (description.EntryPoint != null ? description.EntryPoint.Uri.ToString().Substring(1) + "/" : String.Empty);
             IDictionary<string, Route> routes = new Dictionary<string, Route>();
             routes[typeof(T).FullName + "DocumentationStylesheet"] = new Route(globalRoutePrefix + EntityConverter.DocumentationStylesheet, handler);
             routes[typeof(T).FullName + "PropertyIcon"] = new Route(globalRoutePrefix + EntityConverter.PropertyIcon, handler);

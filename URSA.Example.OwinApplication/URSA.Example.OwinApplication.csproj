@@ -87,6 +87,9 @@
     <Compile Include="..\URSA.Example.WebApplication\Data\Person.cs">
       <Link>Data\Person.cs</Link>
     </Compile>
+    <Compile Include="..\URSA.Example.WebApplication\Security\BasicIdentityProvider.cs">
+      <Link>Security\BasicIdentityProvider.cs</Link>
+    </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="..\.build\CommonAssemblyInfo.cs">

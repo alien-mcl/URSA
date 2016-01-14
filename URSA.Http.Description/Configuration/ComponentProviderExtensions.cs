@@ -56,7 +56,8 @@ namespace URSA.Web.Http.Configuration
                     container.Register(
                         typeof(IHttpControllerDescriptionBuilder<>).MakeGenericType(controllerType),
                         typeof(ControllerDescriptionBuilder<>).MakeGenericType(controllerType),
-                        typeof(IHttpControllerDescriptionBuilder<>).MakeGenericType(controllerType).FullName);
+                        typeof(IHttpControllerDescriptionBuilder<>).MakeGenericType(controllerType).FullName,
+                        lifestyle: Lifestyles.Singleton);
                 }
 
                 if (!typeof(EntryPointDescriptionController).IsAssignableFrom(controllerType))

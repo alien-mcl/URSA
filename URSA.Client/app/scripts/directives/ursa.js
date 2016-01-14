@@ -24,7 +24,7 @@
     }
 
     module.
-    directive("ursaApiMemberView", ["$animate", "$anchorScroll", "$http", "jsonld", function($animate, $anchorScroll, $http, jsonld) {
+    directive("ursaApiMemberView", ["$parse", "$animate", "$anchorScroll", "$http", "jsonld", "authentication", function ($parse, $animate, $anchorScroll, $http, jsonld, authentication) {
         return {
             restrict: "E",
             priority: 400,
@@ -64,7 +64,6 @@
                             ctrl.template = null;
                         }
                     };
-
                     scope.$watch("apiMember", function ursaApiMemberViewWatchAction(apiMember, oldValue) {
                         var afterAnimation = function() {
                             if ((angular.isDefined(autoScrollExp)) && ((!autoScrollExp) || (scope.$eval(autoScrollExp)))) {
@@ -108,7 +107,7 @@
 
                         var viewRenderer = ursa.view.ViewRenderer.viewRenderers.find(apiMember);
                         if (viewRenderer !== null) {
-                            ctrl.template = viewRenderer.render(newScope, $http, jsonld, apiMember);
+                            ctrl.template = viewRenderer.render(newScope, $http, jsonld, authentication, apiMember);
                         }
                         else {
                             ctrl.template = "Error generating view for api member.";

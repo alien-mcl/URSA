@@ -5,6 +5,7 @@ using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Reflection;
+using System.Security.Claims;
 using RomanticWeb.Entities;
 using RomanticWeb.Model;
 using RomanticWeb.NamedGraphs;
@@ -264,10 +265,19 @@ namespace URSA.Web.Http.Description
 
         private void BuildStatusCodes(IOperation result, OperationInfo<Verb> operation)
         {
-            result.StatusCodes.AddRange(operation.UnderlyingMethod.DiscoverCrudStatusCodeNumbers(operation.ProtocolSpecificCommand, operation.Controller.ControllerType));
-            result.StatusCodes.AddRange((
+            result.StatusCodes.AddRange(
+                operation.UnderlyingMethod.DiscoverCrudStatusCodeNumbers(operation.ProtocolSpecificCommand, operation.Controller.ControllerType)
+                .Union(
                 from exceptionTypeName in _xmlDocProvider.GetExceptions(operation.UnderlyingMethod)
-                select (int)exceptionTypeName.ToHttpStatusCode()).Distinct());
+                select (int)exceptionTypeName.ToHttpStatusCode())
+                .Union(
+                from claimType in operation.UnifiedSecurityRequirements.Denied
+                select (int)(claimType == ClaimTypes.Anonymous ? HttpStatusCode.Unauthorized : HttpStatusCode.Forbidden))
+                .Union(
+                from claimType in operation.UnifiedSecurityRequirements.Allowed
+                where claimType != ClaimTypes.Anonymous
+                select (int)HttpStatusCode.Forbidden)
+                .Distinct());
         }
 
         private IIriTemplate BuildTemplate(DescriptionContext context, OperationInfo<Verb> operation, IOperation operationDocumentation)

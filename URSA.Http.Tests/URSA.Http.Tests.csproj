@@ -63,6 +63,7 @@
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.Threading.Tasks" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Xml.Serialization" />
@@ -83,6 +84,7 @@
     <Compile Include="Data\Person.cs" />
     <Compile Include="FluentAssertions\CustomAssertions.cs" />
     <Compile Include="Given_instance_of_the\ArgumentBinder_class.cs" />
+    <Compile Include="Given_instance_of_the\BasicAuthenticationProvider_class\when_acting_as_IDefaultAuthenticationScheme.cs" />
     <Compile Include="Given_instance_of_the\binder\FromQueryStringArgumentBinder_class.cs" />
     <Compile Include="Given_instance_of_the\binder\FromBodyArgumentBinder_class.cs" />
     <Compile Include="Given_instance_of_the\binder\FromUriArgumentBinder_class.cs" />
@@ -108,6 +110,8 @@
     <Compile Include="Given_instance_of_the\QueryStringList_class.cs" />
     <Compile Include="Given_instance_of_the\SegmentList_class.cs" />
     <Compile Include="Given_instance_of_the\ResultBinder_class.cs" />
+    <Compile Include="Given_instance_of_the\BasicAuthenticationProvider_class\when_acting_as_IAuthenticationProvider.cs" />
+    <Compile Include="Given_instance_of_the\CorsPostRequestHandler_class.cs" />
     <Compile Include="Given_instance_of_the\Verb_class.cs" />
     <Compile Include="Testing\ArgumentBinderTest.cs" />
     <Compile Include="Given_instance_of_the\converter_of\BinaryConverter_class.cs" />
@@ -127,6 +131,7 @@
     <Compile Include="Testing\ComplexTypeConverterTest.cs" />
     <Compile Include="Testing\ConverterTest.cs" />
     <Compile Include="Testing\MethodInfoExtensions.cs" />
+    <Compile Include="Testing\RequestExtensions.cs" />
     <Compile Include="Web\AnotherTestController.cs" />
     <Compile Include="Web\CrudController.cs" />
     <Compile Include="Web\TestController.cs" />

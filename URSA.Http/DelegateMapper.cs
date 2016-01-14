@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Net;
 using System.Reflection;
 using URSA.Web.Description;
 using URSA.Web.Description.Http;
@@ -51,14 +52,20 @@ namespace URSA.Web.Http
         {
             string requestUri = request.Uri.ToRelativeUri().ToString();
             var allowedOptions = new List<OperationInfo<Verb>>();
+            var methodMismatch = false;
             foreach (var controller in _controllerDescriptors.Value)
             {
                 foreach (var operation in controller.Operations.Cast<OperationInfo<Verb>>().Where(operation => operation.TemplateRegex.IsMatch(requestUri)))
                 {
                     allowedOptions.Add(operation);
-                    if ((request.Method != operation.ProtocolSpecificCommand) || ((request.IsCorsPreflight) &&
-                        (!typeof(OptionsController).IsAssignableFrom(operation.UnderlyingMethod.DeclaringType))))
+                    if ((request.IsCorsPreflight) && (!typeof(OptionsController).IsAssignableFrom(operation.UnderlyingMethod.DeclaringType)))
                     {
+                        continue;
+                    }
+
+                    if (request.Method != operation.ProtocolSpecificCommand)
+                    {
+                        methodMismatch = true;
                         continue;
                     }
 
@@ -76,6 +83,7 @@ namespace URSA.Web.Http
             return new OptionsRequestMapping(
                 OptionsController.CreateOperationInfo(option),
                 option.Uri,
+                (methodMismatch ? HttpStatusCode.MethodNotAllowed : HttpStatusCode.OK),
                 allowedOptions.Select(item => item.ProtocolSpecificCommand.ToString()).ToArray());
         }
     }

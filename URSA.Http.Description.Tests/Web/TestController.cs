@@ -2,6 +2,8 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Security.Claims;
+using URSA.Security;
 using URSA.Web.Http.Description.Tests.Data;
 using URSA.Web.Mapping;
 
@@ -39,6 +41,7 @@ namespace URSA.Web.Http.Description.Tests
             return Guid.Empty;
         }
 
+        [DenyClaim(ClaimTypes.Anonymous)]
         public void Update(Guid id, Person person)
         {
         }
@@ -47,7 +50,7 @@ namespace URSA.Web.Http.Description.Tests
         /// <param name="id">Identifier of the entity to be deleted.</param>
         /// <exception cref="System.ArgumentNullException">Thrown when an identifier is not provided.</exception>
         /// <exception cref="System.ArgumentOutOfRangeException">Thrown when an identifier is empty.</exception>
-        /// <exception cref="URSA.Web.UnauthenticatedAccessException">Thrown when an identity is not authenticated.</exception>
+        /// <exception cref="URSA.Web.AccessDeniedException">Thrown when an identity is not authorized.</exception>
         public void Delete(Guid id)
         {
             if (id == null)

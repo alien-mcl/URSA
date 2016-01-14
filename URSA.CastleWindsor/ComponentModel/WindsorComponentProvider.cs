@@ -123,7 +123,7 @@ namespace URSA.ComponentModel
             assemblies.ForEach(
                 assembly =>
                 {
-                    var registration = Classes.FromAssembly(assembly).BasedOn(serviceType).WithService.FromInterface();
+                    var registration = Classes.FromAssembly(assembly).BasedOn(serviceType).WithService.FromInterface().WithService.Self();
                     switch (lifestyle)
                     {
                         case Lifestyles.Singleton:

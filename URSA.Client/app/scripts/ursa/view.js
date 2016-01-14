@@ -5,6 +5,7 @@
     var invalidArgumentPassed = "Invalid {0} passed.";
 
     var _ctor = "_ctor";
+    var isInitialized = false;
 
     /**
      * Ultimate ResT API documentation view renderers namespace.
@@ -19,7 +20,7 @@
      * @class
      * @extends Array
      */
-    var ViewRendererCollection = namespace.ViewRendererCollection = function() { };
+    var ViewRendererCollection = function() { };
     ViewRendererCollection.prototype = [];
     ViewRendererCollection.prototype.constructor = ViewRendererCollection;
     /**
@@ -87,14 +88,13 @@
      * @param {ursa.model.ApiMember} apiMember Target API member for which to render a view.
      * @param {string} [classNames] CSS class names to be added to the view.
      */
-    ViewRenderer.prototype.render = function(scope, http, jsonld, apiMember, classNames) {
+    ViewRenderer.prototype.render = function(scope, http, jsonld, authentication, apiMember, classNames) {
         if ((apiMember === undefined) || (apiMember === null) || (!(apiMember instanceof ursa.model.ApiMember))) {
             throw new Error(invalidArgumentPassed.replace("{0}", "apiMember"));
         }
 
         return String.format("<div{0}></div>", (typeof(classNames) === "string" ? String.format(" class=\"{0}\"", classNames) : ""));
     };
-    var isInitialized = false;
     /**
      * Collection of discovered {@link ursa.view.ViewRenderer}s.
      * @memberof ursa.view.ViewRenderer
@@ -197,7 +197,7 @@
         ViewRenderer.prototype.isApplicableTo.apply(this, arguments);
         return apiMember instanceof ursa.model.SupportedProperty;
     };
-    SupportedPropertyRenderer.prototype.render = function(scope, http, jsonld, apiMember, classNames) {
+    SupportedPropertyRenderer.prototype.render = function(scope, http, jsonld, authentication, apiMember, classNames) {
         ViewRenderer.prototype.render.apply(this, arguments);
         if (!(apiMember instanceof ursa.model.SupportedProperty)) {
             throw new Error(invalidArgumentPassed.replace("{0}", "apiMember"));
@@ -509,7 +509,7 @@
         ViewRenderer.prototype.isApplicableTo.apply(this, arguments);
         return apiMember instanceof ursa.model.Class;
     };
-    ClassRenderer.prototype.render = function(scope, http, jsonld, apiMember, classNames) {
+    ClassRenderer.prototype.render = function(scope, http, jsonld, authentication, apiMember, classNames) {
         ViewRenderer.prototype.render.apply(this, arguments);
         var result = String.format(
             "<div class=\"panel{0}\"><div class=\"panel-body\"><form{1}>",
@@ -526,7 +526,7 @@
                 continue;
             }
 
-            var propertyView = viewRenderer.render(scope, http, jsonld, supportedProperty);
+            var propertyView = viewRenderer.render(scope, http, jsonld, authentication, supportedProperty);
             if (scope.targetInstance === "editedEntity") {
                 propertyView = propertyView.replace(new RegExp("supportedPropertyNulls", "g"), "editedEntityNulls");
             }
@@ -555,10 +555,10 @@
         ViewRenderer.prototype.isApplicableTo.apply(this, arguments);
         return apiMember instanceof ursa.model.Operation;
     };
-    OperationRenderer.prototype.render = function(scope, http, jsonld, apiMember, classNames) {
+    OperationRenderer.prototype.render = function(scope, http, jsonld, authentication, apiMember, classNames) {
         ViewRenderer.prototype.render.apply(this, arguments);
         if (this._isEntityList(apiMember)) {
-            return this._renderEntityList(scope, http, jsonld, apiMember, classNames);
+            return this._renderEntityList(scope, http, jsonld, authentication, apiMember, classNames);
         }
 
         return "";
@@ -566,9 +566,9 @@
     OperationRenderer.prototype._isEntityList = function(apiMember) {
         return apiMember.owner.maxOccurances === Number.MAX_VALUE;
     };
-    OperationRenderer.prototype._renderEntityList = function(scope, http, jsonld, apiMember, classNames) {
+    OperationRenderer.prototype._renderEntityList = function(scope, http, jsonld, authentication, apiMember, classNames) {
         if (!scope.supportedProperties) {
-            this._setupListScope(scope, http, jsonld, apiMember);
+            this._setupListScope(scope, http, jsonld, authentication, apiMember);
         }
 
         var pager = "";
@@ -599,24 +599,24 @@
                     "</div></td>" +
                 "</tr>", scope.keyProperty, (scope.keyProperty !== "" ? " track by entity['" + scope.keyProperty + "']" : "")) + String.format(
                 "<tr ng-repeat-end ng-show=\"entityEquals(entity)\" ng-init=\"initialize($index)\">" +
-                    "<td colspan=\"{0}\"><ursa-api-member-view api-member=\"operation.owner\" target-instance=\"editedEntity\" unique-id=\"{{ uniqueId[$index] }}\"></ursa-api-member-view></td>" +
+                    "<td colspan=\"{0}\"><div><ursa-api-member-view api-member=\"operation.owner\" target-instance=\"editedEntity\" unique-id=\"{{ uniqueId[$index] }}\"></ursa-api-member-view></div></td>" +
                     "<td><div class=\"btn-block\">" +
                         (scope.updateOperation !== null ? "<button class=\"btn btn-default\" title=\"Update\" ng-disabled=\"isFormDisabled(uniqueId[$index])\" ng-click=\"update(editedEntity)\"><span class=\"glyphicon glyphicon-floppy-disk\"></span></button>" : "") +
                         "<button class=\"btn btn-default\" title=\"Cancel\" ng-click=\"cancel()\"><span class=\"glyphicon glyphicon-repeat\"></span></button>" +
                     "</div></td>" +
                 "</tr>", scope.supportedProperties.length - 1) + String.format(
                 "<tr ng-hide=\"editedEntity !== null\" ng-init=\"initialize(-1)\">" +
-                    "<td colspan=\"{0}\"><ursa-api-member-view api-member=\"operation.owner\" target-instance=\"newInstance\" unique-id=\"{{ uniqueId.footer }}\"></ursa-api-member-view></td>" +
+                    "<td colspan=\"{0}\"><div ng-show=\"footerVisible\"><ursa-api-member-view api-member=\"operation.owner\" target-instance=\"newInstance\" unique-id=\"{{ uniqueId.footer }}\"></ursa-api-member-view></div></td>" +
                     "<td><div class=\"btn-block\">" +
                         (scope.createOperation !== null ? "<button class=\"btn btn-default\" title=\"Create\" ng-disabled=\"isFormDisabled(uniqueId.footer)\" ng-click=\"create(newInstance)\"><span class=\"glyphicon glyphicon-plus\"></span></button>" : "") +
                     "</div></td>" +
-                "</tr>", scope.supportedProperties.length - 1, "instance_" + Math.random().toString().replace(".", "").substr(1)) +
+                "</tr>", scope.supportedProperties.length - 1) +
                 pager +
             "</table>";
         scope.list();
         return result;
     };
-    OperationRenderer.prototype._setupListScope = function(scope, http, jsonld, apiMember) {
+    OperationRenderer.prototype._setupListScope = function(scope, http, jsonld, authentication, apiMember) {
         var that = this;
         scope.uniqueId = [];
         scope.deleteOperation = this._findEntityCrudOperation(apiMember, "DELETE");
@@ -624,6 +624,7 @@
         scope.getOperation = this._findEntityCrudOperation(apiMember, "GET");
         if ((scope.createOperation = this._findEntityCrudOperation(apiMember, "POST")) !== null) {
             scope.newInstance = apiMember.owner.createInstance(apiMember);
+            scope.footerVisible = false;
         }
 
         if (((scope.operation = apiMember).mappings !== null) && (apiMember.mappings.getByProperty(ursa + "skip", "property")) &&
@@ -651,11 +652,11 @@
         scope.editedEntity = null;
         scope.getPropertyValue = function(entity, supportedProperty, operation) { return entity[supportedProperty.propertyName(operation)]; };
         scope.cancel = function() { scope.editedEntity = null; };
-        scope.list = function(page) { that._loadEntityList(scope, http, jsonld, scope.operation, page); };
-        scope.get = function(instance) { that._loadEntity(scope, http, jsonld, scope.getOperation, instance); };
-        scope.create = function(instance) { that._createEntity(scope, http, jsonld, scope.createOperation, instance); };
-        scope.update = function(instance) { that._updateEntity(scope, http, jsonld, scope.updateOperation, instance); };
-        scope.delete = function(instance, e) { that._deleteEntity(scope, http, jsonld, scope.deleteOperation, instance, e); };
+        scope.list = function(page) { that._loadEntityList(scope, http, jsonld, authentication, scope.operation, null, page); };
+        scope.get = function(instance) { that._loadEntity(scope, http, jsonld, authentication, scope.getOperation, instance); };
+        scope.create = function(instance) { that._createEntity(scope, http, jsonld, authentication, scope.createOperation, instance); };
+        scope.update = function(instance) { that._updateEntity(scope, http, jsonld, authentication, scope.updateOperation, instance); };
+        scope.delete = function(instance, e) { that._deleteEntity(scope, http, jsonld, authentication, scope.deleteOperation, instance, e); };
         scope.entityEquals = function(entity) { return that._entityEquals(entity, scope.editedEntity, scope.operation); };
         scope.initialize = function(index) { that._initialize(scope, index); };
         scope.isFormDisabled = function(name) { return that._isFormDisabled(scope, name); };
@@ -671,112 +672,105 @@
 
         return null;
     };
-    OperationRenderer.prototype._loadEntity = function(scope, http, jsonld, getOperation, instance) {
-        http({ method: getOperation.methods[0], url: getOperation.createCallUrl(instance), headers: { Accept: getOperation.mediaTypes.join() } }).
-            then(function(result) {
-                if ((result.headers("Content-Type") || "*/*").indexOf(ursa.model.EntityFormat.ApplicationLdJson) === 0) {
-                    jsonld.expand(result.data).
-                        then(function(expanded) {
-                            scope.editedEntity = (expanded.length > 0 ? expanded[0] : null);
-                        });
-                }
-                else {
-                    scope.editedEntity = result.data;
-                }
-            });
+    var operationRendererOnLoadEntitySuccess = function(scope, http, jsonld, authentication, createOperation, instance, request, response) {
+        if ((response.headers("Content-Type") || "*/*").indexOf(ursa.model.EntityFormat.ApplicationLdJson) === 0) {
+            jsonld.expand(response.data).
+                then(function(expanded) {
+                    scope.editedEntity = (expanded.length > 0 ? expanded[0] : null);
+                });
+        }
+        else {
+            scope.editedEntity = response.data;
+        }
     };
-    OperationRenderer.prototype._createEntity = function (scope, http, jsonld, createOperation, instance) {
-        var initialId = null;
-        if (createOperation.isRdf) {
-            instance["@id"] = createOperation.createCallUrl(instance).replace(/#.*$/, "");
+    OperationRenderer.prototype._loadEntity = function (scope, http, jsonld, authentication, getOperation, instance) {
+        this._handleOperation(scope, http, jsonld, authentication, getOperation, null, instance, operationRendererOnLoadEntitySuccess, null, OperationRenderer.prototype._loadEntity);
+    };
+    var operationRendererCreateEntitySuccess = function(scope, http, jsonld, authentication, createOperation) {
+        scope.newInstance = createOperation.owner.createInstance(createOperation);
+        scope.list(1);
+        scope.footerVisible = false;
+    };
+    var operationRendererCreateEntityFailure = function(scope, http, jsonld, authentication, createOperation, instance, request) {
+        if (request._isInstanceIdSet) {
+            delete instance["@id"];
+        }
+    };
+    OperationRenderer.prototype._createEntity = function(scope, http, jsonld, authentication, createOperation, instance) {
+        if (!scope.footerVisible) {
+            scope.footerVisible = true;
+            return;
         }
 
-        http({
-                method: createOperation.methods[0],
-                url: createOperation.createCallUrl(instance),
-                headers: { "Content-Type": createOperation.mediaTypes[0], Accept: createOperation.mediaTypes.join() },
-                data: JSON.stringify(this._sanitizeEntity(instance, createOperation))
-            }).
-            then(function() {
-                scope.newInstance = createOperation.owner.createInstance(createOperation);
-                scope.list(1);
-            }).
-            catch(function() {
-                if (initialId !== null) {
-                    instance["@id"] = initialId;
-                }
-            });
+        this._handleOperation(scope, http, jsonld, authentication, createOperation, null, instance, operationRendererCreateEntitySuccess, operationRendererCreateEntityFailure, OperationRenderer.prototype._createEntity);
     };
-    OperationRenderer.prototype._updateEntity = function(scope, http, jsonld, updateOperation, instance) {
-        http({
-                method: updateOperation.methods[0],
-                url: updateOperation.createCallUrl(instance),
-                headers: { "Content-Type": updateOperation.mediaTypes[0], Accept: updateOperation.mediaTypes.join() },
-                data: JSON.stringify(this._sanitizeEntity(instance, updateOperation))
-            }).
-            then(function() {
-                scope.editedEntity = null;
-                scope.list();
-            });
+    var operationRendererOnUpdateEntitySuccess = function(scope) {
+        scope.editedEntity = null;
+        scope.list();
     };
-    OperationRenderer.prototype._deleteEntity = function(scope, http, jsonld, deleteOperation, instance, e) {
-        if (!confirm("Are you sure you want to delete this item?")) {
+    var operationRendererOnUpdateEntityFailure = function(scope, http, jsonld, authentication, updateOperation, instance, request) {
+        if (request._isInstanceIdSet) {
+            delete instance["@id"];
+        }
+    };
+    OperationRenderer.prototype._updateEntity = function(scope, http, jsonld, authentication, updateOperation, instance) {
+        this._handleOperation(scope, http, jsonld, authentication, updateOperation, null, instance, operationRendererOnUpdateEntitySuccess, operationRendererOnUpdateEntityFailure, OperationRenderer.prototype._updateEntity);
+    };
+    var operationRendererOnDeleteEntitySuccess = function(scope) {
+        scope.list(1);
+    };
+    OperationRenderer.prototype._deleteEntity = function(scope, http, jsonld, authentication, deleteOperation, instance, e) {
+        if ((e) && (!confirm("Are you sure you want to delete this item?"))) {
             e.preventDefault();
             e.stopPropagation();
             return;
         }
 
-        http({
-                method: deleteOperation.methods[0],
-                url: deleteOperation.createCallUrl(instance),
-                headers: { Accept: deleteOperation.mediaTypes.join() }
-            }).
-            then(function() {
-                scope.list(1);
-            });
+        this._handleOperation(scope, http, jsonld, authentication, deleteOperation, null, instance, operationRendererOnDeleteEntitySuccess, null, OperationRenderer.prototype._deleteEntity);
     };
-    OperationRenderer.prototype._loadEntityList = function(scope, http, jsonld, listOperation, page) {
-        var candidateMethod = this._findEntityListMethod(listOperation);
-        if (candidateMethod !== null) {
-            var instance = null;
-            if ((listOperation.mappings !== null) && (listOperation.mappings.getByProperty(ursa + "skip", "property") !== null) &&
-                (listOperation.mappings.getByProperty(ursa + "take", "property") !== null)) {
-                if (typeof(page) !== "number") {
-                    page = scope.currentPage;
+    var operationRendererOnLoadEntityListSuccess = function(scope, http, jsonld, authentication, deleteOperation, instance, request, response) {
+        var contentRange = response.headers("Content-Range");
+        if ((contentRange !== undefined) && (contentRange !== null)) {
+            var matches = contentRange.match(/^members ([0-9]+)-([0-9]+)\/([0-9]+)/);
+            if ((matches !== null) && (matches.length === 4)) {
+                var startIndex = parseInt(matches[1]);
+                scope.totalEntities = parseInt(matches[3]);
+                scope.currentPage = Math.ceil(startIndex / scope.itemsPerPage) + 1;
+                scope.pages = [];
+                for (var pageIndex = 1; pageIndex <= Math.ceil(scope.totalEntities / scope.itemsPerPage) ; pageIndex++) {
+                    scope.pages.push(pageIndex);
                 }
-
-                instance = {};
-                instance[(listOperation.isRdf ? ursa : "") + "skip"] = (listOperation.isRdf ? [{ "@value": (page - 1) * scope.itemsPerPage }] : (page - 1) * scope.itemsPerPage);
-                instance[(listOperation.isRdf ? ursa : "") + "take"] = (listOperation.isRdf ? [{ "@value": scope.itemsPerPage }] : scope.itemsPerPage);
             }
+        }
 
-            http({ url: listOperation.createCallUrl(instance), method: candidateMethod, headers: { Accept: listOperation.mediaTypes.join() } }).
-                then(function(result) {
-                    var contentRange = result.headers("Content-Range");
-                    if ((contentRange !== undefined) && (contentRange !== null)) {
-                        var matches = contentRange.match(/^members ([0-9]+)-([0-9]+)\/([0-9]+)/);
-                        if ((matches !== null) && (matches.length === 4)) {
-                            var startIndex = parseInt(matches[1]);
-                            scope.totalEntities = parseInt(matches[3]);
-                            scope.currentPage = Math.ceil(startIndex / scope.itemsPerPage) + 1;
-                            scope.pages = [];
-                            for (var pageIndex = 1; pageIndex <= Math.ceil(scope.totalEntities / scope.itemsPerPage); pageIndex++) {
-                                scope.pages.push(pageIndex);
-                            }
-                        }
-                    }
-
-                    if ((result.headers("Content-Type") || "*/*").indexOf(ursa.model.EntityFormat.ApplicationLdJson) === 0) {
-                        jsonld.expand(result.data).
-                            then(function(expanded) {
-                                scope.entities = expanded;
-                            });
-                    }
-                    else {
-                        scope.entities = result.data;
-                    }
+        if ((response.headers("Content-Type") || "*/*").indexOf(ursa.model.EntityFormat.ApplicationLdJson) === 0) {
+            jsonld.expand(response.data).
+                then(function (expanded) {
+                    scope.entities = expanded;
                 });
         }
+        else {
+            scope.entities = response.data;
+        }
+    };
+    OperationRenderer.prototype._loadEntityList = function (scope, http, jsonld, authentication, listOperation, instance, page) {
+        var candidateMethod = this._findEntityListMethod(listOperation);
+        if (candidateMethod === null) {
+            return;
+        }
+
+        if ((instance === null) && (listOperation.mappings !== null) && (listOperation.mappings.getByProperty(ursa.skip, "property") !== null) &&
+            (listOperation.mappings.getByProperty(ursa.take, "property") !== null)) {
+            if (typeof(page) !== "number") {
+                page = scope.currentPage;
+            }
+
+            instance = {};
+            instance[(listOperation.isRdf ? ursa : "") + "skip"] = (listOperation.isRdf ? [{ "@value": (page - 1) * scope.itemsPerPage }] : (page - 1) * scope.itemsPerPage);
+            instance[(listOperation.isRdf ? ursa : "") + "take"] = (listOperation.isRdf ? [{ "@value": scope.itemsPerPage }] : scope.itemsPerPage);
+        }
+
+        this._handleOperation(scope, http, jsonld, authentication, listOperation, candidateMethod, instance, operationRendererOnLoadEntityListSuccess, null, OperationRenderer.prototype._loadEntityList, page);
     };
     OperationRenderer.prototype._entityEquals = function(leftOperand, rightOperand, operation) {
         if ((!leftOperand) || (!rightOperand)) {
@@ -845,6 +839,112 @@
         }
     };
     OperationRenderer.prototype._isFormDisabled = function(scope, name) {
-        return angular.element(document.getElementsByName(name)[0]).scope()[name].$invalid;
+        var forms = document.getElementsByName(name);
+        return (forms.length > 0 ? angular.element(forms[0]).scope()[name].$invalid : true) && (scope.footerVisible);
+    };
+    OperationRenderer.prototype._handleUnauthorized = function(scope, authentication, challenge, callback) {
+        if (this._authenticationEventHandler) {
+            this._authenticationEventHandler();
+            delete this._authenticationEventHandler;
+        }
+
+        var that = this;
+        this._authenticationEventHandler = scope.$root.$on(Events.Authenticate, function(e, userName, password) {
+            authentication[challenge](userName, password).
+                then(function(authorization) {
+                    that._authorization = authorization;
+                    callback();
+                });
+        });
+
+        scope.$emit(Events.AuthenticationRequired);
+    };
+    OperationRenderer.prototype._handleAuthorized = function(scope, authentication) {
+        if (this._authenticationEventHandler) {
+            this._authenticationEventHandler();
+            delete this._authenticationEventHandler;
+        }
+
+        if (this._authorization) {
+            authentication.use(this._authorization);
+            delete this._authorization;
+        }
+
+        scope.$emit(Events.Authenticated);
+    };
+    var bodylessVerbs = ["DELETE", "HEAD", "OPTIONS"];
+    OperationRenderer.prototype._prepareRequest = function (operation, methodOverride, instance) {
+        var request = {
+            method: methodOverride || operation.methods[0],
+            headers: { Accept: operation.mediaTypes.join() },
+            _isInstanceIdSet: false
+        };
+
+        if ((operation.mediaTypes.length > 0) && (bodylessVerbs.indexOf(operation.methods[0]) === -1)) {
+            request.headers["Content-Type"] = operation.mediaTypes[0];
+        }
+
+        var url = operation.createCallUrl(instance);
+        if ((operation.isRdf) && ((instance["@id"] === undefined) || (instance["@id"] === null) || (instance["@id"] === ""))) {
+            instance["@id"] = url;
+            request._isInstanceIdSet = true;
+        }
+
+        request.url = url;
+        request.data = JSON.stringify(this._sanitizeEntity(instance, operation));
+        if (this._authorization) {
+            request.headers.Authorization = this._authorization;
+        }
+
+        return request;
+    };
+    OperationRenderer.prototype._handleOperation = function(scope, http, jsonld, authentication, operation, methodOverride, instance, success, failure, callbackMethod, context) {
+        var that = this;
+        var request = this._prepareRequest(operation, methodOverride, instance);
+        var promise = http(request).
+            then(function(response) {
+                if (typeof(success) === "function") {
+                    success.call(that, scope, http, jsonld, authentication, operation, instance, request, response);
+                }
+
+                that._handleAuthorized(scope, authentication);
+                return response;
+            });
+
+        promise.catch(function(response) {
+            if (typeof(failure) === "function") {
+                failure.call(that, scope, http, jsonld, authentication, operation, instance, request, response);
+            }
+
+            if (response.status === ursa.model.HttpStatusCodes.Unauthorized) {
+                if (that._authenticationEventHandler) {
+                    scope.$emit(Events.AuthenticationFailed, response.statusText);
+                }
+                else {
+                    var callback = function() { callbackMethod.call(that, scope, http, jsonld, authentication, operation, instance, context); };
+                    var challenge = ((response.headers("WWW-Authenticate")) || (response.headers("X-WWW-Authenticate"))).split(/[ ;]/g)[0].toLowerCase();
+                    that._handleUnauthorized(scope, authentication, challenge, callback);
+                }
+            }
+
+            return response;
+        });
+    };
+
+    /**
+     * Enumeration of URSA events.
+     * @public
+     * @readonly 
+     * @enum {string}
+     */
+    var Events = namespace.Events = {
+        /*Notifies that the authentication is required.*/
+        AuthenticationRequired: "AuthenticationRequired",
+        /*Notifies that the authentication failed.*/
+        AuthenticationFailed: "AuthenticationFailed",
+        /*Notifies that the authentication should occur.*/
+        Authenticate: "Authenticate",
+        /*Notifies that the authentication was successful.*/
+        Authenticated: "Authenticated"
     };
 }(namespace("ursa.view")));

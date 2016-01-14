@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Reflection;
 using URSA.Web.Description;
 
@@ -9,10 +10,12 @@ namespace URSA.Web.Http.Description
     /// <summary>Provides a basic support for HTTP OPTIONS requests.</summary>
     public class OptionsController : IController
     {
+        private readonly HttpStatusCode _responseStatusCode;
         private readonly string[] _allowed;
 
-        internal OptionsController(params string[] allowed)
+        internal OptionsController(HttpStatusCode responseStatusCode, params string[] allowed)
         {
+            _responseStatusCode = responseStatusCode;
             _allowed = allowed;
         }
 
@@ -33,6 +36,7 @@ namespace URSA.Web.Http.Description
         private void Allow()
         {
             ResponseInfo response = (ResponseInfo)Response;
+            response.Status = _responseStatusCode;
             ((IDictionary<string, string>)response.Headers)["Allow"] = String.Join(", ", _allowed);
             if (!response.Request.IsCorsPreflight)
             {

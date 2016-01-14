@@ -24,6 +24,7 @@ namespace URSA.Web.Http.Reflection
             { "Build", Verb.POST },
             { "Make", Verb.POST },
             { "Set", Verb.POST },
+            { "Do", Verb.POST },
             { "Replace", Verb.POST },
             { "Update", Verb.PUT },
             { "Remove", Verb.DELETE },
@@ -148,7 +149,7 @@ namespace URSA.Web.Http.Reflection
             string methodNameWithoutVerb = null;
             Verb detectedVerb = null;
             string methodName = method.Name;
-            PopularNameMappings.SkipWhile(item => (methodNameWithoutVerb = Regex.Replace(methodName, "^" + item.Key, ((detectedVerb = item.Value) != null ? String.Empty : String.Empty), RegexOptions.IgnoreCase)) == methodName).ToArray();
+            PopularNameMappings.SkipWhile(item => (methodNameWithoutVerb = Regex.Replace(methodName, "^" + item.Key + "((?=[A-Z0-9])|$)", ((detectedVerb = item.Value) != null ? String.Empty : String.Empty), RegexOptions.IgnoreCase)) == methodName).ToArray();
             if ((route == null) && (methodNameWithoutVerb != null) && (methodNameWithoutVerb != methodName))
             {
                 route = new RouteAttribute((methodNameWithoutVerb.Length == 0 ? "/" : methodNameWithoutVerb).ToLower());

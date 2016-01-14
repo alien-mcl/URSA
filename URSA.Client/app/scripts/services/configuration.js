@@ -2,7 +2,8 @@
 (function() {
     "use strict";
     var config = {
-        entryPoint: "http://localhost:51509/api"
+        entryPoint: "http://localhost:51509/api",
+        challenge: "basic"
     };
 
     application.

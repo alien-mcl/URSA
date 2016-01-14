@@ -14,6 +14,7 @@ namespace URSA.Web.Http
     {
         private const string AnyAny = "*/*";
         private readonly Stream _stream;
+        private IClaimBasedIdentity _identity;
 
         /// <summary>Initializes a new instance of the <see cref="RequestInfo"/> class.</summary>
         /// <param name="method">HTTP method verb of the request.</param>
@@ -22,34 +23,9 @@ namespace URSA.Web.Http
         /// <param name="identity">Identity of this request.</param>
         /// <param name="headers">Headers of the request.</param>
         [ExcludeFromCodeCoverage]
-        public RequestInfo(Verb method, Uri uri, Stream body, IClaimBasedIdentity identity, params Header[] headers)
+        public RequestInfo(Verb method, Uri uri, Stream body, IClaimBasedIdentity identity, params Header[] headers) :
+            this(method, uri, body, identity, new HeaderCollection(headers))
         {
-            if (method == null)
-            {
-                throw new ArgumentNullException("method");
-            }
-
-            if (uri == null)
-            {
-                throw new ArgumentNullException("uri");
-            }
-
-            if (body == null)
-            {
-                throw new ArgumentNullException("body");
-            }
-
-            if (identity == null)
-            {
-                throw new ArgumentNullException("identity");
-            }
-
-            Method = method;
-            Uri = uri;
-            Body = new UnclosableStream(_stream = body);
-            Identity = identity;
-            Headers = new HeaderCollection();
-            headers.ForEach(header => Headers.Add(header));
         }
 
         /// <summary>Initializes a new instance of the <see cref="RequestInfo"/> class.</summary>
@@ -84,7 +60,7 @@ namespace URSA.Web.Http
             Method = method;
             Uri = uri;
             Body = new UnclosableStream(_stream = body);
-            Identity = identity;
+            _identity = identity;
             Headers = headers ?? new HeaderCollection();
         }
 
@@ -101,7 +77,23 @@ namespace URSA.Web.Http
         public HeaderCollection Headers { get; private set; }
 
         /// <inheritdoc />
-        public IClaimBasedIdentity Identity { get; private set; }
+        public IClaimBasedIdentity Identity
+        {
+            get
+            {
+                return _identity;
+            }
+
+            set
+            {
+                if (value == null)
+                {
+                    throw new ArgumentNullException("value");
+                }
+
+                _identity = value;
+            }
+        }
 
         /// <inheritdoc />
         public bool OutputNeutral { get { return (Headers.Accept.IndexOf(AnyAny) != -1); } }

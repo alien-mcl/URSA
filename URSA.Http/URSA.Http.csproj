@@ -86,6 +86,18 @@
     <Compile Include="ExceptionExtensions.cs" />
     <Compile Include="DelegateMapper.cs" />
     <Compile Include="Header.cs" />
+    <Compile Include="HeaderCollection.IEnumerable.cs">
+      <DependentUpon>HeaderCollection.cs</DependentUpon>
+    </Compile>
+    <Compile Include="HeaderCollection.ICollection.cs">
+      <DependentUpon>HeaderCollection.cs</DependentUpon>
+    </Compile>
+    <Compile Include="HeaderCollection.IDictionary.cs">
+      <DependentUpon>HeaderCollection.cs</DependentUpon>
+    </Compile>
+    <Compile Include="HeaderCollection.Headers.cs">
+      <DependentUpon>HeaderCollection.cs</DependentUpon>
+    </Compile>
     <Compile Include="HeaderCollection.cs" />
     <Compile Include="HeaderParameter.cs" />
     <Compile Include="HeaderParameterCollection.cs" />
@@ -112,6 +124,10 @@
     <Compile Include="Mapping\ResultBinder.cs" />
     <Compile Include="Reflection\MemberInfoExtensions.cs" />
     <Compile Include="ResponseComposer.cs" />
+    <Compile Include="Security\BasicAuthenticationProvider.cs" />
+    <Compile Include="Security\CorsPostRequestHandler.cs" />
+    <Compile Include="Security\IAuthenticationProvider.cs" />
+    <Compile Include="Security\IDefaultAuthenticationScheme.cs" />
     <Compile Include="WebRequestProvider.cs" />
     <None Include="Description\OperationInfo.cs" />
     <Compile Include="MultiObjectResponseInfo.cs" />

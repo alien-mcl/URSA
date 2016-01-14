@@ -16,6 +16,7 @@ using RomanticWeb.Mapping;
 using RomanticWeb.Mapping.Model;
 using RomanticWeb.Model;
 using RomanticWeb.NamedGraphs;
+using URSA.Security;
 using URSA.Web.Description;
 using URSA.Web.Description.Http;
 using URSA.Web.Http;
@@ -133,6 +134,22 @@ namespace Given_instance_of_the
             statusCodes.Should().Contain((int)HttpStatusCode.NoContent);
             statusCodes.Should().Contain((int)HttpStatusCode.NotFound);
             statusCodes.Should().Contain((int)HttpStatusCode.BadRequest);
+            statusCodes.Should().Contain((int)HttpStatusCode.Forbidden);
+        }
+
+        [TestMethod]
+        public void it_should_acknowledge_restricted_resource()
+        {
+            var apiDescriptionBuilder = new ApiDescriptionBuilder<TestController>(
+                _descriptionBuilder,
+                _xmlDocProvider.Object,
+                new[] { _typeDescriptionBuilder.Object },
+                new IServerBehaviorAttributeVisitor[0],
+                _namedGraphSelectorFactory.Object);
+
+            apiDescriptionBuilder.BuildDescription(_apiDocumentation.Object, null);
+
+            var statusCodes = _apiDocumentation.Object.SupportedClasses.First().GetSupportedOperations().First(operation => operation.Operation.Label == "Update").Operation.StatusCodes;
             statusCodes.Should().Contain((int)HttpStatusCode.Unauthorized);
         }
 
@@ -194,7 +211,7 @@ namespace Given_instance_of_the
                 uriTemplate += "?" + queryString.Substring(1);
             }
 
-            return new OperationInfo<Verb>(method, new Uri("/", UriKind.Relative), uriTemplate, new Regex(".*"), verb, arguments.ToArray());
+            return new OperationInfo<Verb>(method, new Uri("/", UriKind.Relative), uriTemplate, new Regex(".*"), verb, arguments.ToArray()).WithSecurityDetailsFrom(method);
         }
 
         private static Mock<INamedGraphSelectorFactory> SetupNamedGraphSelectorFactory(Uri baseUri)
@@ -209,7 +226,7 @@ namespace Given_instance_of_the
 
         private static Mock<IXmlDocProvider> SetupXmlDocProvider()
         {
-            var deleteExceptions = new[] { "System.ArgumentNullException", "System.ArgumentOutOfRangeException", "URSA.Web.UnauthenticatedAccessException" };
+            var deleteExceptions = new[] { "System.ArgumentNullException", "System.ArgumentOutOfRangeException", "URSA.Web.AccessDeniedException" };
             var xmlDocProvider = new Mock<IXmlDocProvider>(MockBehavior.Strict);
             xmlDocProvider.Setup(instance => instance.GetDescription(It.IsAny<MethodInfo>())).Returns<MethodInfo>(method => method.Name);
             xmlDocProvider.Setup(instance => instance.GetDescription(It.IsAny<MethodInfo>(), It.IsAny<ParameterInfo>()))

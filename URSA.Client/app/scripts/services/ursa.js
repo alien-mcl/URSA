@@ -57,7 +57,7 @@
         module = angular.module("ursa");
     }
     catch (exception) {
-        module = angular.module("ursa", []) ;
+        module = angular.module("ursa", []);
     }
 
     module.

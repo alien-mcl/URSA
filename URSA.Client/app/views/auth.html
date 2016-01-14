@@ -1,0 +1,26 @@
+<div class="modal show" ng-show="visible" role="dialog">
+    <div class="modal-dialog">
+        <form name="credentials" ng-submit="onLoginClick()" class="modal-content">
+            <div ng-class="{ 'modal-header': true, 'alert-danger': message }">
+                <h3 class="modal-title">Authentication<span ng-show="message"> - {{ message }}</span></h3>
+            </div>
+            <div class="modal-body">
+                <div ng-class="{ 'form-group': true, 'has-error': (!userName && ((credentials.userName.$dirty) || (submitted))) }">
+                    <div class="input-group">
+                        <span class="input-group-addon"><span class="glyphicon glyphicon-user"></span></span>
+                        <input type="text" id="userName" name="userName" class="form-control" placeholder="User name" ng-model="userName" ng-change="submitted = !(credentials.userName.$dirty = true)" required />
+                    </div>
+                </div>
+                <div ng-class="{ 'form-group': true, 'has-error': (!password && ((credentials.password.$dirty) || (submitted))) }">
+                    <div class="input-group">
+                        <span class="input-group-addon"><span class="glyphicon glyphicon-briefcase"></span></span>
+                        <input type="password" id="password" name="password" class="form-control" placeholder="Password" ng-model="password" ng-change="submitted = !(credentials.password.$dirty = true)" required />
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer text-right">
+                <button type="submit" class="btn btn-default btn-primary" ng-click="submitted = true">Login</button>
+            </div>
+        </form>
+    </div>
+</div>

@@ -18,6 +18,7 @@ using URSA.Web.Description;
 using URSA.Web.Description.Http;
 using URSA.Web.Http;
 using URSA.Web.Http.Mapping;
+using URSA.Web.Http.Security;
 using URSA.Web.Mapping;
 using URSA.Web.Tests;
 
@@ -100,12 +101,15 @@ namespace Given_instance_of_the
         [TestMethod]
         public void it_should_deny_access_for_unauthenticated_identity()
         {
-            var handler = SetupEnvironment((object)null, true, "Authenticated");
+            var defaultAuthenticationScheme = new Mock<IDefaultAuthenticationScheme>(MockBehavior.Strict);
+            defaultAuthenticationScheme.Setup(instance => instance.Challenge(It.IsAny<IResponseInfo>()));
+            var handler = SetupEnvironment((object)null, true, "Authenticated", defaultAuthenticationScheme.Object);
 
             var result = handler.HandleRequest(new RequestInfo(Verb.GET, new Uri("http://temp.uri/api/test"), new MemoryStream(), new BasicClaimBasedIdentity()));
 
             result.Should().BeOfType<ExceptionResponseInfo>();
             ((ExceptionResponseInfo)result).Value.Should().BeOfType<UnauthenticatedAccessException>();
+            defaultAuthenticationScheme.Verify(instance => instance.Challenge(It.IsAny<IResponseInfo>()), Times.Once);
         }
 
         [TestMethod]
@@ -116,6 +120,30 @@ namespace Given_instance_of_the
             var result = handler.HandleRequest(new RequestInfo(Verb.GET, new Uri("http://temp.uri/api/test"), new MemoryStream(), new BasicClaimBasedIdentity("test")));
 
             result.Should().NotBeOfType<ExceptionResponseInfo>();
+        }
+
+        [TestMethod]
+        public void it_should_process_pre_request_handlers()
+        {
+            var preRequestHandler = new Mock<IPreRequestHandler>(MockBehavior.Strict);
+            preRequestHandler.Setup(instance => instance.Process(It.IsAny<IRequestInfo>())).Returns(Task.FromResult(0));
+            var handler = SetupEnvironment(1, true, preRequestHandler: preRequestHandler.Object);
+
+            handler.HandleRequest(new RequestInfo(Verb.GET, new Uri("http://temp.uri/api/test"), new MemoryStream(), new BasicClaimBasedIdentity()));
+
+            preRequestHandler.Verify(instance => instance.Process(It.IsAny<IRequestInfo>()), Times.Once);
+        }
+
+        [TestMethod]
+        public void it_should_process_post_request_handlers()
+        {
+            var postRequestHandler = new Mock<IPostRequestHandler>(MockBehavior.Strict);
+            postRequestHandler.Setup(instance => instance.Process(It.IsAny<IResponseInfo>())).Returns(Task.FromResult(0));
+            var handler = SetupEnvironment(1, true, postRequestHandler: postRequestHandler.Object);
+
+            handler.HandleRequest(new RequestInfo(Verb.GET, new Uri("http://temp.uri/api/test"), new MemoryStream(), new BasicClaimBasedIdentity()));
+
+            postRequestHandler.Verify(instance => instance.Process(It.IsAny<IResponseInfo>()), Times.Once);
         }
 
         private RequestHandler SetupEnvironmentAsync<T>(T result = default(T), bool useDefaultArguments = false)
@@ -131,7 +159,13 @@ namespace Given_instance_of_the
             return requestHandler;
         }
 
-        private RequestHandler SetupEnvironment<T>(T result = default(T), bool useDefaultArguments = false, string methodName = "Substract")
+        private RequestHandler SetupEnvironment<T>(
+            T result = default(T),
+            bool useDefaultArguments = false,
+            string methodName = "Substract",
+            IDefaultAuthenticationScheme _defaultAuthenticationScheme = null,
+            IPreRequestHandler preRequestHandler = null,
+            IPostRequestHandler postRequestHandler = null)
         {
             var operation = CreateOperation(methodName);
             _arguments = operation.UnderlyingMethod.GetParameters().Select(parameter =>
@@ -156,7 +190,14 @@ namespace Given_instance_of_the
 
             _responseComposer = new Mock<IResponseComposer>(MockBehavior.Strict);
             _responseComposer.Setup(instance => instance.ComposeResponse(_mapping.Object, result, _arguments)).Returns((ResponseInfo)null);
-            return new RequestHandler(_argumentBinder.Object, _delegateMapper.Object, _responseComposer.Object);
+
+            return new RequestHandler(
+                _argumentBinder.Object,
+                _delegateMapper.Object,
+                _responseComposer.Object,
+                (preRequestHandler != null ? new[] { preRequestHandler } : null),
+                (postRequestHandler != null ? new[] { postRequestHandler } : null),
+                _defaultAuthenticationScheme);
         }
 
         private OperationInfo<Verb> CreateOperation(string methodName)

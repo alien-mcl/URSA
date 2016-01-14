@@ -108,6 +108,7 @@
     <Compile Include="..\.build\VersionAssemblyInfo.cs">
       <Link>Properties\VersionAssemblyInfo.cs</Link>
     </Compile>
+    <Compile Include="Security\BasicIdentityProvider.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\URSA.CastleWindsor\URSA.CastleWindsor.csproj">

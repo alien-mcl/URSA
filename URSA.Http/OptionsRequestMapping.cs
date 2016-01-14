@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics.CodeAnalysis;
+using System.Net;
 using URSA.Web.Description;
 using URSA.Web.Http.Description;
 
@@ -11,9 +12,10 @@ namespace URSA.Web.Http
         /// <summary>Initializes a new instance of the <see cref="OptionsRequestMapping" /> class.</summary>
         /// <param name="operation">Operation to be invoked.</param>
         /// <param name="methodRoute">Method route.</param>
+        /// <param name="responseStatusCode">Designated HTTP response status code.</param>
         /// <param name="allowed">Allowed HTTP requests.</param>
         [ExcludeFromCodeCoverage]
-        public OptionsRequestMapping(OperationInfo<Verb> operation, Uri methodRoute, params string[] allowed)
+        public OptionsRequestMapping(OperationInfo<Verb> operation, Uri methodRoute, HttpStatusCode responseStatusCode, params string[] allowed)
         {
             if (operation == null)
             {
@@ -30,7 +32,7 @@ namespace URSA.Web.Http
                 throw new ArgumentOutOfRangeException("allowed");
             }
 
-            Target = new OptionsController(allowed);
+            Target = new OptionsController(responseStatusCode, allowed);
             Operation = operation;
             MethodRoute = methodRoute;
         }

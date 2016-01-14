@@ -66,10 +66,13 @@
     <Compile Include="Security\ClaimBasedSecurityConstraintAttribute.cs" />
     <Compile Include="Security\DenyClaimAttribute.cs" />
     <Compile Include="Security\AllowClaimAttribute.cs" />
+    <Compile Include="Security\IIdentityProvider.cs" />
     <Compile Include="Security\IClaimBasedIdentity.cs" />
     <Compile Include="Security\ResourceSecurityInfo.cs" />
     <Compile Include="Security\SecurableResourceInfoExtensions.cs" />
     <Compile Include="Security\SecuritySpecificationInfo.cs" />
+    <Compile Include="Web\IPostRequestHandler.cs" />
+    <Compile Include="Web\IPreRequestHandler.cs" />
     <Compile Include="Web\UnauthenticatedAccessException.cs" />
     <Compile Include="Web\AccessDeniedException.cs" />
     <Compile Include="Web\DefaultControllerActivator.cs" />

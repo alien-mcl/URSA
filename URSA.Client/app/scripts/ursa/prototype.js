@@ -76,6 +76,8 @@
     window.ursa = new String("http://alien-mcl.github.io/URSA/vocabulary#"); //jshint ignore:line
     ursa.singleValue = ursa + "singleValue";
     ursa.mediaType = ursa + "mediaType";
+    ursa.skip = ursa + "skip";
+    ursa.take = ursa + "take";
     window.shacl = new String("http://www.w3.org/ns/shacl#"); //jshint ignore:line
     window.guid = new String("http://openguid.net/rdf#"); //jshint ignore:line
     guid.guid = guid + "guid";
@@ -113,12 +115,28 @@
         return is.call(this.prototype, type);
     };
 
+    var forbiddenProperties = [/^webkit.*/];
+    forbiddenProperties.matches = function(propertyName) {
+        for (var index = 0; index < forbiddenProperties.length; index++) {
+            var forbiddenProperty = forbiddenProperties[index];
+            if ((forbiddenProperty === propertyName) || (forbiddenProperty.test(propertyName))) {
+                return true;
+            }
+        }
+
+        return false;
+    };
+
     var resolve = function(type, target, result, depth) {
         if (depth > maxResolveDepth) {
             return result;
         }
 
         for (var property in target) {
+            if (forbiddenProperties.matches(property)) {
+                continue;
+            }
+
             if ((target.hasOwnProperty(property)) && (target[property] !== undefined) && (target[property] !== null)) {
                 if ((typeof(target[property]) === "object") && (target[property].__namespace)) {
                     resolve(type, target[property], result, depth + 1);

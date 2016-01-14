@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using URSA.Example.WebApplication.Data;
+using URSA.Security;
 using URSA.Web;
 using URSA.Web.Http.Description.Mapping;
 
@@ -48,6 +50,7 @@ namespace URSA.Example.WebApplication.Controllers
         /// <summary>Creates the specified person.</summary>
         /// <param name="person">The person.</param>
         /// <returns>Identifier of newly created person.</returns>
+        [DenyClaim(ClaimTypes.Anonymous)]
         public Guid Create(Person person)
         {
             person.Key = Guid.NewGuid();
@@ -58,6 +61,7 @@ namespace URSA.Example.WebApplication.Controllers
         /// <summary>Updates the specified person.</summary>
         /// <param name="id">The identifier of the person to be updated.</param>
         /// <param name="person">The person.</param>
+        [DenyClaim(ClaimTypes.Anonymous)]
         public void Update(Guid id, Person person)
         {
             (Repository[GetIndex(id)] = person).Key = id;
@@ -65,6 +69,7 @@ namespace URSA.Example.WebApplication.Controllers
 
         /// <summary>Deletes a person.</summary>
         /// <param name="id">Identifier of the person to be deleted.</param>
+        [DenyClaim(ClaimTypes.Anonymous)]
         public void Delete(Guid id)
         {
             Repository.RemoveAt(GetIndex(id));
@@ -73,6 +78,7 @@ namespace URSA.Example.WebApplication.Controllers
         /// <summary>Adds the given <paramref name="roles" /> to the user with given <paramref name="id" />.</summary>
         /// <param name="id">The identifier.</param>
         /// <param name="roles">The roles.</param>
+        [DenyClaim(ClaimTypes.Anonymous)]
         public void SetRoles(Guid id, IEnumerable<string> roles)
         {
             var user = Repository[GetIndex(id)];

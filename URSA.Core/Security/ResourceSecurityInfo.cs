@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Linq.Expressions;
 
 namespace URSA.Security
@@ -119,9 +120,16 @@ namespace URSA.Security
             var method = ((MethodCallExpression)mergingDelegate.Body).Method;
             foreach (var claimType in securitySpecificationInfo)
             {
-                foreach (var claimValue in securitySpecificationInfo[claimType])
+                if (!securitySpecificationInfo[claimType].Any())
                 {
-                    method.Invoke(this, new object[] { claimType, claimValue });
+                    method.Invoke(this, new object[] { claimType, null });
+                }
+                else
+                {
+                    foreach (var claimValue in securitySpecificationInfo[claimType])
+                    {
+                        method.Invoke(this, new object[] { claimType, claimValue });
+                    }
                 }
             }
         }

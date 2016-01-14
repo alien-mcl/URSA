@@ -47,7 +47,7 @@ namespace Given_instance_of_the
             exceptions.Should().HaveCount(3);
             exceptions.Should().Contain("System.ArgumentNullException");
             exceptions.Should().Contain("System.ArgumentOutOfRangeException");
-            exceptions.Should().Contain("URSA.Web.UnauthenticatedAccessException");
+            exceptions.Should().Contain("URSA.Web.AccessDeniedException");
         }
 
         [TestMethod]

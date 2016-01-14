@@ -7,11 +7,13 @@ using System.Threading.Tasks;
 using Microsoft.Owin;
 using URSA.Configuration;
 using URSA.Owin.Security;
+using URSA.Security;
 using URSA.Web;
 using URSA.Web.Http;
 using URSA.Web.Http.Configuration;
 using URSA.Web.Http.Converters;
 using URSA.Web.Http.Description;
+using URSA.Web.Http.Security;
 
 namespace URSA.Owin.Handlers
 {
@@ -19,11 +21,17 @@ namespace URSA.Owin.Handlers
     public class UrsaHandler : OwinMiddleware
     {
         private readonly IRequestHandler<RequestInfo, ResponseInfo> _requestHandler;
+        private readonly IEnumerable<IAuthenticationProvider> _authenticationProviders;
 
         /// <summary>Initializes a new instance of the <see cref="UrsaHandler"/> class.</summary>
         /// <param name="next">Next middleware in the pipeline.</param>
         /// <param name="requestHandler">The request handler.</param>
-        public UrsaHandler(OwinMiddleware next, IRequestHandler<RequestInfo, ResponseInfo> requestHandler) : base(next)
+        /// <param name="authenticationProviders">Authentication providers.</param>
+        public UrsaHandler(
+            OwinMiddleware next,
+            IRequestHandler<RequestInfo, ResponseInfo> requestHandler,
+            IEnumerable<IAuthenticationProvider> authenticationProviders)
+            : base(next)
         {
             if (requestHandler == null)
             {
@@ -31,6 +39,7 @@ namespace URSA.Owin.Handlers
             }
 
             _requestHandler = requestHandler;
+            _authenticationProviders = authenticationProviders ?? new IAuthenticationProvider[0];
         }
 
         /// <inheritdoc />
@@ -82,23 +91,42 @@ namespace URSA.Owin.Handlers
                 (((ExceptionResponseInfo)response).Value is NoMatchingRouteFoundException));
         }
 
-        private async Task HandleRequest(IOwinContext context)
+        private HeaderCollection ParseHeaders(IOwinContext context)
         {
-            var headers = new HeaderCollection();
-            context.Request.Headers.ForEach(header => headers[header.Key] = new Header(header.Key, header.Value));
-            if (!String.IsNullOrEmpty(context.Request.Headers[Header.Origin]))
-            {
-                context.Response.Headers[Header.AccessControlAllowOrigin] = context.Request.Headers[Header.Origin];
-                context.Response.Headers[Header.AccessControlExposeHeaders] = String.Join(", ", context.Response.Headers.Keys);
-                context.Response.Headers[Header.AccessControlAllowHeaders] = "Content-Type, Content-Length, Accept, Accept-Language, Accept-Charser, Accept-Encoding, Accept-Ranges, Authorization, X-Auth-Token";
-            }
+            var result = new HeaderCollection();
+            context.Request.Headers.ForEach(header => result[header.Key] = new Header(header.Key, header.Value));
+            return result;
+        }
 
+        private RequestInfo AuthenticateRequest(IOwinContext context)
+        {
             var requestInfo = new RequestInfo(
                 Verb.Parse(context.Request.Method),
                 new Uri(context.Request.Uri.AbsoluteUri.TrimEnd('/')),
                 context.Request.Body,
                 new OwinPrincipal(context.Authentication.User),
-                headers);
+                ParseHeaders(context));
+            var authorization = requestInfo.Headers.Authorization;
+            int indexOf;
+            if ((String.IsNullOrEmpty(authorization)) || ((indexOf = authorization.IndexOf(' ')) == -1))
+            {
+                return requestInfo;
+            }
+
+            var authenticationProvider = (from provider in _authenticationProviders
+                                          where provider.Scheme == authorization.Substring(0, indexOf)
+                                          select provider).FirstOrDefault();
+            if (authenticationProvider != null)
+            {
+                authenticationProvider.Authenticate(requestInfo);
+            }
+
+            return requestInfo;
+        }
+
+        private async Task HandleRequest(IOwinContext context)
+        {
+            var requestInfo = AuthenticateRequest(context);
             var response = await _requestHandler.HandleRequestAsync(requestInfo);
             if ((IsResponseNoMatchingRouteFoundException(response)) && (Next != null))
             {

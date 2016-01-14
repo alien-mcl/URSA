@@ -26,6 +26,9 @@ namespace URSA.Web.Http
         /// <summary>Defines the 'Access-Control-Expose-Headers' header name.</summary>
         public const string AccessControlExposeHeaders = "Access-Control-Expose-Headers";
 
+        /// <summary>Defines the 'Authorization' header name.</summary>
+        public const string Authorization = "Authorization";
+
         /// <summary>Defines the 'Warning' header name.</summary>
         public const string Warning = "Warning";
 
@@ -58,6 +61,12 @@ namespace URSA.Web.Http
 
         /// <summary>Defines the 'Origin' header name.</summary>
         public const string Origin = "Origin";
+
+        /// <summary>Defines the 'WWW-Authenticate' header name.</summary>
+        public const string WWWAuthenticate = "WWW-Authenticate";
+
+        /// <summary>Defines the custom 'X-Requested-With' header name usually used with AJAX calls.</summary>
+        public const string XRequestedWith = "X-Requested-With";
 
         internal static readonly IEqualityComparer<string> Comparer = StringComparer.OrdinalIgnoreCase;
 

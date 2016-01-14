@@ -1,7 +1,7 @@
 ﻿#pragma warning disable 1591 
 using System;
+using URSA.Example.WebApplication.Security;
 using URSA.Web;
-using URSA.Web.Http;
 
 namespace URSA.Example.WebApplication
 {
@@ -9,7 +9,10 @@ namespace URSA.Example.WebApplication
     {
         protected void Application_Start(object sender, EventArgs e)
         {
-            this.RegisterApis();
+            this.WithCorsEnabled()
+                .WithIdentityProvider<BasicIdentityProvider>()
+                .WithBasicAuthentication()
+                .RegisterApis();
         }
 
         protected void Session_Start(object sender, EventArgs e)

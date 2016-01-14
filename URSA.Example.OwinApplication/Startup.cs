@@ -1,5 +1,6 @@
 ﻿using System;
 using Owin;
+using URSA.Example.WebApplication.Security;
 using URSA.Owin;
 
 namespace URSA.Example.OwinApplication
@@ -16,7 +17,11 @@ namespace URSA.Example.OwinApplication
                 throw new ArgumentNullException("appBuilder");
             }
 
-            appBuilder.RegisterApis();
+            appBuilder
+                .WithCorsEnabled()
+                .WithIdentityProvider<BasicIdentityProvider>()
+                .WithBasicAuthentication()
+                .RegisterApis();
         } 
     }
 }

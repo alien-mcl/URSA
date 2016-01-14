@@ -20,7 +20,8 @@ namespace URSA.Web
         /// <summary>Gets the uri of the request.</summary>
         Uri Uri { get; }
 
-        /// <summary>Gets the identity of this request.</summary>
-        IClaimBasedIdentity Identity { get; }
+        /// <summary>Gets or sets the identity of this request.</summary>
+        /// <exception cref="ArgumentNullException">Thrown when setting a <b>null</b> value.</exception>
+        IClaimBasedIdentity Identity { get; set; }
     }
 }

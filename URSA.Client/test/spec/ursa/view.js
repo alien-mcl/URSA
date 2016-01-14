@@ -29,7 +29,7 @@
 
             describe("when rendering an xsd:int based property", function() {
                 beforeEach(function() {
-                    view = renderer.render(scope, null, null, apiMember = apiDocumentation.supportedClasses[0].supportedProperties[1], null);
+                    view = renderer.render(scope, null, null, null, apiMember = apiDocumentation.supportedClasses[0].supportedProperties[1], null);
                 });
 
                 it("it should render it's view correctly", function () {
@@ -50,7 +50,7 @@
 
             describe("when rendering an multiple xsd:string values based property", function () {
                 beforeEach(function () {
-                    view = renderer.render(scope, null, null, apiMember = apiDocumentation.supportedClasses[0].supportedProperties[2], null);
+                    view = renderer.render(scope, null, null, null, apiMember = apiDocumentation.supportedClasses[0].supportedProperties[2], null);
                 });
 
                 it("it should render it's view correctly", function () {
@@ -88,7 +88,7 @@
                         }
                     };
 
-                    view = renderer.render(scope, http, jsonld, apiMember, null);
+                    view = renderer.render(scope, http, jsonld, null, apiMember, null);
                 });
 
                 it("it should render it's view correctly", function() {
@@ -105,13 +105,13 @@
                                 "</div></td>" +
                             "</tr>" +
                             "<tr ng-repeat-end ng-show=\"entityEquals(entity)\" ng-init=\"initialize($index)\">" +
-                                "<td colspan=\"{1}\"><ursa-api-member-view api-member=\"operation.owner\" target-instance=\"editedEntity\" unique-id=\"{{ uniqueId[$index] }}\"></ursa-api-member-view></td>" +
+                                "<td colspan=\"{1}\"><div><ursa-api-member-view api-member=\"operation.owner\" target-instance=\"editedEntity\" unique-id=\"{{ uniqueId[$index] }}\"></ursa-api-member-view></div></td>" +
                                 "<td><div class=\"btn-block\">" +
                                     "<button class=\"btn btn-default\" title=\"Cancel\" ng-click=\"cancel()\"><span class=\"glyphicon glyphicon-repeat\"></span></button>" +
                                 "</div></td>" +
                             "</tr>" +
                             "<tr ng-hide=\"editedEntity !== null\" ng-init=\"initialize(-1)\">" +
-                                "<td colspan=\"{1}\"><ursa-api-member-view api-member=\"operation.owner\" target-instance=\"newInstance\" unique-id=\"{{ uniqueId.footer }}\"></ursa-api-member-view></td>" +
+                                "<td colspan=\"{1}\"><div ng-show=\"footerVisible\"><ursa-api-member-view api-member=\"operation.owner\" target-instance=\"newInstance\" unique-id=\"{{ uniqueId.footer }}\"></ursa-api-member-view></div></td>" +
                                 "<td><div class=\"btn-block\">" +
                                 "</div></td>" +
                             "</tr>" +
