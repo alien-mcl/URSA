@@ -10,7 +10,7 @@
      * Controller of the ursaclientApp
      */
     application.
-    controller("MainCtrl", ["$scope", "$location", "configuration", "hydraApiDocumentation", function ($scope, $location, configuration, apiDocumentationProvider) {
+    controller("MainCtrl", ["$scope", "configuration", "hydraApiDocumentation", function($scope, configuration, apiDocumentationProvider) {
         $scope.apiDocumentation = null;
         $scope.selectedOperation = null;
         $scope.apiDocumentationId = hydra.ApiDocumentation;
@@ -48,6 +48,8 @@
                 if (apiDocumentationOperation !== null) {
                     $scope.$root.documentationUrl = apiDocumentationOperation.createCallUrl();
                 }
+
+                return apiDocumentation;
             });
     }]);
 }());

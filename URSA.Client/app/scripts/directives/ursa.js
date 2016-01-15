@@ -5,7 +5,7 @@
     var getScopePropertyDeep = function(selector) {
         var currentScope = this;
         while (currentScope !== null) {
-            if (currentScope[selector] !== undefined) {
+            if ((currentScope[selector] !== undefined) && (currentScope._ursaApiMemberView)) {
                 return currentScope;
             }
 
@@ -38,7 +38,6 @@
             controller: angular.noop,
             compile: function(element, attr) {
                 var autoScrollExp = attr.autoscroll;
-
                 return function(scope, $element, $attr, ctrl, $transclude) {
                     var currentScope;
                     var previousElement;
@@ -64,6 +63,7 @@
                             ctrl.template = null;
                         }
                     };
+                    Object.defineProperty(scope, "_ursaApiMemberView", { enumerable: false, configurable: false, value: true, writable: false });
                     scope.$watch("apiMember", function ursaApiMemberViewWatchAction(apiMember, oldValue) {
                         var afterAnimation = function() {
                             if ((angular.isDefined(autoScrollExp)) && ((!autoScrollExp) || (scope.$eval(autoScrollExp)))) {

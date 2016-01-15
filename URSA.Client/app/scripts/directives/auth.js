@@ -2,13 +2,6 @@
 (function() {
     "use strict";
 
-    /**
-     * @ngdoc function
-     * @name ursaclientApp.controller:AuthCtrl
-     * @description
-     * # basicAuthentication
-     * Directicve of the ursaclientApp
-     */
     application.
     directive("basicAuthentication", function() {
         return {
@@ -31,15 +24,9 @@
                         $scope.$root.$broadcast($scope.notifyWithEvent, $scope.userName, $scope.password);
                     }
                 };
-                $scope.$on($scope.showOnEvent, function() {
-                    $scope.visible = true;
-                });
-                $scope.$on($scope.hideOnEvent, function() {
-                    $scope.visible = false;
-                });
-                $scope.$on($scope.errorOnEvent, function(e, error) {
-                    $scope.message = error;
-                });
+                $scope.$on($scope.showOnEvent, function() { $scope.visible = true; });
+                $scope.$on($scope.hideOnEvent, function() { $scope.visible = false; });
+                $scope.$on($scope.errorOnEvent, function(e, error) { $scope.message = error; });
             }
         };
     });

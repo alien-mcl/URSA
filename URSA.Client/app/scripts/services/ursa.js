@@ -45,8 +45,8 @@
         };
 
         this.http({ method: "OPTIONS", url: entryPoint, headers: { "Accept": rdfMediaTypes } }).
-            then(function(response) { jsonld.expand(response.data, onExpanded); }).
-            catch(function(response) { deferred.reject(response.data); });
+            then(function(response) { jsonld.expand(response.data, onExpanded); return response; }).
+            catch(function(response) { deferred.reject(response.data); return response; });
         return deferred.promise;
     };
     ApiDocumentationService.prototype.http = null;

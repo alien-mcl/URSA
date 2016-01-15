@@ -30,7 +30,7 @@
         }
         while (i < input.length);
         return output;
-    };
+    }
 
     function decode(input) {
         var output = "";
@@ -65,7 +65,7 @@
         while (i < input.length);
   
         return output;
-    };
+    }
 
     application.
     factory("base64", function() {

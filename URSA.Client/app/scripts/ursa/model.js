@@ -1144,7 +1144,7 @@
      * @readonly
      * @enum {number}
      */
-    var HttpStatusCodes = namespace.HttpStatusCodes = {
+    namespace.HttpStatusCodes = {
         /** Continue indicates that the client can continue with its request. */
         Continue: 100,
         /** SwitchingProtocols indicates that the protocol version or protocol is being changed. */

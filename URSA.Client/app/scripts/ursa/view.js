@@ -663,7 +663,7 @@
         scope.list = function(page) { operationRendererLoadEntityList.call(that, scope, http, jsonld, authentication, scope.operation, null, page); };
         scope.get = function(instance) { operationRendererLoadEntity.call(that, scope, http, jsonld, authentication, scope.getOperation, instance); };
         scope.create = function(instance) { operationRendererCreateEntity.call(that, scope, http, jsonld, authentication, scope.createOperation, instance); };
-        scope.update = function(instance) { perationRendererUpdateEntity.call(that, scope, http, jsonld, authentication, scope.updateOperation, instance); };
+        scope.update = function(instance) { operationRendererUpdateEntity.call(that, scope, http, jsonld, authentication, scope.updateOperation, instance); };
         scope.delete = function(instance, e) { operationRendererDeleteEntity.call(that, scope, http, jsonld, authentication, scope.deleteOperation, instance, e); };
         scope.entityEquals = function(entity) { return operationRendererEntityEquals.call(that, entity, scope.editedEntity, scope.operation); };
         scope.initialize = function(index) { operationRendererInitialize.call(that, scope, index); };
@@ -685,6 +685,7 @@
             jsonld.expand(response.data).
                 then(function(expanded) {
                     scope.editedEntity = (expanded.length > 0 ? expanded[0] : null);
+                    return expanded;
                 });
         }
         else {
@@ -699,9 +700,14 @@
         scope.list(1);
         scope.footerVisible = false;
     };
-    var operationRendererCreateEntityFailure = function(scope, http, jsonld, authentication, createOperation, instance, request) {
-        if (request._isInstanceIdSet) {
-            delete instance["@id"];
+    var operationRendererAmmendEntityFailure = function(scope, http, jsonld, authentication, createOperation, instance, request) {
+        if (request.initialInstanceId !== undefined) {
+            if (request.initialInstanceId) {
+                delete instance["@id"];
+            }
+            else {
+                instance["@id"] = request.initialInstanceId;
+            }
         }
     };
     var operationRendererCreateEntity = function(scope, http, jsonld, authentication, createOperation, instance) {
@@ -710,19 +716,14 @@
             return;
         }
 
-        operationRendererHandleOperation.call(this, scope, http, jsonld, authentication, createOperation, null, instance, operationRendererCreateEntitySuccess, operationRendererCreateEntityFailure, operationRendererCreateEntity);
+        operationRendererHandleOperation.call(this, scope, http, jsonld, authentication, createOperation, null, instance, operationRendererCreateEntitySuccess, operationRendererAmmendEntityFailure, operationRendererCreateEntity);
     };
     var operationRendererOnUpdateEntitySuccess = function(scope) {
         scope.editedEntity = null;
         scope.list();
     };
-    var operationRendererOnUpdateEntityFailure = function(scope, http, jsonld, authentication, updateOperation, instance, request) {
-        if (request._isInstanceIdSet) {
-            delete instance["@id"];
-        }
-    };
-    var perationRendererUpdateEntity = function(scope, http, jsonld, authentication, updateOperation, instance) {
-        operationRendererHandleOperation.call(this, scope, http, jsonld, authentication, updateOperation, null, instance, operationRendererOnUpdateEntitySuccess, operationRendererOnUpdateEntityFailure, perationRendererUpdateEntity);
+    var operationRendererUpdateEntity = function(scope, http, jsonld, authentication, updateOperation, instance) {
+        operationRendererHandleOperation.call(this, scope, http, jsonld, authentication, updateOperation, null, instance, operationRendererOnUpdateEntitySuccess, operationRendererAmmendEntityFailure, operationRendererUpdateEntity);
     };
     var operationRendererOnDeleteEntitySuccess = function(scope) {
         scope.list(1);
@@ -753,8 +754,9 @@
 
         if ((response.headers("Content-Type") || "*/*").indexOf(ursa.model.EntityFormat.ApplicationLdJson) === 0) {
             jsonld.expand(response.data).
-                then(function (expanded) {
+                then(function(expanded) {
                     scope.entities = expanded;
+                    return expanded;
                 });
         }
         else {
@@ -862,6 +864,7 @@
                 then(function(authorization) {
                     that._authorization = authorization;
                     callback();
+                    return authorization;
                 });
         });
 
@@ -884,7 +887,7 @@
         var request = {
             method: methodOverride || operation.methods[0],
             headers: { Accept: operation.mediaTypes.join() },
-            _isInstanceIdSet: false
+            initialInstanceId: undefined
         };
 
         if ((operation.mediaTypes.length > 0) && (bodylessVerbs.indexOf(operation.methods[0]) === -1)) {
@@ -892,9 +895,15 @@
         }
 
         var url = operation.createCallUrl(instance);
-        if ((operation.isRdf) && ((instance["@id"] === undefined) || (instance["@id"] === null) || (instance["@id"] === ""))) {
-            instance["@id"] = url;
-            request._isInstanceIdSet = true;
+        if (operation.isRdf) {
+            if (instance["@id"] === undefined) {
+                request.initialInstanceId = true;
+                instance["@id"] = url;
+            }
+            else if ((instance["@id"] === null) || (instance["@id"] === "") || (instance["@id"].indexOf("_:") === 0)) {
+                request.initialInstanceId = instance["@id"];
+                instance["@id"] = url;
+            }
         }
 
         request.url = url;

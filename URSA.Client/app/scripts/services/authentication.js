@@ -1,4 +1,4 @@
-﻿/*globals application */
+﻿/*globals application, ursa */
 (function() {
     "use strict";
     application.
