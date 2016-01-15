@@ -19,8 +19,11 @@
             scope = {
                 targetInstance: "newInstance",
                 operation: apiDocumentation.supportedClasses[0].supportedOperations[0],
-                $emit: function() { }
+                $on: function() { },
+                $emit: function() { },
+                $broadcast: function() { }
             };
+            scope.$root = scope;
         });
 
         describe("ursa.view.SupportedPropertyRenderer class", function() {
@@ -80,16 +83,25 @@
                 renderer = new ursa.view.OperationRenderer();
             });
 
-            describe("when rendering an entity collection operation", function() {
+            describe("when rendering an entity collection operation", function () {
+                var entityId = "http://temp.uri/resource/id";
+                var httpResultTransformer = function (data) { return [data]; };
+                var status = ursa.model.HttpStatusCodes.OK;
                 beforeEach(function() {
                     apiMember = apiDocumentation.supportedClasses[0].supportedOperations[1];
                     httpResult = {
-                        then: function(handler) {
-                            handler({ headers: function () { return "application/json"; }, data: [apiDocumentation.supportedClasses[0].createInstance(apiMember)] });
+                        then: function (handler) {
+                            if (status !== ursa.model.HttpStatusCodes.OK) {
+                                return httpResult;
+                            }
+
+                            var entity = apiDocumentation.supportedClasses[0].createInstance(apiMember);
+                            entity["@id"] = entityId;
+                            handler({ headers: function() { return "application/json"; }, data: httpResultTransformer(entity) });
                             return httpResult;
                         },
                         catch: function(handler) {
-                            handler({ status:200 });
+                            handler({ headers: function() { return "Basic"; }, status: status });
                             return httpResult;
                         }
                     };
@@ -132,7 +144,28 @@
                         apiDocumentation.supportedClasses[0].supportedProperties[3].property,
                         apiDocumentation.supportedClasses[0].supportedProperties.length - 2,
                         apiDocumentation.supportedClasses[0].supportedProperties.length - 1);
+
                     expect(view).toBe(expected);
+                });
+
+                it("it should load a selected entity", function () {
+                    httpResultTransformer = function(entity) { return entity; };
+
+                    scope.get({ "@id": entityId });
+
+                    expect(scope.editedEntity).not.toBe(null);
+                    expect(scope.editedEntity["@id"]).toBe(entityId);
+                });
+
+                it("it should prompt for authentication", function() {
+                    httpResultTransformer = function (entity) { return entity; };
+                    status = ursa.model.HttpStatusCodes.Unauthorized;
+                    var eventRaised;
+                    scope.$root.$broadcast = function(event) { eventRaised = event; };
+
+                    scope.get({ "@id": entityId });
+
+                    expect(eventRaised).toBe(ursa.view.Events.AuthenticationRequired);
                 });
             });
         });

@@ -241,7 +241,9 @@
         var result = String.format.apply(window, parameters);
         if (apiMember.maxOccurances === 1) {
             var isNull = (!(scope.supportedPropertyNulls[apiMember.id] = (apiMember.minOccurances === 0)) ? "" : String.format(
-                "<span class=\"input-group-addon\"><input type=\"checkbox\" title=\"Null\" checked ng-model=\"supportedPropertyNulls['{0}']\" ng-change=\"onIsNullCheckedChanged('{0}')\" /></span>", apiMember.id));
+                "<span class=\"input-group-addon\">" +
+                "<input type=\"checkbox\" title=\"Null\" checked ng-model=\"supportedPropertyNulls['{0}']\" ng-change=\"onIsNullCheckedChanged('{0}')\" />" +
+                "</span>", apiMember.id));
             return String.format("<div class=\"input-group\"><span ng-class=\"styleFor('{3}', null)\">{0}</span>{1}{2}</div>", apiMember.label, result, isNull, apiMember.id);
         }
 
@@ -256,7 +258,7 @@
             String.format(propertySelector, propertyName),
             result.replace(" name=\"" + propertyName + "\"", " ng-attr-name=\"{{'" + propertyName + "_' + $index}}\""),
             apiMember.id,
-            (literalSelector === "value" ? "" : " track by value")) + String.format(
+            (literalSelector === "value" ? "" : " track by $index")) + String.format(
             "<div class=\"input-group\">" + 
                 "<span ng-class=\"styleFor('{2}', -1)\">{0}</span>" +
                 "{1}" +
@@ -274,6 +276,13 @@
         scope.supportedPropertyReadonly = {};
         scope.supportedProperties = apiMember.owner.supportedProperties;
         scope.isPropertyReadonly = function(supportedPropertyId) {
+            var supportedProperty = scope.supportedProperties.getById(supportedPropertyId);
+            var propertyName = supportedProperty.propertyName(scope.operation);
+            var instance = scope[scope.targetInstance];
+            if ((instance !== null) && (instance[propertyName] !== null)) {
+                delete scope.supportedPropertyNulls[supportedPropertyId];
+            }
+
             return scope.supportedPropertyKeys[supportedPropertyId] ||
                 scope.supportedPropertyNulls[supportedPropertyId] ||
                 scope.supportedPropertyReadonly[supportedPropertyId];
@@ -848,7 +857,7 @@
         }
 
         var that = this;
-        this._authenticationEventHandler = scope.$root.$on(Events.Authenticate, function(e, userName, password) {
+        this._authenticationEventHandler = scope.$on(Events.Authenticate, function(e, userName, password) {
             authentication[challenge](userName, password).
                 then(function(authorization) {
                     that._authorization = authorization;
@@ -856,7 +865,7 @@
                 });
         });
 
-        scope.$emit(Events.AuthenticationRequired);
+        scope.$root.$broadcast(Events.AuthenticationRequired);
     };
     var operationRendererHandleAuthorized = function(scope, authentication) {
         if (this._authenticationEventHandler) {
@@ -869,7 +878,7 @@
             delete this._authorization;
         }
 
-        scope.$emit(Events.Authenticated);
+        scope.$root.$broadcast(Events.Authenticated);
     };
     var operationRendererPrepareRequest = function (operation, methodOverride, instance) {
         var request = {
@@ -916,7 +925,7 @@
 
             if (response.status === ursa.model.HttpStatusCodes.Unauthorized) {
                 if (that._authenticationEventHandler) {
-                    scope.$emit(Events.AuthenticationFailed, response.statusText);
+                    scope.$root.$broadcast(Events.AuthenticationFailed, response.statusText);
                 }
                 else {
                     var callback = function() { callbackMethod.call(that, scope, http, jsonld, authentication, operation, instance, context); };

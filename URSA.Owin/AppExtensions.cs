@@ -64,7 +64,7 @@ namespace URSA.Owin
                 allowedHeaders ?? CorsPostRequestHandler.WithAny,
                 exposedHeaders ?? CorsPostRequestHandler.WithAny);
             var container = UrsaConfigurationSection.InitializeComponentProvider();
-            container.Register("CORS", handler);
+            container.Register<IPostRequestHandler>("CORS", handler);
             return application;
         }
 
@@ -79,8 +79,8 @@ namespace URSA.Owin
             }
 
             var container = UrsaConfigurationSection.InitializeComponentProvider();
-            container.Register<IAuthenticationProvider, BasicAuthenticationProvider>("Basic", lifestyle: Lifestyles.Singleton);
-            container.Register<IDefaultAuthenticationScheme, BasicAuthenticationProvider>(lifestyle: Lifestyles.Singleton);
+            container.Register<IPreRequestHandler, BasicAuthenticationProvider>("Basic", lifestyle: Lifestyles.Singleton);
+            container.Register<IPostRequestHandler, BasicAuthenticationProvider>(lifestyle: Lifestyles.Singleton);
             return application;
         }
 

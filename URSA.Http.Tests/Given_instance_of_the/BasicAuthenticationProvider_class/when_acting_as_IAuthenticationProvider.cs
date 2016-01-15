@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Security.Claims;
 using System.Text;
+using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
@@ -18,7 +19,7 @@ namespace Given_instance_of_the.BasicAuthenticationProvider_class
         private BasicAuthenticationProvider _authenticationProvider;
 
         [TestMethod]
-        public void it_should_authenticate_user()
+        public async Task it_should_authenticate_user()
         {
             var expectedUser = "user";
             var expectedPassword = "password";
@@ -26,14 +27,14 @@ namespace Given_instance_of_the.BasicAuthenticationProvider_class
             var request = this.CreateRequest(new Header("Authorization", authorization));
             _identityProvider.Setup(instance => instance.ValidateCredentials(expectedUser, expectedPassword)).Returns(new BasicClaimBasedIdentity(expectedUser));
 
-            _authenticationProvider.Authenticate(request);
+            await _authenticationProvider.Process(request);
 
             request.Identity.IsAuthenticated.Should().BeTrue();
             request.Identity[ClaimTypes.Name].Should().Contain(expectedUser);
         }
 
         [TestMethod]
-        public void it_should_call_the_authentication_service()
+        public async Task it_should_call_the_authentication_service()
         {
             var expectedUser = "user";
             var expectedPassword = "password";
@@ -41,13 +42,13 @@ namespace Given_instance_of_the.BasicAuthenticationProvider_class
             var request = this.CreateRequest(new Header("Authorization", authorization));
             _identityProvider.Setup(instance => instance.ValidateCredentials(expectedUser, expectedPassword)).Returns(new BasicClaimBasedIdentity(expectedUser));
 
-            _authenticationProvider.Authenticate(request);
+            await _authenticationProvider.Process(request);
 
             _identityProvider.Verify(instance => instance.ValidateCredentials(expectedUser, expectedPassword), Times.Once);
         }
 
         [TestMethod]
-        public void it_should_not_authenticate_user_when_wrong_credentials_are_passed()
+        public async Task it_should_not_authenticate_user_when_wrong_credentials_are_passed()
         {
             var expectedUser = "user";
             var expectedPassword = "wrong";
@@ -55,7 +56,7 @@ namespace Given_instance_of_the.BasicAuthenticationProvider_class
             var request = this.CreateRequest(new Header("Authorization", authorization));
             _identityProvider.Setup(instance => instance.ValidateCredentials(expectedUser, expectedPassword)).Returns((IClaimBasedIdentity)null);
 
-            _authenticationProvider.Authenticate(request);
+            await _authenticationProvider.Process(request);
 
             request.Identity.IsAuthenticated.Should().BeFalse();
         }

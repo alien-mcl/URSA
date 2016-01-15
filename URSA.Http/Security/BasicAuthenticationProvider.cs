@@ -2,6 +2,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Text;
+using System.Threading.Tasks;
 using URSA.Security;
 
 namespace URSA.Web.Http.Security
@@ -38,7 +39,7 @@ namespace URSA.Web.Http.Security
         public string Scheme { get { return AuthenticationScheme; } }
 
         /// <inheritdoc />
-        public void Authenticate(IRequestInfo request)
+        public async Task Process(IRequestInfo request)
         {
             if (request == null)
             {
@@ -51,11 +52,11 @@ namespace URSA.Web.Http.Security
                 throw new ArgumentOutOfRangeException("request");
             }
 
-            AuthenticateInternal(httpRequest);
+            await AuthenticateInternal(httpRequest);
         }
 
         /// <inheritdoc />
-        public void Challenge(IResponseInfo response)
+        public async Task Process(IResponseInfo response)
         {
             if (response == null)
             {
@@ -68,10 +69,10 @@ namespace URSA.Web.Http.Security
                 throw new ArgumentOutOfRangeException("response");
             }
 
-            Challenge(httpResponse);
+            await Challenge(httpResponse);
         }
 
-        private static void Challenge(ResponseInfo response)
+        private static Task Challenge(ResponseInfo response)
         {
             var challengeScheme = (response.Request.Headers.XRequestedWith != XMLHttpRequest ? Header.WWWAuthenticate : XWWWAuthenticate);
             response.Headers.Add(challengeScheme, AuthenticationScheme);
@@ -82,6 +83,7 @@ namespace URSA.Web.Http.Security
             }
 
             response.Status = HttpStatusCode.Unauthorized;
+            return Task.FromResult(0);
         }
 
         private static bool ParseAuthorizationHeader(string authorizationString, out string userName, out string password)
@@ -109,19 +111,19 @@ namespace URSA.Web.Http.Security
             return true;
         }
 
-        private void AuthenticateInternal(RequestInfo request)
+        private Task AuthenticateInternal(RequestInfo request)
         {
             var authorization = request.Headers.Authorization;
-            if (String.IsNullOrEmpty(authorization))
+            if ((String.IsNullOrEmpty(authorization)) || (!authorization.StartsWith(AuthenticationScheme)))
             {
-                return;
+                return Task.FromResult(0);
             }
 
             string userName;
             string password;
             if (!ParseAuthorizationHeader(authorization, out userName, out password))
             {
-                return;
+                return Task.FromResult(0);
             }
 
             var identity = _identityProvider.ValidateCredentials(userName, password);
@@ -129,6 +131,8 @@ namespace URSA.Web.Http.Security
             {
                 request.Identity = identity;
             }
+
+            return Task.FromResult(0);
         }
     }
 }

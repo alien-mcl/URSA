@@ -87,7 +87,7 @@ namespace URSA.Web.Http.Security
         }
 
         /// <inheritdoc />
-        public async Task Process(IResponseInfo responseInfo)
+        public Task Process(IResponseInfo responseInfo)
         {
             if (responseInfo == null)
             {
@@ -100,19 +100,17 @@ namespace URSA.Web.Http.Security
                 throw new ArgumentOutOfRangeException("responseInfo");
             }
 
-            await Task.Run(() =>
-                {
-                    string matchingOrigin;
-                    if ((String.IsNullOrEmpty(response.Request.Headers.Origin)) || ((matchingOrigin = IsOriginAllowed(response.Request.Headers.Origin)) == null))
-                    {
-                        return;
-                    }
+            string matchingOrigin;
+            if ((String.IsNullOrEmpty(response.Request.Headers.Origin)) || ((matchingOrigin = IsOriginAllowed(response.Request.Headers.Origin)) == null))
+            {
+                return Task.FromResult(0);
+            }
 
-                    response.Headers.AccessControlAllowOrigin = matchingOrigin;
-                    response.Headers.AccessControlExposeHeaders = (!_exposeAnyHeader ? _exposedHeaders :
-                        String.Join(", ", ((IEnumerable<Header>)response.Request.Headers).Select(header => header.Name)));
-                    response.Headers.AccessControlAllowHeaders = _allowedHeaders;
-                });
+            response.Headers.AccessControlAllowOrigin = matchingOrigin;
+            response.Headers.AccessControlExposeHeaders = (!_exposeAnyHeader ? _exposedHeaders :
+                String.Join(", ", ((IEnumerable<Header>)response.Request.Headers).Select(header => header.Name)));
+            response.Headers.AccessControlAllowHeaders = _allowedHeaders;
+            return Task.FromResult(0);
         }
 
         private static string InitializeAllowedHeaders(IEnumerable<string> allowedHeaders)

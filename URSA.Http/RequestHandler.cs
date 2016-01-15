@@ -17,9 +17,10 @@ namespace URSA.Web.Http
         private readonly IResponseComposer _responseComposer;
         private readonly IArgumentBinder<RequestInfo> _argumentBinder;
         private readonly IDelegateMapper<RequestInfo> _handlerMapper;
-        private readonly IPreRequestHandler[] _preRequestHandlers;
-        private readonly IPostRequestHandler[] _postRequestHandlers;
-        private readonly IDefaultAuthenticationScheme _defaultAuthenticationScheme;
+        private readonly ICollection<IPreRequestHandler> _authenticationProviders;
+        private readonly ICollection<IPreRequestHandler> _preRequestHandlers;
+        private readonly ICollection<IPostRequestHandler> _postRequestHandlers;
+        private readonly IPostRequestHandler _defaultAuthenticationScheme;
 
         /// <summary>Initializes a new instance of the <see cref="RequestHandler"/> class.</summary>
         /// <param name="argumentBinder">Argument binder.</param>
@@ -27,14 +28,12 @@ namespace URSA.Web.Http
         /// <param name="responseComposer">Response composer.</param>
         /// <param name="preRequestHandlers">Handlers executed before the request is processed.</param>
         /// <param name="postRequestHandlers">Handlers executed after the request is processed.</param>
-        /// <param name="defaultAuthenticationScheme">Default authentication scheme selector.</param>
         public RequestHandler(
             IArgumentBinder<RequestInfo> argumentBinder,
             IDelegateMapper<RequestInfo> delegateMapper,
             IResponseComposer responseComposer,
             IEnumerable<IPreRequestHandler> preRequestHandlers,
-            IEnumerable<IPostRequestHandler> postRequestHandlers,
-            IDefaultAuthenticationScheme defaultAuthenticationScheme)
+            IEnumerable<IPostRequestHandler> postRequestHandlers)
         {
             if (argumentBinder == null)
             {
@@ -54,9 +53,30 @@ namespace URSA.Web.Http
             _responseComposer = responseComposer;
             _argumentBinder = argumentBinder;
             _handlerMapper = delegateMapper;
-            _preRequestHandlers = (preRequestHandlers ?? new IPreRequestHandler[0]).ToArray();
-            _postRequestHandlers = (postRequestHandlers ?? new IPostRequestHandler[0]).ToArray();
-            _defaultAuthenticationScheme = defaultAuthenticationScheme;
+            _preRequestHandlers = new List<IPreRequestHandler>();
+            _authenticationProviders = new List<IPreRequestHandler>();
+            foreach (var preRequestHandler in (preRequestHandlers ?? new IPreRequestHandler[0]))
+            {
+                (preRequestHandler is IAuthenticationProvider ? _authenticationProviders : _preRequestHandlers).Add(preRequestHandler);
+            }
+
+            _postRequestHandlers = new List<IPostRequestHandler>();
+            foreach (var postRequestHandler in (postRequestHandlers ?? new IPostRequestHandler[0]))
+            {
+                if (postRequestHandler is IDefaultAuthenticationScheme)
+                {
+                    if (_defaultAuthenticationScheme != null)
+                    {
+                        throw new InvalidOperationException("Multiple default authentication schemes encountered.");
+                    }
+
+                    _defaultAuthenticationScheme = postRequestHandler;
+                }
+                else
+                {
+                    _postRequestHandlers.Add(postRequestHandler);
+                }
+            }
         }
 
         /// <inheritdoc />
@@ -68,6 +88,7 @@ namespace URSA.Web.Http
         /// <inheritdoc />
         public async Task<ResponseInfo> HandleRequestAsync(RequestInfo request)
         {
+            ResponseInfo response;
             try
             {
                 var requestMapping = _handlerMapper.MapRequest(request);
@@ -76,15 +97,16 @@ namespace URSA.Web.Http
                     throw new NoMatchingRouteFoundException(String.Format("No API resource handles requested url '{0}'.", request.Uri));
                 }
 
+                await ProcessAuthenticationProviders(request);
                 ValidateSecurityRequirements(requestMapping.Operation, request.Identity);
-                ResponseInfo response = new StringResponseInfo(null, request);
+                response = new StringResponseInfo(null, request);
                 requestMapping.Target.Response = response;
                 var arguments = _argumentBinder.BindArguments(request, requestMapping);
                 ValidateArguments(requestMapping.Operation.UnderlyingMethod.GetParameters(), arguments);
-                ProcessPreRequestHandlers(request);
+                await ProcessPreRequestHandlers(request);
                 object output = await ProcessResult(requestMapping.Invoke(arguments));
                 response = _responseComposer.ComposeResponse(requestMapping, output, arguments);
-                ProcessPostRequestHandlers(response);
+                await ProcessPostRequestHandlers(response);
                 return response;
             }
             catch (UnauthenticatedAccessException exception)
@@ -94,14 +116,20 @@ namespace URSA.Web.Http
                     throw new InvalidOperationException("Cannot perform authentication without default authentication scheme set for challenge.");
                 }
 
-                var result = new ExceptionResponseInfo(request, exception);
-                _defaultAuthenticationScheme.Challenge(result);
-                return result;
+                response = new ExceptionResponseInfo(request, exception);
             }
             catch (Exception exception)
             {
-                return new ExceptionResponseInfo(request, exception);
+                response = new ExceptionResponseInfo(request, exception);
             }
+
+            await ProcessPostRequestHandlers(response);
+            if (((ExceptionResponseInfo)response).Value is UnauthenticatedAccessException)
+            {
+                await _defaultAuthenticationScheme.Process(response);
+            }
+
+            return response;
         }
 
         private static void ValidateSecurityRequirements(OperationInfo operation, IClaimBasedIdentity identity)
@@ -147,26 +175,31 @@ namespace URSA.Web.Http
             return null;
         }
 
-        private void ProcessPreRequestHandlers(RequestInfo requestInfo)
+        private async Task ProcessAuthenticationProviders(RequestInfo requestInfo)
         {
-            Task[] handlers = new Task[_preRequestHandlers.Length];
-            for (int index = 0; index < _preRequestHandlers.Length; index++)
+            if (String.IsNullOrEmpty(requestInfo.Headers.Authorization))
             {
-                handlers[index] = _preRequestHandlers[index].Process(requestInfo);
+                return;
             }
 
-            Task.WaitAll(handlers);
+            await ProcessPreRequestHandlers(requestInfo, _authenticationProviders);
         }
 
-        private void ProcessPostRequestHandlers(ResponseInfo responseInfo)
+        private async Task ProcessPreRequestHandlers(RequestInfo requestInfo, IEnumerable<IPreRequestHandler> preRequestHandlers = null)
         {
-            Task[] handlers = new Task[_postRequestHandlers.Length];
-            for (int index = 0; index < _postRequestHandlers.Length; index++)
+            preRequestHandlers = preRequestHandlers ?? _preRequestHandlers;
+            foreach (IPreRequestHandler preRequestHandler in preRequestHandlers)
             {
-                handlers[index] = _postRequestHandlers[index].Process(responseInfo);
+                await preRequestHandler.Process(requestInfo);
             }
+        }
 
-            Task.WaitAll(handlers);
+        private async Task ProcessPostRequestHandlers(ResponseInfo responseInfo)
+        {
+            foreach (IPostRequestHandler postRequestHandler in _postRequestHandlers)
+            {
+                await postRequestHandler.Process(responseInfo);
+            }
         }
     }
 }

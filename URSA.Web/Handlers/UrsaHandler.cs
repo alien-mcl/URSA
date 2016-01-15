@@ -1,31 +1,28 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Web;
 using System.Web.Routing;
-using URSA.Security;
 using URSA.Web.Http;
 using URSA.Web.Http.Converters;
 using URSA.Web.Http.Description;
-using URSA.Web.Http.Security;
 using URSA.Web.Security;
 
 namespace URSA.Web.Handlers
 {
     /// <summary>Provides a connection between URSA framework and standard ASP.net pipeline.</summary>
     /// <typeparam name="T">Type of controller exposed.</typeparam>
+    [ExcludeFromCodeCoverage]
     public class UrsaHandler<T> : IHttpHandler, IRouteHandler
         where T : IController
     {
         private readonly IRequestHandler<RequestInfo, ResponseInfo> _requestHandler;
-        private readonly IEnumerable<IAuthenticationProvider> _authenticationProviders;
 
         /// <summary>Initializes a new instance of the <see cref="UrsaHandler{T}" /> class.</summary>
         /// <param name="requestHandler">Request handler.</param>
-        /// <param name="authenticationProviders">Authentication providers.</param>
-        public UrsaHandler(IRequestHandler<RequestInfo, ResponseInfo> requestHandler, IEnumerable<IAuthenticationProvider> authenticationProviders)
+        public UrsaHandler(IRequestHandler<RequestInfo, ResponseInfo> requestHandler)
         {
             if (requestHandler == null)
             {
@@ -33,7 +30,6 @@ namespace URSA.Web.Handlers
             }
 
             _requestHandler = requestHandler;
-            _authenticationProviders = authenticationProviders ?? new IAuthenticationProvider[0];
         }
 
         /// <inheritdoc />
@@ -55,13 +51,13 @@ namespace URSA.Web.Handlers
                 switch (segment)
                 {
                     case EntityConverter.DocumentationStylesheet:
-                        HandleDocumentationStylesheet(context);
+                        HandleEmbeddedResource(context, "URSA.Web.Http.Description.DocumentationStylesheet.xslt", "text/xsl");
                         return;
                     case EntityConverter.PropertyIcon:
-                        HandleIcon(context, "Property");
+                        HandleEmbeddedResource(context, "URSA.Web.Http.Description.Property.png", "image/png");
                         return;
                     case EntityConverter.MethodIcon:
-                        HandleIcon(context, "Method");
+                        HandleEmbeddedResource(context, "URSA.Web.Http.Description.Method.png", "image/png");
                         return;
                 }
             }
@@ -69,9 +65,30 @@ namespace URSA.Web.Handlers
             HandleRequest(context);
         }
 
+        private static void HandleEmbeddedResource(HttpContext context, string fileName, string mediaType)
+        {
+            context.Response.ContentType = mediaType;
+            if (!String.IsNullOrEmpty(context.Request.Headers[Header.Origin]))
+            {
+                context.Response.Headers[Header.AccessControlAllowOrigin] = context.Request.Headers[Header.Origin];
+            }
+
+            using (var source = new StreamReader(typeof(DescriptionController).Assembly.GetManifestResourceStream(fileName)))
+            {
+                context.Response.Output.Write(source.ReadToEnd());
+            }
+        }
+
         private void HandleRequest(HttpContext context)
         {
-            var requestInfo = AuthenticateRequest(context);
+            var headers = new HeaderCollection();
+            context.Request.Headers.ForEach(headerName => ((IDictionary<string, string>)headers)[(string)headerName] = context.Request.Headers[(string)headerName]);
+            var requestInfo = new RequestInfo(
+                Verb.Parse(context.Request.HttpMethod),
+                new Uri(context.Request.Url.AbsoluteUri.TrimEnd('/')),
+                context.Request.InputStream,
+                new HttpContextPrincipal(context.User),
+                headers);
             var response = _requestHandler.HandleRequest(requestInfo);
             context.Response.ContentEncoding = context.Response.HeaderEncoding = response.Encoding;
             context.Response.StatusCode = (int)response.Status;
@@ -91,69 +108,6 @@ namespace URSA.Web.Handlers
             }
 
             response.Body.CopyTo(context.Response.OutputStream);
-        }
-
-        private HeaderCollection ParseHeaders(HttpContext context)
-        {
-            var result = new HeaderCollection();
-            context.Request.Headers.ForEach(headerName => ((IDictionary<string, string>)result)[(string)headerName] = context.Request.Headers[(string)headerName]);
-            return result;
-        }
-
-        private RequestInfo AuthenticateRequest(HttpContext context)
-        {
-            var requestInfo = new RequestInfo(
-                Verb.Parse(context.Request.HttpMethod),
-                new Uri(context.Request.Url.AbsoluteUri.TrimEnd('/')),
-                context.Request.InputStream,
-                new HttpContextPrincipal(context.User),
-                ParseHeaders(context));
-            var authorization = requestInfo.Headers.Authorization;
-            int indexOf;
-            if ((String.IsNullOrEmpty(authorization)) || ((indexOf = authorization.IndexOf(' ')) == -1))
-            {
-                return requestInfo;
-            }
-
-            var authenticationProvider = (from provider in _authenticationProviders
-                                          where provider.Scheme == authorization.Substring(0, indexOf)
-                                          select provider).FirstOrDefault();
-            if (authenticationProvider != null)
-            {
-                authenticationProvider.Authenticate(requestInfo);
-            }
-
-            return requestInfo;
-        }
-
-        private void HandleDocumentationStylesheet(HttpContext context)
-        {
-            context.Response.ContentType = "text/xsl";
-            HandleCors(context);
-            using (var source = new StreamReader(typeof(DescriptionController).Assembly.GetManifestResourceStream("URSA.Web.Http.Description.DocumentationStylesheet.xslt")))
-            {
-                context.Response.Output.Write(source.ReadToEnd());
-            }
-        }
-
-        private void HandleIcon(HttpContext context, string imagePath)
-        {
-            context.Response.ContentType = "image/png";
-            HandleCors(context);
-            using (var stream = typeof(DescriptionController).Assembly.GetManifestResourceStream(String.Format("URSA.Web.Http.Description.{0}.png", imagePath)))
-            {
-                byte[] buffer = new byte[stream.Length];
-                stream.Read(buffer, 0, buffer.Length);
-                context.Response.BinaryWrite(buffer);
-            }
-        }
-
-        private void HandleCors(HttpContext context)
-        {
-            if (!String.IsNullOrEmpty(context.Request.Headers[Header.Origin]))
-            {
-                context.Response.Headers[Header.AccessControlAllowOrigin] = context.Request.Headers[Header.Origin];
-            }
         }
     }
 }

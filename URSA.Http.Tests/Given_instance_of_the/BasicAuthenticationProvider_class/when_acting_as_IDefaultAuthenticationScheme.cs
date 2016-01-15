@@ -1,4 +1,5 @@
-﻿using FluentAssertions;
+﻿using System.Threading.Tasks;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using URSA.Security;
@@ -15,41 +16,41 @@ namespace Given_instance_of_the.BasicAuthenticationProvider_class
         private BasicAuthenticationProvider _authenticationProvider;
 
         [TestMethod]
-        public void it_should_challenge_the_response()
+        public async Task it_should_challenge_the_response()
         {
             var response = this.CreateResponse();
 
-            _authenticationProvider.Challenge(response);
+            await _authenticationProvider.Process(response);
 
             response.Headers.WWWAuthenticate.Should().Be(BasicAuthenticationProvider.AuthenticationScheme);
         }
 
         [TestMethod]
-        public void it_should_add_an_exposed_challenge_header()
+        public async Task it_should_add_an_exposed_challenge_header()
         {
             var response = this.CreateResponseWithOrigin();
 
-            _authenticationProvider.Challenge(response);
+            await _authenticationProvider.Process(response);
 
             response.Headers.AccessControlExposeHeaders.Should().Contain(Header.WWWAuthenticate);
         }
 
         [TestMethod]
-        public void it_should_not_add_an_exposed_challenge_header()
+        public async Task it_should_not_add_an_exposed_challenge_header()
         {
             var response = this.CreateResponse();
 
-            _authenticationProvider.Challenge(response);
+            await _authenticationProvider.Process(response);
 
             response.Headers.AccessControlExposeHeaders.Should().NotContain(Header.WWWAuthenticate);
         }
 
         [TestMethod]
-        public void it_should_add_custom_headers_for_AJAX_originated_request()
+        public async Task it_should_add_custom_headers_for_AJAX_originated_request()
         {
             var response = this.CreateResponseWithOrigin("localhost", new Header(Header.XRequestedWith, BasicAuthenticationProvider.XMLHttpRequest));
 
-            _authenticationProvider.Challenge(response);
+            await _authenticationProvider.Process(response);
 
             response.Headers[BasicAuthenticationProvider.XWWWAuthenticate].Value.Should().Be(BasicAuthenticationProvider.AuthenticationScheme);
             response.Headers.AccessControlExposeHeaders.Should().Contain(BasicAuthenticationProvider.XWWWAuthenticate);

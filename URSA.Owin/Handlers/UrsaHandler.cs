@@ -1,37 +1,28 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.IO;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using Microsoft.Owin;
-using URSA.Configuration;
 using URSA.Owin.Security;
-using URSA.Security;
 using URSA.Web;
 using URSA.Web.Http;
 using URSA.Web.Http.Configuration;
 using URSA.Web.Http.Converters;
 using URSA.Web.Http.Description;
-using URSA.Web.Http.Security;
 
 namespace URSA.Owin.Handlers
 {
     /// <summary>Provides a connection between URSA framework and Owin pipeline.</summary>
+    [ExcludeFromCodeCoverage]
     public class UrsaHandler : OwinMiddleware
     {
         private readonly IRequestHandler<RequestInfo, ResponseInfo> _requestHandler;
-        private readonly IEnumerable<IAuthenticationProvider> _authenticationProviders;
 
         /// <summary>Initializes a new instance of the <see cref="UrsaHandler"/> class.</summary>
         /// <param name="next">Next middleware in the pipeline.</param>
         /// <param name="requestHandler">The request handler.</param>
-        /// <param name="authenticationProviders">Authentication providers.</param>
-        public UrsaHandler(
-            OwinMiddleware next,
-            IRequestHandler<RequestInfo, ResponseInfo> requestHandler,
-            IEnumerable<IAuthenticationProvider> authenticationProviders)
-            : base(next)
+        public UrsaHandler(OwinMiddleware next, IRequestHandler<RequestInfo, ResponseInfo> requestHandler) : base(next)
         {
             if (requestHandler == null)
             {
@@ -39,7 +30,6 @@ namespace URSA.Owin.Handlers
             }
 
             _requestHandler = requestHandler;
-            _authenticationProviders = authenticationProviders ?? new IAuthenticationProvider[0];
         }
 
         /// <inheritdoc />
@@ -61,6 +51,26 @@ namespace URSA.Owin.Handlers
             }
 
             await ProcessRequest(context);
+        }
+
+        private static bool IsResponseNoMatchingRouteFoundException(ResponseInfo response)
+        {
+            return ((response.Status == HttpStatusCode.NotFound) && (response is ExceptionResponseInfo) &&
+                (((ExceptionResponseInfo)response).Value is NoMatchingRouteFoundException));
+        }
+
+        private static async Task HandleEmbeddedResource(IOwinContext context, string fileName, string mediaType)
+        {
+            context.Response.ContentType = mediaType;
+            if (!String.IsNullOrEmpty(context.Request.Headers[Header.Origin]))
+            {
+                context.Response.Headers[Header.AccessControlAllowOrigin] = context.Request.Headers[Header.Origin];
+            }
+
+            using (var source = typeof(DescriptionController).Assembly.GetManifestResourceStream(fileName))
+            {
+                await source.CopyToAsync(context.Response.Body);
+            }
         }
 
         private async Task ProcessRequest(IOwinContext context)
@@ -85,48 +95,16 @@ namespace URSA.Owin.Handlers
             await HandleRequest(context);
         }
 
-        private static bool IsResponseNoMatchingRouteFoundException(ResponseInfo response)
+        private async Task HandleRequest(IOwinContext context)
         {
-            return ((response.Status == HttpStatusCode.NotFound) && (response is ExceptionResponseInfo) &&
-                (((ExceptionResponseInfo)response).Value is NoMatchingRouteFoundException));
-        }
-
-        private HeaderCollection ParseHeaders(IOwinContext context)
-        {
-            var result = new HeaderCollection();
-            context.Request.Headers.ForEach(header => result[header.Key] = new Header(header.Key, header.Value));
-            return result;
-        }
-
-        private RequestInfo AuthenticateRequest(IOwinContext context)
-        {
+            var headers = new HeaderCollection();
+            context.Request.Headers.ForEach(header => headers[header.Key] = new Header(header.Key, header.Value));
             var requestInfo = new RequestInfo(
                 Verb.Parse(context.Request.Method),
                 new Uri(context.Request.Uri.AbsoluteUri.TrimEnd('/')),
                 context.Request.Body,
                 new OwinPrincipal(context.Authentication.User),
-                ParseHeaders(context));
-            var authorization = requestInfo.Headers.Authorization;
-            int indexOf;
-            if ((String.IsNullOrEmpty(authorization)) || ((indexOf = authorization.IndexOf(' ')) == -1))
-            {
-                return requestInfo;
-            }
-
-            var authenticationProvider = (from provider in _authenticationProviders
-                                          where provider.Scheme == authorization.Substring(0, indexOf)
-                                          select provider).FirstOrDefault();
-            if (authenticationProvider != null)
-            {
-                authenticationProvider.Authenticate(requestInfo);
-            }
-
-            return requestInfo;
-        }
-
-        private async Task HandleRequest(IOwinContext context)
-        {
-            var requestInfo = AuthenticateRequest(context);
+                headers);
             var response = await _requestHandler.HandleRequestAsync(requestInfo);
             if ((IsResponseNoMatchingRouteFoundException(response)) && (Next != null))
             {
@@ -149,27 +127,6 @@ namespace URSA.Owin.Handlers
             }
 
             response.Body.CopyTo(context.Response.Body);
-        }
-
-        private async Task HandleEmbeddedResource(IOwinContext context, string fileName, string mediaType)
-        {
-            context.Response.ContentType = mediaType;
-            await HandleCors(context);
-            using (var source = typeof(DescriptionController).Assembly.GetManifestResourceStream(fileName))
-            {
-                source.CopyTo(context.Response.Body);
-            }
-        }
-
-        private async Task HandleCors(IOwinContext context)
-        {
-            await Task.Run(() =>
-                {
-                    if (!String.IsNullOrEmpty(context.Request.Headers[Header.Origin]))
-                    {
-                        context.Response.Headers[Header.AccessControlAllowOrigin] = context.Request.Headers[Header.Origin];
-                    }
-                });
         }
     }
 }

@@ -77,7 +77,7 @@ namespace URSA.Web
                 allowedHeaders ?? CorsPostRequestHandler.WithAny,
                 exposedHeaders ?? CorsPostRequestHandler.WithAny);
             var container = UrsaConfigurationSection.InitializeComponentProvider();
-            container.Register("CORS", handler);
+            container.Register<IPostRequestHandler>("CORS", handler);
             return application;
         }
 
@@ -92,8 +92,8 @@ namespace URSA.Web
             }
 
             var container = UrsaConfigurationSection.InitializeComponentProvider();
-            container.Register<IAuthenticationProvider, BasicAuthenticationProvider>("Basic", lifestyle: Lifestyles.Singleton);
-            container.Register<IDefaultAuthenticationScheme, BasicAuthenticationProvider>(lifestyle: Lifestyles.Singleton);
+            container.Register<IPreRequestHandler, BasicAuthenticationProvider>("Basic", lifestyle: Lifestyles.Singleton);
+            container.Register<IPostRequestHandler, BasicAuthenticationProvider>(lifestyle: Lifestyles.Singleton);
             return application;
         }
 
@@ -115,9 +115,7 @@ namespace URSA.Web
 
         private static IDictionary<string, Route> RegisterApi<T>(IComponentProvider container, ControllerInfo<T> description) where T : IController
         {
-            var handler = new UrsaHandler<T>(
-                container.Resolve<IRequestHandler<RequestInfo, ResponseInfo>>(),
-                container.ResolveAll<IAuthenticationProvider>());
+            var handler = new UrsaHandler<T>(container.Resolve<IRequestHandler<RequestInfo, ResponseInfo>>());
             string globalRoutePrefix = (description.EntryPoint != null ? description.EntryPoint.Uri.ToString().Substring(1) + "/" : String.Empty);
             IDictionary<string, Route> routes = new Dictionary<string, Route>();
             routes[typeof(T).FullName + "DocumentationStylesheet"] = new Route(globalRoutePrefix + EntityConverter.DocumentationStylesheet, handler);

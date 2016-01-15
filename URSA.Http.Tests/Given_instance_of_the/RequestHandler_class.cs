@@ -102,14 +102,14 @@ namespace Given_instance_of_the
         public void it_should_deny_access_for_unauthenticated_identity()
         {
             var defaultAuthenticationScheme = new Mock<IDefaultAuthenticationScheme>(MockBehavior.Strict);
-            defaultAuthenticationScheme.Setup(instance => instance.Challenge(It.IsAny<IResponseInfo>()));
-            var handler = SetupEnvironment((object)null, true, "Authenticated", defaultAuthenticationScheme.Object);
+            defaultAuthenticationScheme.Setup(instance => instance.Process(It.IsAny<IResponseInfo>())).Returns(Task.FromResult(0));
+            var handler = SetupEnvironment((object)null, true, "Authenticated", postRequestHandler: defaultAuthenticationScheme.Object);
 
             var result = handler.HandleRequest(new RequestInfo(Verb.GET, new Uri("http://temp.uri/api/test"), new MemoryStream(), new BasicClaimBasedIdentity()));
 
             result.Should().BeOfType<ExceptionResponseInfo>();
             ((ExceptionResponseInfo)result).Value.Should().BeOfType<UnauthenticatedAccessException>();
-            defaultAuthenticationScheme.Verify(instance => instance.Challenge(It.IsAny<IResponseInfo>()), Times.Once);
+            defaultAuthenticationScheme.Verify(instance => instance.Process(It.IsAny<IResponseInfo>()), Times.Once);
         }
 
         [TestMethod]
@@ -163,7 +163,6 @@ namespace Given_instance_of_the
             T result = default(T),
             bool useDefaultArguments = false,
             string methodName = "Substract",
-            IDefaultAuthenticationScheme _defaultAuthenticationScheme = null,
             IPreRequestHandler preRequestHandler = null,
             IPostRequestHandler postRequestHandler = null)
         {
@@ -196,8 +195,7 @@ namespace Given_instance_of_the
                 _delegateMapper.Object,
                 _responseComposer.Object,
                 (preRequestHandler != null ? new[] { preRequestHandler } : null),
-                (postRequestHandler != null ? new[] { postRequestHandler } : null),
-                _defaultAuthenticationScheme);
+                (postRequestHandler != null ? new[] { postRequestHandler } : null));
         }
 
         private OperationInfo<Verb> CreateOperation(string methodName)

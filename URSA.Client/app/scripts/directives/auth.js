@@ -28,16 +28,16 @@
                 $scope.password = "";
                 $scope.onLoginClick = function() {
                     if (($scope.userName) && ($scope.password)) {
-                        $scope.$emit($scope.notifyWithEvent, $scope.userName, $scope.password);
+                        $scope.$root.$broadcast($scope.notifyWithEvent, $scope.userName, $scope.password);
                     }
                 };
-                $scope.$root.$on($scope.showOnEvent, function() {
+                $scope.$on($scope.showOnEvent, function() {
                     $scope.visible = true;
                 });
-                $scope.$root.$on($scope.hideOnEvent, function() {
+                $scope.$on($scope.hideOnEvent, function() {
                     $scope.visible = false;
                 });
-                $scope.$root.$on($scope.errorOnEvent, function(e, error) {
+                $scope.$on($scope.errorOnEvent, function(e, error) {
                     $scope.message = error;
                 });
             }
