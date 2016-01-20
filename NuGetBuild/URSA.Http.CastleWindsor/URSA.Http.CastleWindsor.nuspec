@@ -15,10 +15,10 @@
         <copyright>Copyright  © 2015</copyright>
         <tags>hydra rest api rdf semanticweb semantic</tags>
         <dependencies>
-            <dependency id="Castle.Windsor" />
-            <dependency id="Newtonsoft.Json" />
-            <dependency id="RomanticWeb" />
-            <dependency id="RomanticWeb.dotNetRDF" />
+            <dependency id="URSA.CastleWindsor" version="$version$" />
+            <dependency id="Castle.Windsor.Lifestyles" version="0.4.0" />
+            <dependency id="RomanticWeb" version="0.3.136.0" />
+            <dependency id="RomanticWeb.dotNetRDF" version="0.3.136.0" />
         </dependencies>
         <frameworkAssemblies>
             <frameworkAssembly assemblyName="System.Configuration" />

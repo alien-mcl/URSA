@@ -15,13 +15,11 @@
         <copyright>Copyright  © 2015</copyright>
         <tags>hydra rest api rdf semanticweb semantic</tags>
         <dependencies>
-            <dependency id="Newtonsoft.Json" />
-            <dependency id="RomanticWeb" />
-            <dependency id="RomanticWeb.dotNetRDF" />
-            <dependency id="URSA.Http" />
+            <dependency id="URSA.Http" version="$version$" />
         </dependencies>
         <frameworkAssemblies>
             <frameworkAssembly assemblyName="System.Configuration" />
+            <frameworkAssembly assemblyName="System.ConfiWebguration" />
         </frameworkAssemblies>
     </metadata>
 </package>
