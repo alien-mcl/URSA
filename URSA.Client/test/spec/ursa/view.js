@@ -59,7 +59,7 @@
 
                 it("it should render it's view correctly", function () {
                     var expected = String.format(
-                        "<div class=\"input-group\" ng-repeat=\"value in {1}['{3}'] track by $index\">" +
+                        "<div class=\"input-group\" ng-repeat=\"value in {1}['{3}']\">" +
                             "<span ng-class=\"styleFor('{2}', $index)\">{0}</span>" +
                             "<input class=\"form-control\" ng-model=\"{1}['{3}'][$index]['@value']\" ng-attr-name=\"{{'{3}_' + $index}}\" ng-readonly=\"isPropertyReadonly('{2}')\" type=\"text\" placeholder=\"text\" />" +
                             "<span class=\"input-group-btn\"><button class=\"btn btn-default\" ng-click=\"removePropertyItem('{2}', $index)\"><span class=\"glyphicon glyphicon-remove\"></span></button></span>" +

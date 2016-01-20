@@ -158,6 +158,10 @@
     };
 
     var createLiteralValue = function(type) {
+        if ((type instanceof Class) && (type.valueRange !== null)) {
+            type = type.valueRange;
+        }
+
         var result = null;
         switch (type.id) {
             case xsd.anyUri:
@@ -556,6 +560,7 @@
             this.description = (this.description || getValue.call(property, rdfs.comment)) || "";
             this.readable = getValue.call(supportedProperty, hydra.readable) || true;
             this.writeable = getValue.call(supportedProperty, hydra.writeable) || true;
+            this.sortable = (this.maxOccurances > 1) && (this.range !== null) && (this.range.isList);
             this.supportedOperations = [];
             getOperations.call(this, supportedProperty, graph, hydra.operation);
         }
@@ -580,6 +585,15 @@
      * @default true
      */
     SupportedProperty.prototype.writeable = true;
+    /**
+     * Marks a property as sortable.
+     * @memberof ursa.model.SupportedProperty
+     * @instance
+     * @public
+     * @member {boolean} sortable
+     * @default false
+     */
+    SupportedProperty.prototype.sortable = false;
     /**
      * Defines a given property as a instance's primary key.
      * @memberof ursa.model.SupportedProperty
@@ -967,20 +981,41 @@
             this.supportedProperties = new ApiMemberCollection(this);
             this.supportedOperations = [];
             var subClassOf = supportedClass[rdfs.subClassOf] || [];
+            var restriction;
             if (supportedClass[hydra.supportedProperty]) {
                 for (index = 0; index < supportedClass[hydra.supportedProperty].length; index++) {
                     var supportedPropertyResource = graph.getById(supportedClass[hydra.supportedProperty][index]["@id"]);
                     var supportedProperty = new SupportedProperty(this, supportedPropertyResource, graph);
                     for (var restrictionIndex = 0; restrictionIndex < subClassOf.length; restrictionIndex++) {
-                        var restriction = graph.getById(subClassOf[restrictionIndex]["@id"]);
-                        if ((restriction["@type"]) && (restriction["@type"].indexOf(owl.Restriction) !== -1) &&
-                            (getValue.call(restriction, owl.onProperty) === supportedProperty.property)) {
-                            var maxCardinality = getValue.call(restriction, owl.maxCardinality);
-                            supportedProperty.maxOccurances = (maxCardinality !== null ? maxCardinality : supportedProperty.maxOccurances);
+                        restriction = graph.getById(subClassOf[restrictionIndex]["@id"]);
+                        if ((!restriction["@type"]) || (restriction["@type"].indexOf(owl.Restriction) === -1) ||
+                            (getValue.call(restriction, owl.onProperty) !== supportedProperty.property)) {
+                            continue;
                         }
+
+                        var maxCardinality = getValue.call(restriction, owl.maxCardinality);
+                        supportedProperty.maxOccurances = (maxCardinality !== null ? maxCardinality : supportedProperty.maxOccurances);
+                        subClassOf.splice(restrictionIndex, 1);
                     }
 
                     this.supportedProperties.push(supportedProperty);
+                }
+            }
+
+            for (index = 0; index < subClassOf.length; index++) {
+                if (subClassOf[index]["@id"] === rdf.List) {
+                    (this.valueRange = Class.Thing.clone())._owner = owner;
+                }
+                else {
+                    restriction = graph.getById(subClassOf[index]["@id"]);
+                    var onProperty;
+                    if ((!restriction["@type"]) || (restriction["@type"].indexOf(owl.Restriction) === -1) ||
+                        ((onProperty = getValue.call(restriction, owl.onProperty)) !== rdf.first)) {
+                        continue;
+                    }
+
+                    this.valueRange = getClass.call(graph.getById(restriction[owl.allValuesFrom][0]["@id"]), this, graph);
+                    break;
                 }
             }
 
@@ -1005,6 +1040,38 @@
      * @member {Array.<ursa.model.Operation>} supportedOperations
      */
     Class.prototype.supportedOperations = null;
+    /**
+     * Type of the values in case this instance is a collection that maintains order or provides indexing in general.
+     * @memberof ursa.model.Class
+     * @instance
+     * @public
+     * @member {ursa.model.Class} valueRange
+     */
+    Class.prototype.valueRange = null;
+    /**
+     * Type of the index in case this instance is a collection that maintains order or provides indexing in general.
+     * @memberof ursa.model.Class
+     * @instance
+     * @public
+     * @member {ursa.model.Class} indexRange
+     */
+    Class.prototype.indexRange = null;
+    /**
+     * Flag determining whether the index type is define explictely as this class is a key-value-like map or it's more like a list or array.
+     * @memberof ursa.model.Class
+     * @instance
+     * @public
+     * @member {boolean} explicitIndex
+     */
+    Class.prototype.explicitIndex = false;
+    /**
+     * Instace of the class that represents any kind of type.
+     * @memberof ursa.model.Class
+     * @static
+     * @public
+     * @member {ursa.model.Class} Thing
+     */
+    Class.Thing = new Class(null, { "@id": owl.Thing });
     /**
      * Creates an instance of this class.
      * @memberof ursa.model.Class
@@ -1053,6 +1120,10 @@
         for (var index = 0; index < this.supportedProperties.length; index++) {
             var supportedProperty = this.supportedProperties[index];
             var newValue = result[supportedProperty.property] = [];
+            if ((supportedProperty.range instanceof Class) && (supportedProperty.range.valueRange !== null)) {
+                result[supportedProperty.property] = [{ "@list": newValue }];
+            }
+
             if (supportedProperty.minOccurances > 0) {
                 var value = supportedProperty.createInstance();
                 if (value !== null) {

@@ -23,7 +23,11 @@ namespace URSA.Example.WebApplication.Data
 
         /// <summary> Gets or sets the products's features.</summary>
         [Collection("http://temp.uri/vocab#feature")]
-        ICollection<string> Features { get; set; }
+        ICollection<string> Features { get; }
+
+        /// <summary> Gets or sets the products's categories.</summary>
+        [Collection("http://temp.uri/vocab#category")]
+        IList<string> Categories { get; }
     }
 
     /// <summary>Provides additional mappings for the <see cref="IProduct" />.</summary>

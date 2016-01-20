@@ -72,7 +72,7 @@ namespace VDS.RDF.Writing
                 {
                     list.Add(iterator.Object);
                     IEnumerable<Triple> restTriples = graph.GetTriplesWithPredicateObject(rest, iterator.Subject);
-                    if (restTriples.Any())
+                    if (!restTriples.Any())
                     {
                         break;
                     }

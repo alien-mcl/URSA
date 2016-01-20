@@ -15,7 +15,22 @@ namespace URSA.Reflection
 
         internal static Uri MakeUri(this Type type)
         {
-            return new Uri(String.Format("{1}:{0}", type.FullName.Replace("&", String.Empty), JavascriptSymbol));
+            return new Uri(String.Format("{1}:{0}", type.MakeTypeName(), JavascriptSymbol));
+        }
+
+        internal static string MakeTypeName(this Type type, bool includeNamespace = true, bool keepSyntax = false)
+        {
+            if (!type.IsGenericType)
+            {
+                return (includeNamespace ? type.FullName : type.Name).Replace("&", String.Empty);
+            }
+
+            var typeName = type.Name.Substring(0, type.Name.IndexOf('`'));
+            return String.Format(
+                (keepSyntax ? "{0}.{1}<{2}>" : "{0}.{1}Of{2}"),
+                type.Namespace,
+                (type.IsInterface ? typeName.TrimStart('I') : typeName),
+                String.Join((keepSyntax ? "," : "And"), type.GetGenericArguments().Select(genericType => genericType.MakeTypeName(keepSyntax && includeNamespace, keepSyntax))));
         }
 
         internal static Uri MakeUri(this PropertyInfo property, Type declaringTypeOverride = null)

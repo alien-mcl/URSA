@@ -29,7 +29,10 @@
     xsd.gDay = xsd + "gDay";
     xsd.gYearMonth = xsd + "gYearMonth";
     window.rdf = new String("http://www.w3.org/1999/02/22-rdf-syntax-ns#"); //jshint ignore:line
+    rdf.first = rdf + "first";
+    rdf.last = rdf + "last";
     rdf.Property = rdf + "Property";
+    rdf.List = rdf + "List";
     window.rdfs = new String("http://www.w3.org/2000/01/rdf-schema#"); //jshint ignore:line
     rdfs.Class = rdfs + "Class";
     rdfs.subClassOf = rdfs + "subClassOf";
@@ -40,8 +43,10 @@
     owl.onProperty = owl + "onProperty";
     owl.minCardinality = owl + "minCardinality";
     owl.maxCardinality = owl + "maxCardinality";
+    owl.allValuesFrom = owl + "allValuesFrom";
     owl.InverseFunctionalProperty = owl + "InverseFunctionalProperty";
     owl.Restriction = owl + "Restriction";
+    owl.Thing = owl + "Thing";
     window.hydra = new String("http://www.w3.org/ns/hydra/core#"); //jshint ignore:line
     hydra.Resource = hydra + "Resource";
     hydra.Class = hydra + "Class";

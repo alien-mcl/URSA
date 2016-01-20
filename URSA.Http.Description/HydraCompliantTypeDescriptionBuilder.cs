@@ -61,16 +61,21 @@ namespace URSA.Web.Http.Description
                 throw new ArgumentNullException("context");
             }
 
-            requiresRdf = false;
-            Type itemType = context.Type.GetItemType();
-            if (TypeDescriptions.ContainsKey(itemType))
+            if (context.ContainsType(context.Type))
             {
-                return BuildDatatypeDescription(context, TypeDescriptions[itemType]);
+                return context.BuildTypeDescription(out requiresRdf);
             }
 
             if (context.Type.IsList())
             {
                 return CreateListDefinition(context, out requiresRdf, context.Type.IsGenericList());
+            }
+
+            requiresRdf = false;
+            Type itemType = context.Type.GetItemType();
+            if (TypeDescriptions.ContainsKey(itemType))
+            {
+                return BuildDatatypeDescription(context, TypeDescriptions[itemType]);
             }
 
             var classUri = itemType.MakeUri();
@@ -106,7 +111,7 @@ namespace URSA.Web.Http.Description
         }
 
         /// <inheritdoc />
-        public IClass SubClass(DescriptionContext context, IClass @class, EntityId id = null)
+        public IClass SubClass(DescriptionContext context, IClass @class, Type contextTypeOverride = null)
         {
             if (context == null)
             {
@@ -118,9 +123,9 @@ namespace URSA.Web.Http.Description
                 throw new ArgumentNullException("class");
             }
 
-            IClass result = context.ApiDocumentation.Context.Create<IClass>(id ?? @class.CreateBlankId());
+            IClass result = context.ApiDocumentation.Context.Create<IClass>(@class.CreateBlankId());
             result.SubClassOf.Add(@class);
-            result.SingleValue = !System.Reflection.TypeExtensions.IsEnumerable(context.Type);
+            result.SingleValue = !System.Reflection.TypeExtensions.IsEnumerable(contextTypeOverride ?? context.Type);
             return result;
         }
 
@@ -165,7 +170,7 @@ namespace URSA.Web.Http.Description
 
             var itemType = context.Type.GetItemType();
             IClass result = context.ApiDocumentation.Context.Create<IClass>(new EntityId(context.Type.MakeUri()));
-            result.Label = context.Type.Name;
+            result.Label = context.Type.MakeTypeName(true, true);
             result.Description = _xmlDocProvider.GetDescription(context.Type);
             result.SubClassOf.Add(context.ApiDocumentation.Context.Create<IClass>(new EntityId(Rdf.List)));
 
@@ -195,7 +200,7 @@ namespace URSA.Web.Http.Description
             result.Property.Description = _xmlDocProvider.GetDescription(property);
             result.Property.Domain.Add(@class);
             IClass propertyType;
-            var itemPropertyType = property.PropertyType.FindItemType();
+            var itemPropertyType = (property.PropertyType.IsList() ? property.PropertyType : property.PropertyType.FindItemType());
             if (!context.ContainsType(itemPropertyType))
             {
                 bool requiresRdf;

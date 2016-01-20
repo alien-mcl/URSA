@@ -226,16 +226,15 @@ namespace URSA.Web.Http.Description
             result.Description = _xmlDocProvider.GetDescription(operation.UnderlyingMethod);
             result.Method.Add(operation.ProtocolSpecificCommand.ToString());
             template = BuildTemplate(context, operation, result);
-            bool isRdfRequired;
             bool requiresRdf = context.RequiresRdf(SpecializationType);
+            bool isRdfRequired = requiresRdf;
             var arguments = operation.Arguments.Where(parameter => parameter.Source is FromBodyAttribute).Select(parameter => parameter.Parameter);
             var results = operation.Results.Where(output => output.Target is ToBodyAttribute).Select(parameter => parameter.Parameter);
 
             foreach (var value in arguments)
             {
-                var childContext = context.ForType(value.ParameterType);
-                var expected = childContext.BuildTypeDescription(out isRdfRequired);
-                expected = childContext.SubClass(expected);
+                var expected = (context.ContainsType(value.ParameterType) ? context[value.ParameterType] : context.ForType(value.ParameterType).BuildTypeDescription(out isRdfRequired));
+                expected = context.SubClass(expected, value.ParameterType);
                 expected.Label = value.Name ?? "instance";
                 expected.Description = _xmlDocProvider.GetDescription(operation.UnderlyingMethod, value);
                 result.Expects.Add(expected);
@@ -244,9 +243,8 @@ namespace URSA.Web.Http.Description
 
             foreach (var value in results)
             {
-                var childContext = context.ForType(value.ParameterType);
-                var returned = childContext.BuildTypeDescription(out isRdfRequired);
-                returned = childContext.SubClass(returned);
+                var returned = (context.ContainsType(value.ParameterType) ? context[value.ParameterType] : context.ForType(value.ParameterType).BuildTypeDescription(out isRdfRequired));
+                returned = context.SubClass(returned, value.ParameterType);
                 returned.Description = _xmlDocProvider.GetDescription(operation.UnderlyingMethod, value);
                 result.Returns.Add(returned);
                 requiresRdf |= isRdfRequired;

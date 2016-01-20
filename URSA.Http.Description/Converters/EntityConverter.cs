@@ -185,8 +185,8 @@ namespace URSA.Web.Http.Converters
             }
 
             var requestInfo = (RequestInfo)request;
-            var accept = requestInfo.Headers[Header.Accept];
-            var mediaType = (accept != null ? accept.Values.Join(MediaTypes, outer => outer.Value, inner => inner, (outer, inner) => outer.Value).First() : TextTurtle);
+            var contentType = requestInfo.Headers[Header.ContentType];
+            var mediaType = (contentType != null ? contentType.Values.Join(MediaTypes, outer => outer.Value, inner => inner, (outer, inner) => outer.Value).First() : TextTurtle);
             var reader = CreateReader(mediaType);
             var entityId = request.Uri.GetLeftPart(UriPartial.Path).TrimEnd('/') + '/' + request.Uri.Query;
             var graphUri = _namedGraphSelectorFactory.NamedGraphSelector.SelectGraph(new EntityId(entityId), null, null);

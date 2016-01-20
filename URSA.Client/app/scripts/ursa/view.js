@@ -207,11 +207,19 @@
             supportedPropertyRendererSetupPropertyScope.call(this, scope, apiMember);
         }
 
-        classNames = String.format("class=\"form-control{0}\" ", (typeof(classNames) === "string" ? classNames : ""));
-        var propertyName = apiMember.propertyName(scope.operation);
-        var propertySelector = scope.targetInstance + (!scope.operation.isRdf ? "['{0}']" : "['{0}']" + (apiMember.maxOccurances > 1 ? "" : "[0]['@value']"));
-        var literalSelector = (supportedPropertyRendererIsLiteralRange.call(this, apiMember) ? String.format(propertySelector, propertyName) + "[$index]" : "value");
-        var valueSelector = (apiMember.maxOccurances <= 1 ? propertySelector : literalSelector + (!scope.operation.isRdf ? "" : "['@value']"));
+        var context = supportedPropertyRendererInitialize.call(this, scope, apiMember, classNames);
+        var result = supportedPropertyRendererRenderField.call(this, scope, apiMember, context);
+        if (apiMember.maxOccurances === 1) {
+            var isNull = (!(scope.supportedPropertyNulls[apiMember.id] = (apiMember.minOccurances === 0)) ? "" : String.format(
+                "<span class=\"input-group-addon\">" +
+                    "<input type=\"checkbox\" title=\"Null\" checked ng-model=\"supportedPropertyNulls['{0}']\" ng-change=\"onIsNullCheckedChanged('{0}')\" />" +
+                "</span>", apiMember.id));
+            return String.format("<div class=\"input-group\"><span ng-class=\"styleFor('{3}', null)\">{0}</span>{1}{2}</div>", apiMember.label, result, isNull, apiMember.id);
+        }
+
+        return supportedPropertyRendererRenderCollection.call(this, scope, apiMember, context, result);
+    };
+    var supportedPropertyRendererInitialize = function(scope, apiMember, classNames) {
         if (apiMember.key) {
             scope.supportedPropertyKeys[apiMember.id] = true;
         }
@@ -220,15 +228,28 @@
             scope.supportedPropertyReadonly[apiMember.id] = true;
         }
 
+        var result = {
+            classNames: String.format("class=\"form-control{0}\" ", (typeof(classNames) === "string" ? classNames : "")),
+            propertyName: apiMember.propertyName(scope.operation),
+            propertySelector: scope.targetInstance +
+                (!scope.operation.isRdf ? "['{0}']" : "['{0}']" + (apiMember.maxOccurances > 1 ?
+                ((apiMember.range instanceof ursa.model.Class) && (apiMember.range.valueRange !== null) ? "[0]['@list']" : "") : "[0]['@value']"))
+        };
+        result.literalSelector = (supportedPropertyRendererIsLiteralRange.call(this, apiMember) ? String.format(result.propertySelector, result.propertyName) + "[$index]" : "value");
+        result.valueSelector = (apiMember.maxOccurances <= 1 ? result.propertySelector : result.literalSelector + (!scope.operation.isRdf ? "" : "['@value']"));
+        return result;
+    };
+    var supportedPropertyRendererRenderField = function(scope, apiMember, context) {
         var format = String.format(
             "<input {0}ng-model=\"{1}\" name=\"{4}\" ng-readonly=\"isPropertyReadonly('{2}')\" {3}",
-            classNames,
-            valueSelector,
+            context.classNames,
+            context.valueSelector,
             apiMember.id,
             ((apiMember.required) && (!apiMember.key) ? "required " : ""),
-            propertyName);
-        var parameters = [propertyName];
-        var dataType = SupportedPropertyRenderer.dataTypes[apiMember.range.id] || { type: "text" };
+            context.propertyName);
+        var parameters = [context.propertyName];
+        var valueRange = ((apiMember.range instanceof ursa.model.Class) && (apiMember.range.valueRange !== null) ? apiMember.range.valueRange : apiMember.range);
+        var dataType = SupportedPropertyRenderer.dataTypes[valueRange.id] || { type: "text" };
         for (var property in dataType) {
             if ((dataType.hasOwnProperty(property)) && (dataType[property] !== undefined) && (dataType[property] !== null)) {
                 format += (property === "pattern" ? "ng-" + property : property) + "=\"{" + parameters.length + "}\" ";
@@ -238,114 +259,143 @@
 
         format += "/>";
         parameters.splice(0, 0, format);
-        var result = String.format.apply(window, parameters);
-        if (apiMember.maxOccurances === 1) {
-            var isNull = (!(scope.supportedPropertyNulls[apiMember.id] = (apiMember.minOccurances === 0)) ? "" : String.format(
-                "<span class=\"input-group-addon\">" +
-                "<input type=\"checkbox\" title=\"Null\" checked ng-model=\"supportedPropertyNulls['{0}']\" ng-change=\"onIsNullCheckedChanged('{0}')\" />" +
-                "</span>", apiMember.id));
-            return String.format("<div class=\"input-group\"><span ng-class=\"styleFor('{3}', null)\">{0}</span>{1}{2}</div>", apiMember.label, result, isNull, apiMember.id);
+        return String.format.apply(window, parameters);
+    };
+    var supportedPropertyRendererRenderCollection = function(scope, apiMember, context, field) {
+        scope.supportedPropertyNewValues[context.propertyName] = apiMember.createInstance();
+        var listControls = "";
+        if ((apiMember.range instanceof ursa.model.Class) && (apiMember.range.valueType !== null)) {
+            listControls = "<button class=\"btn\" ng-disabled=\"$index === 0\" ng-click=\"movePropertyItem('{3}', $index, -1)\"><span class=\"glyphicon glyphicon-arrow-up\"></span></button>" +
+                "<button class=\"btn\" ng-disabled=\"$index === {1}.length - 1\" ng-click=\"movePropertyItem('{3}', $index, 1)\"><span class=\"glyphicon glyphicon-arrow-down\"></span></button>";
         }
 
-        scope.supportedPropertyNewValues[propertyName] = apiMember.createInstance();
+        var itemField = field.replace(" name=\"" + context.propertyName + "\"", " ng-attr-name=\"{{'" + context.propertyName + "_' + $index}}\"");
+        var footerField = field.replace(context.literalSelector, "supportedPropertyNewValues['" + context.propertyName + "']")
+            .replace(" name=\"" + context.propertyName + "\"", " name=\"" + context.propertyName + "_new\"");
         return String.format(
-            "<div class=\"input-group\" ng-repeat=\"value in {1}{4}\">" + 
+            "<div class=\"input-group\" ng-repeat=\"value in {1}\">" +
                 "<span ng-class=\"styleFor('{3}', $index)\">{0}</span>" +
                 "{2}" +
-                "<span class=\"input-group-btn\"><button class=\"btn btn-default\" ng-click=\"removePropertyItem('{3}', $index)\"><span class=\"glyphicon glyphicon-remove\"></span></button></span>" +
+                "<span class=\"input-group-btn\">" +
+                    listControls +
+                    "<button class=\"btn btn-default\" ng-click=\"removePropertyItem('{3}', $index)\"><span class=\"glyphicon glyphicon-remove\"></span></button>" +
+                "</span>" +
+            "</div>" +
+            "<div class=\"input-group\">" +
+                "<span ng-class=\"styleFor('{3}', -1)\">{0}</span>" +
+                "{4}" +
+                "<span class=\"input-group-btn\"><button class=\"btn btn-default\" ng-click=\"addPropertyItem('{3}')\"><span class=\"glyphicon glyphicon-plus\"></span></button></span>" +
             "</div>",
             apiMember.label,
-            String.format(propertySelector, propertyName),
-            result.replace(" name=\"" + propertyName + "\"", " ng-attr-name=\"{{'" + propertyName + "_' + $index}}\""),
+            String.format(context.propertySelector, context.propertyName),
+            itemField,
             apiMember.id,
-            (literalSelector === "value" ? "" : " track by $index")) + String.format(
-            "<div class=\"input-group\">" + 
-                "<span ng-class=\"styleFor('{2}', -1)\">{0}</span>" +
-                "{1}" +
-                "<span class=\"input-group-btn\"><button class=\"btn btn-default\" ng-click=\"addPropertyItem('{2}')\"><span class=\"glyphicon glyphicon-plus\"></span></button></span>" +
-            "</div>",
-            apiMember.label,
-            result.replace(literalSelector, "supportedPropertyNewValues['" + propertyName + "']").replace(" name=\"" + propertyName + "\"", " name=\"" + propertyName + "_new\""),
-            apiMember.id);
+            footerField);
     };
     var supportedPropertyRendererSetupPropertyScope = function(scope, apiMember) {
+        var that = this;
         scope.editedEntityNulls = {};
         scope.supportedPropertyNewValues = {};
         scope.supportedPropertyNulls = {};
         scope.supportedPropertyKeys = {};
         scope.supportedPropertyReadonly = {};
         scope.supportedProperties = apiMember.owner.supportedProperties;
-        scope.isPropertyReadonly = function(supportedPropertyId) {
-            var supportedProperty = scope.supportedProperties.getById(supportedPropertyId);
-            var propertyName = supportedProperty.propertyName(scope.operation);
-            var instance = scope[scope.targetInstance];
-            if ((instance !== null) && (instance[propertyName] !== null)) {
-                delete scope.supportedPropertyNulls[supportedPropertyId];
-            }
+        scope.isPropertyReadonly = function(supportedPropertyId) { return supportedPropertyRendererIsPropertyReadonly.call(that, scope, supportedPropertyId); };
+        scope.styleFor = function(supportedPropertyId, index) { return supportedPropertyRendererStyleFor.call(that, scope, supportedPropertyId, index); };
+        scope.addPropertyItem = function(supportedPropertyId) { supportedPropertyRendererAddPropertyItem.call(that, scope, supportedPropertyId); };
+        scope.removePropertyItem = function(supportedPropertyId, index) { supportedPropertyRendererRemovePropertyItem.call(that, scope, supportedPropertyId, index); };
+        scope.onIsNullCheckedChanged = function(supportedPropertyId) { supportedPropertyRendererOnIsNullCheckedChanged.call(that, scope, supportedPropertyId); };
+        scope.movePropertyItem = function(supportedPropertyId, index, direction) { supportedPropertyRendererMovePropertyItem.call(that, scope, supportedPropertyId, index, direction); };
+    };
+    var supportedPropertyRendererIsPropertyReadonly = function(scope, supportedPropertyId) {
+        var supportedProperty = scope.supportedProperties.getById(supportedPropertyId);
+        var propertyName = supportedProperty.propertyName(scope.operation);
+        var instance = scope[scope.targetInstance];
+        if ((instance !== null) && (instance[propertyName] !== null)) {
+            delete scope.supportedPropertyNulls[supportedPropertyId];
+        }
 
-            return scope.supportedPropertyKeys[supportedPropertyId] ||
-                scope.supportedPropertyNulls[supportedPropertyId] ||
-                scope.supportedPropertyReadonly[supportedPropertyId];
-        };
-        scope.styleFor = function(supportedPropertyId, index) {
-            var result = "input-group-addon";
-            var supportedProperty = scope.supportedProperties.getById(supportedPropertyId);
-            if ((!supportedProperty.required) || (supportedProperty.key)) {
-                return result;
-            }
-
-            var propertyName = supportedProperty.propertyName(scope.operation);
-            var currentValue = scope[scope.targetInstance] || null;
-            switch (index) {
-                case null:
-                    if (currentValue !== null) {
-                        currentValue = currentValue[propertyName];
-                        currentValue = (currentValue.length > 0 ? currentValue[0]["@value"] : null);
-                    }
-
-                    break;
-                case -1:
-                    currentValue = scope.supportedPropertyNewValues[propertyName];
-                    break;
-                default:
-                    if (currentValue !== null) {
-                        currentValue = currentValue[propertyName];
-                        currentValue = (currentValue.length > 0 ? currentValue[index]["@value"] : null);
-                    }
-
-                    break;
-            }
-
-            return result + ((currentValue === undefined) || (currentValue === null) || ((typeof(currentValue) === "string") && (currentValue.length === 0)) ? " danger" : "");
-        };
-        scope.addPropertyItem = function(supportedPropertyId) {
-            var supportedProperty = scope.supportedProperties.getById(supportedPropertyId);
-            var propertyName = supportedProperty.propertyName(scope.operation);
-            if (!scope[scope.targetInstance][propertyName]) {
-                scope[scope.targetInstance][propertyName] = [];
-            }
-
-            scope[scope.targetInstance][propertyName].push(scope.supportedPropertyNewValues[propertyName]);
-            scope.supportedPropertyNewValues[propertyName] = supportedProperty.createInstance();
-        };
-        scope.removePropertyItem = function(supportedPropertyId, index) {
-            var supportedProperty = scope.supportedProperties.getById(supportedPropertyId);
-            scope[scope.targetInstance][supportedProperty.propertyName(scope.operation)].splice(index, 1);
-        };
-        scope.onIsNullCheckedChanged = function(supportedPropertyId) {
-            var supportedProperty = scope.supportedProperties.getById(supportedPropertyId);
-            var propertyName = supportedProperty.propertyName(scope.operation);
-            var instance = scope[scope.targetInstance];
-            if (instance[propertyName] instanceof Array) {
-                delete instance[propertyName];
-            }
-            else {
-                instance[propertyName] = [supportedProperty.createInstance()];
-            }
-        };
+        return scope.supportedPropertyKeys[supportedPropertyId] ||
+            scope.supportedPropertyNulls[supportedPropertyId] ||
+            scope.supportedPropertyReadonly[supportedPropertyId];
     };
     var supportedPropertyRendererIsLiteralRange = function(apiMember) {
-        return ((apiMember.range !== null) && ((apiMember.range.id.indexOf(xsd) === 0) || (apiMember.range.id.indexOf(guid) === 0)));
+        var range = apiMember.range;
+        if (range === null) {
+            return false;
+        }
+
+        if ((range instanceof ursa.model.Class) && (range.valueRange !== null)) {
+            range = range.valueRange;
+        }
+
+        return ((range.id.indexOf(xsd) === 0) || (range.id.indexOf(guid) === 0));
+    };
+    var supportedPropertyRendererStyleFor = function(scope, supportedPropertyId, index) {
+        var result = "input-group-addon";
+        var supportedProperty = scope.supportedProperties.getById(supportedPropertyId);
+        if ((!supportedProperty.required) || (supportedProperty.key)) {
+            return result;
+        }
+
+        var propertyName = supportedProperty.propertyName(scope.operation);
+        var currentValue = scope[scope.targetInstance] || null;
+        switch (index) {
+            case null:
+                if (currentValue !== null) {
+                    currentValue = currentValue[propertyName];
+                    currentValue = (currentValue.length > 0 ? currentValue[0]["@value"] : null);
+                }
+
+                break;
+            case -1:
+                currentValue = scope.supportedPropertyNewValues[propertyName];
+                break;
+            default:
+                if (currentValue !== null) {
+                    currentValue = currentValue[propertyName];
+                    currentValue = (currentValue.length > 0 ? currentValue[index]["@value"] : null);
+                }
+
+                break;
+        }
+
+        return result + ((currentValue === undefined) || (currentValue === null) || ((typeof(currentValue) === "string") && (currentValue.length === 0)) ? " danger" : "");
+    };
+    var supportedPropertyRendererAddPropertyItem = function(scope, supportedPropertyId) {
+        var supportedProperty = scope.supportedProperties.getById(supportedPropertyId);
+        var propertyName = supportedProperty.propertyName(scope.operation);
+        var isRdfList = ((scope.operation.isRdf) && (supportedProperty.range instanceof ursa.model.Class) && (supportedProperty.range.valueRange !== null));
+        var propertyItems = scope[scope.targetInstance][propertyName] || (scope[scope.targetInstance][propertyName] = (isRdfList ? [{ "@list": [] }] : []));
+        if ((propertyItems = (isRdfList ? propertyItems[0]["@list"] : propertyItems)).indexOf(scope.supportedPropertyNewValues[propertyName]) === -1) {
+            propertyItems.push(scope.supportedPropertyNewValues[propertyName]);
+        }
+
+        scope.supportedPropertyNewValues[propertyName] = supportedProperty.createInstance();
+    };
+    var supportedPropertyRendererRemovePropertyItem = function(scope, supportedPropertyId, index) {
+        var supportedProperty = scope.supportedProperties.getById(supportedPropertyId);
+        scope[scope.targetInstance][supportedProperty.propertyName(scope.operation)].splice(index, 1);
+    };
+    var supportedPropertyRendererOnIsNullCheckedChanged = function(scope, supportedPropertyId) {
+        var supportedProperty = scope.supportedProperties.getById(supportedPropertyId);
+        var propertyName = supportedProperty.propertyName(scope.operation);
+        var instance = scope[scope.targetInstance];
+        if (instance[propertyName] instanceof Array) {
+            delete instance[propertyName];
+        }
+        else {
+            instance[propertyName] = [supportedProperty.createInstance()];
+        }
+    };
+    var supportedPropertyRendererMovePropertyItem = function(scope, supportedPropertyId, index, direction) {
+        var supportedProperty = scope.supportedProperties.getById(supportedPropertyId);
+        var propertyName = supportedProperty.propertyName(scope.operation);
+        var isRdfList = ((scope.operation.isRdf) && (supportedProperty.range instanceof ursa.model.Class) && (supportedProperty.range.valueRange !== null));
+        var propertyItems = scope[scope.targetInstance][propertyName];
+        var propertyItem = (propertyItems = (isRdfList ? propertyItems[0]["@list"] : propertyItems))[index];
+        propertyItems[index] = propertyItems[index + direction];
+        propertyItems[index + direction] = propertyItem;
     };
     /**
      * Map of XSD data types and their description.
@@ -522,7 +572,7 @@
         ViewRenderer.prototype.render.apply(this, arguments);
         var result = String.format(
             "<div class=\"panel{0}\"><div class=\"panel-body\"><form{1}>",
-            (typeof (classNames) === "string" ? " " + classNames : ""),
+            (typeof(classNames) === "string" ? " " + classNames : ""),
             (scope.uniqueId ? " name=\"" + scope.uniqueId + "\"" : ""));
         for (var index = 0; index < apiMember.supportedProperties.length; index++) {
             var supportedProperty = apiMember.supportedProperties[index];

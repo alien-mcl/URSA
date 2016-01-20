@@ -32,8 +32,8 @@ namespace URSA.Web.Http.Description
         /// <summary>Creates a sub-class of the given <paramref name="class" />.</summary>
         /// <param name="context">The context.</param>
         /// <param name="class">The class to be sub-classed.</param>
-        /// <param name="id">The sub-class identifier.</param>
+        /// <param name="contextTypeOverride">The type that should override the one stored in <paramref name="context" />.</param>
         /// <returns>Sub-classed instance of the given <paramref name="class" />.</returns>
-        IClass SubClass(DescriptionContext context, IClass @class, EntityId id = null);
+        IClass SubClass(DescriptionContext context, IClass @class, Type contextTypeOverride = null);
     }
 }

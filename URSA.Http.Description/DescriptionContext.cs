@@ -120,11 +120,11 @@ namespace URSA.Web.Http.Description
 
         /// <summary>Creates a sub-class of the given <paramref name="class" />.</summary>
         /// <param name="class">The class to be sub-classed.</param>
-        /// <param name="id">The sub-class identifier.</param>
+        /// <param name="contextTypeOverride">The type that should override the one in this context.</param>
         /// <returns>Sub-classed instance of the given <paramref name="class" />.</returns>
-        public IClass SubClass(IClass @class, EntityId id = null)
+        public IClass SubClass(IClass @class, Type contextTypeOverride = null)
         {
-            return TypeDescriptionBuilder.SubClass(this, @class, id);
+            return TypeDescriptionBuilder.SubClass(this, @class, contextTypeOverride);
         }
 
         /// <summary> Determines whether the given <paramref name="type" /> is already described and available in the context.</summary>

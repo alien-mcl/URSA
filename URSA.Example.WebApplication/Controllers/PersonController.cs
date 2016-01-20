@@ -86,6 +86,17 @@ namespace URSA.Example.WebApplication.Controllers
             roles.ForEach(role => user.Roles.Add(role));
         }
 
+        /// <summary>Adds the given <paramref name="favouriteDishes" /> to the user with given <paramref name="id" />.</summary>
+        /// <param name="id">The identifier.</param>
+        /// <param name="favouriteDishes">Favourite dishes.</param>
+        [DenyClaim(ClaimTypes.Anonymous)]
+        public void SetFavouriteDishes(Guid id, IList<string> favouriteDishes)
+        {
+            var user = Repository[GetIndex(id)];
+            user.FavouriteDishes.Clear();
+            favouriteDishes.ForEach(role => user.FavouriteDishes.Add(role));
+        }
+
         private int GetIndex(Guid id)
         {
             int index = -1;

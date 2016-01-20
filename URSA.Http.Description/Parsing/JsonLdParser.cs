@@ -4,6 +4,7 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
+using RomanticWeb.Vocabularies;
 using VDS.RDF.Parsing.Handlers;
 
 namespace VDS.RDF.Parsing
@@ -13,6 +14,8 @@ namespace VDS.RDF.Parsing
     [ExcludeFromCodeCoverage]
     public class JsonLdParser : IRdfReader
     {
+        private static volatile int _index = 0;
+
         /// <inheritdoc />
         public event RdfReaderWarning Warning;
 
@@ -56,21 +59,19 @@ namespace VDS.RDF.Parsing
                 using (JsonReader jsonReader = new JsonTextReader(input))
                 {
                     jsonReader.DateParseHandling = DateParseHandling.None;
-                    JToken json = JToken.Load(jsonReader);
-                    json = JsonLD.Core.JsonLdProcessor.Expand(json);
+                    JToken json = JsonLD.Core.JsonLdProcessor.Expand(JToken.Load(jsonReader));
                     foreach (JObject subjectJObject in json)
                     {
                         string subject = subjectJObject["@id"].ToString();
                         JToken type;
-                        if ((subjectJObject.TryGetValue("@type", out type)) && (!HandleType(type, handler, subject)))
+                        if (subjectJObject.TryGetValue("@type", out type))
                         {
-                            return;
+                            HandleType(handler, subject, type);
                         }
 
-                        if (subjectJObject.Properties().Where(property => (property.Name != "@id") && (property.Name != "@type"))
-                            .Any(property => !HandleProperty(property, handler, subject)))
+                        foreach (var property in subjectJObject.Properties().Where(property => (property.Name != "@id") && (property.Name != "@type")))
                         {
-                            return;
+                            HandleProperty(handler, subject, property);
                         }
                     }
                 }
@@ -93,29 +94,18 @@ namespace VDS.RDF.Parsing
             }
         }
 
-        private static bool HandleType(JToken type, IRdfHandler handler, string subject)
+        private static void HandleType(IRdfHandler handler, string subject, JToken type)
         {
-            if (type is JArray)
+            JArray types = type as JArray ?? new JArray(type);
+            foreach (var item in types)
             {
-                return ((JArray)type).All(t => HandleTriple(handler, subject, "http://www.w3.org/1999/02/22-rdf-syntax-ns#type", t.ToString(), null, false));
+                HandleTriple(handler, subject, Rdf.type.ToString(), item.ToString(), null, false);
             }
-
-            return HandleTriple(handler, subject, "http://www.w3.org/1999/02/22-rdf-syntax-ns#type", type.ToString(), null, false);
         }
 
-        private static bool HandleTriple(IRdfHandler handler, string subject, string predicate, string obj, string datatype, bool isLiteral)
+        private static void HandleTriple(IRdfHandler handler, string subject, string predicate, string obj, string datatype, bool isLiteral)
         {
-            INode subjectNode;
-            if (subject.StartsWith("_"))
-            {
-                string nodeId = subject.Substring(subject.IndexOf(":") + 1);
-                subjectNode = handler.CreateBlankNode(nodeId);
-            }
-            else
-            {
-                subjectNode = handler.CreateUriNode(new Uri(subject));
-            }
-
+            INode subjectNode = (subject.StartsWith("_") ? (INode)handler.CreateBlankNode(subject.Substring(2)) : handler.CreateUriNode(new Uri(subject)));
             INode predicateNode = handler.CreateUriNode(new Uri(predicate));
             INode objNode;
             if (isLiteral)
@@ -125,50 +115,77 @@ namespace VDS.RDF.Parsing
                     obj = obj.ToLowerInvariant();
                 }
 
-                objNode = (datatype == null) ? handler.CreateLiteralNode(obj) : handler.CreateLiteralNode(obj, new Uri(datatype));
+                objNode = (datatype == null ? handler.CreateLiteralNode(obj) : handler.CreateLiteralNode(obj, new Uri(datatype)));
             }
             else
             {
-                if (obj.StartsWith("_"))
+                objNode = (obj.StartsWith("_") ? (INode)handler.CreateBlankNode(obj.Substring(2)) : handler.CreateUriNode(new Uri(obj)));
+            }
+
+            if (!handler.HandleTriple(new Triple(subjectNode, predicateNode, objNode)))
+            {
+                throw new InvalidOperationException(String.Format("Could not add triple {0} {1} {2} .", subjectNode, predicateNode, objNode));
+            }
+        }
+
+        private void HandleProperty(IRdfHandler handler, string subject, JProperty property)
+        {
+            foreach (JObject valueJObject in property.Value)
+            {
+                JToken list;
+                if (valueJObject.TryGetValue("@list", out list))
                 {
-                    string nodeId = obj.Substring(obj.IndexOf(":") + 1);
-                    objNode = handler.CreateBlankNode(nodeId);
+                    HandleList(handler, subject, property, (JArray)list);
                 }
                 else
                 {
-                    objNode = handler.CreateUriNode(new Uri(obj));
+                    var triple = HandleValue(valueJObject);
+                    if (triple == null)
+                    {
+                        continue;
+                    }
+
+                    HandleTriple(handler, subject, property.Name, triple.Item1, triple.Item2, triple.Item3);
                 }
             }
-
-            return handler.HandleTriple(new Triple(subjectNode, predicateNode, objNode));
         }
 
-        private bool HandleProperty(JProperty property, IRdfHandler handler, string subject)
+        private void HandleList(IRdfHandler handler, string subject, JProperty property, JArray list)
         {
-            foreach (JObject objectJObject in property.Value)
+            int nextIndex = 0;
+            HandleTriple(handler, subject, property.Name, (list.Count == 0 ? Rdf.nil.ToString() : "_:item" + (nextIndex = _index++)), null, false);
+            for (var index = 0; index < list.Count; index++)
             {
-                JToken id;
-                JToken value;
-                if (objectJObject.TryGetValue("@id", out id))
+                var item = (JObject)list[index];
+                var triple = HandleValue(item);
+                if (triple == null)
                 {
-                    if (!HandleTriple(handler, subject, property.Name, id.ToString(), null, false))
-                    {
-                        return false;
-                    }
+                    continue;
                 }
-                else if (objectJObject.TryGetValue("@value", out value))
-                {
-                    string datatype;
-                    JToken datatypeJToken;
-                    datatype = (objectJObject.TryGetValue("@type", out datatypeJToken) ? datatypeJToken.ToString() : MapType(value.Type));
-                    if (!HandleTriple(handler, subject, property.Name, value.ToString(), datatype, true))
-                    {
-                        return false;
-                    }
-                }
+
+                var currentSubject = "_:item" + nextIndex;
+                HandleTriple(handler, currentSubject, Rdf.first.ToString(), triple.Item1, triple.Item2, triple.Item3);
+                HandleTriple(handler, currentSubject, Rdf.rest.ToString(), (index == list.Count - 1 ? Rdf.nil.ToString() : "_:item" + (nextIndex = _index++)), null, false);
+            }
+        }
+
+        private Tuple<string, string, bool> HandleValue(JObject objectJObject)
+        {
+            JToken id;
+            JToken value;
+            if (objectJObject.TryGetValue("@id", out id))
+            {
+                return new Tuple<string, string, bool>(id.ToString(), null, false);
             }
 
-            return true;
+            if (!objectJObject.TryGetValue("@value", out value))
+            {
+                return null;
+            }
+
+            JToken datatypeJToken;
+            string datatype = (objectJObject.TryGetValue("@type", out datatypeJToken) ? datatypeJToken.ToString() : MapType(value.Type));
+            return new Tuple<string, string, bool>(value.ToString(), datatype, true);
         }
 
         private string MapType(JTokenType type)

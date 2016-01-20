@@ -280,8 +280,8 @@ namespace Given_instance_of_the
                 .Returns<DescriptionContext>(context => CreateDescription(entityContext, context, out requiresRdf));
             typeDescriptionBuilder.Setup(instance => instance.BuildTypeDescription(It.IsAny<DescriptionContext>(), out requiresRdf))
                 .Returns<DescriptionContext, bool>((context, rdf) => CreateDescription(entityContext, context, out rdf));
-            typeDescriptionBuilder.Setup(instance => instance.SubClass(It.IsAny<DescriptionContext>(), It.IsAny<IClass>(), null))
-                .Returns<DescriptionContext, IClass, EntityId>((context, @class, id) => @class);
+            typeDescriptionBuilder.Setup(instance => instance.SubClass(It.IsAny<DescriptionContext>(), It.IsAny<IClass>(), It.IsAny<Type>()))
+                .Returns<DescriptionContext, IClass, Type>((context, @class, id) => @class);
             typeDescriptionBuilder.Setup(instance => instance.GetSupportedPropertyId(It.IsAny<PropertyInfo>(), It.IsAny<Type>()))
                 .Returns<PropertyInfo, Type>((property, declaringType) => new EntityId(String.Format("urn:hydra:{0}.{1}", property.DeclaringType ?? declaringType, property.Name)));
             return typeDescriptionBuilder;
