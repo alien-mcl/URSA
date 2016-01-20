@@ -128,10 +128,10 @@ public class Startup
 	public void Configuration(IAppBuilder appBuilder)
 	{
 		appBuilder
-            .WithCorsEnabled()
-            .WithIdentityProvider<FakeIdentityProvider>()
-            .WithBasicAuthentication()
-            .RegisterApis();
+			.WithCorsEnabled()
+			.WithIdentityProvider<FakeIdentityProvider>()
+			.WithBasicAuthentication()
+			.RegisterApis();
 	}
 }
 {% endhighlight %}
