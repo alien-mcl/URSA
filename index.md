@@ -18,6 +18,16 @@ Finally, all of them have nothing to do with Hypermedia As The Engine Of Applica
 I decided to play a little with HYpermedia DRiven Application (HYDRA) Core Vocabulary - a promising solution for documenting ReST APIs
 so a client can be provided with hypermedia details telling him on what, when and how it can communicate with the server.
 
-Quickly this tiny project started to grow and became an alternate solution for the mentioned solutions when it comes to ReSTful API written in C#.
-While there is still plenty of work it already a working solution that could be good starting point for other developers.
+Quickly this tiny project started to grow and became an alternate approach for the mentioned solutions when it comes to ReSTful API written in C#.
+While there is still plenty of work it is already a working solution that could be good starting point for other developers.
 If you're still interested pieces of documentation can be found <a href="doc.html">here</a>.
+
+### Supported features
+* OWIN/IIS connectors
+* multiple body (de)serializers
+* url/query string parameters
+* auto-url generated API
+* API self-generated documentation
+* angularJS generic client
+* RDF and POJsO data type handling
+* automatic ReST and HATOAS behaviours
