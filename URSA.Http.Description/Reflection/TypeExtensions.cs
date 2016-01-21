@@ -20,6 +20,11 @@ namespace URSA.Reflection
 
         internal static string MakeTypeName(this Type type, bool includeNamespace = true, bool keepSyntax = false)
         {
+            if (type.IsArray)
+            {
+                return type.GetElementType().MakeTypeName(includeNamespace, keepSyntax) + "[]";
+            }
+
             if (!type.IsGenericType)
             {
                 return (includeNamespace ? type.FullName : type.Name).Replace("&", String.Empty);

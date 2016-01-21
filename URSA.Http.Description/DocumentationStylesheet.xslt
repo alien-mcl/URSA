@@ -18,7 +18,9 @@
             <head>
                 <title></title>
                 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
-                <style type="text/css"><![CDATA[
+                <style type="text/css">
+                    <![CDATA[
+                    .list-group-item { word-wrap: break-word; }
                     .list-group-item.list-group-item-property { padding-left:30px; }
                     .list-group-item.list-group-item-property:before { position:absolute; left:12px; top:0px; width:16px; height:100%; content:' '; background:url(/property) center no-repeat; }
                     .list-group-item.list-group-item-method { padding-left:30px; }
@@ -29,109 +31,155 @@
                 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.2/js/bootstrap.min.js"></script>
                 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.3.14/angular.min.js"></script>
                 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.3.14/angular-route.min.js"></script>
+                <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.3.14/angular-sanitize.min.js"></script>
                 <script type="text/javascript"><xsl:apply-templates select="hydra:ApiDocumentation" /><![CDATA[
         var flavours = {
             "C#": {
                 "http://www.w3.org/2001/XMLSchema#string": "string",
                 "http://www.w3.org/2001/XMLSchema#string[]": "string[]",
+                "http://www.w3.org/2001/XMLSchema#string<>": "System.Collections.Generic.IEnumerable<string>",
                 "http://www.w3.org/2001/XMLSchema#boolean": "bool",
                 "http://www.w3.org/2001/XMLSchema#boolean[]": "bool[]",
+                "http://www.w3.org/2001/XMLSchema#boolean<>": "System.Collections.Generic.IEnumerable<bool>",
                 "http://www.w3.org/2001/XMLSchema#byte": "sbyte",
                 "http://www.w3.org/2001/XMLSchema#byte[]": "sbyte[]",
+                "http://www.w3.org/2001/XMLSchema#byte<>": "System.Collections.Generic.IEnumerable<sbyte>",
                 "http://www.w3.org/2001/XMLSchema#unsignedByte": "byte",
                 "http://www.w3.org/2001/XMLSchema#unsignedByte[]": "byte[]",
+                "http://www.w3.org/2001/XMLSchema#unsignedByte<>": "System.Collections.Generic.IEnumerable<byte>",
                 "http://www.w3.org/2001/XMLSchema#short": "short",
                 "http://www.w3.org/2001/XMLSchema#short[]": "short[]",
+                "http://www.w3.org/2001/XMLSchema#short<>": "System.Collections.Generic.IEnumerable<short>",
                 "http://www.w3.org/2001/XMLSchema#unsignedShort": "ushort",
                 "http://www.w3.org/2001/XMLSchema#unsignedShort[]": "ushort[]",
+                "http://www.w3.org/2001/XMLSchema#unsignedShort<>": "System.Collections.Generic.IEnumerable<ushort>",
                 "http://www.w3.org/2001/XMLSchema#int": "int",
                 "http://www.w3.org/2001/XMLSchema#int[]": "int[]",
+                "http://www.w3.org/2001/XMLSchema#int<>": "System.Collections.Generic.IEnumerable<int>",
                 "http://www.w3.org/2001/XMLSchema#unsignedInt": "uint",
                 "http://www.w3.org/2001/XMLSchema#unsignedInt[]": "uint[]",
+                "http://www.w3.org/2001/XMLSchema#unsignedInt<>": "System.Collections.Generic.IEnumerable<uint>",
                 "http://www.w3.org/2001/XMLSchema#long": "long",
                 "http://www.w3.org/2001/XMLSchema#long[]": "long[]",
+                "http://www.w3.org/2001/XMLSchema#long<>": "System.Collections.Generic.IEnumerable<long>",
                 "http://www.w3.org/2001/XMLSchema#unsignedLong": "ulong",
                 "http://www.w3.org/2001/XMLSchema#unsignedLong[]": "ulong[]",
+                "http://www.w3.org/2001/XMLSchema#unsignedLong<>": "System.Collections.Generic.IEnumerable<ulong>",
                 "http://www.w3.org/2001/XMLSchema#float": "float",
                 "http://www.w3.org/2001/XMLSchema#float[]": "float[]",
+                "http://www.w3.org/2001/XMLSchema#float<>": "System.Collections.Generic.IEnumerable<float>",
                 "http://www.w3.org/2001/XMLSchema#double": "double",
                 "http://www.w3.org/2001/XMLSchema#double[]": "double[]",
+                "http://www.w3.org/2001/XMLSchema#double<>": "System.Collections.Generic.IEnumerable<double>",
                 "http://www.w3.org/2001/XMLSchema#decimal": "decimal",
-                "http://www.w3.org/2001/XMLSchema#decimal[]": "decimal[]",
+                "http://www.w3.org/2001/XMLSchema#decimal[]": "decimal>",
+                "http://www.w3.org/2001/XMLSchema#decimal<>": "System.Collections.Generic.IEnumerable<decimal>",
                 "http://www.w3.org/2001/XMLSchema#dateTime": "System.DateTime",
                 "http://www.w3.org/2001/XMLSchema#dateTime[]": "System.DateTime[]",
+                "http://www.w3.org/2001/XMLSchema#dateTime<>": "System.Collections.Generic.IEnumerable<System.DateTime>",
                 "http://www.w3.org/2001/XMLSchema#hexBinary": "byte[]",
                 "http://openguid.net/rdf#guid": "System.Guid",
                 "http://openguid.net/rdf#guid[]": "System.Guid[]",
-                "default": function(type) { return type.replace(/^urn:((net|net-enumerable|net-collection|net-list|hydra):)?/, ""); }
+                "http://openguid.net/rdf#guid<>": "System.Collections.Generic.IEnumerable<System.Guid>",
+                "default": function(type) { return type.replace(/^javascript:?/, "").replace(/(.+)<>$/, "System.Collections.Generic.IEnumerable<$1>"); }
             },
             "Java": {
                 "http://www.w3.org/2001/XMLSchema#string": "String",
                 "http://www.w3.org/2001/XMLSchema#string[]": "String[]",
+                "http://www.w3.org/2001/XMLSchema#string<>": "java.lang.Iterable<String>",
                 "http://www.w3.org/2001/XMLSchema#boolean": "boolean",
                 "http://www.w3.org/2001/XMLSchema#boolean[]": "boolean[]",
+                "http://www.w3.org/2001/XMLSchema#boolean<>": "java.lang.Iterable<boolean>",
                 "http://www.w3.org/2001/XMLSchema#byte": "byte",
                 "http://www.w3.org/2001/XMLSchema#byte[]": "byte[]",
+                "http://www.w3.org/2001/XMLSchema#byte<>": "java.lang.Iterable<byte>",
                 "http://www.w3.org/2001/XMLSchema#unsignedByte": "short",
                 "http://www.w3.org/2001/XMLSchema#unsignedByte[]": "short[]",
+                "http://www.w3.org/2001/XMLSchema#unsignedByte<>": "java.lang.Iterable<short>",
                 "http://www.w3.org/2001/XMLSchema#short": "short",
                 "http://www.w3.org/2001/XMLSchema#short[]": "short[]",
+                "http://www.w3.org/2001/XMLSchema#short<>": "java.lang.Iterable<short>",
                 "http://www.w3.org/2001/XMLSchema#unsignedShort": "int",
                 "http://www.w3.org/2001/XMLSchema#unsignedShort[]": "int[]",
+                "http://www.w3.org/2001/XMLSchema#unsignedShort<>": "java.lang.Iterable<int>",
                 "http://www.w3.org/2001/XMLSchema#int": "int",
                 "http://www.w3.org/2001/XMLSchema#int[]": "int[]",
+                "http://www.w3.org/2001/XMLSchema#int<>": "java.lang.Iterable<int>",
                 "http://www.w3.org/2001/XMLSchema#unsignedInt": "long",
                 "http://www.w3.org/2001/XMLSchema#unsignedInt[]": "long[]",
+                "http://www.w3.org/2001/XMLSchema#unsignedInt<>": "java.lang.Iterable<long>",
                 "http://www.w3.org/2001/XMLSchema#long": "long",
                 "http://www.w3.org/2001/XMLSchema#long[]": "long[]",
+                "http://www.w3.org/2001/XMLSchema#long<>": "java.lang.Iterable<long>",
                 "http://www.w3.org/2001/XMLSchema#unsignedLong": "long",
                 "http://www.w3.org/2001/XMLSchema#unsignedLong[]": "long[]",
+                "http://www.w3.org/2001/XMLSchema#unsignedLong<>": "java.lang.Iterable<long>",
                 "http://www.w3.org/2001/XMLSchema#float": "float",
                 "http://www.w3.org/2001/XMLSchema#float[]": "float[]",
+                "http://www.w3.org/2001/XMLSchema#float<>": "java.lang.Iterable<float>",
                 "http://www.w3.org/2001/XMLSchema#double": "double",
                 "http://www.w3.org/2001/XMLSchema#double[]": "double[]",
+                "http://www.w3.org/2001/XMLSchema#double<>": "java.lang.Iterable<double>",
                 "http://www.w3.org/2001/XMLSchema#decimal": "double",
                 "http://www.w3.org/2001/XMLSchema#decimal[]": "double[]",
+                "http://www.w3.org/2001/XMLSchema#decimal<>": "java.lang.Iterable<double>",
                 "http://www.w3.org/2001/XMLSchema#dateTime": "java.util.Date",
                 "http://www.w3.org/2001/XMLSchema#dateTime[]": "java.util.Date[]",
+                "http://www.w3.org/2001/XMLSchema#dateTime<>": "java.lang.Iterable<java.util.Date>",
                 "http://www.w3.org/2001/XMLSchema#hexBinary": "byte[]",
                 "http://openguid.net/rdf#guid": "java.util.UUID",
                 "http://openguid.net/rdf#guid[]": "java.util.UUID[]",
-                "default": function(type) { return type.replace(/^urn:((net|net-enumerable|net-collection|net-list|hydra):)?/, ""); }
+                "http://openguid.net/rdf#guid<>": "java.lang.Iterable<java.util.UUID>",
+                "default": function(type) { return type.replace(/^javascript:?/, "").replace(/(.+)<>$/, "java.lang.Iterable<$1>"); }
             },
             "UML": {
                 "http://www.w3.org/2001/XMLSchema#string": "String",
                 "http://www.w3.org/2001/XMLSchema#string[]": "String[]",
+                "http://www.w3.org/2001/XMLSchema#string<>": "<<collectionOf>> String",
                 "http://www.w3.org/2001/XMLSchema#boolean": "Boolean",
                 "http://www.w3.org/2001/XMLSchema#boolean[]": "Boolean[]",
+                "http://www.w3.org/2001/XMLSchema#boolean<>": "<<collectionOf>> Boolean",
                 "http://www.w3.org/2001/XMLSchema#byte": "Integer",
                 "http://www.w3.org/2001/XMLSchema#byte[]": "Integer[]",
+                "http://www.w3.org/2001/XMLSchema#byte<>": "<<collectionOf>> Integer",
                 "http://www.w3.org/2001/XMLSchema#unsignedByte": "Integer",
                 "http://www.w3.org/2001/XMLSchema#unsignedByte[]": "Integer[]",
+                "http://www.w3.org/2001/XMLSchema#unsignedByte<>": "<<collectionOf>> Integer",
                 "http://www.w3.org/2001/XMLSchema#short": "Integer",
                 "http://www.w3.org/2001/XMLSchema#short[]": "Integer[]",
+                "http://www.w3.org/2001/XMLSchema#short<>": "<<collectionOf>> Integer",
                 "http://www.w3.org/2001/XMLSchema#unsignedShort": "Integer",
                 "http://www.w3.org/2001/XMLSchema#unsignedShort[]": "Integer[]",
+                "http://www.w3.org/2001/XMLSchema#unsignedShort<>": "<<collectionOf>> Integer",
                 "http://www.w3.org/2001/XMLSchema#int": "Integer",
                 "http://www.w3.org/2001/XMLSchema#int[]": "Integer[]",
+                "http://www.w3.org/2001/XMLSchema#int<>": "<<collectionOf>> Integer",
                 "http://www.w3.org/2001/XMLSchema#unsignedInt": "Integer",
                 "http://www.w3.org/2001/XMLSchema#unsignedInt[]": "Integer[]",
+                "http://www.w3.org/2001/XMLSchema#unsignedInt<>": "<<collectionOf>> Integer",
                 "http://www.w3.org/2001/XMLSchema#long": "Integer",
                 "http://www.w3.org/2001/XMLSchema#long[]": "Integer[]",
+                "http://www.w3.org/2001/XMLSchema#long<>": "<<collectionOf>> Integer",
                 "http://www.w3.org/2001/XMLSchema#unsignedLong": "Integer",
                 "http://www.w3.org/2001/XMLSchema#unsignedLong[]": "Integer[]",
+                "http://www.w3.org/2001/XMLSchema#unsignedLong<>": "<<collectionOf>> Integer",
                 "http://www.w3.org/2001/XMLSchema#float": "Real",
                 "http://www.w3.org/2001/XMLSchema#float[]": "Real[]",
+                "http://www.w3.org/2001/XMLSchema#float<>": "<<collectionOf>> Real",
                 "http://www.w3.org/2001/XMLSchema#double": "UnlimitedNatural",
                 "http://www.w3.org/2001/XMLSchema#double[]": "UnlimitedNatural[]",
+                "http://www.w3.org/2001/XMLSchema#double<>": "<<collectionOf>> UnlimitedNatural",
                 "http://www.w3.org/2001/XMLSchema#decimal": "UnlimitedNatural",
                 "http://www.w3.org/2001/XMLSchema#decimal[]": "UnlimitedNatural[]",
+                "http://www.w3.org/2001/XMLSchema#decimal<>": "<<collectionOf>> UnlimitedNatural",
                 "http://www.w3.org/2001/XMLSchema#dateTime": "DateTime",
                 "http://www.w3.org/2001/XMLSchema#dateTime[]": "DateTime[]",
+                "http://www.w3.org/2001/XMLSchema#dateTime<>": "<<collectionOf>> DateTime",
                 "http://www.w3.org/2001/XMLSchema#hexBinary": "Binary",
                 "http://openguid.net/rdf#guid": "GUID",
                 "http://openguid.net/rdf#guid[]": "GUID[]",
-                "default": function(type) { return type.replace(/^urn:((net|net-enumerable|net-collection|net-list|hydra):)?/, ""); }
+                "http://openguid.net/rdf#guid<>": "<<collectionOf>> GUID",
+                "default": function(type) { return type.replace(/^javascript:?/, "").replace(/(.+)<>$/, "<<collectionOf>> $1"); }
             }
         };
         var mapType = function(type, flavour, test) {
@@ -144,7 +192,8 @@
             return result;
         };
             
-        var createMethod = function(supportedClass, supportedOperation, currentFlavour) {
+        var createMethod = function(supportedClass, supportedOperation, currentFlavour, format) {
+            format = !!format;
             var returns = "void";
             var parameters = "";
             if (supportedOperation.returns.length > 0) {
@@ -155,7 +204,7 @@
                     if ((mapping.property["@id"] == window.ursa + "take") || (mapping.property["@id"] == window.ursa + "skip")) {
                         hasTotalEntities = true;
                         switch (currentFlavour) {
-                            case "UML": parameters += "<<out>> totalEntities: Integer, "; break;
+                            case "UML": parameters += (format ? "&lt;&lt;out&gt;&gt;" : "<<out>>") + " totalEntities: Integer, "; break;
                             case "Java": parameters += "int[] totalEntities, "; break;
                             case "C#": parameters += "out int totalEntities, "; break;
                         }
@@ -192,6 +241,10 @@
                         parameterType = supportedClass.label + (parameterType.replace(/\[\]$/, "") === parameterType ? "" : "[]");
                     }
 
+                    if (format) {
+                        parameterType = parameterType.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+                    }
+
                     parameters += (currentFlavour === "UML" ? mapping.variable + ": " + parameterType : parameterType + " " + mapping.variable) + ", ";
                 }
                     
@@ -206,6 +259,10 @@
                     expectedType = supportedClass.label + (expectedType.replace(/\[\]$/, "") === expectedType ? "" : "[]");
                 }
 
+                if (format) {
+                    expectedType = expectedType.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+                }
+                
                 arguments += (currentFlavour === "UML" ? expected.variable + ": " + expectedType : expectedType + " " + expected.variable) + ", ";
             }
                 
@@ -214,15 +271,21 @@
             }
 
             var methodName = (currentFlavour === "Java" ? supportedOperation.label.charAt(0).toLowerCase() + supportedOperation.label.substr(1) : supportedOperation.label);
-            var result = (currentFlavour === "UML" ?
-                methodName + "(" + parameters + ((parameters.length > 0) && (arguments.length > 0) ? ", " : "") + arguments + ")" + (returns === "void" ? "" : ": " + returns) :
-                returns + " " + methodName + "(" + parameters + ((parameters.length > 0) && (arguments.length > 0) ? ", " : "") + arguments + ")");
+            var result = (currentFlavour === "UML" ? (format ? "<b>" : "") + methodName + (format ? "</b>" : "") + 
+                "(" + parameters + ((parameters.length > 0) && (arguments.length > 0) ? ", " : "") + arguments + ")" + 
+                (returns === "void" ? "" : ": " + (format ? "<i>" + returns.replace(/</g, "&lt;").replace(/>/g, "&gt;") + "</i>" : returns)) :
+                (format ? "<i>" + returns.replace(/</g, "&lt;").replace(/>/g, "&gt;") + "</i>" : returns) + " " + 
+                (format ? "<b>" : "") + methodName + (format ? "</b>" : "") + 
+                "(" + parameters + ((parameters.length > 0) && (arguments.length > 0) ? ", " : "") + arguments + ")");
             return result;
         };
             
-        var createProperty = function(supportedClass, supportedProperty, currentFlavour) {
-            var result = mapType(supportedProperty.type, currentFlavour) + " " + 
-                (currentFlavour === "Java" ? supportedProperty.label.charAt(0).toLowerCase() + supportedProperty.label.substr(1) : supportedProperty.label);
+        var createProperty = function(supportedClass, supportedProperty, currentFlavour, format) {
+            format = !!format;
+            var type = mapType(supportedProperty.type, currentFlavour);
+            var result = (format ? "<i>" + type.replace(/</g, "&lt;").replace(/>/g, "&gt;") + "</i>" : type) + " " + (format ? "<b>" : "") + 
+                (currentFlavour === "Java" ? supportedProperty.label.charAt(0).toLowerCase() + supportedProperty.label.substr(1) : supportedProperty.label) +
+                (format ? "</b>" : "");
             switch (currentFlavour) {
                 case "C#": result += " { " + (supportedProperty.readable ? "get; " : "") + (supportedProperty.writeable ? "set; " : "") + "}"; break;
                 case "Java": result = (supportedProperty.readable ? "@Getter " : "") + (supportedProperty.writeable ? "@Setter " : "") + " " + result; break;
@@ -232,16 +295,18 @@
             return result;
         };
         
-        var createMember = function(supportedClass, supportedMember, flavour) {
+        var createMember = function(supportedClass, supportedMember, flavour, format) {
             if ((supportedClass == null) || (supportedMember == null)) {
                 return "";
             }
             
-            return (supportedMember["@type"] === hydra.supportedProperty ? createProperty(supportedClass, supportedMember, flavour): createMethod(supportedClass, supportedMember, flavour));
+            return (supportedMember["@type"] === hydra.supportedProperty ?
+                createProperty(supportedClass, supportedMember, flavour, format) :
+                createMethod(supportedClass, supportedMember, flavour, format));
         };
         
         var defaultFlavour = "C#";
-        var apiDocumentation = angular.module("ApiDocumentation", ["ngRoute"]).
+        var apiDocumentation = angular.module("ApiDocumentation", ["ngRoute", "ngSanitize"]).
         controller("MainMenu", ["$scope", function($scope) {
             $scope.currentFlavour = defaultFlavour;
             $scope.changeFlavour = function(newFlavour) {
@@ -269,8 +334,9 @@
             $scope.createMember = createMember;
             $scope.currentFlavour = defaultFlavour;
             $scope.hasTotalEntities = false;
+            $scope.xsd = window.xsd;
             $scope.mapType = function(supportedClass, type, currentFlavour) {
-                if ((type === undefined) || (type == null)) {
+                if ((supportedClass === undefined) || (supportedClass == null) || (type === undefined) || (type == null)) {
                     return "";
                 }
                 
@@ -291,7 +357,7 @@
                 $scope.currentClass = currentClass;
                 $scope.currentMember = currentMember;
                 $scope.hasTotalEntities = false;
-                $scope.xsd = window.xsd;
+                $("html,body").animate({ scrollTop: 0 }, "fast");
                 if (currentMember.mappings) {
                     for (var index = 0; index < currentMember.mappings.length; index++) {
                         var mapping = currentMember.mappings[index];
@@ -355,7 +421,7 @@
                     </div>
                     <div class="col-sm-8 col-xs-12" ng-controller="MemberDescription" ng-show="currentMember">
                         <div class="panel panel-default">
-                            <div class="panel-heading">{{ createMember(currentClass, currentMember, currentFlavour) }}</div>
+                            <div class="panel-heading" ng-bind-html="createMember(currentClass, currentMember, currentFlavour, true)"></div>
                             <div class="panel-body">
                                 <p ng-show="currentMember.description">{{ currentMember.description }}</p>
                                 <table class="table" ng-show="isMethod(currentMember)">
@@ -385,8 +451,8 @@
                                 </table>
                                 <p ng-show="returns(currentMember)">
                                     {{ currentMember.type ? "Type:" : "Returns:" }}
-                                    {{ returns(currentMember) ? mapType(currentClass, currentMember.type || currentMember.returns[0]["@id"], currentFlavour) : "" }}
-                                    {{ currentMember.returns[0].description ? "; " + currentMember.returns[0].description : "" }}
+                                    <span ng-show="returns(currentMember)">{{ mapType(currentClass, currentMember.type || currentMember.returns[0]["@id"], currentFlavour) }}</span>
+                                    <span ng-show="returns(currentMember) &amp;&amp; currentMember.returns[0].description"><br />{{ currentMember.returns[0].description }}</span>
                                 </p>
                             </div>
                         </div>
@@ -556,6 +622,18 @@
     <xsl:template name="type">
         <xsl:param name="type" />
         <xsl:param name="isEnumerable" />
-        <xsl:value-of select="$type" /><xsl:if test="$isEnumerable = 'true'">[]</xsl:if>
+        <xsl:variable name="typeDescription" select="/rdf:RDF/*[@rdf:about = $type]" />
+        <xsl:choose>
+            <xsl:when test="$typeDescription/rdfs:subClassOf[@rdf:resource = '&rdf;List']">
+                <xsl:variable name="itemType">
+                    <xsl:choose>
+                        <xsl:when test="/rdf:RDF/owl:Restriction[@rdf:nodeID = $typeDescription/rdfs:subClassOf/@rdf:nodeID]/owl:onProperty[@rdf:resource = '&rdf;first']">
+                            <xsl:value-of select="/rdf:RDF/owl:Restriction[@rdf:nodeID = $typeDescription/rdfs:subClassOf/@rdf:nodeID]/owl:allValuesFrom/@rdf:resource" />
+                        </xsl:when>
+                        <xsl:otherwise><xsl:value-of select="'&owl;Thing'" /></xsl:otherwise>
+                    </xsl:choose>
+                </xsl:variable><xsl:value-of select="$itemType" />[]</xsl:when>
+            <xsl:otherwise><xsl:value-of select="$type" /><xsl:if test="$isEnumerable = 'true'">&lt;&gt;</xsl:if></xsl:otherwise>
+        </xsl:choose>
     </xsl:template>
 </xsl:stylesheet>

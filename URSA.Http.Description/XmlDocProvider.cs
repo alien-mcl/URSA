@@ -168,7 +168,7 @@ namespace URSA.Web.Http.Description
                 return String.Join(" ", element.Attributes().Select(GetText));
             }
 
-            return String.Join(String.Empty, element.DescendantNodes().Select(GetText));
+            return String.Join(String.Empty, element.Nodes().Select(GetText));
         }
 
         private static string GetText(XAttribute attribute)

@@ -86,7 +86,7 @@ namespace URSA.Web.Http.Description
             }
 
             IClass result = context.ApiDocumentation.Context.Create<IClass>(classUri);
-            result.Label = itemType.Name.Replace("&", String.Empty);
+            result.Label = itemType.MakeTypeName(false, true);
             result.Description = _xmlDocProvider.GetDescription(itemType);
             if (typeof(EntityId).IsAssignableFrom(itemType))
             {
@@ -170,7 +170,7 @@ namespace URSA.Web.Http.Description
 
             var itemType = context.Type.GetItemType();
             IClass result = context.ApiDocumentation.Context.Create<IClass>(new EntityId(context.Type.MakeUri()));
-            result.Label = context.Type.MakeTypeName(true, true);
+            result.Label = context.Type.MakeTypeName(false, true);
             result.Description = _xmlDocProvider.GetDescription(context.Type);
             result.SubClassOf.Add(context.ApiDocumentation.Context.Create<IClass>(new EntityId(Rdf.List)));
 

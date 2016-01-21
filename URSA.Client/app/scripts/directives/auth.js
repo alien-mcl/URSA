@@ -12,7 +12,7 @@
                 notifyWithEvent: "@",
                 errorOnEvent: "@"
             },
-            templateUrl: "/views/auth.html",
+            templateUrl: "views/auth.html",
             link: function($scope) {
                 $scope.visible = false;
                 $scope.submitted = false;
