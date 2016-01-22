@@ -635,6 +635,39 @@
     SupportedProperty.prototype.createInstance = function() {
         return createLiteralValue.call(this, this.range);
     };
+    /**
+     * Initializes a supported property in a given instance.
+     * @memberof ursa.model.SupportedProperty
+     * @instance
+     * @public
+     * @method initializeInstance
+     * @returns {object} Value initialized.
+     */
+    SupportedProperty.prototype.initializeInstance = function(operation, instance) {
+        var propertyName = this.propertyName(operation);
+        var value = (instance ? instance[propertyName] : undefined);
+        if (!value) {
+            value = (!operation.isRdf ? (this.maxOccurances > 1 ? [] : null) :
+                ((this.range instanceof Class) && (this.range.valueRange !== null) ? [{ "@list": [] }] : []));
+            if (instance) {
+                instance[propertyName] = value;
+            }
+        }
+
+        return value;
+    };
+    var subject = { "@id": "urn:name:subject" };
+    var subjectGraph = [subject, { "@id": rdf.subject }];
+    subjectGraph.getById = function(id) { return (id === rdf.subject ? subjectGraph[1] : null); };
+    subject[hydra.property] = [subjectGraph[1]];
+    /**
+     * Instace of the property that represents an RDF resource identifier.
+     * @memberof ursa.model.SupportedProperty
+     * @static
+     * @public
+     * @member {ursa.model.SupportedProperty} Subject
+     */
+    SupportedProperty.Subject = new SupportedProperty(null, subject, subjectGraph);
 
     /**
      * Describes an IRI template mapping.
@@ -1093,7 +1126,7 @@
         var result = {};
         for (var index = 0; index < this.supportedProperties.length; index++) {
             var supportedProperty = this.supportedProperties[index];
-            var newValue = result[supportedProperty.propertyName(operation)] = (supportedProperty.maxOccurances > 1 ? [] : null);
+            var newValue = supportedProperty.initializeInstance(operation, result);
             if (supportedProperty.minOccurances > 0) {
                 var value = supportedProperty.createInstance();
                 if (value !== null) {
@@ -1111,7 +1144,7 @@
 
         return result;
     };
-    var classCreateRdfInstance = function() {
+    var classCreateRdfInstance = function(operation) {
         var result = { "@id": "_:bnode" + Math.random().toString().replace(".", "").substr(1) };
         if (this.id.indexOf("_") !== 0) {
             result["@type"] = this.id;
@@ -1119,11 +1152,7 @@
 
         for (var index = 0; index < this.supportedProperties.length; index++) {
             var supportedProperty = this.supportedProperties[index];
-            var newValue = result[supportedProperty.property] = [];
-            if ((supportedProperty.range instanceof Class) && (supportedProperty.range.valueRange !== null)) {
-                result[supportedProperty.property] = [{ "@list": newValue }];
-            }
-
+            var newValue = supportedProperty.initializeInstance(operation, result);
             if (supportedProperty.minOccurances > 0) {
                 var value = supportedProperty.createInstance();
                 if (value !== null) {
@@ -1132,13 +1161,49 @@
                     }
                 }
             }
-
-            if ((newValue.length === 0) && (supportedProperty.maxOccurances ===1 )) {
-                delete result[supportedProperty.property];
-            }
         }
 
         return result;
+    };
+    /**
+     * Gets a property that uniquely identifies a resource.
+     * @memberof ursa.model.Class
+     * @instance
+     * @public
+     * @member {ursa.model.SupportedProperty} getKeyProperty
+     */
+    Class.prototype.getKeyProperty = function(operation) {
+        for (var index = 0; index < this.supportedProperties.length; index++) {
+            var supportedProperty = this.supportedProperties[index];
+            if (supportedProperty.key) {
+                return supportedProperty;
+            }
+        }
+
+        return (operation.isRdf ? SupportedProperty.Subject : null);
+    };
+
+    /**
+     * Gets a property that should be used as an display name of the instance, i.e. for lists.
+     * @memberof ursa.model.Class
+     * @instance
+     * @public
+     * @member {ursa.model.SupportedProperty} getInstanceDisplayNameProperty
+     */
+    Class.prototype.getInstanceDisplayNameProperty = function(operation) {
+        var key = (operation.isRdf ? SupportedProperty.Subject : null);
+        for (var index = 0; index < this.supportedProperties.length; index++) {
+            var supportedProperty = this.supportedProperties[index];
+            if (supportedProperty.key) {
+                key = supportedProperty;
+            }
+
+            if ((supportedProperty.property === rdfs.label) || ((supportedProperty.range === xsd.string) && (supportedProperty.maxOccurances === 1))) {
+                return supportedProperty;
+            }
+        }
+
+        return key;
     };
     Class.prototype.clone = function(source) {
         if (arguments.length === 0) {

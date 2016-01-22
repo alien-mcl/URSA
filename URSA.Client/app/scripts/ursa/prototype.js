@@ -29,6 +29,7 @@
     xsd.gDay = xsd + "gDay";
     xsd.gYearMonth = xsd + "gYearMonth";
     window.rdf = new String("http://www.w3.org/1999/02/22-rdf-syntax-ns#"); //jshint ignore:line
+    rdf.subject = rdf + "subject";
     rdf.first = rdf + "first";
     rdf.last = rdf + "last";
     rdf.Property = rdf + "Property";

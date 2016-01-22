@@ -13,7 +13,7 @@ namespace URSA.Web.Http.Description
     /// <summary>Provides a description context.</summary>
     public class DescriptionContext
     {
-        private readonly IDictionary<Type, Tuple<IClass, bool>> _typeDefinitions;
+        private readonly IDictionary<Type, Tuple<IClass, bool, bool>> _typeDefinitions;
 
         /// <summary>Initializes a new instance of the <see cref="DescriptionContext"/> class.</summary>
         /// <param name="apiDocumentation">The API documentation.</param>
@@ -21,7 +21,7 @@ namespace URSA.Web.Http.Description
         /// <param name="type">The type.</param>
         /// <param name="typeDefinitions">The type definitions.</param>
         [ExcludeFromCodeCoverage]
-        private DescriptionContext(IApiDocumentation apiDocumentation, ITypeDescriptionBuilder typeDescriptionBuilder, Type type, IDictionary<Type, Tuple<IClass, bool>> typeDefinitions)
+        private DescriptionContext(IApiDocumentation apiDocumentation, ITypeDescriptionBuilder typeDescriptionBuilder, Type type, IDictionary<Type, Tuple<IClass, bool, bool>> typeDefinitions)
         {
             if (apiDocumentation == null)
             {
@@ -86,7 +86,7 @@ namespace URSA.Web.Http.Description
                 throw new ArgumentNullException("type");
             }
 
-            return new DescriptionContext(apiDocumentation, typeDescriptionBuilder, type, new Dictionary<Type, Tuple<IClass, bool>>());
+            return new DescriptionContext(apiDocumentation, typeDescriptionBuilder, type, new Dictionary<Type, Tuple<IClass, bool, bool>>());
         }
 
         /// <summary>Creates a copy of the context for different type.</summary>
@@ -127,7 +127,7 @@ namespace URSA.Web.Http.Description
             return TypeDescriptionBuilder.SubClass(this, @class, contextTypeOverride);
         }
 
-        /// <summary> Determines whether the given <paramref name="type" /> is already described and available in the context.</summary>
+        /// <summary>Determines whether the given <paramref name="type" /> is already described and available in the context.</summary>
         /// <param name="type">The type to check for existence.</param>
         /// <returns><b>true</b> if the type is already available in the context; otherwise <b>false</b>.</returns>
         public bool ContainsType(Type type)
@@ -138,6 +138,20 @@ namespace URSA.Web.Http.Description
             }
 
             return _typeDefinitions.ContainsKey(type);
+        }
+
+        /// <summary>Determines whether the <paramref name="type" /> described in the context is complete.</summary>
+        /// <param name="type">The type to check for completion.</param>
+        /// <returns><b>true</b> if the type is complete; otherwise <b>false</b>.</returns>
+        public bool IsTypeComplete(Type type)
+        {
+            if (type == null)
+            {
+                throw new ArgumentNullException("type");
+            }
+
+            Tuple<IClass, bool, bool> description;
+            return (_typeDefinitions.TryGetValue(type, out description) && description.Item3);
         }
 
         /// <summary>Checks whether the given <paramref name="type"/> requires an RDF approach.</summary>
@@ -163,7 +177,20 @@ namespace URSA.Web.Http.Description
                 throw new ArgumentNullException("resource");
             }
 
-            _typeDefinitions[Type] = new Tuple<IClass, bool>(resource, requiresRdf);
+            _typeDefinitions[Type] = new Tuple<IClass, bool, bool>(resource, requiresRdf, true);
+        }
+
+        /// <summary>Prescribes the current type as being still under construction.</summary>
+        /// <param name="resource">The resource describing a type.</param>
+        /// <param name="requiresRdf">Flag determining whether the type requires RDF approach.</param>
+        public void Prescribe(IClass resource, bool requiresRdf)
+        {
+            if (resource == null)
+            {
+                throw new ArgumentNullException("resource");
+            }
+
+            _typeDefinitions[Type] = new Tuple<IClass, bool, bool>(resource, requiresRdf, false);
         }
     }
 }

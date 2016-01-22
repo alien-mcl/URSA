@@ -204,11 +204,11 @@
         }
 
         if (!scope.supportedPropertyNewValues) {
-            supportedPropertyRendererSetupPropertyScope.call(this, scope, apiMember);
+            supportedPropertyRendererSetupPropertyScope.call(this, scope, http, jsonld, apiMember);
         }
 
         var context = supportedPropertyRendererInitialize.call(this, scope, apiMember, classNames);
-        var result = supportedPropertyRendererRenderField.call(this, scope, apiMember, context);
+        var result = supportedPropertyRendererRenderField.call(this, scope, http, jsonld, apiMember, context);
         if (apiMember.maxOccurances === 1) {
             var isNull = (!(scope.supportedPropertyNulls[apiMember.id] = (apiMember.minOccurances === 0)) ? "" : String.format(
                 "<span class=\"input-group-addon\">" +
@@ -233,22 +233,30 @@
             propertyName: apiMember.propertyName(scope.operation),
             propertySelector: scope.targetInstance +
                 (!scope.operation.isRdf ? "['{0}']" : "['{0}']" + (apiMember.maxOccurances > 1 ?
-                ((apiMember.range instanceof ursa.model.Class) && (apiMember.range.valueRange !== null) ? "[0]['@list']" : "") : "[0]['@value']"))
+                ((apiMember.range instanceof ursa.model.Class) && (apiMember.range.valueRange !== null) ? "[0]['@list']" : "") :
+                    (apiMember.range instanceof ursa.model.DataType ? "[0]['@value']" : "[0]['@id']")))
         };
         result.literalSelector = (supportedPropertyRendererIsLiteralRange.call(this, apiMember) ? String.format(result.propertySelector, result.propertyName) + "[$index]" : "value");
         result.valueSelector = (apiMember.maxOccurances <= 1 ? result.propertySelector : result.literalSelector + (!scope.operation.isRdf ? "" : "['@value']"));
         return result;
     };
-    var supportedPropertyRendererRenderField = function(scope, apiMember, context) {
+    var supportedPropertyRendererRenderField = function (scope, http, jsonld, apiMember, context) {
+        var operation = null;
+        var valueRange = ((apiMember.range instanceof ursa.model.Class) && (apiMember.range.valueRange !== null) ? apiMember.range.valueRange : apiMember.range);
+        var controlType = (SupportedPropertyRenderer.dataTypes[valueRange.id] ? "input" : "select");
+        if ((controlType === "select") && ((operation = operationRendererFindEntityCrudOperation.call(this, apiMember, "GET")) === null)) {
+            controlType = "input";
+        }
+
         var format = String.format(
-            "<input {0}ng-model=\"{1}\" name=\"{4}\" ng-readonly=\"isPropertyReadonly('{2}')\" {3}",
+            "<{0} {1}ng-model=\"{2}\" name=\"{5}\" ng-readonly=\"isPropertyReadonly('{3}')\" ",
+            controlType,
             context.classNames,
-            context.valueSelector,
+            (controlType === "select" ? context.valueSelector.replace(/\['@id'\]$/, "") : context.valueSelector),
             apiMember.id,
             ((apiMember.required) && (!apiMember.key) ? "required " : ""),
             context.propertyName);
         var parameters = [context.propertyName];
-        var valueRange = ((apiMember.range instanceof ursa.model.Class) && (apiMember.range.valueRange !== null) ? apiMember.range.valueRange : apiMember.range);
         var dataType = SupportedPropertyRenderer.dataTypes[valueRange.id] || { type: "text" };
         for (var property in dataType) {
             if ((dataType.hasOwnProperty(property)) && (dataType[property] !== undefined) && (dataType[property] !== null)) {
@@ -257,7 +265,21 @@
             }
         }
 
-        format += "/>";
+        var closure = "/>";
+        if (controlType === "select") {
+            var displayName = apiMember.owner.getInstanceDisplayNameProperty(operation);
+            scope.supportedPropertyValues[apiMember.id] = [];
+            supportedPropertyRendererLoadItems.call(this, scope, apiMember.id, http, jsonld);
+            closure = String.format(
+                " ng-focus=\"loadItems('{1}')\" ng-options=\"item as item['{0}']{3} for item in supportedPropertyValues['{1}'] track by item['{2}']\"></select>",
+                displayName.propertyName(operation),
+                apiMember.id,
+                (operation.isRdf ? "@id" : apiMember.owner.getKeyProperty(operation).propertyName(operation)),
+                (operation.isRdf ? "[0]['@value']" : ""));
+        }
+
+
+        format += closure;
         parameters.splice(0, 0, format);
         return String.format.apply(window, parameters);
     };
@@ -292,13 +314,14 @@
             apiMember.id,
             footerField);
     };
-    var supportedPropertyRendererSetupPropertyScope = function(scope, apiMember) {
+    var supportedPropertyRendererSetupPropertyScope = function(scope, http, jsonld, apiMember) {
         var that = this;
         scope.editedEntityNulls = {};
         scope.supportedPropertyNewValues = {};
         scope.supportedPropertyNulls = {};
         scope.supportedPropertyKeys = {};
         scope.supportedPropertyReadonly = {};
+        scope.supportedPropertyValues = {};
         scope.supportedProperties = apiMember.owner.supportedProperties;
         scope.isPropertyReadonly = function(supportedPropertyId) { return supportedPropertyRendererIsPropertyReadonly.call(that, scope, supportedPropertyId); };
         scope.styleFor = function(supportedPropertyId, index) { return supportedPropertyRendererStyleFor.call(that, scope, supportedPropertyId, index); };
@@ -306,6 +329,7 @@
         scope.removePropertyItem = function(supportedPropertyId, index) { supportedPropertyRendererRemovePropertyItem.call(that, scope, supportedPropertyId, index); };
         scope.onIsNullCheckedChanged = function(supportedPropertyId) { supportedPropertyRendererOnIsNullCheckedChanged.call(that, scope, supportedPropertyId); };
         scope.movePropertyItem = function(supportedPropertyId, index, direction) { supportedPropertyRendererMovePropertyItem.call(that, scope, supportedPropertyId, index, direction); };
+        scope.loadItems = function(supportedPropertyId) { supportedPropertyRendererLoadItems.call(that, scope, supportedPropertyId, http, jsonld); };
     };
     var supportedPropertyRendererIsPropertyReadonly = function(scope, supportedPropertyId) {
         var supportedProperty = scope.supportedProperties.getById(supportedPropertyId);
@@ -396,6 +420,23 @@
         var propertyItem = (propertyItems = (isRdfList ? propertyItems[0]["@list"] : propertyItems))[index];
         propertyItems[index] = propertyItems[index + direction];
         propertyItems[index + direction] = propertyItem;
+    };
+    var supportedPropertyRendererLoadItems = function(scope, supportedPropertyId, http, jsonld) {
+        var supportedProperty = scope.supportedProperties.getById(supportedPropertyId);
+        var operation = operationRendererFindEntityCrudOperation.call(this, supportedProperty, "GET");
+        supportedProperty.initializeInstance(operation, scope[scope.targetInstance]);
+        http({ method: "GET", url: operation.createCallUrl(), headers: { Accept: operation.mediaTypes.join() } }).
+            then(function(response) {
+                if ((response.headers("Content-Type") || "*/*").indexOf(ursa.model.EntityFormat.ApplicationLdJson) === 0) {
+                    jsonld.expand(response.data).
+                        then(function(expanded) {
+                            scope.supportedPropertyValues[supportedPropertyId] = expanded;
+                        });
+                }
+                else {
+                    scope.supportedPropertyValues[supportedPropertyId] = response.data;
+                }
+            });
     };
     /**
      * Map of XSD data types and their description.
@@ -701,7 +742,7 @@
                 scope.keyProperty = supportedProperty.propertyName(apiMember) + (apiMember.isRdf ? "'][0]['@value" : "");
             }
 
-            if ((supportedProperty.maxOccurances === 1) && (supportedProperty.readable)) {
+            if ((supportedProperty.maxOccurances === 1) && (supportedProperty.readable) && (supportedProperty.range instanceof ursa.model.DataType)) {
                 scope.supportedProperties.push(supportedProperty);
             }
         }

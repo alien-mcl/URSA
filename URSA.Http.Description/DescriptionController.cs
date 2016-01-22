@@ -116,7 +116,7 @@ namespace URSA.Web.Http.Description
         /// <returns><see cref="IApiDocumentation" /> instance.</returns>
         [Route("/")]
         [OnGet]
-        public IApiDocumentation GetApiEntryPointDescription(OutputFormats format = OutputFormats.Xml)
+        public IApiDocumentation GetApiEntryPointDescription(OutputFormats format)
         {
             return GetApiEntryPointDescription(OverrideAcceptedMediaType(format));
         }

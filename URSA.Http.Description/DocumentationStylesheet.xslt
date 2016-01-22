@@ -81,6 +81,7 @@
                 "http://openguid.net/rdf#guid": "System.Guid",
                 "http://openguid.net/rdf#guid[]": "System.Guid[]",
                 "http://openguid.net/rdf#guid<>": "System.Collections.Generic.IEnumerable<System.Guid>",
+                "<>": new RegExp(/^System\.Collections\.Generic\.IEnumerable<([^>]+)>$/),
                 "default": function(type) { return type.replace(/^javascript:?/, "").replace(/(.+)<>$/, "System.Collections.Generic.IEnumerable<$1>"); }
             },
             "Java": {
@@ -130,6 +131,7 @@
                 "http://openguid.net/rdf#guid": "java.util.UUID",
                 "http://openguid.net/rdf#guid[]": "java.util.UUID[]",
                 "http://openguid.net/rdf#guid<>": "java.lang.Iterable<java.util.UUID>",
+                "<>": new RegExp(/^java\.lang\.Iterable<([^>]+)>$/),
                 "default": function(type) { return type.replace(/^javascript:?/, "").replace(/(.+)<>$/, "java.lang.Iterable<$1>"); }
             },
             "UML": {
@@ -179,19 +181,24 @@
                 "http://openguid.net/rdf#guid": "GUID",
                 "http://openguid.net/rdf#guid[]": "GUID[]",
                 "http://openguid.net/rdf#guid<>": "<<collectionOf>> GUID",
+                "<>": new RegExp(/^<<collectionOf>> (.*)$/),
                 "default": function(type) { return type.replace(/^javascript:?/, "").replace(/(.+)<>$/, "<<collectionOf>> $1"); }
             }
         };
-        var mapType = function(type, flavour, test) {
+        var mapType = function(type, flavour, unpackCollections) {
             var flavour = flavours[flavour];
-            var result = flavour[type];
+            var result = (unpackCollections ? flavour["<>"] : flavour[type]);
             if (result === undefined) {
                 return flavour["default"](type);
             }
             
+            if (result instanceof RegExp) {
+                return type.replace(result, "$1");
+            }
+            
             return result;
         };
-            
+        
         var createMethod = function(supportedClass, supportedOperation, currentFlavour, format) {
             format = !!format;
             var returns = "void";
@@ -223,7 +230,7 @@
                 }
                 else {
                     returns = mapType(returnedTypes[0]["@id"], currentFlavour);
-                    if (returns.replace(/\[\]$/, "") === mapType(supportedClass["@id"], currentFlavour)) {
+                    if (mapType(returns, currentFlavour, true) === mapType(supportedClass["@id"], currentFlavour)) {
                         returns = supportedClass.label + (returns.replace(/\[\]$/, "") === returns ? "" : "[]");
                     }
                 }
@@ -237,7 +244,7 @@
                         parameterType = mapType(mapping.property.type, currentFlavour);
                     }
                         
-                    if (parameterType.replace(/\[\]$/, "") === mapType(supportedClass["@id"], currentFlavour)) {
+                    if (mapType(parameterType, currentFlavour, true) === mapType(supportedClass["@id"], currentFlavour)) {
                         parameterType = supportedClass.label + (parameterType.replace(/\[\]$/, "") === parameterType ? "" : "[]");
                     }
 
@@ -255,7 +262,7 @@
             for (var index = 0; index < supportedOperation.expects.length; index++) {
                 var expected = supportedOperation.expects[index];
                 var expectedType = mapType(expected.type, currentFlavour);
-                if (expectedType.replace(/\[\]$/, "") === mapType(supportedClass["@id"], currentFlavour)) {
+                if (mapType(expectedType, currentFlavour, true) === mapType(supportedClass["@id"], currentFlavour)) {
                     expectedType = supportedClass.label + (expectedType.replace(/\[\]$/, "") === expectedType ? "" : "[]");
                 }
 
@@ -283,6 +290,10 @@
         var createProperty = function(supportedClass, supportedProperty, currentFlavour, format) {
             format = !!format;
             var type = mapType(supportedProperty.type, currentFlavour);
+            if (mapType(type, currentFlavour, true) === mapType(supportedClass["@id"], currentFlavour)) {
+                type = supportedClass.label + (type.replace(/\[\]$/, "") === type ? "" : "[]");
+            }
+            
             var result = (format ? "<i>" + type.replace(/</g, "&lt;").replace(/>/g, "&gt;") + "</i>" : type) + " " + (format ? "<b>" : "") + 
                 (currentFlavour === "Java" ? supportedProperty.label.charAt(0).toLowerCase() + supportedProperty.label.substr(1) : supportedProperty.label) +
                 (format ? "</b>" : "");

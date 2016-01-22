@@ -28,5 +28,8 @@ namespace URSA.Example.WebApplication.Data
 
         /// <summary>Gets or sets the favourite dishes.</summary>
         public IList<string> FavouriteDishes { get { return _favouriteDishes; } set { _favouriteDishes = value ?? new List<string>(); } }
+
+        /// <summary>Gets or sets the spouse.</summary>
+        public Person Spouse { get; set; }
     }
 }

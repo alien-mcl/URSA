@@ -94,6 +94,7 @@ namespace URSA.Web.Http.Description
                 return result;
             }
 
+            context.Prescribe(result, requiresRdf);
             SetupProperties(context.ForType(itemType), result);
             context.Describe(result, requiresRdf);
             return result;
@@ -138,7 +139,7 @@ namespace URSA.Web.Http.Description
 
         private void SetupProperties(DescriptionContext context, IClass @class)
         {
-            if (context.ContainsType(context.Type))
+            if (context.IsTypeComplete(context.Type))
             {
                 if (@class == context[context.Type])
                 {
