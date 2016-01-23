@@ -112,6 +112,11 @@ namespace URSA.Web.Http
                 _converterProvider.SupportedMediaTypes.Join(accept, outer => outer, inner => inner, (outer, inner) => inner));
             var accepted = (validAccept.Any() ? validAccept : new[] { "*/*" });
             WebRequest request = _webRequestProvider.CreateRequest(uri, new Dictionary<string, string>() { { Header.Accept, String.Join(", ", accepted) } });
+            if ((!String.IsNullOrEmpty(CredentialCache.DefaultNetworkCredentials.UserName)) && (!String.IsNullOrEmpty(CredentialCache.DefaultNetworkCredentials.Password)))
+            {
+                request.Credentials = CredentialCache.DefaultNetworkCredentials;
+            }
+
             request.Method = verb.ToString();
             if ((bodyArguments != null) && (bodyArguments.Length > 0))
             {

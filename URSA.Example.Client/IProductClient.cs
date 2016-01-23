@@ -23,15 +23,15 @@ namespace Vocab
         {
             dynamic uriArguments = new ExpandoObject();
             var accept = new string[] {
-                "application/ld+json",
-                "text/turtle",
                 "application/owl+xml",
-                "application/rdf+xml" };
+                "application/rdf+xml",
+                "text/turtle",
+                "application/ld+json" };
             var contentType = new string[] {
-                "application/ld+json",
-                "text/turtle",
                 "application/owl+xml",
-                "application/rdf+xml" };
+                "application/rdf+xml",
+                "text/turtle",
+                "application/ld+json" };
             var result = Call<System.Guid>(Verb.POST, "/api/product/#POSTProduct", accept, contentType, uriArguments, product);
             return result;
         }
@@ -41,8 +41,8 @@ namespace Vocab
             dynamic uriArguments = new ExpandoObject();
             var accept = new string[0];
             var contentType = new string[] {
-                "application/ld+json",
                 "text/turtle",
+                "application/ld+json",
                 "application/owl+xml",
                 "application/rdf+xml" };
             uriArguments.id = id;
@@ -53,15 +53,15 @@ namespace Vocab
         {
             dynamic uriArguments = new ExpandoObject();
             var accept = new string[] {
+                "application/ld+json",
                 "application/owl+xml",
                 "application/rdf+xml",
-                "text/turtle",
-                "application/ld+json" };
+                "text/turtle" };
             var contentType = new string[] {
+                "application/ld+json",
                 "application/owl+xml",
                 "application/rdf+xml",
-                "text/turtle",
-                "application/ld+json" };
+                "text/turtle" };
             uriArguments.totalEntities = totalEntities = 0;
             uriArguments.skip = skip;
             uriArguments.take = take;
@@ -75,14 +75,14 @@ namespace Vocab
             dynamic uriArguments = new ExpandoObject();
             var accept = new string[] {
                 "application/owl+xml",
-                "text/turtle",
                 "application/rdf+xml",
-                "application/ld+json" };
+                "application/ld+json",
+                "text/turtle" };
             var contentType = new string[] {
                 "application/owl+xml",
-                "text/turtle",
                 "application/rdf+xml",
-                "application/ld+json" };
+                "application/ld+json",
+                "text/turtle" };
             uriArguments.id = id;
             var result = Call<Vocab.IIProduct>(Verb.GET, "/api/product/{id}", accept, contentType, uriArguments);
             return result;

@@ -23,12 +23,12 @@ namespace URSA.Example.WebApplication.Data
         {
             dynamic uriArguments = new ExpandoObject();
             var accept = new string[] {
-                "text/xml",
                 "application/json",
+                "text/xml",
                 "application/xml" };
             var contentType = new string[] {
-                "text/xml",
                 "application/json",
+                "text/xml",
                 "application/xml" };
             var result = Call<System.Guid>(Verb.POST, "/api/person/#POSTPerson", accept, contentType, uriArguments, person);
             return result;
@@ -39,14 +39,14 @@ namespace URSA.Example.WebApplication.Data
             dynamic uriArguments = new ExpandoObject();
             var accept = new string[0];
             var contentType = new string[] {
-                "application/xml",
                 "application/json",
+                "application/xml",
                 "text/xml" };
             uriArguments.id = id;
             Call(Verb.DELETE, "/api/person/{id}", accept, contentType, uriArguments);
         }
 
-        public System.Collections.Generic.IEnumerable<URSA.Example.WebApplication.Data.Person> List(out System.Int32 totalEntities, System.Int32 skip, System.Int32 take)
+        public System.Collections.Generic.IEnumerable<URSA.Example.WebApplication.Data.Person> List(out System.Int32 totalEntities, System.Int32 take, System.Int32 skip)
         {
             dynamic uriArguments = new ExpandoObject();
             var accept = new string[] {
@@ -58,8 +58,8 @@ namespace URSA.Example.WebApplication.Data
                 "text/xml",
                 "application/json" };
             uriArguments.totalEntities = totalEntities = 0;
-            uriArguments.skip = skip;
             uriArguments.take = take;
+            uriArguments.skip = skip;
             var result = Call<System.Collections.Generic.IEnumerable<URSA.Example.WebApplication.Data.Person>>(Verb.GET, "/api/person{?skip,take}", accept, contentType, uriArguments);
             totalEntities = uriArguments.totalEntities;
             return result;
@@ -86,9 +86,9 @@ namespace URSA.Example.WebApplication.Data
             dynamic uriArguments = new ExpandoObject();
             var accept = new string[0];
             var contentType = new string[] {
+                "application/json",
                 "application/xml",
-                "text/xml",
-                "application/json" };
+                "text/xml" };
             uriArguments.id = id;
             Call(Verb.PUT, "/api/person/{id}", accept, contentType, uriArguments, person);
         }

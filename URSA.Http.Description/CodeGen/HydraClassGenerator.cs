@@ -97,6 +97,22 @@ namespace URSA.CodeGen
             return Names[resource];
         }
 
+        private string CreateListName(IClass @class)
+        {
+            IRestriction itemTypeRestriction = null;
+            IEntity itemType = null;
+            @class.SubClassOf.Any(restriction => (restriction.Is(Owl.Restriction)) && ((itemTypeRestriction = restriction.AsEntity<IRestriction>()).OnProperty != null) && 
+                (itemTypeRestriction.OnProperty.Id == Rdf.first) && ((itemType = itemTypeRestriction.AllValuesFrom) != null));
+            if (itemType != null)
+            {
+                Namespaces[@class] = typeof(IList<>).Namespace;
+                return Names[@class] = String.Format("IList<{0}>", CreateName(itemType.AsEntity<IClass>()));
+            }
+
+            Namespaces[@class] = typeof(IList).Namespace;
+            return Names[@class] = "IList";
+        }
+
         private string CreateName(IClass @class)
         {
             if (@class.SubClassOf.Any(superClass => 
@@ -104,7 +120,7 @@ namespace URSA.CodeGen
                 (AbsoluteUriComparer.Default.Equals(superClass.Id.Uri, Rdf.Seq)) || 
                 (AbsoluteUriComparer.Default.Equals(superClass.Id.Uri, Rdf.Bag)))))
             {
-                return CreateName((IResource)@class);
+                return CreateListName(@class);
             }
 
             if (KnownDataTypeNamespaces.Any(knownDataTypeNamespace => @class.Id.ToString().StartsWith(knownDataTypeNamespace)))
@@ -165,8 +181,8 @@ namespace URSA.CodeGen
                         propertyType = propertyType.SubClassOf.First().AsEntity<IClass>();
                     }
 
-                    propertyTypeNamespace = CreateNamespace(propertyType);
                     propertyTypeName = CreateName(propertyType);
+                    propertyTypeNamespace = CreateNamespace(propertyType);
                 }
 
                 var singleValue = true;
@@ -175,7 +191,10 @@ namespace URSA.CodeGen
                 if (restriction == null)
                 {
                     singleValue = false;
-                    typeName = String.Format("System.Collections.Generic.IEnumerable<{0}>", typeName);
+                    if (!propertyTypeName.StartsWith("IList"))
+                    {
+                        typeName = String.Format("System.Collections.Generic.IEnumerable<{0}>", typeName);
+                    }
                 }
 
                 var mapping = String.Empty;

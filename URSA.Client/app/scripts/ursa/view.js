@@ -169,7 +169,7 @@
      * @member {string} placeholder
      * @default null
      */
-    DatatypeDescriptor.prototype.pattern = null;
+    DatatypeDescriptor.prototype.placeholder = null;
     /**
      * Regular expression pattern.
      * @memberof ursa.view.DatatypeDescriptor

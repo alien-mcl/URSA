@@ -24,14 +24,14 @@ namespace Ns.Hydra
             dynamic uriArguments = new ExpandoObject();
             var accept = new string[] {
                 "application/owl+xml",
-                "application/ld+json",
                 "application/rdf+xml",
-                "text/turtle" };
+                "text/turtle",
+                "application/ld+json" };
             var contentType = new string[] {
                 "application/owl+xml",
-                "application/ld+json",
                 "application/rdf+xml",
-                "text/turtle" };
+                "text/turtle",
+                "application/ld+json" };
             var result = Call<System.Collections.Generic.IEnumerable<Ns.Hydra.ICore>>(Verb.OPTIONS, "/api", accept, contentType, uriArguments);
             return result;
         }
@@ -49,7 +49,7 @@ namespace Ns.Hydra
                 "application/owl+xml",
                 "application/rdf+xml",
                 "text/turtle" };
-            var result = Call<System.Collections.Generic.IEnumerable<Ns.Hydra.ICore>>(Verb.GET, "/api?format=Xml", accept, contentType, uriArguments);
+            var result = Call<System.Collections.Generic.IEnumerable<Ns.Hydra.ICore>>(Verb.GET, "/api?format=", accept, contentType, uriArguments);
             return result;
         }
     }

@@ -16,17 +16,23 @@ namespace Vocab
     [RomanticWeb.Mapping.Attributes.Class("http://temp.uri/vocab#Product")]
     public interface IIProduct : RomanticWeb.Entities.IEntity
     {
-        [RomanticWeb.Mapping.Attributes.Property("http://temp.uri/vocab#name")]
-        System.String Name { get; set; }
-
-        [RomanticWeb.Mapping.Attributes.Property("http://temp.uri/vocab#price")]
-        System.Double Price { get; set; }
+        [RomanticWeb.Mapping.Attributes.Collection("http://temp.uri/vocab#category")]
+        System.Collections.Generic.IList<String> Categories { get; }
 
         [RomanticWeb.Mapping.Attributes.Collection("http://temp.uri/vocab#feature")]
-        System.Collections.Generic.IEnumerable<System.String> Features { get; set; }
+        System.Collections.Generic.IEnumerable<System.String> Features { get; }
 
         [RomanticWeb.Mapping.Attributes.Property("http://temp.uri/vocab#key")]
         System.Guid Key { get; set; }
+
+        [RomanticWeb.Mapping.Attributes.Property("http://temp.uri/vocab#name")]
+        System.String Name { get; set; }
+
+        [RomanticWeb.Mapping.Attributes.Property("http://temp.uri/vocab#partOf")]
+        Vocab.IProduct PartOf { get; set; }
+
+        [RomanticWeb.Mapping.Attributes.Property("http://temp.uri/vocab#price")]
+        System.Double Price { get; set; }
     }
 
     [System.CodeDom.Compiler.GeneratedCode("URSA HTTP client proxy generation tool", "1.0")]
@@ -38,12 +44,16 @@ namespace Vocab
 
         RomanticWeb.Entities.EntityId RomanticWeb.Entities.IEntity.Id { get { return _id; } }
 
-        public System.String Name { get; set; }
+        public System.Collections.Generic.IList<String> Categories { get; }
 
-        public System.Double Price { get; set; }
-
-        public System.Collections.Generic.IEnumerable<System.String> Features { get; set; }
+        public System.Collections.Generic.IEnumerable<System.String> Features { get; }
 
         public System.Guid Key { get; set; }
+
+        public System.String Name { get; set; }
+
+        public Vocab.IProduct PartOf { get; set; }
+
+        public System.Double Price { get; set; }
     }
 }
