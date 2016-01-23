@@ -81,8 +81,8 @@
                 "http://openguid.net/rdf#guid": "System.Guid",
                 "http://openguid.net/rdf#guid[]": "System.Guid[]",
                 "http://openguid.net/rdf#guid<>": "System.Collections.Generic.IEnumerable<System.Guid>",
-                "<>": new RegExp(/^System\.Collections\.Generic\.IEnumerable<([^>]+)>$/),
-                "default": function(type) { return type.replace(/^javascript:?/, "").replace(/(.+)<>$/, "System.Collections.Generic.IEnumerable<$1>"); }
+                "<>": function(type) { return type.replace(/(.+)<>$/, "System.Collections.Generic.IEnumerable<$1>"); },
+                "default": function(type) { return type.replace(/^javascript:?/, ""); }
             },
             "Java": {
                 "http://www.w3.org/2001/XMLSchema#string": "String",
@@ -131,8 +131,8 @@
                 "http://openguid.net/rdf#guid": "java.util.UUID",
                 "http://openguid.net/rdf#guid[]": "java.util.UUID[]",
                 "http://openguid.net/rdf#guid<>": "java.lang.Iterable<java.util.UUID>",
-                "<>": new RegExp(/^java\.lang\.Iterable<([^>]+)>$/),
-                "default": function(type) { return type.replace(/^javascript:?/, "").replace(/(.+)<>$/, "java.lang.Iterable<$1>"); }
+                "<>": function(type) { return type.replace(/(.+)<>$/, "java.lang.Iterable<$1>"); },
+                "default": function(type) { return type.replace(/^javascript:?/, ""); }
             },
             "UML": {
                 "http://www.w3.org/2001/XMLSchema#string": "String",
@@ -181,25 +181,42 @@
                 "http://openguid.net/rdf#guid": "GUID",
                 "http://openguid.net/rdf#guid[]": "GUID[]",
                 "http://openguid.net/rdf#guid<>": "<<collectionOf>> GUID",
-                "<>": new RegExp(/^<<collectionOf>> (.*)$/),
-                "default": function(type) { return type.replace(/^javascript:?/, "").replace(/(.+)<>$/, "<<collectionOf>> $1"); }
+                "<>": function(type) { return type.replace(/(.+)<>$/, "<<collectionOf>> $1"); },
+                "default": function(type) { return type.replace(/^javascript:?/, ""); }
             }
         };
-        var mapType = function(type, flavour, unpackCollections) {
+        
+        var mapType = function(type, flavour, supportedClasses, currentClass) {
             var flavour = flavours[flavour];
-            var result = (unpackCollections ? flavour["<>"] : flavour[type]);
-            if (result === undefined) {
-                return flavour["default"](type);
+            result = flavour[type];
+            if (result !== undefined) {
+                return result;
             }
             
-            if (result instanceof RegExp) {
-                return type.replace(result, "$1");
+            result = flavour["default"](type);
+            for (var index = 0; index < supportedClasses.length; index++) {
+                var supportedClass = supportedClasses[index];
+                if (result.indexOf(supportedClass["@id"]) === 0) {
+                    result = supportedClass.label + result.substr(supportedClass["@id"].length);
+                    break;
+                }
+            }
+
+            if (result.indexOf("<>") === result.length - 2) {
+                result = flavour["<>"](result);
+            }
+            
+            if (currentClass) {
+                var currentNamespace = (currentClass = flavour["default"](currentClass)).match(/[.#/]([a-zA-Z_$]+[a-zA-Z_$0-9]*)$/);
+                if (currentNamespace !== null) {
+                    result = result.replace(currentClass.replace(currentNamespace[1], ""), "");
+                }
             }
             
             return result;
         };
         
-        var createMethod = function(supportedClass, supportedOperation, currentFlavour, format) {
+        var createMethod = function(supportedClass, supportedOperation, currentFlavour, format, supportedClasses) {
             format = !!format;
             var returns = "void";
             var parameters = "";
@@ -229,10 +246,7 @@
                     returns = supportedOperation.label + "Result";
                 }
                 else {
-                    returns = mapType(returnedTypes[0]["@id"], currentFlavour);
-                    if (mapType(returns, currentFlavour, true) === mapType(supportedClass["@id"], currentFlavour)) {
-                        returns = supportedClass.label + (returns.replace(/\[\]$/, "") === returns ? "" : "[]");
-                    }
+                    returns = mapType(returnedTypes[0]["@id"], currentFlavour, supportedClasses, supportedClass["@id"]);
                 }
             }
                 
@@ -241,13 +255,9 @@
                     var mapping = supportedOperation.mappings[index];
                     var parameterType = "object";
                     if (mapping.property) {
-                        parameterType = mapType(mapping.property.type, currentFlavour);
+                        parameterType = mapType(mapping.property.type, currentFlavour, supportedClasses, supportedClass["@id"]);
                     }
                         
-                    if (mapType(parameterType, currentFlavour, true) === mapType(supportedClass["@id"], currentFlavour)) {
-                        parameterType = supportedClass.label + (parameterType.replace(/\[\]$/, "") === parameterType ? "" : "[]");
-                    }
-
                     if (format) {
                         parameterType = parameterType.replace(/</g, "&lt;").replace(/>/g, "&gt;");
                     }
@@ -261,11 +271,7 @@
             var arguments = "";
             for (var index = 0; index < supportedOperation.expects.length; index++) {
                 var expected = supportedOperation.expects[index];
-                var expectedType = mapType(expected.type, currentFlavour);
-                if (mapType(expectedType, currentFlavour, true) === mapType(supportedClass["@id"], currentFlavour)) {
-                    expectedType = supportedClass.label + (expectedType.replace(/\[\]$/, "") === expectedType ? "" : "[]");
-                }
-
+                var expectedType = mapType(expected.type, currentFlavour, supportedClasses, supportedClass["@id"]);
                 if (format) {
                     expectedType = expectedType.replace(/</g, "&lt;").replace(/>/g, "&gt;");
                 }
@@ -287,13 +293,9 @@
             return result;
         };
             
-        var createProperty = function(supportedClass, supportedProperty, currentFlavour, format) {
+        var createProperty = function(supportedClass, supportedProperty, currentFlavour, format, supportedClasses) {
             format = !!format;
-            var type = mapType(supportedProperty.type, currentFlavour);
-            if (mapType(type, currentFlavour, true) === mapType(supportedClass["@id"], currentFlavour)) {
-                type = supportedClass.label + (type.replace(/\[\]$/, "") === type ? "" : "[]");
-            }
-            
+            var type = mapType(supportedProperty.type, currentFlavour, supportedClasses, supportedClass["@id"]);
             var result = (format ? "<i>" + type.replace(/</g, "&lt;").replace(/>/g, "&gt;") + "</i>" : type) + " " + (format ? "<b>" : "") + 
                 (currentFlavour === "Java" ? supportedProperty.label.charAt(0).toLowerCase() + supportedProperty.label.substr(1) : supportedProperty.label) +
                 (format ? "</b>" : "");
@@ -306,18 +308,19 @@
             return result;
         };
         
-        var createMember = function(supportedClass, supportedMember, flavour, format) {
+        var createMember = function(supportedClass, supportedMember, flavour, format, supportedClasses) {
             if ((supportedClass == null) || (supportedMember == null)) {
                 return "";
             }
             
             return (supportedMember["@type"] === hydra.supportedProperty ?
-                createProperty(supportedClass, supportedMember, flavour, format) :
-                createMethod(supportedClass, supportedMember, flavour, format));
+                createProperty(supportedClass, supportedMember, flavour, format, supportedClasses) :
+                createMethod(supportedClass, supportedMember, flavour, format, supportedClasses));
         };
         
         var defaultFlavour = "C#";
         var apiDocumentation = angular.module("ApiDocumentation", ["ngRoute", "ngSanitize"]).
+        constant("supportedClasses", window.supportedClasses).
         controller("MainMenu", ["$scope", function($scope) {
             $scope.currentFlavour = defaultFlavour;
             $scope.changeFlavour = function(newFlavour) {
@@ -326,9 +329,11 @@
                 event.stopPropagation();
             };
         }]).
-        controller("SupportedClasses", ["$scope", function($scope) {
+        controller("SupportedClasses", ["$scope", "supportedClasses", function($scope, supportedClasses) {
             $scope.supportedClasses = supportedClasses;
-            $scope.createMember = createMember;
+            $scope.createMember = function(supportedClass, supportedMember, format) {
+                return createMember(supportedClass, supportedMember, $scope.currentFlavour, format, supportedClasses);
+            };
             $scope.currentFlavour = defaultFlavour;
             $scope.showMember = function(event, supportedClass, supportedMember) {
                 $scope.$emit("MemberSelected", supportedClass, supportedMember);
@@ -339,24 +344,21 @@
                 $scope.currentFlavour = newFlavour;
             });
         }]).
-        controller("MemberDescription", ["$scope", function($scope) {
+        controller("MemberDescription", ["$scope", "supportedClasses", function($scope, supportedClasses) {
             $scope.currentClass = null;
             $scope.currentMember = null;
-            $scope.createMember = createMember;
             $scope.currentFlavour = defaultFlavour;
+            $scope.createMember = function(supportedClass, supportedMember, format) {
+                return createMember(supportedClass, supportedMember, $scope.currentFlavour, format, supportedClasses);
+            };
             $scope.hasTotalEntities = false;
             $scope.xsd = window.xsd;
-            $scope.mapType = function(supportedClass, type, currentFlavour) {
+            $scope.mapType = function(supportedClass, type) {
                 if ((supportedClass === undefined) || (supportedClass == null) || (type === undefined) || (type == null)) {
                     return "";
                 }
                 
-                var result = mapType(type, currentFlavour);
-                if (type.replace(/\[\]$/, "") === mapType(supportedClass["@id"], currentFlavour)) {
-                    result = supportedClass.label + (result.replace(/\[\]$/, "") === result ? "" : "[]");
-                }
-                
-                return result;
+                return mapType(type, $scope.currentFlavour, supportedClasses, $scope.currentClass["@id"]);
             };
             $scope.isMethod = function(member) {
                 return (member) && (member['@type'] === hydra.supportedOperation);
@@ -419,10 +421,10 @@
                                     <div class="panel-body">
                                         <ul class="list-group">
                                             <a href="#" class="list-group-item list-group-item-property" ng-repeat="supportedProperty in supportedClass.supportedProperties" ng-click="showMember($event, supportedClass, supportedProperty)">
-                                                {{ createMember(supportedClass, supportedProperty, currentFlavour) }}
+                                                {{ createMember(supportedClass, supportedProperty) }}
                                             </a>
                                             <a href="#" class="list-group-item list-group-item-method" ng-repeat="supportedOperation in supportedClass.supportedOperations" ng-click="showMember($event, supportedClass, supportedOperation)">
-                                                {{ createMember(supportedClass, supportedOperation, currentFlavour) }}
+                                                {{ createMember(supportedClass, supportedOperation) }}
                                             </a>
                                         </ul>
                                     </div>
@@ -432,7 +434,7 @@
                     </div>
                     <div class="col-sm-8 col-xs-12" ng-controller="MemberDescription" ng-show="currentMember">
                         <div class="panel panel-default">
-                            <div class="panel-heading" ng-bind-html="createMember(currentClass, currentMember, currentFlavour, true)"></div>
+                            <div class="panel-heading" ng-bind-html="createMember(currentClass, currentMember, true)"></div>
                             <div class="panel-body">
                                 <p ng-show="currentMember.description">{{ currentMember.description }}</p>
                                 <table class="table" ng-show="isMethod(currentMember)">
@@ -445,24 +447,24 @@
                                         <td>totalEntities</td>
                                         <xsl:element name="td">
                                             <xsl:attribute name="title"><xsl:value-of select="'&xsd;int'" /></xsl:attribute>
-                                            <xsl:text>{{ mapType(currentClass, xsd.int, currentFlavour) }}</xsl:text>
+                                            <xsl:text>{{ mapType(currentClass, xsd.int) }}</xsl:text>
                                         </xsl:element>
                                         <td>Number of total entities in the collection.</td>
                                     </tr>
                                     <tr ng-repeat="mapping in currentMember.mappings">
                                         <td>{{ mapping.variable }}</td>
-                                        <td ng-attr-title="mapping.property ? mapping.property.type : ''">{{ mapping.property ? mapType(currentClass, mapping.property.type, currentFlavour) : "object" }}</td>
+                                        <td ng-attr-title="mapping.property ? mapping.property.type : ''">{{ mapping.property ? mapType(currentClass, mapping.property.type) : "object" }}</td>
                                         <td>{{ mapping.description }}</td>
                                     </tr>
                                     <tr ng-repeat="expected in currentMember.expects">
                                         <td>{{ expected.variable }}</td>
-                                        <td ng-attr-title="expected.type">{{ mapType(currentClass, expected.type, currentFlavour) }}</td>
+                                        <td ng-attr-title="expected.type">{{ mapType(currentClass, expected.type) }}</td>
                                         <td>{{ expected.description }}</td>
                                     </tr>
                                 </table>
                                 <p ng-show="returns(currentMember)">
                                     {{ currentMember.type ? "Type:" : "Returns:" }}
-                                    <span ng-show="returns(currentMember)">{{ mapType(currentClass, currentMember.type || currentMember.returns[0]["@id"], currentFlavour) }}</span>
+                                    <span ng-show="returns(currentMember)">{{ mapType(currentClass, currentMember.type || currentMember.returns[0]["@id"]) }}</span>
                                     <span ng-show="returns(currentMember) &amp;&amp; currentMember.returns[0].description"><br />{{ currentMember.returns[0].description }}</span>
                                 </p>
                             </div>

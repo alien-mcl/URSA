@@ -12,6 +12,7 @@ namespace URSA.Example.WebApplication.Data
         private string _lastName = String.Empty;
         private IList<string> _favouriteDishes = new List<string>();
         private ICollection<string> _roles = new List<string>();
+        private ICollection<Person> _friends = new List<Person>();
 
         /// <summary>Gets or sets the person's identifier.</summary>
         [Key]
@@ -31,5 +32,8 @@ namespace URSA.Example.WebApplication.Data
 
         /// <summary>Gets or sets the spouse.</summary>
         public Person Spouse { get; set; }
+
+        /// <summary>Gets or sets the friends. </summary>
+        public ICollection<Person> Friends { get { return _friends; } set { _friends = value ?? new List<Person>(); } } 
     }
 }

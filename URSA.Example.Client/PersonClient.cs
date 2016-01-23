@@ -39,30 +39,11 @@ namespace URSA.Example.WebApplication.Data
             dynamic uriArguments = new ExpandoObject();
             var accept = new string[0];
             var contentType = new string[] {
-                "application/json",
                 "application/xml",
+                "application/json",
                 "text/xml" };
             uriArguments.id = id;
             Call(Verb.DELETE, "/api/person/{id}", accept, contentType, uriArguments);
-        }
-
-        public System.Collections.Generic.IEnumerable<URSA.Example.WebApplication.Data.Person> List(out System.Int32 totalEntities, System.Int32 take, System.Int32 skip)
-        {
-            dynamic uriArguments = new ExpandoObject();
-            var accept = new string[] {
-                "application/xml",
-                "text/xml",
-                "application/json" };
-            var contentType = new string[] {
-                "application/xml",
-                "text/xml",
-                "application/json" };
-            uriArguments.totalEntities = totalEntities = 0;
-            uriArguments.take = take;
-            uriArguments.skip = skip;
-            var result = Call<System.Collections.Generic.IEnumerable<URSA.Example.WebApplication.Data.Person>>(Verb.GET, "/api/person{?skip,take}", accept, contentType, uriArguments);
-            totalEntities = uriArguments.totalEntities;
-            return result;
         }
 
         public URSA.Example.WebApplication.Data.Person Get(System.Guid id)
@@ -87,10 +68,29 @@ namespace URSA.Example.WebApplication.Data
             var accept = new string[0];
             var contentType = new string[] {
                 "application/json",
-                "application/xml",
-                "text/xml" };
+                "text/xml",
+                "application/xml" };
             uriArguments.id = id;
             Call(Verb.PUT, "/api/person/{id}", accept, contentType, uriArguments, person);
+        }
+
+        public System.Collections.Generic.IEnumerable<URSA.Example.WebApplication.Data.Person> List(out System.Int32 totalEntities, System.Int32 skip, System.Int32 take)
+        {
+            dynamic uriArguments = new ExpandoObject();
+            var accept = new string[] {
+                "application/json",
+                "text/xml",
+                "application/xml" };
+            var contentType = new string[] {
+                "application/json",
+                "text/xml",
+                "application/xml" };
+            uriArguments.totalEntities = totalEntities = 0;
+            uriArguments.skip = skip;
+            uriArguments.take = take;
+            var result = Call<System.Collections.Generic.IEnumerable<URSA.Example.WebApplication.Data.Person>>(Verb.GET, "/api/person{?skip,take}", accept, contentType, uriArguments);
+            totalEntities = uriArguments.totalEntities;
+            return result;
         }
     }
 }

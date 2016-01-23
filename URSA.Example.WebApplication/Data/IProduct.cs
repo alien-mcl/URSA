@@ -21,17 +21,21 @@ namespace URSA.Example.WebApplication.Data
         [Property("http://temp.uri/vocab#price")]
         double Price { get; set; }
 
-        /// <summary> Gets or sets the products's features.</summary>
+        /// <summary> Gets the products's features.</summary>
         [Collection("http://temp.uri/vocab#feature")]
         ICollection<string> Features { get; }
 
-        /// <summary> Gets or sets the products's categories.</summary>
+        /// <summary> Gets the products's categories.</summary>
         [Collection("http://temp.uri/vocab#category")]
         IList<string> Categories { get; }
 
         /// <summary>Gets or sets the product that his product is part of.</summary>
         [Property("http://temp.uri/vocab#partOf")]
         IProduct PartOf { get; set; }
+
+        /// <summary>Gets the similar products.</summary>
+        [Collection("http://temp.uri/vocab#similar")]
+        ICollection<IProduct> Similar { get; }
     }
 
     /// <summary>Provides additional mappings for the <see cref="IProduct" />.</summary>

@@ -17,10 +17,16 @@ namespace Vocab
     public interface IIProduct : RomanticWeb.Entities.IEntity
     {
         [RomanticWeb.Mapping.Attributes.Collection("http://temp.uri/vocab#category")]
-        System.Collections.Generic.IList<String> Categories { get; }
+        System.Collections.Generic.IList<String> Categories { get;}
+
+        [RomanticWeb.Mapping.Attributes.Property("http://temp.uri/vocab#partOf")]
+        Vocab.IProduct PartOf { get; set; }
 
         [RomanticWeb.Mapping.Attributes.Collection("http://temp.uri/vocab#feature")]
-        System.Collections.Generic.IEnumerable<System.String> Features { get; }
+        System.Collections.Generic.IEnumerable<System.String> Features { get;}
+
+        [RomanticWeb.Mapping.Attributes.Property("http://temp.uri/vocab#price")]
+        System.Double Price { get; set; }
 
         [RomanticWeb.Mapping.Attributes.Property("http://temp.uri/vocab#key")]
         System.Guid Key { get; set; }
@@ -28,11 +34,8 @@ namespace Vocab
         [RomanticWeb.Mapping.Attributes.Property("http://temp.uri/vocab#name")]
         System.String Name { get; set; }
 
-        [RomanticWeb.Mapping.Attributes.Property("http://temp.uri/vocab#partOf")]
-        Vocab.IProduct PartOf { get; set; }
-
-        [RomanticWeb.Mapping.Attributes.Property("http://temp.uri/vocab#price")]
-        System.Double Price { get; set; }
+        [RomanticWeb.Mapping.Attributes.Collection("http://temp.uri/vocab#similar")]
+        System.Collections.Generic.IEnumerable<Vocab.IProduct> Similar { get;}
     }
 
     [System.CodeDom.Compiler.GeneratedCode("URSA HTTP client proxy generation tool", "1.0")]
@@ -44,16 +47,24 @@ namespace Vocab
 
         RomanticWeb.Entities.EntityId RomanticWeb.Entities.IEntity.Id { get { return _id; } }
 
-        public System.Collections.Generic.IList<String> Categories { get; }
+        private System.Collections.Generic.IList<String> _categories = new System.Collections.Generic.List<String>();
 
-        public System.Collections.Generic.IEnumerable<System.String> Features { get; }
+        public System.Collections.Generic.IList<String> Categories { get { return _categories; } }
+
+        public Vocab.IProduct PartOf { get; set; }
+
+        private System.Collections.Generic.IEnumerable<System.String> _features = new System.Collections.Generic.List<System.String>();
+
+        public System.Collections.Generic.IEnumerable<System.String> Features { get { return _features; } }
+
+        public System.Double Price { get; set; }
 
         public System.Guid Key { get; set; }
 
         public System.String Name { get; set; }
 
-        public Vocab.IProduct PartOf { get; set; }
+        private System.Collections.Generic.IEnumerable<Vocab.IProduct> _similar = new System.Collections.Generic.List<Vocab.IProduct>();
 
-        public System.Double Price { get; set; }
+        public System.Collections.Generic.IEnumerable<Vocab.IProduct> Similar { get { return _similar; } }
     }
 }

@@ -134,7 +134,11 @@ namespace URSA.Web.Http.Client.Proxy
             }
 
             var generator = _container.Resolve<IClassGenerator>();
-            foreach (var @class in apiDocumentation.SupportedClasses.Select(supportedClass => generator.CreateCode(supportedClass)).SelectMany(classes => classes))
+            var supportedClasses = from supportedClass in apiDocumentation.SupportedClasses
+                                   where supportedClass.Id.ToString() != EntityConverter.Hydra + "ApiDocumentation"
+                                   from @class in generator.CreateCode(supportedClass)
+                                   select @class;
+            foreach (var @class in supportedClasses)
             {
                 File.WriteAllText(Path.Combine(targetDirectory, @class.Key), @class.Value);
             }

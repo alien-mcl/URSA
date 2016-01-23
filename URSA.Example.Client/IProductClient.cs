@@ -23,15 +23,15 @@ namespace Vocab
         {
             dynamic uriArguments = new ExpandoObject();
             var accept = new string[] {
+                "application/ld+json",
                 "application/owl+xml",
                 "application/rdf+xml",
-                "text/turtle",
-                "application/ld+json" };
+                "text/turtle" };
             var contentType = new string[] {
+                "application/ld+json",
                 "application/owl+xml",
                 "application/rdf+xml",
-                "text/turtle",
-                "application/ld+json" };
+                "text/turtle" };
             var result = Call<System.Guid>(Verb.POST, "/api/product/#POSTProduct", accept, contentType, uriArguments, product);
             return result;
         }
@@ -41,9 +41,9 @@ namespace Vocab
             dynamic uriArguments = new ExpandoObject();
             var accept = new string[0];
             var contentType = new string[] {
-                "text/turtle",
                 "application/ld+json",
                 "application/owl+xml",
+                "text/turtle",
                 "application/rdf+xml" };
             uriArguments.id = id;
             Call(Verb.PUT, "/api/product/{id}", accept, contentType, uriArguments, product);
@@ -74,15 +74,15 @@ namespace Vocab
         {
             dynamic uriArguments = new ExpandoObject();
             var accept = new string[] {
-                "application/owl+xml",
-                "application/rdf+xml",
+                "text/turtle",
                 "application/ld+json",
-                "text/turtle" };
+                "application/owl+xml",
+                "application/rdf+xml" };
             var contentType = new string[] {
-                "application/owl+xml",
-                "application/rdf+xml",
+                "text/turtle",
                 "application/ld+json",
-                "text/turtle" };
+                "application/owl+xml",
+                "application/rdf+xml" };
             uriArguments.id = id;
             var result = Call<Vocab.IIProduct>(Verb.GET, "/api/product/{id}", accept, contentType, uriArguments);
             return result;

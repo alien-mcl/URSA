@@ -65,7 +65,12 @@ namespace URSA.CodeGen
             }
 
             var classProperties = Regex.Replace(properties.Replace("public new ", "public "), "\\[[^\\]]+\\]\r\n        ", String.Empty);
-            var interfaceProperties = properties.Replace("        public ", "        ");
+            var interfaceProperties = Regex.Replace(Regex.Replace(properties.Replace("        public ", "        "), "        private[^\r\n]*", String.Empty), "get { return _[^;]+; } ", "get;");
+            if (interfaceProperties.Length > 0)
+            {
+                interfaceProperties = Regex.Replace(interfaceProperties, "(" + Environment.NewLine + "){3,}", Environment.NewLine + Environment.NewLine).Substring(Environment.NewLine.Length);
+            }
+
             result[name + ".cs"] = String.Format(EntityClassTemplate, @namespace, name, classProperties, interfaceProperties, mapping).Replace("{\r\n\r\n", "{\r\n");
             result[name + "Client.cs"] = String.Format(ClientClassTemplate, @namespace, name, operations);
             return result;
@@ -198,15 +203,27 @@ namespace URSA.CodeGen
                 }
 
                 var mapping = String.Empty;
-                if ((_hydraUriParser != null) && (_hydraUriParser.IsApplicable(property.Property.Id.Uri) == UriParserCompatibility.None))
+                if ((!property.Writeable) && (!singleValue))
                 {
-                    mapping = String.Format("[RomanticWeb.Mapping.Attributes.{0}(\"{1}\")]", (singleValue ? "Property" : "Collection"), property.Property.Id);
+                    var targetType = Regex.Replace(
+                        Regex.Replace(typeName, "IEnumerable|IList(?=<)", "List"),
+                        "System.Collections.IList",
+                        typeof(ArrayList).FullName);
+                    mapping = String.Format("private {0} _{1} = new {2}();{3}{3}        ", typeName, propertyName.ToLowerCamelCase(), targetType, Environment.NewLine);
                 }
 
+                if ((_hydraUriParser != null) && (_hydraUriParser.IsApplicable(property.Property.Id.Uri) == UriParserCompatibility.None))
+                {
+                    mapping += String.Format("[RomanticWeb.Mapping.Attributes.{0}(\"{1}\")]", (singleValue ? "Property" : "Collection"), property.Property.Id);
+                }
+
+                var getter = ((!property.Writeable) && (!singleValue) ? 
+                    String.Format(" get {{ return _{0}; }} ", propertyName.ToLowerCamelCase()) :
+                    " get;" + (property.Writeable ? String.Empty : " "));
                 properties.AppendFormat(
                     PropertyTemplate,
                     propertyName,
-                    property.Readable ? " get;" + (property.Writeable ? String.Empty : " ") : String.Empty,
+                    property.Readable ? getter : String.Empty,
                     property.Writeable ? " set; " : String.Empty,
                     typeName,
                     (propertyName == "Id" ? "new " : String.Empty),
