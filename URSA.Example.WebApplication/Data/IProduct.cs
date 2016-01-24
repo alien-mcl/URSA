@@ -36,6 +36,10 @@ namespace URSA.Example.WebApplication.Data
         /// <summary>Gets the similar products.</summary>
         [Collection("http://temp.uri/vocab#similar")]
         ICollection<IProduct> Similar { get; }
+
+        /// <summary>Gets the replacement products.</summary>
+        [Collection("http://temp.uri/vocab#replacement")]
+        IList<IProduct> Replacements { get; }
     }
 
     /// <summary>Provides additional mappings for the <see cref="IProduct" />.</summary>

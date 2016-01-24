@@ -124,37 +124,29 @@
         return result;
     };
 
-    var getClass = function(owner, graph) {
+    var getClass = function(owner, graph, context) {
+        context = context || {};
         var $class = this;
         var originalClass = this;
-        var result = null;
         if (($class["@id"].charAt(0) === "_") && (getValue.call($class, rdfs.subClassOf))) {
             $class = graph.getById(getValue.call($class, rdfs.subClassOf));
         }
 
+        if ($class !== originalClass) {
+            TypeConstrainedApiMember.prototype.constructor.call(context, owner, originalClass);
+        }
+
+        var existingClass = owner.apiDocumentation.knownTypes.getById($class["@id"]);
+        if (existingClass !== null) {
+            return existingClass;
+        }
+
         if (($class["@id"].indexOf(xsd) === -1) && ($class["@id"].indexOf(guid) === -1)) {
-            if (((owner instanceof SupportedProperty) || (owner instanceof Operation)) && (owner.owner !== null) && (owner.owner.id === $class["@id"])) {
-                (result = owner.owner.clone()).owner = owner;
-                if ($class !== originalClass) {
-                    TypeConstrainedApiMember.prototype.constructor.call(result, owner, originalClass);
-                }
-
-                return result;
-            }
-
-            result = new Class(owner, $class, graph);
-            if ($class !== originalClass) {
-                TypeConstrainedApiMember.prototype.constructor.call(result, owner, originalClass);
-            }
+            return new Class(owner.apiDocumentation || owner, $class, graph);
         }
         else {
-            result = new DataType(owner, $class);
-            if ($class !== originalClass) {
-                TypeConstrainedApiMember.prototype.constructor.call(result, owner, originalClass);
-            }
+            return new DataType(owner.apiDocumentation || owner, $class);
         }
-
-        return result;
     };
 
     var createLiteralValue = function(type) {
@@ -243,11 +235,6 @@
      * @param {object} [resource] JSON-LD resource describing this API member.
      */
     var ApiMember = namespace.ApiMember = function(owner, resource) {
-        if ((arguments.length === 1) && (arguments[0] instanceof ApiMember)) {
-            ApiMember.prototype.clone.call(this, owner);
-            return;
-        }
-
         if ((arguments.length === 0) || (arguments[0] !== _ctor)) {
             this.owner = owner || null;
             if ((resource !== null) && (typeof(resource) === "object")) {
@@ -290,21 +277,6 @@
      * @member {string} description
      */
     ApiMember.prototype.description = null;
-    /**
-     * Clones a given API member instance.
-     * @memberof ursa.model.ApiMember
-     * @instance
-     * @public
-     * @method clone
-     * @param {ursa.model.ApiMember} source Source instance to clone from.
-     * @returns {ursa.model.ApiMember} Instance initialized from a given source.
-     */
-    ApiMember.prototype.clone = function(source) {
-        this.id = source.id;
-        this.label = source.label;
-        this.description = source.description;
-        this.owner = source.owner;
-    };
     ApiMember.prototype.toString = function() { return this.id; };
     /**
      * Searches the API members owner hierarchy for a parent of given type.
@@ -411,11 +383,6 @@
      */
     var TypeConstrainedApiMember = namespace.TypeConstrainedApiMember = function(owner, resource) {
         ApiMember.prototype.constructor.apply(this, arguments);
-        if ((arguments.length === 1) && (arguments[0] instanceof TypeConstrainedApiMember)) {
-            TypeConstrainedApiMember.prototype.clone.call(this, owner);
-            return;
-        }
-
         if ((arguments.length === 0) || (arguments[0] !== _ctor)) {
             var value;
             this.required = (getValue.call(resource, hydra.required) || this.required) || false;
@@ -452,11 +419,18 @@
      * @default false
      */
     TypeConstrainedApiMember.prototype.required = false;
-    TypeConstrainedApiMember.prototype.clone = function(source) {
-        ApiMember.prototype.clone.apply(this, arguments);
-        this.required = source.required;
-        this.minOccurances = source.minOccurances;
-        this.maxOccurances = source.maxOccurances;
+    var typeConstrainedMerge = function(source) {
+        if (typeof(source.maxOccurances) === "number") {
+            this.maxOccurances = source.maxOccurances;
+        }
+
+        if (typeof(source.minOccurances) === "number") {
+            this.minOccurances = source.minOccurances;
+        }
+
+        if (typeof(source.description) === "string") {
+            this.description = source.description;
+        }
     };
 
     /**
@@ -472,24 +446,15 @@
      */
     var RangeTypeConstrainedApiMember = namespace.RangeTypeConstrainedApiMember = function(owner, resource, graph) {
         TypeConstrainedApiMember.prototype.constructor.apply(this, arguments);
-        if ((arguments.length === 1) && (arguments[0] instanceof RangeTypeConstrainedApiMember)) {
-            RangeTypeConstrainedApiMember.prototype.clone.call(this, owner);
-            return;
-        }
-
         if ((arguments.length === 0) || (arguments[0] !== _ctor)) {
-            var property = resource[hydra.property];
-            if ((property === undefined) || (property === null) || (!(property instanceof Array)) || (property.length === 0)) {
-                throw new Error(invalidArgumentPassed.replace("{0}", "resource"));
-            }
-
-            property = graph.getById(this.property = property[0]["@id"] || this.property);
-            var range = (property[rdfs.range] ? property[rdfs.range][0] : null);
+            var range = (resource[rdfs.range] ? resource[rdfs.range][0] : null);
             if (range !== null) {
                 range = graph.getById(range["@id"]);
                 var value;
                 this.maxOccurances = (((value = getValue.call(range, ursa.singleValue)) !== undefined ? value : false) ? 1 : this.maxOccurances);
-                this.range = getClass.call(range, this, graph);
+                var context = {};
+                this.range = getClass.call(range, this, graph, context);
+                typeConstrainedMerge.call(this, context);
             }
         }
     };
@@ -504,23 +469,65 @@
      */
     RangeTypeConstrainedApiMember.prototype.range = null;
     /**
-     * Target instance property.
+     * Description of range of values.
      * @memberof ursa.model.RangeTypeConstrainedApiMember
+     * @instance
+     * @public
+     * @member {string} range
+     */
+    RangeTypeConstrainedApiMember.prototype.rangeDescription = null;
+
+    /**
+     * Marks an API member as a property range type constrained.
+     * @memberof ursa.model
+     * @name PropertyRangeTypeConstrainedApiMember
+     * @public
+     * @extends {ursa.model.TypeConstrainedApiMember}
+     * @class
+     * @param {ursa.model.ApiMember} owner Owner if this instance being created.
+     * @param {object} [resource] JSON-LD resource describing this API member.
+     * @param {object} [graph] JSON-LD graph of resources.
+     */
+    var PropertyRangeTypeConstrainedApiMember = namespace.PropertyRangeTypeConstrainedApiMember = function (owner, resource, graph) {
+        RangeTypeConstrainedApiMember.prototype.constructor.apply(this, arguments);
+        if ((arguments.length === 0) || (arguments[0] !== _ctor)) {
+            var property = resource[hydra.property];
+            if ((property === undefined) || (property === null) || (!(property instanceof Array)) || (property.length === 0)) {
+                throw new Error(invalidArgumentPassed.replace("{0}", "resource"));
+            }
+
+            property = graph.getById(this.property = property[0]["@id"] || this.property);
+            var range = (property[rdfs.range] ? property[rdfs.range][0] : null);
+            if (range !== null) {
+                range = graph.getById(range["@id"]);
+                var value;
+                this.maxOccurances = (((value = getValue.call(range, ursa.singleValue)) !== undefined ? value : false) ? 1 : this.maxOccurances);
+                var context = {};
+                this.range = getClass.call(range, this, graph, context);
+                typeConstrainedMerge.call(this, context);
+            }
+        }
+    };
+    PropertyRangeTypeConstrainedApiMember.prototype = new RangeTypeConstrainedApiMember(_ctor);
+    PropertyRangeTypeConstrainedApiMember.prototype.constructor = PropertyRangeTypeConstrainedApiMember;
+    /**
+     * Target instance property.
+     * @memberof ursa.model.PropertyRangeTypeConstrainedApiMember
      * @instance
      * @public
      * @member {string} property
      */
-    RangeTypeConstrainedApiMember.prototype.property = null;
+    PropertyRangeTypeConstrainedApiMember.prototype.property = null;
     /**
      * Searches the collection for a member with a given property value.
-     * @memberof ursa.model.RangeTypeConstrainedApiMember
+     * @memberof ursa.model.PropertyRangeTypeConstrainedApiMember
      * @instance
      * @public
      * @method propertyName
      * @param {ursa.model.Operation} operation Operation in which of context to create a property name. Operation is used to determine whether it accepts RDF payloads or not.
      * @returns {string} Name of the property suitable for given operation.
      */
-    RangeTypeConstrainedApiMember.prototype.propertyName = function(operation) {
+    PropertyRangeTypeConstrainedApiMember.prototype.propertyName = function (operation) {
         if (!operation.isRdf) {
             var parts = this.property.split(/[^a-zA-Z0-9_]/);
             return parts[parts.length - 1];
@@ -528,31 +535,20 @@
 
         return this.property;
     };
-    RangeTypeConstrainedApiMember.prototype.clone = function(source) {
-        TypeConstrainedApiMember.prototype.clone.apply(this, arguments);
-        this.range = (source.range === null ? null : (source.range instanceof Class ? new Class(source.range) : new DataType(source.range)));
-        this.property = source.property;
-    };
 
     /**
      * Describes a class' supported property.
      * @memberof ursa.model
      * @name SupportedProperty
      * @public
-     * @extends {ursa.model.RangeTypeConstrainedApiMember}
+     * @extends {ursa.model.PropertyRangeTypeConstrainedApiMember}
      * @class
      * @param {ursa.model.ApiMember} owner Owner if this instance being created.
      * @param {object} [resource] JSON-LD resource describing this API member.
      * @param {object} [graph] JSON-LD graph of resources.
      */
     var SupportedProperty = namespace.SupportedProperty = function(owner, supportedProperty, graph) {
-        RangeTypeConstrainedApiMember.prototype.constructor.apply(this, arguments);
-        if ((arguments.length === 1) && (arguments[0] instanceof SupportedProperty)) {
-            this.supportedOperations = [];
-            SupportedProperty.prototype.clone.call(this, owner);
-            return;
-        }
-
+        PropertyRangeTypeConstrainedApiMember.prototype.constructor.apply(this, arguments);
         if ((arguments.length === 0) || (arguments[0] !== _ctor)) {
             var property = graph.getById(this.property);
             this.key = (property["@type"] || []).indexOf(owl.InverseFunctionalProperty) !== -1;
@@ -565,7 +561,7 @@
             getOperations.call(this, supportedProperty, graph, hydra.operation);
         }
     };
-    SupportedProperty.prototype = new RangeTypeConstrainedApiMember(_ctor);
+    SupportedProperty.prototype = new PropertyRangeTypeConstrainedApiMember(_ctor);
     SupportedProperty.prototype.constructor = SupportedProperty;
     /**
      * Marks a property as readable.
@@ -611,19 +607,6 @@
      * @member {Array.<ursa.model.Operation>} supportedOperations
      */
     SupportedProperty.prototype.supportedOperations = null;
-    SupportedProperty.prototype.clone = function(source) {
-        if (arguments.length === 0) {
-            return new SupportedProperty(this);
-        }
-
-        RangeTypeConstrainedApiMember.prototype.clone.apply(this, arguments);
-        this.readable = source.readable;
-        this.writeable = source.writeable;
-        this.required = source.required;
-        for (var index = 0; index < source.supportedOperations.length; index++) {
-            this.supportedOperations.push(new Operation(source.supportedOperations[index]));
-        }
-    };
     /**
      * Creates an instance of value accepted by this property.
      * @memberof ursa.model.SupportedProperty
@@ -681,11 +664,6 @@
      */
     var Mapping = namespace.Mapping = function(owner, mapping) {
         TypeConstrainedApiMember.prototype.constructor.apply(this, arguments);
-        if ((arguments.length === 1) && (arguments[0] instanceof Mapping)) {
-            Mapping.prototype.clone.call(this, owner);
-            return;
-        }
-
         if ((arguments.length === 0) || (arguments[0] !== _ctor)) {
             this.variable = getValue.call(mapping, hydra.variable);
             this.property = getValue.call(mapping, hydra.property);
@@ -735,15 +713,6 @@
 
         return this.property;
     };
-    Mapping.prototype.clone = function(source) {
-        if (arguments.length === 0) {
-            return new Mapping(this);
-        }
-
-        TypeConstrainedApiMember.prototype.clone.apply(this, arguments);
-        this.variable = source.variable;
-        this.property = source.property;
-    };
 
     /**
      * Describes an ReST operation.
@@ -759,20 +728,6 @@
      */
     var Operation = namespace.Operation = function(owner, supportedOperation, template, graph) {
         ApiMember.prototype.constructor.apply(this, arguments);
-        if ((arguments.length === 1) && (arguments[0] instanceof Operation)) {
-            this.returns = [];
-            this.expects = [];
-            this.statusCodes = [];
-            this.mediaTypes = [];
-            this.methods = [];
-            if (owner.mappings !== null) {
-                this.mappings = new ApiMemberCollection(this);
-            }
-
-            Operation.prototype.clone.call(this, owner);
-            return;
-        }
-
         if ((arguments.length === 0) || (arguments[0] !== _ctor)) {
             var index;
             if ((template) && (template[hydra.template])) {
@@ -806,13 +761,17 @@
                 });
             }
 
-            var setupTypeCollection = function(source, target) {
+            var setupTypeCollection = function (source, target) {
                 if (!source) {
                     return;
                 }
 
                 for (index = 0; index < source.length; index++) {
-                    target.push(getClass.call(graph.getById(source[index]["@id"]), this, graph));
+                    var context = { "@id": "" };
+                    context[hydra.property] = [{ "@id": "_:_" }];
+                    context = new RangeTypeConstrainedApiMember(this, context, graph);
+                    context.range = getClass.call(graph.getById(source[index]["@id"]), this, graph, context);
+                    target.push(context);
                 }
             };
             setupTypeCollection.call(this, supportedOperation[hydra.returns], this.returns);
@@ -922,40 +881,6 @@
 
         return result;
     };
-    Operation.prototype.clone = function(source) {
-        if (arguments.length === 0) {
-            return new Operation(this);
-        }
-
-        ApiMember.prototype.clone.apply(this, arguments);
-        var index;
-        this.url = source.url;
-        for (index = 0; index < source.methods.length; index++) {
-            this.methods.push(source.methods[index]);
-        }
-
-        for (index = 0; index < source.statusCodes.length; index++) {
-            this.statusCodes.push(source.statusCodes[index]);
-        }
-
-        for (index = 0; index < source.mediaTypes.length; index++) {
-            this.mediaTypes.push(source.mediaTypes[index]);
-        }
-
-        for (index = 0; index < source.returns.length; index++) {
-            this.returns.push(source.returns[index] instanceof Class ? new Class(source.returns[index]) : new DataType(source.returns[index]));
-        }
-
-        for (index = 0; index < source.expects.length; index++) {
-            this.expects.push(source.expects[index] instanceof Class ? new Class(source.expects[index]) : new DataType(source.expects[index]));
-        }
-
-        if (source.mappings !== null) {
-            for (index = 0; index < source.mappings.length; index++) {
-                this.mappings.push(new Mapping(source.mappings[index]));
-            }
-        }
-    };
     /**
      * Gets a flag indicating whether the operation accepts JSON-LD or not.
      * @memberof ursa.model.Operation
@@ -981,13 +906,6 @@
     };
     DataType.prototype = new TypeConstrainedApiMember(_ctor);
     DataType.prototype.constructor = DataType;
-    DataType.prototype.clone = function() {
-        if (arguments.length === 0) {
-            return new DataType(this);
-        }
-
-        TypeConstrainedApiMember.prototype.clone.apply(this, arguments);
-    };
 
     /**
      * Describes a class.
@@ -999,64 +917,66 @@
      * @param {ursa.model.ApiMember} owner Owner if this instance being created.
      * @param {object} [supportedOperation] JSON-LD resource describing this API member.
      * @param {object} [graph] JSON-LD graph of resources.
+     * @param {boolean} [deferredInitialization] Defers properties and operations initialization so the class can be dereferenced multiple times.
      */
-    var Class = namespace.Class = function(owner, supportedClass, graph) {
+    var Class = namespace.Class = function(owner, supportedClass, graph, deferredInitialization) {
         TypeConstrainedApiMember.prototype.constructor.apply(this, arguments);
-        var index;
-        if ((arguments.length === 1) && (arguments[0] instanceof Class)) {
-            this.supportedProperties = new ApiMemberCollection(this);
-            this.supportedOperations = [];
-            Class.prototype.clone.call(this, owner);
-            return;
-        }
-
         if ((arguments.length === 0) || (arguments[0] !== _ctor)) {
+            if (typeof (deferredInitialization) !== "boolean") {
+                deferredInitialization = false;
+            }
+
             this.supportedProperties = new ApiMemberCollection(this);
             this.supportedOperations = [];
-            var subClassOf = supportedClass[rdfs.subClassOf] || [];
-            var restriction;
-            if (supportedClass[hydra.supportedProperty]) {
-                for (index = 0; index < supportedClass[hydra.supportedProperty].length; index++) {
-                    var supportedPropertyResource = graph.getById(supportedClass[hydra.supportedProperty][index]["@id"]);
-                    var supportedProperty = new SupportedProperty(this, supportedPropertyResource, graph);
-                    for (var restrictionIndex = 0; restrictionIndex < subClassOf.length; restrictionIndex++) {
-                        restriction = graph.getById(subClassOf[restrictionIndex]["@id"]);
-                        if ((!restriction["@type"]) || (restriction["@type"].indexOf(owl.Restriction) === -1) ||
-                            (getValue.call(restriction, owl.onProperty) !== supportedProperty.property)) {
-                            continue;
-                        }
-
-                        var maxCardinality = getValue.call(restriction, owl.maxCardinality);
-                        supportedProperty.maxOccurances = (maxCardinality !== null ? maxCardinality : supportedProperty.maxOccurances);
-                        subClassOf.splice(restrictionIndex, 1);
-                    }
-
-                    this.supportedProperties.push(supportedProperty);
-                }
+            if (!deferredInitialization) {
+                classCompleteInitialization.call(this, supportedClass, graph);
             }
-
-            for (index = 0; index < subClassOf.length; index++) {
-                if (subClassOf[index]["@id"] === rdf.List) {
-                    (this.valueRange = Class.Thing.clone())._owner = owner;
-                }
-                else {
-                    restriction = graph.getById(subClassOf[index]["@id"]);
-                    var onProperty;
-                    if ((!restriction["@type"]) || (restriction["@type"].indexOf(owl.Restriction) === -1) ||
-                        ((onProperty = getValue.call(restriction, owl.onProperty)) !== rdf.first)) {
-                        continue;
-                    }
-
-                    this.valueRange = getClass.call(graph.getById(restriction[owl.allValuesFrom][0]["@id"]), this, graph);
-                    break;
-                }
-            }
-
-            getOperations.call(this, supportedClass, graph);
         }
     };
     Class.prototype = new TypeConstrainedApiMember(_ctor);
     Class.prototype.constructor = Class;
+    var classCompleteInitialization = function (supportedClass, graph) {
+        var index;
+        var subClassOf = supportedClass[rdfs.subClassOf] || [];
+        var restriction;
+        if (supportedClass[hydra.supportedProperty]) {
+            for (index = 0; index < supportedClass[hydra.supportedProperty].length; index++) {
+                var supportedPropertyResource = graph.getById(supportedClass[hydra.supportedProperty][index]["@id"]);
+                var supportedProperty = new SupportedProperty(this, supportedPropertyResource, graph);
+                for (var restrictionIndex = 0; restrictionIndex < subClassOf.length; restrictionIndex++) {
+                    restriction = graph.getById(subClassOf[restrictionIndex]["@id"]);
+                    if ((!restriction["@type"]) || (restriction["@type"].indexOf(owl.Restriction) === -1) ||
+                        (getValue.call(restriction, owl.onProperty) !== supportedProperty.property)) {
+                        continue;
+                    }
+
+                    var maxCardinality = getValue.call(restriction, owl.maxCardinality);
+                    supportedProperty.maxOccurances = (maxCardinality !== null ? maxCardinality : supportedProperty.maxOccurances);
+                    subClassOf.splice(restrictionIndex, 1);
+                }
+
+                this.supportedProperties.push(supportedProperty);
+            }
+        }
+
+        for (index = 0; index < subClassOf.length; index++) {
+            if (subClassOf[index]["@id"] === rdf.List) {
+                this.valueRange = Class.Thing;
+            }
+            else {
+                restriction = graph.getById(subClassOf[index]["@id"]);
+                if ((!restriction["@type"]) || (restriction["@type"].indexOf(owl.Restriction) === -1) ||
+                    (getValue.call(restriction, owl.onProperty) !== rdf.first)) {
+                    continue;
+                }
+
+                this.valueRange = getClass.call(graph.getById(restriction[owl.allValuesFrom][0]["@id"]), this, graph);
+                break;
+            }
+        }
+
+        getOperations.call(this, supportedClass, graph);
+    };
     /**
      * List of supported properties.
      * @memberof ursa.model.Class
@@ -1204,21 +1124,6 @@
         }
 
         return key;
-    };
-    Class.prototype.clone = function(source) {
-        if (arguments.length === 0) {
-            return new Class(this);
-        }
-
-        TypeConstrainedApiMember.prototype.clone.apply(this, arguments);
-        var index;
-        for (index = 0; index < source.supportedProperties.length; index++) {
-            this.supportedProperties.push(new SupportedProperty(source.supportedProperties[index]));
-        }
-
-        for (index = 0; index < source.supportedOperations.length; index++) {
-            this.supportedOperations.push(new Operation(source.supportedOperations[index]));
-        }
     };
 
     /**
@@ -1775,8 +1680,9 @@
             var index;
             this.owner = null;
             this.entryPoints = [];
-            this.supportedClasses = [];
-            graph.getById = function(id) { return getById.call(graph, id); };
+            this.supportedClasses = new ApiMemberCollection(this);
+            this.knownTypes = new ApiMemberCollection(this);
+            graph.getById = function (id) { return getById.call(graph, id); };
             var apiDocumentation = null;
             for (index = 0; index < graph.length; index++) {
                 var resource = graph[index];
@@ -1796,7 +1702,11 @@
 
             if ((apiDocumentation !== null) && (apiDocumentation[hydra.supportedClass] instanceof Array)) {
                 for (index = 0; index < apiDocumentation[hydra.supportedClass].length; index++) {
-                    this.supportedClasses.push(new Class(this, graph.getById(apiDocumentation[hydra.supportedClass][index]["@id"]), graph));
+                    var supportedClassDefinition = graph.getById(apiDocumentation[hydra.supportedClass][index]["@id"]);
+                    var supportedClass = new Class(this, supportedClassDefinition, graph, true);
+                    this.supportedClasses.push(supportedClass);
+                    this.knownTypes.push(supportedClass);
+                    classCompleteInitialization.call(supportedClass, supportedClassDefinition, graph);
                 }
             }
         }
@@ -1812,6 +1722,14 @@
      */
     ApiDocumentation.prototype.supportedClasses = null;
     /**
+     * List of known types.
+     * @memberof ursa.model.ApiDocumentation
+     * @instance
+     * @public
+     * @member {Array.<ursa.model.Class>} knownTypes
+     */
+    ApiDocumentation.prototype.knownTypes = null;
+    /**
      * List of entry point Urls.
      * @memberof ursa.model.ApiDocumentation
      * @instance
@@ -1819,12 +1737,4 @@
      * @member {Array.<string>} entryPoints
      */
     ApiDocumentation.prototype.entryPoints = null;
-    /**
-     * Throws an exception as this method is not supported.
-     * @memberof ursa.model.ApiDocumentation
-     * @instance
-     * @public
-     * @method clone
-     */
-    ApiDocumentation.prototype.clone = function() { throw "Not supported."; };
 }(namespace("ursa.model")));

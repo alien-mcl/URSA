@@ -60,11 +60,11 @@
                     expect(operation.methods.length).toBe(1);
                     expect(operation.methods[0]).toBe("GET");
                     expect(operation.expects.length).toBe(1);
-                    expect(operation.expects[0]).toBeOfType(ursa.model.Class);
-                    expect(operation.expects[0].id).toBe(window.apiDocumentation.personClass["@id"]);
+                    expect(operation.expects[0].range).toBeOfType(ursa.model.Class);
+                    expect(operation.expects[0].range.id).toBe(window.apiDocumentation.personClass["@id"]);
                     expect(operation.returns.length).toBe(1);
-                    expect(operation.returns[0]).toBeOfType(ursa.model.Class);
-                    expect(operation.returns[0].id).toBe(window.apiDocumentation.personClass["@id"]);
+                    expect(operation.returns[0].range).toBeOfType(ursa.model.Class);
+                    expect(operation.returns[0].range.id).toBe(window.apiDocumentation.personClass["@id"]);
                     expect(operation.returns[0].description).toBe(window.apiDocumentation.personSubClass[rdfs.comment][0]["@value"]);
                 });
 
@@ -88,11 +88,11 @@
                     expect(operation.methods.length).toBe(1);
                     expect(operation.methods[0]).toBe("GET");
                     expect(operation.expects.length).toBe(1);
-                    expect(operation.expects[0]).toBeOfType(ursa.model.Class);
-                    expect(operation.expects[0].id).toBe(window.apiDocumentation.personClass["@id"]);
+                    expect(operation.expects[0].range).toBeOfType(ursa.model.Class);
+                    expect(operation.expects[0].range.id).toBe(window.apiDocumentation.personClass["@id"]);
                     expect(operation.returns.length).toBe(1);
-                    expect(operation.returns[0]).toBeOfType(ursa.model.Class);
-                    expect(operation.returns[0].id).toBe(window.apiDocumentation.personClass["@id"]);
+                    expect(operation.returns[0].range).toBeOfType(ursa.model.Class);
+                    expect(operation.returns[0].range.id).toBe(window.apiDocumentation.personClass["@id"]);
                 });
 
                 it("it should create a correct call URL", function() {

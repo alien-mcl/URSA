@@ -19,7 +19,7 @@
         };
         $scope.filterOperation = function(supportedOperation) {
             return (supportedOperation.methods.indexOf("GET") !== -1) && (supportedOperation.returns.length > 0) &&
-                (supportedOperation.returns[0].id === supportedOperation.owner.id) && (supportedOperation.returns[0].maxOccurances === Number.MAX_VALUE);
+                (supportedOperation.returns[0].maxOccurances === Number.MAX_VALUE);
         };
         apiDocumentationProvider.load(configuration.entryPoint).
             then(function(apiDocumentation) {

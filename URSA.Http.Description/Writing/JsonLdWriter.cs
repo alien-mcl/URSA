@@ -5,6 +5,8 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
+using RomanticWeb;
+using RomanticWeb.Vocabularies;
 
 namespace VDS.RDF.Writing
 {
@@ -61,8 +63,8 @@ namespace VDS.RDF.Writing
             INode rest = graph.CreateUriNode(new Uri(Rest));
             INode nil = graph.CreateUriNode(new Uri(Nil));
 
-            IEnumerable<Triple> ends = graph.GetTriplesWithPredicateObject(rest, nil);
             IDictionary<INode, List<INode>> lists = new Dictionary<INode, List<INode>>();
+            IEnumerable<Triple> ends = graph.GetTriplesWithPredicateObject(rest, nil);
             foreach (Triple end in ends)
             {
                 List<INode> list = new List<INode>();
@@ -94,10 +96,14 @@ namespace VDS.RDF.Writing
             return (graph.GetTriplesWithSubjectPredicate(subject, rest).Any());
         }
 
-        private static JToken MakeList(List<INode> nodes)
+        private static JToken MakeList(List<INode> nodes = null)
         {
             JArray list = new JArray();
-            nodes.ForEach(node => list.Add(MakeObject(node)));
+            if (nodes != null)
+            {
+                nodes.ForEach(node => list.Add(MakeObject(node)));
+            }
+
             return new JObject { { "@list", list } };
         }
 
@@ -183,7 +189,22 @@ namespace VDS.RDF.Writing
                 }
                 else
                 {
-                    objects.Add(lists.ContainsKey(triple.Object) ? MakeList(lists[triple.Object]) : MakeObject(triple.Object));
+                    IUriNode uriNode;
+                    JToken @object;
+                    if (lists.ContainsKey(triple.Object))
+                    {
+                        @object = MakeList(lists[triple.Object]);
+                    }
+                    else if (((uriNode = triple.Object as IUriNode) != null) && (AbsoluteUriComparer.Default.Equals(uriNode.Uri, Rdf.nil)))
+                    {
+                        @object = MakeList();
+                    }
+                    else
+                    {
+                        @object = MakeObject(triple.Object);
+                    }
+
+                    objects.Add(@object);
                 }
             }
 

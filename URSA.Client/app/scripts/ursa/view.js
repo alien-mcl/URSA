@@ -228,19 +228,21 @@
             scope.supportedPropertyReadonly[apiMember.id] = true;
         }
 
+        var range = ((apiMember.range instanceof ursa.model.Class) && (apiMember.range.valueRange !== null) ? apiMember.range.valueRange : apiMember.range);
         var result = {
             classNames: String.format("class=\"form-control{0}\" ", (typeof(classNames) === "string" ? classNames : "")),
             propertyName: apiMember.propertyName(scope.operation),
             propertySelector: scope.targetInstance +
                 (!scope.operation.isRdf ? "['{0}']" : "['{0}']" + (apiMember.maxOccurances > 1 ?
-                ((apiMember.range instanceof ursa.model.Class) && (apiMember.range.valueRange !== null) ? "[0]['@list']" : "") :
-                    (apiMember.range instanceof ursa.model.DataType ? "[0]['@value']" : "[0]['@id']")))
+                ((apiMember.range !== range) ? "[0]['@list']" : "") :
+                    (range instanceof ursa.model.DataType ? "[0]['@value']" : "[0]['@id']")))
         };
-        result.literalSelector = (supportedPropertyRendererIsLiteralRange.call(this, apiMember) ? String.format(result.propertySelector, result.propertyName) + "[$index]" : "value");
-        result.valueSelector = (apiMember.maxOccurances <= 1 ? result.propertySelector : result.literalSelector + (!scope.operation.isRdf ? "" : "['@value']"));
+        result.literalSelector = String.format(result.propertySelector, result.propertyName) + "[$index]";
+        result.valueSelector = (apiMember.maxOccurances <= 1 ? result.propertySelector : result.literalSelector + (!scope.operation.isRdf ? "" :
+            (range instanceof ursa.model.DataType ? "['@value']" : "")));
         return result;
     };
-    var supportedPropertyRendererRenderField = function (scope, http, jsonld, apiMember, context) {
+    var supportedPropertyRendererRenderField = function(scope, http, jsonld, apiMember, context) {
         var operation = null;
         var valueRange = ((apiMember.range instanceof ursa.model.Class) && (apiMember.range.valueRange !== null) ? apiMember.range.valueRange : apiMember.range);
         var controlType = (SupportedPropertyRenderer.dataTypes[valueRange.id] ? "input" : "select");
@@ -267,15 +269,18 @@
 
         var closure = "/>";
         if (controlType === "select") {
+            var range = ((apiMember.range instanceof ursa.model.Class) && (apiMember.range.valueRange !== null) ? apiMember.range.valueRange : apiMember.range);
+            range = (range instanceof ursa.model.Class ? apiMember.apiDocumentation.supportedClasses.getById(range.id) : range);
             var displayName = apiMember.owner.getInstanceDisplayNameProperty(operation);
-            scope.supportedPropertyValues[apiMember.id] = [];
-            supportedPropertyRendererLoadItems.call(this, scope, apiMember.id, http, jsonld);
+            scope.supportedPropertyTypeValues[range.id] = [];
+            supportedPropertyRendererLoadItems.call(this, scope, http, jsonld, range);
             closure = String.format(
-                " ng-focus=\"loadItems('{1}')\" ng-options=\"item as item['{0}']{3} for item in supportedPropertyValues['{1}'] track by item['{2}']\"></select>",
+                " ng-focus=\"initialize('{4}')\" ng-options=\"item as item['{0}']{3} for item in supportedPropertyTypeValues['{1}'] track by item['{2}']\"></select>",
                 displayName.propertyName(operation),
-                apiMember.id,
+                range.id,
                 (operation.isRdf ? "@id" : apiMember.owner.getKeyProperty(operation).propertyName(operation)),
-                (operation.isRdf ? "[0]['@value']" : ""));
+                (operation.isRdf ? "[0]['@value']" : ""),
+                apiMember.id);
         }
 
 
@@ -321,7 +326,7 @@
         scope.supportedPropertyNulls = {};
         scope.supportedPropertyKeys = {};
         scope.supportedPropertyReadonly = {};
-        scope.supportedPropertyValues = {};
+        scope.supportedPropertyTypeValues = {};
         scope.supportedProperties = apiMember.owner.supportedProperties;
         scope.isPropertyReadonly = function(supportedPropertyId) { return supportedPropertyRendererIsPropertyReadonly.call(that, scope, supportedPropertyId); };
         scope.styleFor = function(supportedPropertyId, index) { return supportedPropertyRendererStyleFor.call(that, scope, supportedPropertyId, index); };
@@ -329,7 +334,18 @@
         scope.removePropertyItem = function(supportedPropertyId, index) { supportedPropertyRendererRemovePropertyItem.call(that, scope, supportedPropertyId, index); };
         scope.onIsNullCheckedChanged = function(supportedPropertyId) { supportedPropertyRendererOnIsNullCheckedChanged.call(that, scope, supportedPropertyId); };
         scope.movePropertyItem = function(supportedPropertyId, index, direction) { supportedPropertyRendererMovePropertyItem.call(that, scope, supportedPropertyId, index, direction); };
-        scope.loadItems = function(supportedPropertyId) { supportedPropertyRendererLoadItems.call(that, scope, supportedPropertyId, http, jsonld); };
+        scope.initialize = function(supportedPropertyId) { supportedPropertyRendererPropertyInitialize.call(that, scope, supportedPropertyId); };
+        var entityEventHandler = function(e, instance, type) { supportedPropertyRendererEntityEvent.call(that, scope, http, jsonld, apiMember, type); };
+        scope.$on(Events.EntityLoaded, function() { scope.supportedPropertyNewValues = {}; });
+        scope.$on(Events.EntityCreated, entityEventHandler);
+        scope.$on(Events.EntityModified, entityEventHandler);
+        scope.$on(Events.EntityRemoved, entityEventHandler);
+    };
+    var supportedPropertyRendererEntityEvent = function (scope, http, jsonld, apiMember, type) {
+        scope.supportedPropertyNewValues = {};
+        if (type.id === apiMember.owner.id) {
+            supportedPropertyRendererLoadItems.call(this, scope, http, jsonld, type);
+        }
     };
     var supportedPropertyRendererIsPropertyReadonly = function(scope, supportedPropertyId) {
         var supportedProperty = scope.supportedProperties.getById(supportedPropertyId);
@@ -342,18 +358,6 @@
         return scope.supportedPropertyKeys[supportedPropertyId] ||
             scope.supportedPropertyNulls[supportedPropertyId] ||
             scope.supportedPropertyReadonly[supportedPropertyId];
-    };
-    var supportedPropertyRendererIsLiteralRange = function(apiMember) {
-        var range = apiMember.range;
-        if (range === null) {
-            return false;
-        }
-
-        if ((range instanceof ursa.model.Class) && (range.valueRange !== null)) {
-            range = range.valueRange;
-        }
-
-        return ((range.id.indexOf(xsd) === 0) || (range.id.indexOf(guid) === 0));
     };
     var supportedPropertyRendererStyleFor = function(scope, supportedPropertyId, index) {
         var result = "input-group-addon";
@@ -421,20 +425,23 @@
         propertyItems[index] = propertyItems[index + direction];
         propertyItems[index + direction] = propertyItem;
     };
-    var supportedPropertyRendererLoadItems = function(scope, supportedPropertyId, http, jsonld) {
+    var supportedPropertyRendererPropertyInitialize = function (scope, supportedPropertyId) {
         var supportedProperty = scope.supportedProperties.getById(supportedPropertyId);
         var operation = operationRendererFindEntityCrudOperation.call(this, supportedProperty, "GET");
         supportedProperty.initializeInstance(operation, scope[scope.targetInstance]);
+    };
+    var supportedPropertyRendererLoadItems = function(scope, http, jsonld, type) {
+        var operation = operationRendererFindEntityCrudOperation.call(this, type, "GET");
         http({ method: "GET", url: operation.createCallUrl(), headers: { Accept: operation.mediaTypes.join() } }).
             then(function(response) {
                 if ((response.headers("Content-Type") || "*/*").indexOf(ursa.model.EntityFormat.ApplicationLdJson) === 0) {
                     jsonld.expand(response.data).
                         then(function(expanded) {
-                            scope.supportedPropertyValues[supportedPropertyId] = expanded;
+                            scope.supportedPropertyTypeValues[type.id] = expanded;
                         });
                 }
                 else {
-                    scope.supportedPropertyValues[supportedPropertyId] = response.data;
+                    scope.supportedPropertyTypeValues[type.id] = response.data;
                 }
             });
     };
@@ -761,7 +768,7 @@
         scope.isFormDisabled = function(name) { return operationRendererIsFormDisabled.call(that, scope, name); };
     };
     var operationRendererFindEntityCrudOperation = function(apiMember, method) {
-        var supportedOperations = apiMember.owner.supportedOperations;
+        var supportedOperations = (apiMember instanceof ursa.model.Class ? apiMember : apiMember.owner).supportedOperations;
         for (var index = 0; index < supportedOperations.length; index++) {
             var operation = supportedOperations[index];
             if (operation.methods.indexOf(method) !== -1) {
@@ -775,19 +782,20 @@
         if ((response.headers("Content-Type") || "*/*").indexOf(ursa.model.EntityFormat.ApplicationLdJson) === 0) {
             jsonld.expand(response.data).
                 then(function(expanded) {
-                    scope.editedEntity = (expanded.length > 0 ? expanded[0] : null);
+                    scope.$root.$broadcast(Events.EntityLoaded, scope.editedEntity = (expanded.length > 0 ? expanded[0] : null), createOperation.owner);
                     return expanded;
                 });
         }
         else {
-            scope.editedEntity = response.data;
+            scope.$root.$broadcast(Events.EntityLoaded, scope.editedEntity = response.data, createOperation.owner);
         }
     };
     var operationRendererLoadEntity = function (scope, http, jsonld, authentication, getOperation, instance) {
         operationRendererHandleOperation.call(this, scope, http, jsonld, authentication, getOperation, null, instance, operationRendererOnLoadEntitySuccess, null, operationRendererLoadEntity);
     };
-    var operationRendererCreateEntitySuccess = function(scope, http, jsonld, authentication, createOperation) {
+    var operationRendererCreateEntitySuccess = function(scope, http, jsonld, authentication, createOperation, instance) {
         scope.newInstance = createOperation.owner.createInstance(createOperation);
+        scope.$root.$broadcast(Events.EntityCreated, instance, createOperation.owner);
         scope.list(1);
         scope.footerVisible = false;
     };
@@ -809,14 +817,16 @@
 
         operationRendererHandleOperation.call(this, scope, http, jsonld, authentication, createOperation, null, instance, operationRendererCreateEntitySuccess, operationRendererAmmendEntityFailure, operationRendererCreateEntity);
     };
-    var operationRendererOnUpdateEntitySuccess = function(scope) {
+    var operationRendererOnUpdateEntitySuccess = function(scope, http, jsonld, authentication, updateOperation, instance) {
         scope.editedEntity = null;
+        scope.$root.$broadcast(Events.EntityModified, instance, updateOperation.owner);
         scope.list();
     };
     var operationRendererUpdateEntity = function(scope, http, jsonld, authentication, updateOperation, instance) {
         operationRendererHandleOperation.call(this, scope, http, jsonld, authentication, updateOperation, null, instance, operationRendererOnUpdateEntitySuccess, operationRendererAmmendEntityFailure, operationRendererUpdateEntity);
     };
-    var operationRendererOnDeleteEntitySuccess = function(scope) {
+    var operationRendererOnDeleteEntitySuccess = function(scope, http, jsonld, authentication, deleteOperation, instance) {
+        scope.$root.$broadcast(Events.EntityRemoved, instance, deleteOperation);
         scope.list(1);
     };
     var operationRendererDeleteEntity = function(scope, http, jsonld, authentication, deleteOperation, instance, e) {
@@ -1052,6 +1062,14 @@
         /*Notifies that the authentication should occur.*/
         Authenticate: "Authenticate",
         /*Notifies that the authentication was successful.*/
-        Authenticated: "Authenticated"
-    };
+        Authenticated: "Authenticated",
+        /*Notifies that an entity has been created. */
+        EntityCreated: "EntityCreated",
+        /*Notifies that an entity has been removed. */
+        EntityRemoved: "EntityRemoved",
+        /*Notifies that an entity has been modified. */
+        EntityModified: "EntityModified",
+        /*Notifies that an entity has been loaded. */
+        EntityLoaded: "EntityLoaded"
+};
 }(namespace("ursa.view")));
