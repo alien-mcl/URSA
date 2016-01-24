@@ -63,5 +63,8 @@
     module.
     factory("hydraApiDocumentation", ["$http", "$q", function hydraApiDocumentationFactory($http, $q) {
         return new ApiDocumentationService($http, $q);
+    }]).
+    factory("viewRendererProvider", ["$http", "jsonld", "authentication", function viewRendererProvider($http, jsonld, authentication) {
+        return new ursa.view.ViewRendererProvider($http, jsonld, authentication);        
     }]);
 }());

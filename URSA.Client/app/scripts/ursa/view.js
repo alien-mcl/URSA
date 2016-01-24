@@ -5,51 +5,11 @@
     var invalidArgumentPassed = "Invalid {0} passed.";
 
     var _ctor = "_ctor";
-    var isInitialized = false;
 
     /**
      * Ultimate ResT API documentation view renderers namespace.
      * @namespace ursa.view
      */
-
-    /**
-     * Collection of {@link ursa.view.ViewRenderer}s.
-     * @memberof ursa.view
-     * @name ViewRendererCollection
-     * @protected
-     * @class
-     * @extends Array
-     */
-    var ViewRendererCollection = function() { };
-    ViewRendererCollection.prototype = [];
-    ViewRendererCollection.prototype.constructor = ViewRendererCollection;
-    /**
-     * Searches view renderers for the one that is applicable for a given API member.
-     * @memberof ursa.view.ViewRendererCollection
-     * @instance
-     * @public
-     * @method find
-     * @param {ursa.model.ApiMember} apiMember Target API member for which to find the renderer.
-     */
-    ViewRendererCollection.prototype.find = function(apiMember) {
-        var index;
-        if (!isInitialized) {
-            var types = container.resolve(ViewRenderer);
-            for (index = 0; index < types.length; index++) {
-                ViewRenderer.viewRenderers.push(new types[index]());
-            }
-
-            isInitialized = true;
-        }
-
-        for (index = 0; index < ViewRenderer.viewRenderers.length; index++) {
-            if (ViewRenderer.viewRenderers[index].isApplicableTo(apiMember)) {
-                return ViewRenderer.viewRenderers[index];
-            }
-        }
-
-        return null;
-    };
 
     /**
      * Abstract of a view renderer.
@@ -61,6 +21,27 @@
      */
     var ViewRenderer = namespace.ViewRenderer = function() { };
     ViewRenderer.prototype.constructor = ViewRenderer;
+    ViewRenderer.prototype.apiMember = null;
+    ViewRenderer.prototype._http = null;
+    ViewRenderer.prototype._jsonld = null;
+    ViewRenderer.prototype._authentication = null;
+    /**
+     * Initializes a renderer with dependencies.
+     * @memberof ursa.view.ViewRenderer
+     * @instance
+     * @public
+     * @method initialize
+     * @param {ursa.model.ApiMember} apiMember API member to check for compatiblity.
+     * @param {function} http HTTP async communication provider.
+     * @param {object} jsonld JSON-LD processor.
+     * @param {object} authentication Authentication provider.
+     */
+    ViewRenderer.prototype.initialize = function(apiMember, http, jsonld, authentication) {
+        this.apiMember = apiMember;
+        this._http = http;
+        this._jsonld = jsonld;
+        this._authentication = authentication;
+    };
     /**
      * Determines whether this renderer is applicable for given {ursa.model.ApiMember} instance.
      * @memberof ursa.view.ViewRenderer
@@ -83,26 +64,57 @@
      * @public
      * @method render
      * @param {angular.$rootScope.Scope} scope Target scope.
-     * @param {angular.$http} http HTTP service.
-     * @param {jsonld} jsonld JSON-LD service.
-     * @param {ursa.model.ApiMember} apiMember Target API member for which to render a view.
      * @param {string} [classNames] CSS class names to be added to the view.
      */
-    ViewRenderer.prototype.render = function(scope, http, jsonld, authentication, apiMember, classNames) {
-        if ((apiMember === undefined) || (apiMember === null) || (!(apiMember instanceof ursa.model.ApiMember))) {
+    ViewRenderer.prototype.render = function(scope, classNames) {
+        if ((this.apiMember === undefined) || (this.apiMember === null) || (!(this.apiMember instanceof ursa.model.ApiMember))) {
             throw new Error(invalidArgumentPassed.replace("{0}", "apiMember"));
         }
 
         return String.format("<div{0}></div>", (typeof(classNames) === "string" ? String.format(" class=\"{0}\"", classNames) : ""));
     };
+
+    var viewRenderers = null;
+
     /**
-     * Collection of discovered {@link ursa.view.ViewRenderer}s.
-     * @memberof ursa.view.ViewRenderer
-     * @static
+     * View renderer provider.
+     * @memberof ursa.view
+     * @name ViewRendererProvider
      * @public
-     * @member {ursa.view.ViewRendererCollection} viewRenderers
+     * @class
      */
-    ViewRenderer.viewRenderers = new ViewRendererCollection();
+    var ViewRendererProvider = namespace.ViewRendererProvider = function(http, jsonld, authentication) {
+        if (viewRenderers === null) {
+            viewRenderers = container.resolve(ViewRenderer);
+        }
+
+        this._http = http;
+        this._jsonld = jsonld;
+        this._authentication = authentication;
+    };
+    /**
+     * Creates a view for given API member.
+     * @memberof ursa.view.ViewRendererProvider
+     * @instance
+     * @public
+     * @method createRenderer
+     * @param {ursa.model.ApiMember} apiMember Target API member for which to render a view.
+     * @returns {ursa.view.ViewRenderer} The view renderer.
+     */
+    ViewRendererProvider.prototype.createRenderer = function(apiMember) {
+        for (var index = 0; index < viewRenderers.length; index++) {
+            var viewRenderer = new viewRenderers[index]();
+            if (viewRenderer.isApplicableTo(apiMember)) {
+                viewRenderer.initialize(apiMember, this._http, this._jsonld, this._authentication);
+                return viewRenderer;
+            }
+        }
+
+        return null;
+    };
+    ViewRendererProvider.prototype._http = null;
+    ViewRendererProvider.prototype._jsonld = null;
+    ViewRendererProvider.prototype._authentication = null;
 
     /**
      * Describes a datatype features.
@@ -197,66 +209,69 @@
         ViewRenderer.prototype.isApplicableTo.apply(this, arguments);
         return apiMember instanceof ursa.model.SupportedProperty;
     };
-    SupportedPropertyRenderer.prototype.render = function(scope, http, jsonld, authentication, apiMember, classNames) {
-        ViewRenderer.prototype.render.apply(this, arguments);
+    SupportedPropertyRenderer.prototype.initialize = function(apiMember) {
         if (!(apiMember instanceof ursa.model.SupportedProperty)) {
             throw new Error(invalidArgumentPassed.replace("{0}", "apiMember"));
         }
 
+        ViewRenderer.prototype.initialize.apply(this, arguments);
+    };
+    SupportedPropertyRenderer.prototype.render = function(scope, classNames) {
+        ViewRenderer.prototype.render.apply(this, arguments);
         if (!scope.supportedPropertyNewValues) {
-            supportedPropertyRendererSetupPropertyScope.call(this, scope, http, jsonld, apiMember);
+            supportedPropertyRendererSetupPropertyScope.call(this, scope);
         }
 
-        var context = supportedPropertyRendererInitialize.call(this, scope, apiMember, classNames);
-        var result = supportedPropertyRendererRenderField.call(this, scope, http, jsonld, apiMember, context);
-        if (apiMember.maxOccurances === 1) {
-            var isNull = (!(scope.supportedPropertyNulls[apiMember.id] = (apiMember.minOccurances === 0)) ? "" : String.format(
+        var context = supportedPropertyRendererInitialize.call(this, scope, classNames);
+        var result = supportedPropertyRendererRenderField.call(this, scope, context);
+        if (this.apiMember.maxOccurances === 1) {
+            var isNull = (!(scope.supportedPropertyNulls[this.apiMember.id] = (this.apiMember.minOccurances === 0)) ? "" : String.format(
                 "<span class=\"input-group-addon\">" +
                     "<input type=\"checkbox\" title=\"Null\" checked ng-model=\"supportedPropertyNulls['{0}']\" ng-change=\"onIsNullCheckedChanged('{0}')\" />" +
-                "</span>", apiMember.id));
-            return String.format("<div class=\"input-group\"><span ng-class=\"styleFor('{3}', null)\">{0}</span>{1}{2}</div>", apiMember.label, result, isNull, apiMember.id);
+                "</span>", this.apiMember.id));
+            return String.format("<div class=\"input-group\"><span ng-class=\"styleFor('{3}', null)\">{0}</span>{1}{2}</div>", this.apiMember.label, result, isNull, this.apiMember.id);
         }
 
-        return supportedPropertyRendererRenderCollection.call(this, scope, apiMember, context, result);
+        return supportedPropertyRendererRenderCollection.call(this, scope, context, result);
     };
-    var supportedPropertyRendererInitialize = function(scope, apiMember, classNames) {
-        if (apiMember.key) {
-            scope.supportedPropertyKeys[apiMember.id] = true;
+    var supportedPropertyRendererInitialize = function(scope, classNames) {
+        if (this.apiMember.key) {
+            scope.supportedPropertyKeys[this.apiMember.id] = true;
         }
 
-        if (!apiMember.writeable) {
-            scope.supportedPropertyReadonly[apiMember.id] = true;
+        if (!this.apiMember.writeable) {
+            scope.supportedPropertyReadonly[this.apiMember.id] = true;
         }
 
-        var range = ((apiMember.range instanceof ursa.model.Class) && (apiMember.range.valueRange !== null) ? apiMember.range.valueRange : apiMember.range);
+        var range = ((this.apiMember.range instanceof ursa.model.Class) && (this.apiMember.range.valueRange !== null) ? this.apiMember.range.valueRange : this.apiMember.range);
         var result = {
             classNames: String.format("class=\"form-control{0}\" ", (typeof(classNames) === "string" ? classNames : "")),
-            propertyName: apiMember.propertyName(scope.operation),
+            propertyName: this.apiMember.propertyName(scope.operation),
             propertySelector: scope.targetInstance +
-                (!scope.operation.isRdf ? "['{0}']" : "['{0}']" + (apiMember.maxOccurances > 1 ?
-                ((apiMember.range !== range) ? "[0]['@list']" : "") :
+                (!scope.operation.isRdf ? "['{0}']" : "['{0}']" + (this.apiMember.maxOccurances > 1 ?
+                ((this.apiMember.range !== range) ? "[0]['@list']" : "") :
                     (range instanceof ursa.model.DataType ? "[0]['@value']" : "[0]['@id']")))
         };
         result.literalSelector = String.format(result.propertySelector, result.propertyName) + "[$index]";
-        result.valueSelector = (apiMember.maxOccurances <= 1 ? result.propertySelector : result.literalSelector + (!scope.operation.isRdf ? "" :
+        result.valueSelector = (this.apiMember.maxOccurances <= 1 ? result.propertySelector : result.literalSelector + (!scope.operation.isRdf ? "" :
             (range instanceof ursa.model.DataType ? "['@value']" : "")));
         return result;
     };
-    var supportedPropertyRendererRenderField = function(scope, http, jsonld, apiMember, context) {
+    var supportedPropertyRendererRenderField = function(scope, context) {
         var operation = null;
-        var valueRange = ((apiMember.range instanceof ursa.model.Class) && (apiMember.range.valueRange !== null) ? apiMember.range.valueRange : apiMember.range);
+        var valueRange = ((this.apiMember.range instanceof ursa.model.Class) && (this.apiMember.range.valueRange !== null) ? this.apiMember.range.valueRange : this.apiMember.range);
         var controlType = (SupportedPropertyRenderer.dataTypes[valueRange.id] ? "input" : "select");
-        if ((controlType === "select") && ((operation = operationRendererFindEntityCrudOperation.call(this, apiMember, "GET")) === null)) {
+        if ((controlType === "select") && ((operation = operationRendererFindEntityCrudOperation.call(this, "GET")) === null)) {
             controlType = "input";
         }
 
         var format = String.format(
-            "<{0} {1}ng-model=\"{2}\" name=\"{5}\" ng-readonly=\"isPropertyReadonly('{3}')\" ",
+            "<{0} {1}ng-model=\"{2}\" name=\"{5}\" ng-disabled=\"isPropertyReadonly('{3}')\" ",
             controlType,
             context.classNames,
             (controlType === "select" ? context.valueSelector.replace(/\['@id'\]$/, "") : context.valueSelector),
-            apiMember.id,
-            ((apiMember.required) && (!apiMember.key) ? "required " : ""),
+            this.apiMember.id,
+            ((this.apiMember.required) && (!this.apiMember.key) ? "required " : ""),
             context.propertyName);
         var parameters = [context.propertyName];
         var dataType = SupportedPropertyRenderer.dataTypes[valueRange.id] || { type: "text" };
@@ -269,18 +284,18 @@
 
         var closure = "/>";
         if (controlType === "select") {
-            var range = ((apiMember.range instanceof ursa.model.Class) && (apiMember.range.valueRange !== null) ? apiMember.range.valueRange : apiMember.range);
-            range = (range instanceof ursa.model.Class ? apiMember.apiDocumentation.supportedClasses.getById(range.id) : range);
-            var displayName = apiMember.owner.getInstanceDisplayNameProperty(operation);
+            var range = ((this.apiMember.range instanceof ursa.model.Class) && (this.apiMember.range.valueRange !== null) ? this.apiMember.range.valueRange : this.apiMember.range);
+            range = (range instanceof ursa.model.Class ? this.apiMember.apiDocumentation.supportedClasses.getById(range.id) : range);
+            var displayName = this.apiMember.owner.getInstanceDisplayNameProperty(operation);
             scope.supportedPropertyTypeValues[range.id] = [];
-            supportedPropertyRendererLoadItems.call(this, scope, http, jsonld, range);
+            supportedPropertyRendererLoadItems.call(this, scope, range);
             closure = String.format(
                 " ng-focus=\"initialize('{4}')\" ng-options=\"item as item['{0}']{3} for item in supportedPropertyTypeValues['{1}'] track by item['{2}']\"></select>",
                 displayName.propertyName(operation),
                 range.id,
-                (operation.isRdf ? "@id" : apiMember.owner.getKeyProperty(operation).propertyName(operation)),
+                (operation.isRdf ? "@id" : this.apiMember.owner.getKeyProperty(operation).propertyName(operation)),
                 (operation.isRdf ? "[0]['@value']" : ""),
-                apiMember.id);
+                this.apiMember.id);
         }
 
 
@@ -288,10 +303,11 @@
         parameters.splice(0, 0, format);
         return String.format.apply(window, parameters);
     };
-    var supportedPropertyRendererRenderCollection = function(scope, apiMember, context, field) {
-        scope.supportedPropertyNewValues[context.propertyName] = apiMember.createInstance();
+    // TODO: Add validation when adding item to collection
+    var supportedPropertyRendererRenderCollection = function (scope, context, field) {
+        scope.supportedPropertyNewValues[context.propertyName] = this.apiMember.createInstance();
         var listControls = "";
-        if ((apiMember.range instanceof ursa.model.Class) && (apiMember.range.valueType !== null)) {
+        if ((this.apiMember.range instanceof ursa.model.Class) && (this.apiMember.range.valueType !== null)) {
             listControls = "<button class=\"btn\" ng-disabled=\"$index === 0\" ng-click=\"movePropertyItem('{3}', $index, -1)\"><span class=\"glyphicon glyphicon-arrow-up\"></span></button>" +
                 "<button class=\"btn\" ng-disabled=\"$index === {1}.length - 1\" ng-click=\"movePropertyItem('{3}', $index, 1)\"><span class=\"glyphicon glyphicon-arrow-down\"></span></button>";
         }
@@ -313,13 +329,13 @@
                 "{4}" +
                 "<span class=\"input-group-btn\"><button class=\"btn btn-default\" ng-click=\"addPropertyItem('{3}')\"><span class=\"glyphicon glyphicon-plus\"></span></button></span>" +
             "</div>",
-            apiMember.label,
+            this.apiMember.label,
             String.format(context.propertySelector, context.propertyName),
             itemField,
-            apiMember.id,
+            this.apiMember.id,
             footerField);
     };
-    var supportedPropertyRendererSetupPropertyScope = function(scope, http, jsonld, apiMember) {
+    var supportedPropertyRendererSetupPropertyScope = function(scope) {
         var that = this;
         scope.editedEntityNulls = {};
         scope.supportedPropertyNewValues = {};
@@ -327,32 +343,51 @@
         scope.supportedPropertyKeys = {};
         scope.supportedPropertyReadonly = {};
         scope.supportedPropertyTypeValues = {};
-        scope.supportedProperties = apiMember.owner.supportedProperties;
+        scope.supportedProperties = this.apiMember.owner.supportedProperties;
         scope.isPropertyReadonly = function(supportedPropertyId) { return supportedPropertyRendererIsPropertyReadonly.call(that, scope, supportedPropertyId); };
         scope.styleFor = function(supportedPropertyId, index) { return supportedPropertyRendererStyleFor.call(that, scope, supportedPropertyId, index); };
         scope.addPropertyItem = function(supportedPropertyId) { supportedPropertyRendererAddPropertyItem.call(that, scope, supportedPropertyId); };
         scope.removePropertyItem = function(supportedPropertyId, index) { supportedPropertyRendererRemovePropertyItem.call(that, scope, supportedPropertyId, index); };
-        scope.onIsNullCheckedChanged = function(supportedPropertyId) { supportedPropertyRendererOnIsNullCheckedChanged.call(that, scope, supportedPropertyId); };
+        scope.onIsNullCheckedChanged = function(supportedPropertyId, e) { supportedPropertyRendererOnIsNullCheckedChanged.call(that, scope, supportedPropertyId, e); };
         scope.movePropertyItem = function(supportedPropertyId, index, direction) { supportedPropertyRendererMovePropertyItem.call(that, scope, supportedPropertyId, index, direction); };
         scope.initialize = function(supportedPropertyId) { supportedPropertyRendererPropertyInitialize.call(that, scope, supportedPropertyId); };
-        var entityEventHandler = function(e, instance, type) { supportedPropertyRendererEntityEvent.call(that, scope, http, jsonld, apiMember, type); };
-        scope.$on(Events.EntityLoaded, function() { scope.supportedPropertyNewValues = {}; });
+        var entityEventHandler = function(e, instance, type) { supportedPropertyRendererEntityEvent.call(that, scope, type); };
+        scope.$on(Events.EntityLoaded, function(e, instance, type) { supportedPropertyRendererEntityLoaded.call(that, scope, type); });
         scope.$on(Events.EntityCreated, entityEventHandler);
         scope.$on(Events.EntityModified, entityEventHandler);
         scope.$on(Events.EntityRemoved, entityEventHandler);
     };
-    var supportedPropertyRendererEntityEvent = function (scope, http, jsonld, apiMember, type) {
+    var supportedPropertyRendererEntityLoaded = function(scope, type) {
         scope.supportedPropertyNewValues = {};
-        if (type.id === apiMember.owner.id) {
-            supportedPropertyRendererLoadItems.call(this, scope, http, jsonld, type);
+        if (type.id === this.apiMember.owner.id) {
+            for (var index = 0; index < this.apiMember.owner.supportedProperties.length; index++) {
+                supportedPropertyRendererIsPropertyReadonly.call(this, scope, this.apiMember.owner.supportedProperties[index].id);
+            }
+        }
+    };
+    var supportedPropertyRendererEntityEvent = function(scope, type) {
+        scope.supportedPropertyNewValues = {};
+        if (type.id === this.apiMember.owner.id) {
+            supportedPropertyRendererLoadItems.call(this, scope, type);
         }
     };
     var supportedPropertyRendererIsPropertyReadonly = function(scope, supportedPropertyId) {
         var supportedProperty = scope.supportedProperties.getById(supportedPropertyId);
         var propertyName = supportedProperty.propertyName(scope.operation);
         var instance = scope[scope.targetInstance];
-        if ((instance !== null) && (instance[propertyName] !== null)) {
-            delete scope.supportedPropertyNulls[supportedPropertyId];
+        if (instance !== null) {
+            var value = instance[propertyName] || null;
+            if ((value !== null) && (instance[propertyName] instanceof Array)) {
+                value = ((scope.operation.isRdf) && (supportedProperty.range instanceof ursa.model.Class) && (supportedProperty.range.valueRange !== null) ?
+                    instance[propertyName][0]["@list"] : instance[propertyName]);
+                if (value.length === 0) {
+                    value = null;
+                }
+            }
+
+            if (value !== null) {
+                delete scope.supportedPropertyNulls[supportedPropertyId];
+            }
         }
 
         return scope.supportedPropertyKeys[supportedPropertyId] ||
@@ -405,15 +440,22 @@
         var supportedProperty = scope.supportedProperties.getById(supportedPropertyId);
         scope[scope.targetInstance][supportedProperty.propertyName(scope.operation)].splice(index, 1);
     };
-    var supportedPropertyRendererOnIsNullCheckedChanged = function(scope, supportedPropertyId) {
+    var supportedPropertyRendererOnIsNullCheckedChanged = function(scope, supportedPropertyId, e) {
         var supportedProperty = scope.supportedProperties.getById(supportedPropertyId);
         var propertyName = supportedProperty.propertyName(scope.operation);
         var instance = scope[scope.targetInstance];
-        if (instance[propertyName] instanceof Array) {
-            delete instance[propertyName];
+        var value = instance[propertyName] || null;
+        if ((value !== null) && (instance[propertyName] instanceof Array)) {
+            value = ((scope.operation.isRdf) && (supportedProperty.range instanceof ursa.model.Class) && (supportedProperty.range.valueRange !== null) ?
+                instance[propertyName][0]["@list"] : instance[propertyName]);
+            if (value.length === 0) {
+                value = null;
+            }
         }
-        else {
-            instance[propertyName] = [supportedProperty.createInstance()];
+
+        delete instance[propertyName];
+        if (value === null) {
+            supportedProperty.initializeInstance(scope.operation, instance);
         }
     };
     var supportedPropertyRendererMovePropertyItem = function(scope, supportedPropertyId, index, direction) {
@@ -425,17 +467,18 @@
         propertyItems[index] = propertyItems[index + direction];
         propertyItems[index + direction] = propertyItem;
     };
-    var supportedPropertyRendererPropertyInitialize = function (scope, supportedPropertyId) {
+    var supportedPropertyRendererPropertyInitialize = function(scope, supportedPropertyId) {
         var supportedProperty = scope.supportedProperties.getById(supportedPropertyId);
-        var operation = operationRendererFindEntityCrudOperation.call(this, supportedProperty, "GET");
+        var operation = operationRendererFindEntityCrudOperation.call(this, "GET");
         supportedProperty.initializeInstance(operation, scope[scope.targetInstance]);
     };
-    var supportedPropertyRendererLoadItems = function(scope, http, jsonld, type) {
-        var operation = operationRendererFindEntityCrudOperation.call(this, type, "GET");
-        http({ method: "GET", url: operation.createCallUrl(), headers: { Accept: operation.mediaTypes.join() } }).
+    var supportedPropertyRendererLoadItems = function(scope, type) {
+        var that = this;
+        var operation = operationRendererFindEntityCrudOperation.call({ apiMember: type }, "GET");
+        this._http({ method: "GET", url: operation.createCallUrl(), headers: { Accept: operation.mediaTypes.join() } }).
             then(function(response) {
                 if ((response.headers("Content-Type") || "*/*").indexOf(ursa.model.EntityFormat.ApplicationLdJson) === 0) {
-                    jsonld.expand(response.data).
+                    that._jsonld.expand(response.data).
                         then(function(expanded) {
                             scope.supportedPropertyTypeValues[type.id] = expanded;
                         });
@@ -612,33 +655,37 @@
     };
     ClassRenderer.prototype = new ViewRenderer(_ctor);
     ClassRenderer.prototype.constructor = ClassRenderer;
+    ClassRenderer.prototype._viewRendererProvider = null;
     ClassRenderer.prototype.isApplicableTo = function(apiMember) {
         ViewRenderer.prototype.isApplicableTo.apply(this, arguments);
         return apiMember instanceof ursa.model.Class;
     };
-    ClassRenderer.prototype.render = function(scope, http, jsonld, authentication, apiMember, classNames) {
+    ClassRenderer.prototype.initialize = function(apiMember) {
+        if (!(apiMember instanceof ursa.model.Class)) {
+            throw new Error(invalidArgumentPassed.replace("{0}", "apiMember"));
+        }
+
+        ViewRenderer.prototype.initialize.apply(this, arguments);
+        this._viewRendererProvider = new ViewRendererProvider(this._http, this._jsonld, this._authentication);
+    };
+    ClassRenderer.prototype.render = function(scope, classNames) {
         ViewRenderer.prototype.render.apply(this, arguments);
         var result = String.format(
             "<div class=\"panel{0}\"><div class=\"panel-body\"><form{1}>",
             (typeof(classNames) === "string" ? " " + classNames : ""),
             (scope.uniqueId ? " name=\"" + scope.uniqueId + "\"" : ""));
-        for (var index = 0; index < apiMember.supportedProperties.length; index++) {
-            var supportedProperty = apiMember.supportedProperties[index];
+        for (var index = 0; index < this.apiMember.supportedProperties.length; index++) {
+            var supportedProperty = this.apiMember.supportedProperties[index];
             if (!supportedProperty.readable) {
                 continue;
             }
 
-            var viewRenderer = ViewRenderer.viewRenderers.find(supportedProperty);
+            var viewRenderer = this._viewRendererProvider.createRenderer(supportedProperty);
             if (viewRenderer === null) {
                 continue;
             }
 
-            var propertyView = viewRenderer.render(scope, http, jsonld, authentication, supportedProperty);
-            if (scope.targetInstance === "editedEntity") {
-                propertyView = propertyView.replace(new RegExp("supportedPropertyNulls", "g"), "editedEntityNulls");
-            }
-
-            result += propertyView;
+            result += viewRenderer.render(scope);
         }
 
         result += "</form></div></div>";
@@ -664,17 +711,24 @@
         ViewRenderer.prototype.isApplicableTo.apply(this, arguments);
         return apiMember instanceof ursa.model.Operation;
     };
-    OperationRenderer.prototype.render = function(scope, http, jsonld, authentication, apiMember, classNames) {
+    OperationRenderer.prototype.initialize = function(apiMember) {
+        if (!(apiMember instanceof ursa.model.Operation)) {
+            throw new Error(invalidArgumentPassed.replace("{0}", "apiMember"));
+        }
+
+        ViewRenderer.prototype.initialize.apply(this, arguments);
+    };
+    OperationRenderer.prototype.render = function(scope, classNames) {
         ViewRenderer.prototype.render.apply(this, arguments);
-        if (apiMember.owner.maxOccurances === Number.MAX_VALUE) {
-            return operationRendererRenderEntityList.call(this, scope, http, jsonld, authentication, apiMember, classNames);
+        if (this.apiMember.owner.maxOccurances === Number.MAX_VALUE) {
+            return operationRendererRenderEntityList.call(this, scope, classNames);
         }
 
         return "";
     };
-    var operationRendererRenderEntityList = function(scope, http, jsonld, authentication, apiMember, classNames) {
+    var operationRendererRenderEntityList = function(scope, classNames) {
         if (!scope.supportedProperties) {
-            operationRendererSetupListScope.call(this, scope, http, jsonld, authentication, apiMember);
+            operationRendererSetupListScope.call(this, scope);
         }
 
         var pager = "";
@@ -722,31 +776,31 @@
         scope.list();
         return result;
     };
-    var operationRendererSetupListScope = function(scope, http, jsonld, authentication, apiMember) {
+    var operationRendererSetupListScope = function(scope) {
         var that = this;
         scope.uniqueId = [];
-        scope.deleteOperation = operationRendererFindEntityCrudOperation.call(this, apiMember, "DELETE");
-        scope.updateOperation = operationRendererFindEntityCrudOperation.call(this, apiMember, "PUT");
-        scope.getOperation = operationRendererFindEntityCrudOperation.call(this, apiMember, "GET");
-        if ((scope.createOperation = operationRendererFindEntityCrudOperation.call(this, apiMember, "POST")) !== null) {
-            scope.newInstance = apiMember.owner.createInstance(apiMember);
+        scope.deleteOperation = operationRendererFindEntityCrudOperation.call(this, "DELETE");
+        scope.updateOperation = operationRendererFindEntityCrudOperation.call(this, "PUT");
+        scope.getOperation = operationRendererFindEntityCrudOperation.call(this, "GET");
+        if ((scope.createOperation = operationRendererFindEntityCrudOperation.call(this, "POST")) !== null) {
+            scope.newInstance = this.apiMember.owner.createInstance(this.apiMember);
             scope.footerVisible = false;
         }
 
-        if (((scope.operation = apiMember).mappings !== null) && (apiMember.mappings.getByProperty(ursa + "skip", "property")) &&
-            (apiMember.mappings.getByProperty(ursa + "take", "property"))) {
+        if (((scope.operation = this.apiMember).mappings !== null) && (this.apiMember.mappings.getByProperty(ursa + "skip", "property")) &&
+            (this.apiMember.mappings.getByProperty(ursa + "take", "property"))) {
             scope.itemsPerPageList = [scope.itemsPerPage = 10, 20, 50, 100];
             scope.pages = [];
             scope.currentPage = 1;
             scope.totalEntities = 0;
         }
 
-        scope.keyProperty = (apiMember.isRdf ? "@id" : "");
+        scope.keyProperty = (this.apiMember.isRdf ? "@id" : "");
         scope.supportedProperties = new ursa.model.ApiMemberCollection();
-        for (var index = 0; index < apiMember.owner.supportedProperties.length; index++) {
-            var supportedProperty = apiMember.owner.supportedProperties[index];
+        for (var index = 0; index < this.apiMember.owner.supportedProperties.length; index++) {
+            var supportedProperty = this.apiMember.owner.supportedProperties[index];
             if (supportedProperty.key) {
-                scope.keyProperty = supportedProperty.propertyName(apiMember) + (apiMember.isRdf ? "'][0]['@value" : "");
+                scope.keyProperty = supportedProperty.propertyName(this.apiMember) + (this.apiMember.isRdf ? "'][0]['@value" : "");
             }
 
             if ((supportedProperty.maxOccurances === 1) && (supportedProperty.readable) && (supportedProperty.range instanceof ursa.model.DataType)) {
@@ -758,17 +812,17 @@
         scope.editedEntity = null;
         scope.getPropertyValue = function(entity, supportedProperty, operation) { return entity[supportedProperty.propertyName(operation)]; };
         scope.cancel = function() { scope.editedEntity = null; };
-        scope.list = function(page) { operationRendererLoadEntityList.call(that, scope, http, jsonld, authentication, scope.operation, null, page); };
-        scope.get = function(instance) { operationRendererLoadEntity.call(that, scope, http, jsonld, authentication, scope.getOperation, instance); };
-        scope.create = function(instance) { operationRendererCreateEntity.call(that, scope, http, jsonld, authentication, scope.createOperation, instance); };
-        scope.update = function(instance) { operationRendererUpdateEntity.call(that, scope, http, jsonld, authentication, scope.updateOperation, instance); };
-        scope.delete = function(instance, e) { operationRendererDeleteEntity.call(that, scope, http, jsonld, authentication, scope.deleteOperation, instance, e); };
+        scope.list = function(page) { operationRendererLoadEntityList.call(that, scope, scope.operation, null, page); };
+        scope.get = function(instance) { operationRendererLoadEntity.call(that, scope, scope.getOperation, instance); };
+        scope.create = function(instance) { operationRendererCreateEntity.call(that, scope, scope.createOperation, instance); };
+        scope.update = function(instance) { operationRendererUpdateEntity.call(that, scope, scope.updateOperation, instance); };
+        scope.delete = function(instance, e) { operationRendererDeleteEntity.call(that, scope, scope.deleteOperation, instance, e); };
         scope.entityEquals = function(entity) { return operationRendererEntityEquals.call(that, entity, scope.editedEntity, scope.operation); };
         scope.initialize = function(index) { operationRendererInitialize.call(that, scope, index); };
         scope.isFormDisabled = function(name) { return operationRendererIsFormDisabled.call(that, scope, name); };
     };
-    var operationRendererFindEntityCrudOperation = function(apiMember, method) {
-        var supportedOperations = (apiMember instanceof ursa.model.Class ? apiMember : apiMember.owner).supportedOperations;
+    var operationRendererFindEntityCrudOperation = function(method) {
+        var supportedOperations = (this.apiMember instanceof ursa.model.Class ? this.apiMember : this.apiMember.owner).supportedOperations;
         for (var index = 0; index < supportedOperations.length; index++) {
             var operation = supportedOperations[index];
             if (operation.methods.indexOf(method) !== -1) {
@@ -778,9 +832,10 @@
 
         return null;
     };
-    var operationRendererOnLoadEntitySuccess = function(scope, http, jsonld, authentication, createOperation, instance, request, response) {
+    var operationRendererOnLoadEntitySuccess = function (scope, createOperation, instance, request, response) {
+        var that = this;
         if ((response.headers("Content-Type") || "*/*").indexOf(ursa.model.EntityFormat.ApplicationLdJson) === 0) {
-            jsonld.expand(response.data).
+            that._jsonld.expand(response.data).
                 then(function(expanded) {
                     scope.$root.$broadcast(Events.EntityLoaded, scope.editedEntity = (expanded.length > 0 ? expanded[0] : null), createOperation.owner);
                     return expanded;
@@ -790,16 +845,16 @@
             scope.$root.$broadcast(Events.EntityLoaded, scope.editedEntity = response.data, createOperation.owner);
         }
     };
-    var operationRendererLoadEntity = function (scope, http, jsonld, authentication, getOperation, instance) {
-        operationRendererHandleOperation.call(this, scope, http, jsonld, authentication, getOperation, null, instance, operationRendererOnLoadEntitySuccess, null, operationRendererLoadEntity);
+    var operationRendererLoadEntity = function(scope, getOperation, instance) {
+        operationRendererHandleOperation.call(this, scope, getOperation, null, instance, operationRendererOnLoadEntitySuccess, null, operationRendererLoadEntity);
     };
-    var operationRendererCreateEntitySuccess = function(scope, http, jsonld, authentication, createOperation, instance) {
+    var operationRendererCreateEntitySuccess = function(scope, createOperation, instance) {
         scope.newInstance = createOperation.owner.createInstance(createOperation);
         scope.$root.$broadcast(Events.EntityCreated, instance, createOperation.owner);
         scope.list(1);
         scope.footerVisible = false;
     };
-    var operationRendererAmmendEntityFailure = function(scope, http, jsonld, authentication, createOperation, instance, request) {
+    var operationRendererAmmendEntityFailure = function(scope, createOperation, instance, request) {
         if (request.initialInstanceId !== undefined) {
             if (request.initialInstanceId) {
                 delete instance["@id"];
@@ -809,36 +864,37 @@
             }
         }
     };
-    var operationRendererCreateEntity = function(scope, http, jsonld, authentication, createOperation, instance) {
+    var operationRendererCreateEntity = function(scope, createOperation, instance) {
         if (!scope.footerVisible) {
             scope.footerVisible = true;
             return;
         }
 
-        operationRendererHandleOperation.call(this, scope, http, jsonld, authentication, createOperation, null, instance, operationRendererCreateEntitySuccess, operationRendererAmmendEntityFailure, operationRendererCreateEntity);
+        operationRendererHandleOperation.call(this, scope, createOperation, null, instance, operationRendererCreateEntitySuccess, operationRendererAmmendEntityFailure, operationRendererCreateEntity);
     };
-    var operationRendererOnUpdateEntitySuccess = function(scope, http, jsonld, authentication, updateOperation, instance) {
+    var operationRendererOnUpdateEntitySuccess = function(scope, updateOperation, instance) {
         scope.editedEntity = null;
         scope.$root.$broadcast(Events.EntityModified, instance, updateOperation.owner);
         scope.list();
     };
-    var operationRendererUpdateEntity = function(scope, http, jsonld, authentication, updateOperation, instance) {
-        operationRendererHandleOperation.call(this, scope, http, jsonld, authentication, updateOperation, null, instance, operationRendererOnUpdateEntitySuccess, operationRendererAmmendEntityFailure, operationRendererUpdateEntity);
+    var operationRendererUpdateEntity = function(scope, updateOperation, instance) {
+        operationRendererHandleOperation.call(this, scope, updateOperation, null, instance, operationRendererOnUpdateEntitySuccess, operationRendererAmmendEntityFailure, operationRendererUpdateEntity);
     };
-    var operationRendererOnDeleteEntitySuccess = function(scope, http, jsonld, authentication, deleteOperation, instance) {
+    var operationRendererOnDeleteEntitySuccess = function(scope, deleteOperation, instance) {
         scope.$root.$broadcast(Events.EntityRemoved, instance, deleteOperation);
         scope.list(1);
     };
-    var operationRendererDeleteEntity = function(scope, http, jsonld, authentication, deleteOperation, instance, e) {
+    var operationRendererDeleteEntity = function(scope, deleteOperation, instance, e) {
         if ((e) && (!confirm("Are you sure you want to delete this item?"))) {
             e.preventDefault();
             e.stopPropagation();
             return;
         }
 
-        operationRendererHandleOperation.call(this, scope, http, jsonld, authentication, deleteOperation, null, instance, operationRendererOnDeleteEntitySuccess, null, operationRendererDeleteEntity);
+        operationRendererHandleOperation.call(this, scope, deleteOperation, null, instance, operationRendererOnDeleteEntitySuccess, null, operationRendererDeleteEntity);
     };
-    var operationRendererOnLoadEntityListSuccess = function(scope, http, jsonld, authentication, deleteOperation, instance, request, response) {
+    var operationRendererOnLoadEntityListSuccess = function(scope, deleteOperation, instance, request, response) {
+        var that = this;
         var contentRange = response.headers("Content-Range");
         if ((contentRange !== undefined) && (contentRange !== null)) {
             var matches = contentRange.match(/^members ([0-9]+)-([0-9]+)\/([0-9]+)/);
@@ -854,7 +910,7 @@
         }
 
         if ((response.headers("Content-Type") || "*/*").indexOf(ursa.model.EntityFormat.ApplicationLdJson) === 0) {
-            jsonld.expand(response.data).
+            that._jsonld.expand(response.data).
                 then(function(expanded) {
                     scope.entities = expanded;
                     return expanded;
@@ -864,7 +920,7 @@
             scope.entities = response.data;
         }
     };
-    var operationRendererLoadEntityList = function (scope, http, jsonld, authentication, listOperation, instance, page) {
+    var operationRendererLoadEntityList = function(scope, listOperation, instance, page) {
         var candidateMethod = operationRendererFindEntityListMethod.call(this, listOperation);
         if (candidateMethod === null) {
             return;
@@ -881,7 +937,7 @@
             instance[(listOperation.isRdf ? ursa : "") + "take"] = (listOperation.isRdf ? [{ "@value": scope.itemsPerPage }] : scope.itemsPerPage);
         }
 
-        operationRendererHandleOperation.call(this, scope, http, jsonld, authentication, listOperation, candidateMethod, instance, operationRendererOnLoadEntityListSuccess, null, operationRendererLoadEntityList, page);
+        operationRendererHandleOperation.call(this, scope, listOperation, candidateMethod, instance, operationRendererOnLoadEntityListSuccess, null, operationRendererLoadEntityList, page);
     };
     var operationRendererEntityEquals = function(leftOperand, rightOperand, operation) {
         if ((!leftOperand) || (!rightOperand)) {
@@ -953,7 +1009,7 @@
         var forms = document.getElementsByName(name);
         return (forms.length > 0 ? angular.element(forms[0]).scope()[name].$invalid : true) && (scope.footerVisible);
     };
-    var operationRendererHandleUnauthorized = function(scope, authentication, challenge, callback) {
+    var operationRendererHandleUnauthorized = function(scope, challenge, callback) {
         if (this._authenticationEventHandler) {
             this._authenticationEventHandler();
             delete this._authenticationEventHandler;
@@ -961,7 +1017,7 @@
 
         var that = this;
         this._authenticationEventHandler = scope.$on(Events.Authenticate, function(e, userName, password) {
-            authentication[challenge](userName, password).
+            that._authentication[challenge](userName, password).
                 then(function(authorization) {
                     that._authorization = authorization;
                     callback();
@@ -971,20 +1027,20 @@
 
         scope.$root.$broadcast(Events.AuthenticationRequired);
     };
-    var operationRendererHandleAuthorized = function(scope, authentication) {
+    var operationRendererHandleAuthorized = function(scope) {
         if (this._authenticationEventHandler) {
             this._authenticationEventHandler();
             delete this._authenticationEventHandler;
         }
 
         if (this._authorization) {
-            authentication.use(this._authorization);
+            this._authentication.use(this._authorization);
             delete this._authorization;
         }
 
         scope.$root.$broadcast(Events.Authenticated);
     };
-    var operationRendererPrepareRequest = function (operation, methodOverride, instance) {
+    var operationRendererPrepareRequest = function(operation, methodOverride, instance) {
         var request = {
             method: methodOverride || operation.methods[0],
             headers: { Accept: operation.mediaTypes.join() },
@@ -1015,22 +1071,22 @@
 
         return request;
     };
-    var operationRendererHandleOperation = function(scope, http, jsonld, authentication, operation, methodOverride, instance, success, failure, callbackMethod, context) {
+    var operationRendererHandleOperation = function(scope, operation, methodOverride, instance, success, failure, callbackMethod, context) {
         var that = this;
         var request = operationRendererPrepareRequest.call(this, operation, methodOverride, instance);
-        var promise = http(request).
+        var promise = this._http(request).
             then(function(response) {
                 if (typeof(success) === "function") {
-                    success.call(that, scope, http, jsonld, authentication, operation, instance, request, response);
+                    success.call(that, scope, operation, instance, request, response);
                 }
 
-                operationRendererHandleAuthorized.call(that, scope, authentication);
+                operationRendererHandleAuthorized.call(that, scope);
                 return response;
             });
 
         promise.catch(function(response) {
             if (typeof(failure) === "function") {
-                failure.call(that, scope, http, jsonld, authentication, operation, instance, request, response);
+                failure.call(that, scope, operation, instance, request, response);
             }
 
             if (response.status === ursa.model.HttpStatusCodes.Unauthorized) {
@@ -1038,9 +1094,9 @@
                     scope.$root.$broadcast(Events.AuthenticationFailed, response.statusText);
                 }
                 else {
-                    var callback = function() { callbackMethod.call(that, scope, http, jsonld, authentication, operation, instance, context); };
+                    var callback = function() { callbackMethod.call(that, scope, operation, instance, context); };
                     var challenge = ((response.headers("WWW-Authenticate")) || (response.headers("X-WWW-Authenticate"))).split(/[ ;]/g)[0].toLowerCase();
-                    operationRendererHandleUnauthorized.call(that, scope, authentication, challenge, callback);
+                    operationRendererHandleUnauthorized.call(that, scope, challenge, callback);
                 }
             }
 

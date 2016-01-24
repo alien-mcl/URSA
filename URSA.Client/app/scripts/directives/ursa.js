@@ -24,7 +24,7 @@
     }
 
     module.
-    directive("ursaApiMemberView", ["$parse", "$animate", "$anchorScroll", "$http", "jsonld", "authentication", function ($parse, $animate, $anchorScroll, $http, jsonld, authentication) {
+    directive("ursaApiMemberView", ["$parse", "$animate", "$anchorScroll", "viewRendererProvider", function ($parse, $animate, $anchorScroll, viewRendererProvider) {
         return {
             restrict: "E",
             priority: 400,
@@ -105,9 +105,9 @@
                             newScope.operation = parentScope.operation;
                         }
 
-                        var viewRenderer = ursa.view.ViewRenderer.viewRenderers.find(apiMember);
+                        var viewRenderer = viewRendererProvider.createRenderer(apiMember);
                         if (viewRenderer !== null) {
-                            ctrl.template = viewRenderer.render(newScope, $http, jsonld, authentication, apiMember);
+                            ctrl.template = viewRenderer.render(newScope);
                         }
                         else {
                             ctrl.template = "Error generating view for api member.";

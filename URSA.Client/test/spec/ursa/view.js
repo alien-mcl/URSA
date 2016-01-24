@@ -32,15 +32,16 @@
             });
 
             describe("when rendering an xsd:int based property", function() {
-                beforeEach(function() {
-                    view = renderer.render(scope, null, null, null, apiMember = apiDocumentation.supportedClasses[0].supportedProperties[1], null);
+                beforeEach(function () {
+                    renderer.initialize(apiMember = apiDocumentation.supportedClasses[0].supportedProperties[1], null, null, null);
+                    view = renderer.render(scope);
                 });
 
                 it("it should render it's view correctly", function () {
                     var expected = String.format(
                         "<div class=\"input-group\">" +
                             "<span ng-class=\"styleFor('{2}', null)\">{0}</span>" +
-                            "<input class=\"form-control\" ng-model=\"{1}['{3}'][0]['@value']\" name=\"{3}\" ng-readonly=\"isPropertyReadonly('{2}')\" " +
+                            "<input class=\"form-control\" ng-model=\"{1}['{3}'][0]['@value']\" name=\"{3}\" ng-disabled=\"isPropertyReadonly('{2}')\" " +
                             "type=\"number\" step=\"1\" min=\"-2147483648\" max=\"2147483647\" placeholder=\"[-2147483648, 2147483647]\" />" +
                             "<span class=\"input-group-addon\"><input type=\"checkbox\" title=\"Null\" checked ng-model=\"supportedPropertyNulls['{2}']\" ng-change=\"onIsNullCheckedChanged('{2}')\" /></span>" +
                         "</div>",
@@ -54,19 +55,20 @@
 
             describe("when rendering an multiple xsd:string values based property", function () {
                 beforeEach(function () {
-                    view = renderer.render(scope, null, null, null, apiMember = apiDocumentation.supportedClasses[0].supportedProperties[2], null);
+                    renderer.initialize(apiMember = apiDocumentation.supportedClasses[0].supportedProperties[2], null, null, null);
+                    view = renderer.render(scope);
                 });
 
                 it("it should render it's view correctly", function () {
                     var expected = String.format(
                         "<div class=\"input-group\" ng-repeat=\"value in {1}['{3}']\">" +
                             "<span ng-class=\"styleFor('{2}', $index)\">{0}</span>" +
-                            "<input class=\"form-control\" ng-model=\"{1}['{3}'][$index]['@value']\" ng-attr-name=\"{{'{3}_' + $index}}\" ng-readonly=\"isPropertyReadonly('{2}')\" type=\"text\" placeholder=\"text\" />" +
+                            "<input class=\"form-control\" ng-model=\"{1}['{3}'][$index]['@value']\" ng-attr-name=\"{{'{3}_' + $index}}\" ng-disabled=\"isPropertyReadonly('{2}')\" type=\"text\" placeholder=\"text\" />" +
                             "<span class=\"input-group-btn\"><button class=\"btn btn-default\" ng-click=\"removePropertyItem('{2}', $index)\"><span class=\"glyphicon glyphicon-remove\"></span></button></span>" +
                         "</div>" +
                         "<div class=\"input-group\">" + 
                             "<span ng-class=\"styleFor('{2}', -1)\">{0}</span>" +
-                            "<input class=\"form-control\" ng-model=\"supportedPropertyNewValues['{3}']['@value']\" name=\"{3}_new\" ng-readonly=\"isPropertyReadonly('{2}')\" type=\"text\" placeholder=\"text\" />" +
+                            "<input class=\"form-control\" ng-model=\"supportedPropertyNewValues['{3}']['@value']\" name=\"{3}_new\" ng-disabled=\"isPropertyReadonly('{2}')\" type=\"text\" placeholder=\"text\" />" +
                             "<span class=\"input-group-btn\"><button class=\"btn btn-default\" ng-click=\"addPropertyItem('{2}')\"><span class=\"glyphicon glyphicon-plus\"></span></button></span>" +
                         "</div>",
                         apiMember.label,
@@ -106,7 +108,8 @@
                         }
                     };
 
-                    view = renderer.render(scope, http, jsonld, null, apiMember, null);
+                    renderer.initialize(apiMember, http, jsonld, null);
+                    view = renderer.render(scope);
                 });
 
                 it("it should render it's view correctly", function() {
