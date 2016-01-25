@@ -14,8 +14,8 @@
             throw new Error(invalidArgumentPassed.replace("{0}", "promise"));
         }
 
-        this.http = http;
-        this.promise = promise;
+        this._http = http;
+        this._promise = promise;
     };
     ApiDocumentationService.prototype.constructor = ApiDocumentationService;
     ApiDocumentationService.prototype.load = function(entryPoint) {
@@ -35,7 +35,7 @@
             throw new Error(invalidArgumentPassed.replace("{0}", "entryPoint"));
         }
 
-        var deferred = this.promise.defer();
+        var deferred = this._promise.defer();
         var onExpanded = function(error, expanded) {
             if (error) {
                 throw new Error(error);
@@ -44,13 +44,13 @@
             deferred.resolve(new ursa.model.ApiDocumentation(expanded));
         };
 
-        this.http({ method: "OPTIONS", url: entryPoint, headers: { "Accept": rdfMediaTypes } }).
+        this._http({ method: "OPTIONS", url: entryPoint, headers: { "Accept": rdfMediaTypes } }).
             then(function(response) { jsonld.expand(response.data, onExpanded); return response; }).
             catch(function(response) { deferred.reject(response.data); return response; });
         return deferred.promise;
     };
-    ApiDocumentationService.prototype.http = null;
-    ApiDocumentationService.prototype.promise = null;
+    ApiDocumentationService.prototype._http = null;
+    ApiDocumentationService.prototype._promise = null;
 
     var module;
     try {
