@@ -6,6 +6,7 @@
     <!ENTITY xsd 'http://www.w3.org/2001/XMLSchema#'>
     <!ENTITY hydra 'http://www.w3.org/ns/hydra/core#'>
     <!ENTITY ursa 'http://alien-mcl.github.io/URSA/vocabulary#'>
+    <!ENTITY odata 'http://docs.oasis-open.org/odata/odata/v4.0/'>
 ]>
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:msxsl="urn:schemas-microsoft-com:xslt" exclude-result-prefixes="msxsl"
     xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#" xmlns:xsd="http://www.w3.org/2001/XMLSchema#" xmlns:hydra="http://www.w3.org/ns/hydra/core#" 
@@ -225,7 +226,7 @@
                 var hasTotalEntities = false;
                 for (var index = 0; index < supportedOperation.mappings.length; index++) {
                     var mapping = supportedOperation.mappings[index];
-                    if ((mapping.property["@id"] == window.ursa + "take") || (mapping.property["@id"] == window.ursa + "skip")) {
+                    if ((mapping.property["@id"] == window.odata + "$top") || (mapping.property["@id"] == window.odata + "$skip")) {
                         hasTotalEntities = true;
                         switch (currentFlavour) {
                             case "UML": parameters += (format ? "&lt;&lt;out&gt;&gt;" : "<<out>>") + " totalEntities: Integer, "; break;
@@ -262,7 +263,7 @@
                         parameterType = parameterType.replace(/</g, "&lt;").replace(/>/g, "&gt;");
                     }
 
-                    parameters += (currentFlavour === "UML" ? mapping.variable + ": " + parameterType : parameterType + " " + mapping.variable) + ", ";
+                    parameters += (currentFlavour === "UML" ? mapping.variable.replace("$", "") + ": " + parameterType : parameterType + " " + mapping.variable.replace("$", "")) + ", ";
                 }
                     
                 parameters = parameters.substr(0, parameters.length - 2);
@@ -366,6 +367,9 @@
             $scope.returns = function(member) {
                 return (member) && (((member.returns) && (member.returns.length > 0)) || (member.type));
             };
+            $scope.variableName = function(variableName) {
+                return variableName.replace("$", "");
+            };
             $scope.$root.$on("MemberSelected", function(e, currentClass, currentMember) {
                 $scope.currentClass = currentClass;
                 $scope.currentMember = currentMember;
@@ -374,7 +378,7 @@
                 if (currentMember.mappings) {
                     for (var index = 0; index < currentMember.mappings.length; index++) {
                         var mapping = currentMember.mappings[index];
-                        if ((mapping.property["@id"] == window.ursa + "take") || (mapping.property["@id"] == window.ursa + "skip")) {
+                        if ((mapping.property["@id"] == window.odata + "$top") || (mapping.property["@id"] == window.odata + "$skip")) {
                             $scope.hasTotalEntities = true;
                             break;
                         }
@@ -403,7 +407,7 @@
                             <ul class="nav navbar-nav">
                                 <li ng-class="currentFlavour === 'C#' ? 'active' : ''"><a href="#" ng-click="changeFlavour('C#')">C#</a></li>
                                 <li ng-class="currentFlavour === 'Java' ? 'active' : ''"><a href="#" ng-click="changeFlavour('Java')">Java</a></li>
-                                <li ng-class="currentFlavour === 'UML'"><a href="#" ng-click="changeFlavour('UML')">UML</a></li>
+                                <li ng-class="currentFlavour === 'UML' ? 'active' : ''"><a href="#" ng-click="changeFlavour('UML')">UML</a></li>
                             </ul>
                         </div>
                     </div>
@@ -452,12 +456,12 @@
                                         <td>Number of total entities in the collection.</td>
                                     </tr>
                                     <tr ng-repeat="mapping in currentMember.mappings">
-                                        <td>{{ mapping.variable }}</td>
+                                        <td>{{ variableName(mapping.variable) }}</td>
                                         <td ng-attr-title="mapping.property ? mapping.property.type : ''">{{ mapping.property ? mapType(currentClass, mapping.property.type) : "object" }}</td>
                                         <td>{{ mapping.description }}</td>
                                     </tr>
                                     <tr ng-repeat="expected in currentMember.expects">
-                                        <td>{{ expected.variable }}</td>
+                                        <td>{{ variableName(mapping.variable) }}</td>
                                         <td ng-attr-title="expected.type">{{ mapType(currentClass, expected.type) }}</td>
                                         <td>{{ expected.description }}</td>
                                     </tr>
@@ -481,6 +485,7 @@
         window.hydra = new String("<xsl:value-of select="'hydra'"/>");
         hydra.supportedProperty = hydra + "supportedProperty";
         window.ursa = new String("<xsl:value-of select="'&ursa;'"/>");
+        window.odata = new String("<xsl:value-of select="'&odata;'"/>");
         var supportedClasses = [];<xsl:for-each select="hydra:supportedClass"><xsl:variable name="id" select="@rdf:resource" /><xsl:if test="$id != '&hydra;ApiDocumentation'">
         supportedClasses.push(<xsl:call-template name="hydra-Class">
                 <xsl:with-param name="class" select="/rdf:RDF/hydra:Class[@rdf:about = $id]|/rdf:RDF/*[rdf:type/@rdf:resource = '&hydra;Class' and @rdf:about = $id]" />
@@ -582,7 +587,7 @@
                 <xsl:otherwise>true</xsl:otherwise>
             </xsl:choose>
         </xsl:variable>
-        <xsl:variable name="hasTotalEntities" select="/rdf:RDF/*[@rdf:about = $template/hydra:mapping/@rdf:resource]/hydra:property/@rdf:resource = '&ursa;take' or /rdf:RDF/*[@rdf:about = $template/hydra:mapping/@rdf:resource]/hydra:property/@rdf:resource = '&ursa;skip'" />
+        <xsl:variable name="hasTotalEntities" select="/rdf:RDF/*[@rdf:about = $template/hydra:mapping/@rdf:resource]/hydra:property/@rdf:resource = '&odata;$top' or /rdf:RDF/*[@rdf:about = $template/hydra:mapping/@rdf:resource]/hydra:property/@rdf:resource = '&odata;$skip'" />
                     {
                         "@id": "<xsl:value-of select="$supportedOperation/@rdf:about" />",
                         "@type": hydra.supportedOperation,

@@ -313,16 +313,9 @@ namespace URSA.Web.Http.Description
             var linqBehaviors = mapping.Parameter.GetCustomAttributes<LinqServerBehaviorAttribute>(true);
             if (linqBehaviors.Any())
             {
-                IClass range = (context.ContainsType(mapping.Parameter.ParameterType) ? context[mapping.Parameter.ParameterType] :
-                    context.TypeDescriptionBuilder.BuildTypeDescription(context.ForType(mapping.Parameter.ParameterType)));
                 foreach (var visitor in _serverBehaviorAttributeVisitors)
                 {
-                    linqBehaviors.Accept(visitor, templateMapping);
-                }
-
-                if (templateMapping.Property != null)
-                {
-                    templateMapping.Property.Range.Add(range);
+                    linqBehaviors.Accept(mapping.Parameter.ParameterType, visitor, templateMapping, context);
                 }
             }
             else if (context.Type != typeof(object))

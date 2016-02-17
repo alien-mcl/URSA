@@ -54,6 +54,52 @@ namespace System
             return value.ToCamelCase(false);
         }
 
+        /// <summary>Unescapes the specified text.</summary>
+        /// <param name="text">The text.</param>
+        /// <returns>Unescaped string.</returns>
+        public static string Unescape(this string text)
+        {
+            if (String.IsNullOrEmpty(text))
+            {
+                return text;
+            }
+
+            StringBuilder result = new StringBuilder(text.Length);
+            for (int index = 0; index < text.Length;)
+            {
+                int indexOf = text.IndexOf('\\', index);
+                if ((indexOf < 0) || (indexOf == text.Length - 1))
+                {
+                    indexOf = text.Length;
+                }
+
+                result.Append(text, index, indexOf - index);
+                if (indexOf >= text.Length)
+                {
+                    break;
+                }
+
+                switch (text[indexOf + 1])
+                {
+                    case 'n': result.Append('\n');
+                        break;
+                    case 'r': result.Append('\r');
+                        break;
+                    case 't': result.Append('\t');
+                        break;
+                    case '\\': result.Append('\\');
+                        break;
+                    default:
+                        result.Append('\\').Append(text[indexOf + 1]);
+                        break;
+                }
+
+                index = indexOf + 2;
+            }
+
+            return result.ToString();
+        }
+
         private static string ToCamelCase(this string value, bool lowerCase)
         {
             string result = value;

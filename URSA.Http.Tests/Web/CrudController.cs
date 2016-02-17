@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq.Expressions;
 using URSA.Web.Http.Tests.Data;
 using URSA.Web.Mapping;
 
@@ -56,7 +57,7 @@ namespace URSA.Web.Tests
             return new Person() { Key = id };
         }
 
-        public IEnumerable<Person> List(out int totalItems, int skip = 0, int take = 0)
+        public IEnumerable<Person> List(out int totalItems, int skip = 0, int take = 0, Expression<Func<Person, bool>> filter = null)
         {
             totalItems = 1;
             return new[] { new Person() { Key = 1 } };

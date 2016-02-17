@@ -49,12 +49,11 @@ namespace Given_instance_of_the
         [TestMethod]
         public async Task it_should_expose_any_header_from_request()
         {
-            var expectedHeader = "Header";
-            var response = this.CreateResponseWithOrigin(Origin, new Header(expectedHeader, "Value"));
+            var response = this.CreateResponseWithOrigin(Origin, new Header("Accept-Ranges", "bytes"));
 
             await _postRequestHandler.Process(response);
 
-            response.Headers.AccessControlExposeHeaders.Should().Contain(expectedHeader);
+            response.Headers.AccessControlExposeHeaders.Should().Contain("Content-Range");
         }
 
         [TestInitialize]

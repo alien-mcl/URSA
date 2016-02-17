@@ -97,11 +97,11 @@
 
                 it("it should create a correct call URL", function() {
                     var instance = {};
-                    instance[ursa + "take"] = [{ "@value": 10 }];
-                    instance[ursa + "skip"] = [{ "@value": 1 }];
+                    instance[odata.top] = [{ "@value": 10 }];
+                    instance[odata.skip] = [{ "@value": 1 }];
                     var callUrl = operation.createCallUrl(instance);
 
-                    expect(callUrl).toBe(operation.url.replace("{?take,skip}", "?take=" + instance[ursa + "take"][0]["@value"] + "&skip=" + instance[ursa + "skip"][0]["@value"]));
+                    expect(callUrl).toBe(operation.url.replace("{?$top,$skip}", "?$top=" + instance[odata.top][0]["@value"] + "&$skip=" + instance[odata.skip][0]["@value"]));
                 });
             });
         });
@@ -115,8 +115,8 @@
                 });
 
                 it("it should initialize an instance correctly", function () {
-                    expect(mapping.variable).toBe(window.apiDocumentation.takeMapping[hydra.variable][0]["@value"]);
-                    expect(mapping.property).toBe(window.apiDocumentation.takeMapping[hydra.property][0]["@id"]);
+                    expect(mapping.variable).toBe(window.apiDocumentation.topMapping[hydra.variable][0]["@value"]);
+                    expect(mapping.property).toBe(window.apiDocumentation.topMapping[hydra.property][0]["@id"]);
                 });
 
                 it("it should provide a property name correctly", function() {

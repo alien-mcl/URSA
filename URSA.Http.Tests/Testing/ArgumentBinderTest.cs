@@ -61,14 +61,19 @@ namespace URSA.Web.Http.Testing
             Binder = null;
         }
 
-        protected ArgumentBindingContext<I> GetContext(string verb = "GET", string body = null, string multipartBoundary = null)
+        protected ArgumentBindingContext<I> GetContext(string body = null, string verb = "GET", string multipartType = null, string multipartBoundary = null)
+        {
+            return GetContext((body != null ? Encoding.UTF8.GetBytes(body) : null), verb, multipartType, multipartBoundary);
+        }
+
+        protected ArgumentBindingContext<I> GetContext(byte[] body, string verb = "GET", string multipartType = null, string multipartBoundary = null)
         {
             var httpVerb = Verb.Parse(verb);
             var method = typeof(TestController).GetMethod(MethodName);
             var headers = new HeaderCollection();
-            if ((!String.IsNullOrEmpty(body)) && (!String.IsNullOrEmpty(multipartBoundary)))
+            if ((body != null) && (body.Length > 0) && (!String.IsNullOrEmpty(multipartBoundary)))
             {
-                headers.ContentType = "multipart/mixed; boundary=\"" + multipartBoundary + "\"";
+                headers.ContentType = (multipartType != null ? multipartType + "; boundary=\"" : "multipart/mixed; boundary=\"") + multipartBoundary + "\"";
             }
 
             var operation = new OperationInfo<Verb>(
@@ -83,7 +88,7 @@ namespace URSA.Web.Http.Testing
                 .First()
                 .Invoke(new object[]
                     {
-                        new RequestInfo(httpVerb, RequestUri, (body != null ? new MemoryStream(Encoding.UTF8.GetBytes(body)) : new MemoryStream()), new BasicClaimBasedIdentity(), headers),
+                        new RequestInfo(httpVerb, RequestUri, (body != null ? new MemoryStream(body) : new MemoryStream()), new BasicClaimBasedIdentity(), headers),
                         new RequestMapping(new TestController(), operation, MethodUri),
                         method.GetParameters().FirstOrDefault(item => item.GetCustomAttribute<I>(true) != null) ?? method.GetParameters()[0],
                         0,

@@ -50,7 +50,7 @@ namespace URSA.Web.Http.Converters
             }
 
             var requestInfo = (RequestInfo)request;
-            if ((!expectedType.IsEnumerable()) && (requestInfo.Headers.ContentLength > 0) && (requestInfo.Headers.ContentLength > MaxBodyLength))
+            if ((!System.TypeExtensions.IsEnumerable(expectedType)) && (requestInfo.Headers.ContentLength > 0) && (requestInfo.Headers.ContentLength > MaxBodyLength))
             {
                 return CompatibilityLevel.None;
             }
@@ -129,7 +129,7 @@ namespace URSA.Web.Http.Converters
                 return (expectedType.IsValueType ? Activator.CreateInstance(expectedType) : null);
             }
 
-            bool isEnumerable = expectedType.IsEnumerable();
+            bool isEnumerable = System.TypeExtensions.IsEnumerable(expectedType);
             Type itemType = expectedType.GetItemType();
             IList<object> result = new List<object>();
             foreach (var item in Regex.Split(body, "\r\n"))
@@ -221,8 +221,8 @@ namespace URSA.Web.Http.Converters
                 throw new InvalidOperationException(String.Format("Instance type '{0}' mismatch from the given '{1}'.", instance.GetType(), givenType));
             }
 
-            string content = null;
-            if (!givenType.IsEnumerable())
+            string content;
+            if (!System.TypeExtensions.IsEnumerable(givenType))
             {
                 content = String.Format(CultureInfo.InvariantCulture, "{0}", instance);
             }

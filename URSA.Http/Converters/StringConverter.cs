@@ -72,7 +72,7 @@ namespace URSA.Web.Http.Converters
                 throw new ArgumentNullException("request");
             }
 
-            string content = null;
+            string content;
             using (var reader = new StreamReader(request.Body))
             {
                 content = reader.ReadToEnd();
@@ -100,7 +100,7 @@ namespace URSA.Web.Http.Converters
                 return (expectedType.IsValueType ? Activator.CreateInstance(expectedType) : null);
             }
 
-            return (expectedType.IsEnumerable() ? Regex.Split(body, "\r\n").MakeInstance(expectedType, typeof(string)) : body);
+            return (System.TypeExtensions.IsEnumerable(expectedType) ? Regex.Split(body, "\r\n").MakeInstance(expectedType, typeof(string)) : body);
         }
 
         /// <inheritdoc />
@@ -167,7 +167,7 @@ namespace URSA.Web.Http.Converters
                 }
 
                 string content = null;
-                if (!givenType.IsEnumerable())
+                if (!System.TypeExtensions.IsEnumerable(givenType))
                 {
                     content = (string)instance;
                 }

@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq.Expressions;
 using System.Security.Claims;
 using URSA.Security;
 using URSA.Web.Http.Description.Tests.Data;
@@ -19,8 +20,9 @@ namespace URSA.Web.Http.Description.Tests
         /// <param name="totalItems">Total items in collection.</param>
         /// <param name="page">Page of the collection. Use 0 for all of the entities.</param>
         /// <param name="pageSize">Page size. Ignored when <paramref name="page" /> is set to 0.</param>
+        /// <param name="filter">Expression to be used for entity filtering.</param>
         /// <returns>Collection of entities.</returns>
-        public IEnumerable<Person> List(out int totalItems, int page = 0, int pageSize = 0)
+        public IEnumerable<Person> List(out int totalItems, int page = 0, int pageSize = 0, Expression<Func<Person, bool>> filter = null)
         {
             totalItems = 0;
             return new Person[0];

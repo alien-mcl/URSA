@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -17,11 +18,23 @@ namespace URSA.Web.Http.Security
         public static readonly string[] WithAny = { Any };
 
         private const string AnyHeaders = "Content-Type, Content-Length, Accept, Accept-Language, Accept-Charser, Accept-Encoding, Accept-Ranges, Authorization, X-Auth-Token, X-Requested-With";
+        private static readonly IDictionary<string, string> RequestResponseHeaders;
         private readonly bool _allowAnyOrigin;
         private readonly bool _exposeAnyHeader;
         private readonly IEnumerable<string> _allowedOrigins;
         private readonly string _allowedHeaders;
         private readonly string _exposedHeaders;
+
+        [ExcludeFromCodeCoverage]
+        static CorsPostRequestHandler()
+        {
+            RequestResponseHeaders = new ConcurrentDictionary<string, string>();
+            RequestResponseHeaders["Accept-Ranges"] = "Content-Range";
+            RequestResponseHeaders["Accept-Language"] = "Content-Language";
+            RequestResponseHeaders["Accept-Encoding"] = "Content-Encoding";
+            RequestResponseHeaders["Accept"] = "Content-Type";
+            RequestResponseHeaders["Authorization"] = "X-Auth-Token";
+        }
 
         /// <summary>Initializes a new instance of the <see cref="CorsPostRequestHandler"/> class.</summary>
         [ExcludeFromCodeCoverage]
@@ -107,8 +120,7 @@ namespace URSA.Web.Http.Security
             }
 
             response.Headers.AccessControlAllowOrigin = matchingOrigin;
-            response.Headers.AccessControlExposeHeaders = (!_exposeAnyHeader ? _exposedHeaders :
-                String.Join(", ", ((IEnumerable<Header>)response.Request.Headers).Select(header => header.Name)));
+            response.Headers.AccessControlExposeHeaders = (!_exposeAnyHeader ? _exposedHeaders : String.Join(", ", ExposedHeaders(response.Request.Headers)));
             response.Headers.AccessControlAllowHeaders = _allowedHeaders;
             return Task.FromResult(0);
         }
@@ -171,6 +183,14 @@ namespace URSA.Web.Http.Security
         private string IsOriginAllowed(string origin)
         {
             return (_allowAnyOrigin ? "*" : _allowedOrigins.FirstOrDefault(allowedOrigin => String.Compare(allowedOrigin, origin, true) == 0));
+        }
+
+        private IEnumerable<string> ExposedHeaders(IEnumerable<Header> headers)
+        {
+            return (from header in headers
+                    let requestHeader = header.Name
+                    where RequestResponseHeaders.ContainsKey(requestHeader)
+                    select RequestResponseHeaders[requestHeader]);
         }
     }
 }

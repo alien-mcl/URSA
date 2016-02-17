@@ -205,7 +205,7 @@ namespace URSA.Web.Description.Http
                     var match = VariableTemplateRegex.Match(((FromQueryStringAttribute)parameter.Source).UriTemplate);
                     var parameterName = match.Groups["ParameterName"].Value;
                     fixedParameters.Append(fixedParameters.Length == 0 ? "([?&](" : "|");
-                    fixedParameters.Append(parameterName);
+                    fixedParameters.Append(Regex.Escape(parameterName));
                 }
 
                 if (fixedParameters.Length > 0)

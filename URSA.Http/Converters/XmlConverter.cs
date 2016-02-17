@@ -171,18 +171,16 @@ namespace URSA.Web.Http.Converters
             {
                 return new DataContractSerializer(type);
             }
-            else
-            {
-                var additionalTypes = type.GetProperties()
-                    .Where(property => (property.PropertyType.IsInterface))
-                    .Select(property =>
-                        {
-                            var value = property.GetValue(type);
-                            return (value != null ? value.GetType() : null);
-                        })
-                    .Where(valueType => valueType != null);
-                return new DataContractSerializer(type, additionalTypes.ToArray());
-            }
+
+            var additionalTypes = type.GetProperties()
+                .Where(property => (property.PropertyType.IsInterface))
+                .Select(property =>
+                    {
+                        var value = property.GetValue(type);
+                        return (value != null ? value.GetType() : null);
+                    })
+                .Where(valueType => valueType != null);
+            return new DataContractSerializer(type, additionalTypes.ToArray());
         }
     }
 }

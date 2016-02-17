@@ -10,8 +10,11 @@ namespace URSA.Web.Http.Description.Mapping
         /// <summary>Defines the Take top N elements operation.</summary>
         Take,
 
-        /// <summary>Defines the Skip n elements operation.</summary>
-        Skip
+        /// <summary>Defines the Skip N elements operation.</summary>
+        Skip,
+
+        /// <summary>Defines an entity filter operation.</summary>
+        Filter
     }
 
     /// <summary>Marks as a LINQ based operation behavior.</summary>
@@ -29,7 +32,7 @@ namespace URSA.Web.Http.Description.Mapping
         public LinqOperations Operation { get; private set; }
 
         /// <inheritdoc />
-        public override void Accept(IServerBehaviorAttributeVisitor visitor, IIriTemplateMapping templateMapping)
+        public override void Accept<T>(IServerBehaviorAttributeVisitor visitor, IIriTemplateMapping templateMapping, DescriptionContext descriptionContext)
         {
             if (visitor == null)
             {
@@ -41,7 +44,7 @@ namespace URSA.Web.Http.Description.Mapping
                 throw new ArgumentNullException("templateMapping");
             }
 
-            visitor.Visit(this, templateMapping);
+            visitor.Visit<T>(this, templateMapping, descriptionContext);
         }
     }
 }

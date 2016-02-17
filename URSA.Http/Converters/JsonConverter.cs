@@ -68,13 +68,16 @@ namespace URSA.Web.Http.Converters
                 throw new ArgumentNullException("request");
             }
 
-            string content = null;
-            using (var reader = new StreamReader(request.Body))
+            if (request.Body.Length == 0)
             {
-                content = reader.ReadToEnd();
+                return (expectedType.IsValueType ? Activator.CreateInstance(expectedType) : null);
             }
 
-            return ConvertTo(expectedType, content);
+            using (var reader = new StreamReader(request.Body))
+            using (var jsonReader = new JsonTextReader(reader))
+            {
+                return new JsonSerializer().Deserialize(jsonReader, expectedType);
+            }
         }
 
         /// <inheritdoc />
@@ -153,9 +156,10 @@ namespace URSA.Web.Http.Converters
             }
 
             using (var writer = new StreamWriter(responseInfo.Body))
+            using (var jsonWriter = new JsonTextWriter(writer))
             {
-                writer.Write(JsonConvert.SerializeObject(instance));
-                writer.Flush();
+                new JsonSerializer().Serialize(jsonWriter, instance);
+                jsonWriter.Flush();
             }
         }
     }

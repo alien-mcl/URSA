@@ -100,7 +100,6 @@
     <Compile Include="CodeGen\XsdUriParser.cs" />
     <Compile Include="CodeGen\HydraUriParser.cs" />
     <Compile Include="CodeGen\IClassGenerator.cs" />
-    <Compile Include="CodeGen\IUriParser.cs" />
     <Compile Include="Configuration\ComponentProviderExtensions.cs" />
     <Compile Include="Configuration\DescriptionConfigurationSection.cs" />
     <Compile Include="Converters\EntityConverter.cs" />

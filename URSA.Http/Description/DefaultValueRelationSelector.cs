@@ -43,7 +43,7 @@ namespace URSA.Web.Description.Http
             }
             
             if ((!parameter.ParameterType.IsValueType) && (typeof(string) != parameter.ParameterType) &&
-                (!((parameter.ParameterType.IsEnumerable()) && (parameter.ParameterType.GetItemType().IsNumber()))))
+                (!((System.TypeExtensions.IsEnumerable(parameter.ParameterType)) && (parameter.ParameterType.GetItemType().IsNumber()))))
             {
                 return FromBodyAttribute.For(parameter);
             }

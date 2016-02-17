@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Security.Claims;
 using URSA.Example.WebApplication.Data;
 using URSA.Security;
 using URSA.Web;
 using URSA.Web.Http.Description.Mapping;
+using URSA.Web.Mapping;
 
 namespace URSA.Example.WebApplication.Controllers
 {
@@ -21,8 +23,13 @@ namespace URSA.Example.WebApplication.Controllers
         /// <param name="totalItems">Number of total items in the collection if <paramref name="skip" /> and <paramref name="take" /> are used.</param>
         /// <param name="skip">Skips top <paramref name="skip" /> elements of the collection.</param>
         /// <param name="take">Takes top <paramref name="take" /> elements of the collection. Use 0 for all of the entities.</param>
+        /// <param name="filter">Expression to be used for entity filtering.</param>
         /// <returns>Collection of entities.</returns>
-        public IEnumerable<Person> List(out int totalItems, [LinqServerBehavior(LinqOperations.Skip)] int skip = 0, [LinqServerBehavior(LinqOperations.Take)] int take = 0)
+        public IEnumerable<Person> List(
+            out int totalItems,
+            [LinqServerBehavior(LinqOperations.Skip), FromQueryString("{?$skip}")] int skip = 0,
+            [LinqServerBehavior(LinqOperations.Take), FromQueryString("{?$top}")] int take = 0,
+            [LinqServerBehavior(LinqOperations.Filter), FromQueryString("{?$filter}")] Expression<Func<Person, bool>> filter = null)
         {
             totalItems = Repository.Count;
             IEnumerable<Person> result = Repository;
@@ -34,6 +41,11 @@ namespace URSA.Example.WebApplication.Controllers
             if (take > 0)
             {
                 result = result.Take(take);
+            }
+
+            if (filter != null)
+            {
+                result = result.Where(entity => filter.Compile()(entity));
             }
 
             return result;

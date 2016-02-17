@@ -1,31 +1,55 @@
 ﻿using System;
 using System.Linq;
 using System.Reflection;
-using RomanticWeb.Entities;
 using URSA.Web.Http.Description.Hydra;
 
 namespace URSA.Web.Http.Description.Mapping
 {
     /// <summary>Visits server behavior attributes and builds the API description.</summary>
-    /// <typeparam name="T">Type of the member of which the attributes should be visited.</typeparam>
-    public class DescriptionBuildingServerBahaviorAttributeVisitor<T> : IServerBehaviorAttributeVisitor where T : ICustomAttributeProvider
+    /// <typeparam name="TMember">Type of the member of which the attributes should be visited.</typeparam>
+    public class DescriptionBuildingServerBahaviorAttributeVisitor<TMember> : IServerBehaviorAttributeVisitor where TMember : ICustomAttributeProvider
     {
-        private static readonly Type[] AllowedTypes = new[] { typeof(ParameterInfo) };
+        private static readonly string OData = "http://docs.oasis-open.org/odata/odata/v4.0/";
 
-        /// <summary>Initializes a new instance of the <see cref="DescriptionBuildingServerBahaviorAttributeVisitor{T}" /> class.</summary>
+        private static readonly Type[] AllowedTypes = { typeof(ParameterInfo) };
+
+        /// <summary>Initializes a new instance of the <see cref="DescriptionBuildingServerBahaviorAttributeVisitor{TMember}" /> class.</summary>
         public DescriptionBuildingServerBahaviorAttributeVisitor()
         {
-            if (!AllowedTypes.Contains(typeof(T)))
+            if (!AllowedTypes.Contains(typeof(TMember)))
             {
-                throw new InvalidOperationException(String.Format("Cannot visit attributes for member of type '{0}'.", typeof(T)));
+                throw new InvalidOperationException(String.Format("Cannot visit attributes for member of type '{0}'.", typeof(TMember)));
             }
         }
 
         /// <inheritdoc />
-        public void Visit(LinqServerBehaviorAttribute behaviorAttribute, IIriTemplateMapping templateMapping)
+        public void Visit<T>(LinqServerBehaviorAttribute behaviorAttribute, IIriTemplateMapping templateMapping, DescriptionContext descriptionContext)
         {
-            templateMapping.Property = templateMapping.Context.Create<Rdfs.IProperty>(
-                DescriptionController<IController>.VocabularyBaseUri.AbsoluteUri + behaviorAttribute.Operation.ToString().ToLowerCamelCase());
+            IClass range = null;
+            Uri uri = null;
+            switch (behaviorAttribute.Operation)
+            {
+                case LinqOperations.Filter:
+                    range = (descriptionContext.ContainsType(typeof(string)) ? descriptionContext[typeof(string)] :
+                        descriptionContext.TypeDescriptionBuilder.BuildTypeDescription(descriptionContext.ForType(typeof(string))));
+                    uri = new Uri(OData + "$filter");
+                    break;
+                case LinqOperations.Skip:
+                    uri = new Uri(OData + "$skip");
+                    break;
+                case LinqOperations.Take:
+                    uri = new Uri(OData + "$top");
+                    break;
+            }
+
+            if (range == null)
+            {
+                range = (descriptionContext.ContainsType(typeof(T)) ? descriptionContext[typeof(T)] :
+                    descriptionContext.TypeDescriptionBuilder.BuildTypeDescription(descriptionContext.ForType(typeof(T))));
+            }
+
+            templateMapping.Property = templateMapping.Context.Create<Rdfs.IProperty>(uri);
+            templateMapping.Property.Range.Add(range);
         }
     }
 }

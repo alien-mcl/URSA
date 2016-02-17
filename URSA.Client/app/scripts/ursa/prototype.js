@@ -1,4 +1,4 @@
-﻿/*globals xsd, rdf, rdfs, owl, guid, hydra, ursa */
+﻿/*globals xsd, rdf, rdfs, owl, guid, hydra, ursa, odata */
 (function() {
     "use strict";
     var invalidArgumentPassed = "Invalid {0} passed.";
@@ -82,8 +82,10 @@
     window.ursa = new String("http://alien-mcl.github.io/URSA/vocabulary#"); //jshint ignore:line
     ursa.singleValue = ursa + "singleValue";
     ursa.mediaType = ursa + "mediaType";
-    ursa.skip = ursa + "skip";
-    ursa.take = ursa + "take";
+    window.odata = new String("http://docs.oasis-open.org/odata/odata/v4.0/"); //jshint ignore:line
+    odata.skip = odata + "$skip";
+    odata.top = odata + "$top";
+    odata.filter = odata + "$filter";
     window.shacl = new String("http://www.w3.org/ns/shacl#"); //jshint ignore:line
     window.guid = new String("http://openguid.net/rdf#"); //jshint ignore:line
     guid.guid = guid + "guid";

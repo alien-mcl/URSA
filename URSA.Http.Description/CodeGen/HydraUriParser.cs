@@ -38,9 +38,9 @@ namespace URSA.Web.Http.Description.CodeGen
                 throw new ArgumentNullException("uri");
             }
 
-            string language = null;
+            string language;
             var name = uri.Segments.First();
-            var colonIndex = -1;
+            int colonIndex;
             if ((colonIndex = name.IndexOf(':')) != -1)
             {
                 language = name.Substring(0, colonIndex);

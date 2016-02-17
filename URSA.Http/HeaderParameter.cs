@@ -138,11 +138,11 @@ namespace URSA.Web.Http
 
             if ((rest.Length > 2) && (rest[0] == '"') && (rest[rest.Length - 1] == '"'))
             {
-                result.Value = Regex.Unescape(rest.Trim('"'));
+                result.Value = rest.Trim('"').Unescape();
             }
             else if ((rest.Length > 2) && (rest[0] == '<') && (rest[rest.Length - 1] == '>'))
             {
-                result.Value = new Uri(Regex.Unescape(rest.Trim('"')));
+                result.Value = new Uri(rest.Trim('"').Unescape());
             }
             else
             {

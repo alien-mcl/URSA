@@ -1,7 +1,6 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System.Linq;
 using URSA.Web.Converters;
 using URSA.Web.Http.Converters;
 using URSA.Web.Http.Testing;

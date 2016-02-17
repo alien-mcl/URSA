@@ -158,11 +158,6 @@ namespace URSA.Web.Http.Converters
             if ((contentType != null) && (contentType.Values.Any(value => value.Value == TextUriList)))
             {
                 responseInfo.Headers.ContentType = TextUriList;
-                if (response == null)
-                {
-                    throw new ArgumentNullException("response");
-                }
-
                 if (instance != null)
                 {
                     if (!givenType.IsInstanceOfType(instance))
@@ -171,7 +166,7 @@ namespace URSA.Web.Http.Converters
                     }
 
                     string content = null;
-                    if (!givenType.IsEnumerable())
+                    if (!System.TypeExtensions.IsEnumerable(givenType))
                     {
                         content = instance.ToString();
                     }

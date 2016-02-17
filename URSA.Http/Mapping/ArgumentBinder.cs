@@ -110,7 +110,14 @@ namespace URSA.Web.Http.Mapping
                 .GetConstructors(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
                 .First()
                 .Invoke(arguments);
-            return argumentBinder.GetArgumentValue(context);
+            try
+            {
+                return argumentBinder.GetArgumentValue(context);
+            }
+            catch (Exception exception)
+            {
+                throw new ArgumentException(String.Format("Could not convert argument '{0}'.", parameter.VariableName), exception);
+            }
         }
     }
 }

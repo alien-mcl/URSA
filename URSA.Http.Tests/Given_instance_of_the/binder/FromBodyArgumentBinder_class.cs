@@ -27,7 +27,7 @@ namespace Given_instance_of_the.binder
         [TestMethod]
         public void it_should_call_converter_provider()
         {
-            Binder.GetArgumentValue(GetContext("POST", Body, Boundary));
+            Binder.GetArgumentValue(GetContext(Body, "POST", "multipart/mixed", Boundary));
 
             ConverterProvider.Verify(instance => instance.FindBestInputConverter(It.IsAny<Type>(), It.IsAny<IRequestInfo>(), false), Times.Once);
         }
@@ -35,7 +35,7 @@ namespace Given_instance_of_the.binder
         [TestMethod]
         public void it_should_call_converter()
         {
-            Binder.GetArgumentValue((ArgumentBindingContext)GetContext("POST", Body, Boundary));
+            Binder.GetArgumentValue((ArgumentBindingContext)GetContext(Body, "POST", "multipart/mixed", Boundary));
 
             Converter.Verify(instance => instance.ConvertTo(It.IsAny<Type>(), It.IsAny<IRequestInfo>()), Times.Once);
         }

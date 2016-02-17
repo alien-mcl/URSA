@@ -1,4 +1,4 @@
-﻿/*globals namespace, container, xsd, guid, ursa, confirm */
+﻿/*globals namespace, container, xsd, guid, ursa, odata, confirm */
 (function(namespace) {
     "use strict";
 
@@ -263,7 +263,7 @@
             var operation = null;
             var valueRange = ((this.apiMember.range instanceof ursa.model.Class) && (this.apiMember.range.valueRange !== null) ? this.apiMember.range.valueRange : this.apiMember.range);
             var controlType = (SupportedPropertyRenderer.dataTypes[valueRange.id] ? "input" : "select");
-            if ((controlType === "select") && ((operation = _OperationRenderer.findEntityCrudOperation.call(this, "GET")) === null)) {
+            if ((controlType === "select") && ((operation = _OperationRenderer.findEntityCrudOperation.call(this, "GET", true)) === null)) {
                 controlType = "input";
             }
 
@@ -474,7 +474,7 @@
         },
         loadItems: function(scope, type) {
             var that = this;
-            var operation = _OperationRenderer.findEntityCrudOperation.call({ apiMember: type }, "GET");
+            var operation = _OperationRenderer.findEntityCrudOperation.call({ apiMember: type }, "GET", true);
             this._http({ method: "GET", url: operation.createCallUrl(), headers: { Accept: operation.mediaTypes.join() } }).
                 then(function(response) {
                     if ((response.headers("Content-Type") || "*/*").indexOf(ursa.model.EntityFormat.ApplicationLdJson) === 0) {
@@ -789,8 +789,8 @@
                 scope.footerVisible = false;
             }
 
-            if (((scope.operation = this.apiMember).mappings !== null) && (this.apiMember.mappings.getByProperty(ursa + "skip", "property")) &&
-            (this.apiMember.mappings.getByProperty(ursa + "take", "property"))) {
+            if (((scope.operation = this.apiMember).mappings !== null) && (this.apiMember.mappings.getByProperty(odata.skip, "property")) &&
+                (this.apiMember.mappings.getByProperty(odata.top, "property"))) {
                 scope.itemsPerPageList = [scope.itemsPerPage = 10, 20, 50, 100];
                 scope.pages = [];
                 scope.currentPage = 1;
@@ -823,11 +823,14 @@
             scope.initialize = function(index) { _OperationRenderer.initialize.call(that, scope, index); };
             scope.isFormDisabled = function(name) { return _OperationRenderer.isFormDisabled.call(that, scope, name); };
         },
-        findEntityCrudOperation: function(method) {
+        findEntityCrudOperation: function(method, listing) {
+            listing = (typeof(listing) === "boolean" ? listing : false);
             var supportedOperations = (this.apiMember instanceof ursa.model.Class ? this.apiMember : this.apiMember.owner).supportedOperations;
             for (var index = 0; index < supportedOperations.length; index++) {
                 var operation = supportedOperations[index];
-                if (operation.methods.indexOf(method) !== -1) {
+                if ((operation.methods.indexOf(method) !== -1) && 
+                    (((!listing) && (operation.returns.length > 0) && (operation.returns[0].maxOccurances === 1)) ||
+                    ((listing) && (operation.returns.length > 0) && (operation.returns[0].maxOccurances === Number.MAX_VALUE)))) {
                     return operation;
                 }
             }
@@ -928,15 +931,17 @@
                 return;
             }
 
-            if ((instance === null) && (listOperation.mappings !== null) && (listOperation.mappings.getByProperty(ursa.skip, "property") !== null) &&
-            (listOperation.mappings.getByProperty(ursa.take, "property") !== null)) {
+            var skip;
+            var top;
+            if ((instance === null) && (listOperation.mappings !== null) && ((skip = listOperation.mappings.getByProperty(odata.skip, "property")) !== null) &&
+                ((top = listOperation.mappings.getByProperty(odata.top, "property")) !== null)) {
                 if (typeof(page) !== "number") {
                     page = scope.currentPage;
                 }
 
                 instance = {};
-                instance[(listOperation.isRdf ? ursa : "") + "skip"] = (listOperation.isRdf ? [{ "@value": (page - 1) * scope.itemsPerPage }] : (page - 1) * scope.itemsPerPage);
-                instance[(listOperation.isRdf ? ursa : "") + "take"] = (listOperation.isRdf ? [{ "@value": scope.itemsPerPage }] : scope.itemsPerPage);
+                instance[skip.propertyName(listOperation)] = (listOperation.isRdf ? [{ "@value": (page - 1) * scope.itemsPerPage }] : (page - 1) * scope.itemsPerPage);
+                instance[top.propertyName(listOperation)] = (listOperation.isRdf ? [{ "@value": scope.itemsPerPage }] : scope.itemsPerPage);
             }
 
             _OperationRenderer.handleOperation.call(this, scope, listOperation, candidateMethod, instance, _OperationRenderer.onLoadEntityListSuccess, null, _OperationRenderer.loadEntityList, page);
@@ -1053,20 +1058,28 @@
                 request.headers["Content-Type"] = operation.mediaTypes[0];
             }
 
-            var url = operation.createCallUrl(instance);
-            if (operation.isRdf) {
-                if (instance["@id"] === undefined) {
-                    request.initialInstanceId = true;
-                    instance["@id"] = url;
-                }
-                else if ((instance["@id"] === null) || (instance["@id"] === "") || (instance["@id"].indexOf("_:") === 0)) {
-                    request.initialInstanceId = instance["@id"];
-                    instance["@id"] = url;
-                }
+            if ((operation.mappings !== null) && (operation.mappings.getByProperty(odata.skip, "property") !== null) &&
+                (operation.mappings.getByProperty(odata.top, "property") !== null)) {
+                request.headers["Accept-Ranges"] = "members";
             }
 
+            var url = operation.createCallUrl(instance);
             request.url = url;
-            request.data = JSON.stringify(_OperationRenderer.sanitizeEntity.call(this, instance, operation));
+            if (instance) {
+                if (operation.isRdf) {
+                    if (instance["@id"] === undefined) {
+                        request.initialInstanceId = true;
+                        instance["@id"] = url;
+                    }
+                    else if ((instance["@id"] === null) || (instance["@id"] === "") || (instance["@id"].indexOf("_:") === 0)) {
+                        request.initialInstanceId = instance["@id"];
+                        instance["@id"] = url;
+                    }
+                }
+
+                request.data = JSON.stringify(_OperationRenderer.sanitizeEntity.call(this, instance, operation));
+            }
+
             if (this._authorization) {
                 request.headers.Authorization = this._authorization;
             }

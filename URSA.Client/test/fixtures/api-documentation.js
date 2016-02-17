@@ -10,23 +10,23 @@
         return null;
     };
 
-    var listRdfTemplatedLink = { "@id": "http://temp.uri/api/list-rdf#GETwithTake", "@type": [hydra.TemplatedLink] };
+    var listRdfTemplatedLink = { "@id": "http://temp.uri/api/list-rdf#GETwith$take", "@type": [hydra.TemplatedLink] };
     var setRolesTemplatedLink = { "@id": "http://temp.uri/api/person/{id}/roles#SETwithId", "@type": [hydra.TemplatedLink] };
 
-    var takeMapping = { "@id": "_:takeMapping", "@type": [hydra.IriTemplateMapping] };
-    takeMapping[hydra.variable] = [{ "@value": "take" }];
-    takeMapping[hydra.property] = [{ "@id": ursa + "take" }];
+    var topMapping = { "@id": "_:takeMapping", "@type": [hydra.IriTemplateMapping] };
+    topMapping[hydra.variable] = [{ "@value": "$top" }];
+    topMapping[hydra.property] = [{ "@id": odata.top }];
 
     var skipMapping = { "@id": "_:skipMapping", "@type": [hydra.IriTemplateMapping] };
-    skipMapping[hydra.variable] = [{ "@value": "skip" }];
-    skipMapping[hydra.property] = [{ "@id": ursa + "skip" }];
+    skipMapping[hydra.variable] = [{ "@value": "$skip" }];
+    skipMapping[hydra.property] = [{ "@id": odata.skip }];
 
     var idMapping = { "@id": "_:idMapping", "@type": [hydra.IriTemplateMapping] };
     idMapping[hydra.variable] = [{ "@value": "id" }];
 
     var listRdfIriTemplate = { "@id": "_:listRdfIriTemplate", "@type": [hydra.IriTemplate] };
-    listRdfIriTemplate[hydra.template] = [{ "@value": "/api/list-rdf{?take,skip}" }];
-    listRdfIriTemplate[hydra.mapping] = [{ "@id": takeMapping["@id"] }, { "@id": skipMapping["@id"] }];
+    listRdfIriTemplate[hydra.template] = [{ "@value": "/api/list-rdf{?$top,$skip}" }];
+    listRdfIriTemplate[hydra.mapping] = [{ "@id": topMapping["@id"] }, { "@id": skipMapping["@id"] }];
 
     var setRolesIriTemplate = { "@id": "_:setRolesIriTemplate", "@type": [hydra.IriTemplate] };
     setRolesIriTemplate[hydra.template] = [{ "@value": "/api/person/{id}/roles" }];
@@ -95,6 +95,7 @@
     var personSubClass = { "@id": "_:personSubClass", "@type": [hydra.Class] };
     personSubClass[rdfs.comment] = [{ "@value": "Person of given key." }];
     personSubClass[rdfs.subClassOf] = [{ "@id": personClass["@id"] }];
+    personSubClass[ursa.singleValue] = [{ "@value": true }];
 
     getRdfOperation[ursa.mediaType] = [{ "@value": "application/ld+json" }];
     getRdfOperation[hydra.returns] = [{ "@id": personSubClass["@id"] }];
@@ -138,7 +139,7 @@
     window.apiDocumentation.push(window.apiDocumentation.emailProperty = emailProperty);
     window.apiDocumentation.push(window.apiDocumentation.getRdfOperation = getRdfOperation);
     window.apiDocumentation.push(window.apiDocumentation.listRdfOperation = listRdfOperation);
-    window.apiDocumentation.push(window.apiDocumentation.takeMapping = takeMapping);
+    window.apiDocumentation.push(window.apiDocumentation.topMapping = topMapping);
     window.apiDocumentation.push(window.apiDocumentation.skipMapping = skipMapping);
     window.apiDocumentation.push(window.apiDocumentation.listRdfIriTemplate = listRdfIriTemplate);
     window.apiDocumentation.push(window.apiDocumentation.listRdfTemplatedLink = listRdfTemplatedLink);
