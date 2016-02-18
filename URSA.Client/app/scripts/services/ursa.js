@@ -61,10 +61,11 @@
     }
 
     module.
-    factory("hydraApiDocumentation", ["$http", "$q", function hydraApiDocumentationFactory($http, $q) {
-        return new ApiDocumentationService($http, $q);
-    }]).
-    factory("viewRendererProvider", ["$http", "jsonld", "authentication", function viewRendererProvider($http, jsonld, authentication) {
-        return new ursa.view.ViewRendererProvider($http, jsonld, authentication);        
+    service("hydraApiDocumentation", ["$http", "$q", ApiDocumentationService]).
+    service("viewRendererProvider", ["$http", "jsonld", "authentication", "filterProvider", ursa.view.ViewRendererProvider]).
+    factory("filterProvider", [function filterProviderFactory() {
+        var result = new ursa.model.FilterProvider(ursa.model.FilterExpressionProvider);
+        result.register(ursa.model.ODataFilterExpressionProvider);
+        return result;
     }]);
 }());

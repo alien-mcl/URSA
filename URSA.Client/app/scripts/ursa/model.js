@@ -861,7 +861,7 @@
                         propertyValue = propertyValue[0];
                     }
 
-                    if ((this.isRdf) && (propertyValue !== null)) {
+                    if ((this.isRdf) && (propertyValue !== undefined) && (propertyValue !== null)) {
                         propertyValue = propertyValue["@value"] || propertyValue["@id"];
                     }
                 }

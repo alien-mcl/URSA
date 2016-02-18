@@ -1,7 +1,7 @@
 ﻿/*globals xsd, rdf, rdfs, owl, guid, hydra, ursa, odata */
 (function() {
     "use strict";
-    var invalidArgumentPassed = "Invalid {0} passed.";
+
     window.xsd = new String("http://www.w3.org/2001/XMLSchema#"); //jshint ignore:line
     xsd.string = xsd + "string";
     xsd.boolean = xsd + "boolean";
@@ -192,3 +192,67 @@
         });
     };
 }());
+
+(function(namespace) {
+    "use strict";
+
+    var _ctor = "ctor";
+    var invalidArgumentPassed = "Invalid {0} passed.";
+
+    /**
+     * Provides an abstract for components provider.
+     * @memberof ursa
+     * @name ComponentProvider
+     * @protected
+     * @class
+     * @param {function} memberType Type of components provided.
+     */
+    var ComponentProvider = namespace.ComponentProvider = function(memberType) {
+        if ((arguments.length === 0) || (arguments[0] !== _ctor)) {
+            if (memberType === null) {
+                throw String.format(invalidArgumentPassed, "memberType");
+            }
+
+            this._memberType = memberType;
+            this.types = [];
+        }
+    };
+    ComponentProvider.prototype.constructor = ComponentProvider;
+    /**
+     * Registers a given type in the provider.
+     * @param {function} type Type to be registered.
+     */
+    ComponentProvider.prototype.register = function(type) {
+        if ((typeof(type) !== "function") || (type.prototype.constructor instanceof this._memberType)) {
+            throw String.format(invalidArgumentPassed, "type");
+        }
+
+        this.types.push(type);
+    };
+    /**
+     * Provides an instance of a given type.
+     * @instance
+     * @public
+     * @method resolve
+     * @param {function} type Type to be resolved.
+     * @returns {object} Instance of a given type or null if the type was not registed.
+     */
+    ComponentProvider.prototype.resolve = function(type) {
+        for (var index = 0; index < this.types.length; index++) {
+            if (this.types[index] === type) {
+                return new this.types[index]();
+            }
+        }
+
+        return null;
+    };
+    /**
+     * Registered types.
+     * @memberof ursa.ComponentProvider
+     * @instance
+     * @public
+     * @member {Array<function>} types
+     */
+    ComponentProvider.prototype.types = null;
+    ComponentProvider.prototype._memberType = null;
+}(namespace("ursa")));

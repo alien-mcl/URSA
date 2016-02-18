@@ -19,6 +19,7 @@ namespace URSA.Example.WebApplication.Controllers
         /// <inheritdoc />
         public IResponseInfo Response { get; set; }
 
+        //// TODO: Take these parameter attributes to interface.
         /// <summary>Gets all persons.</summary>
         /// <param name="totalItems">Number of total items in the collection if <paramref name="skip" /> and <paramref name="take" /> are used.</param>
         /// <param name="skip">Skips top <paramref name="skip" /> elements of the collection.</param>

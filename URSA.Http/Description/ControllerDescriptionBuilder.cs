@@ -129,7 +129,7 @@ namespace URSA.Web.Description.Http
             var verbs = new List<OnVerbAttribute>();
             var route = method.GetDefaults(verbs, out explicitRoute);
             Type entityType = null;
-            Type implementation = null;
+            Type implementation;
             if ((!explicitRoute) && ((implementation = typeof(T).GetInterfaces().FirstOrDefault(@interface => (@interface.IsGenericType) && (typeof(IReadController<,>).IsAssignableFrom(@interface.GetGenericTypeDefinition())))) != null))
             {
                 entityType = implementation.GetGenericArguments()[0];

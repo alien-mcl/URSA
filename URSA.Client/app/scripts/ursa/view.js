@@ -25,6 +25,7 @@
     ViewRenderer.prototype._http = null;
     ViewRenderer.prototype._jsonld = null;
     ViewRenderer.prototype._authentication = null;
+    ViewRenderer.prototype._filterProvider = null;
     /**
      * Initializes a renderer with dependencies.
      * @memberof ursa.view.ViewRenderer
@@ -35,12 +36,14 @@
      * @param {function} http HTTP async communication provider.
      * @param {object} jsonld JSON-LD processor.
      * @param {object} authentication Authentication provider.
+     * @param {ursa.model.FilterProvider} filterProvider Filter provider.
      */
-    ViewRenderer.prototype.initialize = function(apiMember, http, jsonld, authentication) {
+    ViewRenderer.prototype.initialize = function(apiMember, http, jsonld, authentication, filterProvider) {
         this.apiMember = apiMember;
         this._http = http;
         this._jsonld = jsonld;
         this._authentication = authentication;
+        this._filterProvider = filterProvider;
     };
     /**
      * Determines whether this renderer is applicable for given {ursa.model.ApiMember} instance.
@@ -82,8 +85,12 @@
      * @name ViewRendererProvider
      * @public
      * @class
+     * @param {function} http AngularJS $http service.
+     * @param {object} jsonld JSON-LD service.
+     * @param {object} authentication Authentication service.
+     * @param {ursa.model.FilterProvider} filterProvider Filter provider.
      */
-    var ViewRendererProvider = namespace.ViewRendererProvider = function(http, jsonld, authentication) {
+    var ViewRendererProvider = namespace.ViewRendererProvider = function(http, jsonld, authentication, filterProvider) {
         if (viewRenderers === null) {
             viewRenderers = container.resolve(ViewRenderer);
         }
@@ -91,6 +98,7 @@
         this._http = http;
         this._jsonld = jsonld;
         this._authentication = authentication;
+        this._filterProvider = filterProvider;
     };
     /**
      * Creates a view for given API member.
@@ -105,7 +113,7 @@
         for (var index = 0; index < viewRenderers.length; index++) {
             var viewRenderer = new viewRenderers[index]();
             if (viewRenderer.isApplicableTo(apiMember)) {
-                viewRenderer.initialize(apiMember, this._http, this._jsonld, this._authentication);
+                viewRenderer.initialize(apiMember, this._http, this._jsonld, this._authentication, this._filterProvider);
                 return viewRenderer;
             }
         }
@@ -115,6 +123,7 @@
     ViewRendererProvider.prototype._http = null;
     ViewRendererProvider.prototype._jsonld = null;
     ViewRendererProvider.prototype._authentication = null;
+    ViewRendererProvider.prototype._filterProvider = null;
 
     /**
      * Describes a datatype features.
@@ -138,6 +147,23 @@
         this.pattern = pattern;
     };
     DatatypeDescriptor.prototype.constructor = DatatypeDescriptor;
+    /**
+     * Checks if a given value is in range of this datatype descriptor values range.
+     * @instance
+     * @public
+     * @method isInRange
+     * @param {object} value Value to check.
+     * @returns {boolean} True if the value is in a valid range; otherwise false.
+     */
+    DatatypeDescriptor.prototype.isInRange = function(value) {
+        if (this.pattern !== null) {
+            return (typeof(value) === "string") && (new RegExp(this.pattern).test(value));
+        }
+
+        return (typeof(value) === "number") && (!isNaN(value)) &&
+            (((this.min !== null) && (value >= this.min)) || (this.min === null)) &&
+            (((this.max !== null) && (value <= this.max)) || (this.max === null));
+    };
     /**
      * Type of the input.
      * @memberof ursa.view.DatatypeDescriptor
@@ -736,47 +762,56 @@
             var pager = "";
             var pages = "Action";
             if (scope.itemsPerPageList) {
-                pager = String.format(
-                    "<tr>" +
-                    "<td colspan=\"{0}\"><nav><ul class=\"pagination\">" +
-                    "<li ng-hide=\"currentPage <= 1\"><a href ng-click=\"list(currentPage - 1)\">&laquo;</a></li>" +
-                    "<li ng-repeat=\"page in pages\"><a href ng-click=\"list(page)\">{{ page }}</a></li>" +
-                    "<li ng-hide=\"currentPage >= pages.length\"><a href ng-click=\"list(currentPage + 1)\">&raquo;</a></li>" +
-                    "</ul></nav></td>" +
-                    "</tr>", scope.supportedProperties.length);
-                pages = "<select ng-model=\"itemsPerPage\" ng-change=\"list(1)\" ng-options=\"take for take in itemsPerPageList track by take\"></select>";
+                pager = _OperationRenderer.generatePager.call(this, scope);
+                pages = "<select class=\"form-control\" ng-model=\"itemsPerPage\" ng-change=\"list(1)\" ng-options=\"take for take in itemsPerPageList track by take\"></select>";
             }
 
             var result = String.format(
-                    "<table class=\"table table-condensed table-bordered table-hover{0}\">", (classNames !== undefined) && (classNames !== null) ? " " + classNames : "") + String.format(
+                "<table class=\"table table-condensed table-bordered table-hover{0}\">", (classNames !== undefined) && (classNames !== null) ? " " + classNames : "") + String.format(
                     "<tr>" +
-                    "<th ng-repeat=\"supportedProperty in supportedProperties track by supportedProperty.id\" ng-hide=\"supportedProperty.key\">{{ supportedProperty.label }}</th>" +
-                    "<th>{0}</th>" +
+                        "<th ng-repeat=\"supportedProperty in supportedProperties track by supportedProperty.id\" ng-hide=\"supportedProperty.key\">" +
+                            "<span class=\"form-control\" ng-show=\"supportedProperties.getById(supportedProperty.id) === null\">{{ supportedProperty.label }}</span>" +
+                            "<input class=\"form-control\" ng-hide=\"supportedProperties.getById(supportedProperty.id) == null\" " +
+                                "type=\"text\" ng-model=\"filters[supportedProperty.property]\" placeholder=\"{{ supportedProperty.label }}\" " +
+                                "ng-change=\"list()\"/>" +
+                        "</th>" +
+                        "<th>{0}</th>" +
                     "</tr>", pages) + String.format(
                     "<tr ng-repeat-start=\"entity in entities{1}\" ng-hide=\"entityEquals(entity)\"" + (scope.keyProperty !== "" ? " title=\"{{ entity['{0}'] | asId }}\"" : "") + ">" +
-                    "<td ng-repeat=\"supportedProperty in supportedProperties track by supportedProperty.id\" ng-hide=\"supportedProperty.key\">{{ getPropertyValue(entity, supportedProperty, operation) | stringify }}</td>" +
-                    "<td><div class=\"btn-block\">" +
-                    (scope.getOperation !== null ? "<button class=\"btn btn-default\" title=\"Edit\" ng-click=\"get(entity)\"><span class=\"glyphicon glyphicon-pencil\"></span></button>" : "") +
-                    (scope.deleteOperation !== null ? "<button class=\"btn btn-default\" title=\"Delete\" ng-click=\"delete(entity, $event)\"><span class=\"glyphicon glyphicon-remove\"></span></button>" : "") +
-                    "</div></td>" +
+                        "<td ng-repeat=\"supportedProperty in supportedProperties track by supportedProperty.id\" ng-hide=\"supportedProperty.key\">{{ getPropertyValue(entity, supportedProperty, operation) | stringify }}</td>" +
+                        "<td><div class=\"btn-block\">" +
+                            (scope.getOperation !== null ? "<button class=\"btn btn-default\" title=\"Edit\" ng-click=\"get(entity)\"><span class=\"glyphicon glyphicon-pencil\"></span></button>" : "") +
+                            (scope.deleteOperation !== null ? "<button class=\"btn btn-default\" title=\"Delete\" ng-click=\"delete(entity, $event)\"><span class=\"glyphicon glyphicon-remove\"></span></button>" : "") +
+                        "</div></td>" +
                     "</tr>", scope.keyProperty, (scope.keyProperty !== "" ? " track by entity['" + scope.keyProperty + "']" : "")) + String.format(
                     "<tr ng-repeat-end ng-show=\"entityEquals(entity)\" ng-init=\"initialize($index)\">" +
-                    "<td colspan=\"{0}\"><div><ursa-api-member-view api-member=\"operation.owner\" target-instance=\"editedEntity\" unique-id=\"{{ uniqueId[$index] }}\"></ursa-api-member-view></div></td>" +
-                    "<td><div class=\"btn-block\">" +
-                    (scope.updateOperation !== null ? "<button class=\"btn btn-default\" title=\"Update\" ng-disabled=\"isFormDisabled(uniqueId[$index])\" ng-click=\"update(editedEntity)\"><span class=\"glyphicon glyphicon-floppy-disk\"></span></button>" : "") +
-                    "<button class=\"btn btn-default\" title=\"Cancel\" ng-click=\"cancel()\"><span class=\"glyphicon glyphicon-repeat\"></span></button>" +
-                    "</div></td>" +
+                        "<td colspan=\"{0}\"><div><ursa-api-member-view api-member=\"operation.owner\" target-instance=\"editedEntity\" unique-id=\"{{ uniqueId[$index] }}\"></ursa-api-member-view></div></td>" +
+                        "<td><div class=\"btn-block\">" +
+                            (scope.updateOperation !== null ? "<button class=\"btn btn-default\" title=\"Update\" ng-disabled=\"isFormDisabled(uniqueId[$index])\" ng-click=\"update(editedEntity)\"><span class=\"glyphicon glyphicon-floppy-disk\"></span></button>" : "") +
+                            "<button class=\"btn btn-default\" title=\"Cancel\" ng-click=\"cancel()\"><span class=\"glyphicon glyphicon-repeat\"></span></button>" +
+                        "</div></td>" +
                     "</tr>", scope.supportedProperties.length - 1) + String.format(
                     "<tr ng-hide=\"editedEntity !== null\" ng-init=\"initialize(-1)\">" +
-                    "<td colspan=\"{0}\"><div ng-show=\"footerVisible\"><ursa-api-member-view api-member=\"operation.owner\" target-instance=\"newInstance\" unique-id=\"{{ uniqueId.footer }}\"></ursa-api-member-view></div></td>" +
-                    "<td><div class=\"btn-block\">" +
-                    (scope.createOperation !== null ? "<button class=\"btn btn-default\" title=\"Create\" ng-disabled=\"isFormDisabled(uniqueId.footer)\" ng-click=\"create(newInstance)\"><span class=\"glyphicon glyphicon-plus\"></span></button>" : "") +
-                    "</div></td>" +
+                        "<td colspan=\"{0}\"><div ng-show=\"footerVisible\"><ursa-api-member-view api-member=\"operation.owner\" target-instance=\"newInstance\" unique-id=\"{{ uniqueId.footer }}\"></ursa-api-member-view></div></td>" +
+                        "<td><div class=\"btn-block\">" +
+                            (scope.createOperation !== null ? "<button class=\"btn btn-default\" title=\"Create\" ng-disabled=\"isFormDisabled(uniqueId.footer)\" ng-click=\"create(newInstance)\"><span class=\"glyphicon glyphicon-plus\"></span></button>" : "") +
+                        "</div></td>" +
                     "</tr>", scope.supportedProperties.length - 1) +
-                pager +
+                    pager +
                 "</table>";
             scope.list();
             return result;
+        },
+        generatePager: function (scope) {
+            return String.format(
+                "<tr>" +
+                    "<td colspan=\"{0}\"><nav><ul class=\"pagination\">" +
+                        "<li ng-hide=\"currentPage <= 1\"><a href ng-click=\"list(currentPage - 1)\">&laquo;</a></li>" +
+                        "<li ng-repeat=\"page in pages\"><a href ng-click=\"list(page)\">{{ page }}</a></li>" +
+                        "<li ng-hide=\"currentPage >= pages.length\"><a href ng-click=\"list(currentPage + 1)\">&raquo;</a></li>" +
+                        "</ul></nav>" +
+                    "</td>" +
+                "</tr>", scope.supportedProperties.length);
         },
         setupListScope: function(scope) {
             var that = this;
@@ -799,6 +834,7 @@
 
             scope.keyProperty = (this.apiMember.isRdf ? "@id" : "");
             scope.supportedProperties = new ursa.model.ApiMemberCollection();
+            scope.filters = new ursa.model.Filter(scope.supportedProperties);
             for (var index = 0; index < this.apiMember.owner.supportedProperties.length; index++) {
                 var supportedProperty = this.apiMember.owner.supportedProperties[index];
                 if (supportedProperty.key) {
@@ -933,15 +969,25 @@
 
             var skip;
             var top;
-            if ((instance === null) && (listOperation.mappings !== null) && ((skip = listOperation.mappings.getByProperty(odata.skip, "property")) !== null) &&
+            if ((listOperation.mappings !== null) && ((skip = listOperation.mappings.getByProperty(odata.skip, "property")) !== null) &&
                 ((top = listOperation.mappings.getByProperty(odata.top, "property")) !== null)) {
                 if (typeof(page) !== "number") {
                     page = scope.currentPage;
                 }
 
-                instance = {};
+                instance = instance || {};
                 instance[skip.propertyName(listOperation)] = (listOperation.isRdf ? [{ "@value": (page - 1) * scope.itemsPerPage }] : (page - 1) * scope.itemsPerPage);
                 instance[top.propertyName(listOperation)] = (listOperation.isRdf ? [{ "@value": scope.itemsPerPage }] : scope.itemsPerPage);
+            }
+
+            var filter;
+            if ((listOperation.mappings !== null) && ((filter = listOperation.mappings.getByProperty(odata.filter, "property")) !== null)) {
+                var filterExpressionProvider = this._filterProvider.resolve(filter.property);
+                if (filterExpressionProvider !== null) {
+                    var filterExpression = filterExpressionProvider.createFilter(scope.filters);
+                    instance = instance || {};
+                    instance[filter.propertyName(listOperation)] = (listOperation.isRdf ? [{ "@value": filterExpression }] : filterExpression);
+                }
             }
 
             _OperationRenderer.handleOperation.call(this, scope, listOperation, candidateMethod, instance, _OperationRenderer.onLoadEntityListSuccess, null, _OperationRenderer.loadEntityList, page);
