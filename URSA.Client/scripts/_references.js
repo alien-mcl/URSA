@@ -17,6 +17,7 @@
 /// <reference path="/app/scripts/ursa/prototype.js" />
 /// <reference path="/app/scripts/ursa/model.js" />
 /// <reference path="/app/scripts/ursa/view.js" />
+/// <reference path="/app/scripts/ursa/filter.js" />
 /// <reference path="/app/scripts/services/jsonld.js" />
 /// <reference path="/app/scripts/services/configuration.js" />
 /// <reference path="/app/scripts/services/ursa.js" />

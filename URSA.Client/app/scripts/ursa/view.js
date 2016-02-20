@@ -754,7 +754,7 @@
 
             var pager = "";
             var pages = "Action";
-            if (scope.filters.itemsPerPageList) {
+            if (scope.itemsPerPageList) {
                 pager = _OperationRenderer.generatePager.call(this, scope);
                 pages = "<select class=\"form-control\" ng-model=\"filters.itemsPerPage\" ng-change=\"list(1)\" ng-options=\"take for take in itemsPerPageList track by take\"></select>";
             }

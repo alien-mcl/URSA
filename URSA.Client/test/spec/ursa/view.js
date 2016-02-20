@@ -108,7 +108,10 @@
                         }
                     };
 
-                    renderer.initialize(apiMember, http, jsonld, null);
+                    var filterProvider = new ursa.model.FilterProvider();
+                    filterProvider.resolve = function () { return null; };
+                    filterProvider.providesCapabilities = function() { return true; };
+                    renderer.initialize(apiMember, http, jsonld, null, filterProvider);
                     view = renderer.render(scope);
                 });
 
@@ -116,8 +119,11 @@
                     var expected = String.format(
                         "<table class=\"table table-condensed table-bordered table-hover\">" +
                             "<tr>" +
-                                "<th ng-repeat=\"supportedProperty in supportedProperties track by supportedProperty.id\" ng-hide=\"supportedProperty.key\">{{ supportedProperty.label }}</th>" +
-                                "<th><select ng-model=\"itemsPerPage\" ng-change=\"list(1)\" ng-options=\"take for take in itemsPerPageList track by take\"></select></th>" +
+                                "<th ng-repeat=\"supportedProperty in supportedProperties track by supportedProperty.id\" ng-hide=\"supportedProperty.key\">" +
+                                    "<span class=\"form-control\" ng-show=\"supportedProperties.getById(supportedProperty.id) === null\">{{ supportedProperty.label }}</span>" +
+                                    "<input class=\"form-control\" ng-hide=\"supportedProperties.getById(supportedProperty.id) == null\" type=\"text\" ng-model=\"filters[supportedProperty.property]\" placeholder=\"{{ supportedProperty.label }}\" ng-change=\"list()\"/>" +
+                                "</th>" +
+                                "<th><select class=\"form-control\" ng-model=\"filters.itemsPerPage\" ng-change=\"list(1)\" ng-options=\"take for take in itemsPerPageList track by take\"></select></th>" +
                             "</tr>" +
                             "<tr ng-repeat-start=\"entity in entities track by entity['{0}'][0]['@value']\" ng-hide=\"entityEquals(entity)\" title=\"{{ entity['{0}'][0]['@value'] | asId }}\">" +
                                 "<td ng-repeat=\"supportedProperty in supportedProperties track by supportedProperty.id\" ng-hide=\"supportedProperty.key\">{{ getPropertyValue(entity, supportedProperty, operation) | stringify }}</td>" +
@@ -138,9 +144,9 @@
                             "</tr>" +
                             "<tr>" +
                                 "<td colspan=\"{2}\"><nav><ul class=\"pagination\">" +
-                                    "<li ng-hide=\"currentPage <= 1\"><a href ng-click=\"list(currentPage - 1)\">&laquo;</a></li>" +
+                                    "<li ng-hide=\"filters.currentPage <= 1\"><a href ng-click=\"list(filters.currentPage - 1)\">&laquo;</a></li>" +
                                     "<li ng-repeat=\"page in pages\"><a href ng-click=\"list(page)\">{{ page }}</a></li>" +
-                                    "<li ng-hide=\"currentPage >= pages.length\"><a href ng-click=\"list(currentPage + 1)\">&raquo;</a></li>" +
+                                    "<li ng-hide=\"filters.currentPage >= pages.length\"><a href ng-click=\"list(filters.currentPage + 1)\">&raquo;</a></li>" +
                                 "</ul></nav></td>" +
                             "</tr>" +
                         "</table>",

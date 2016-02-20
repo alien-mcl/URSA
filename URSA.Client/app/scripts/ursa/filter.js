@@ -1,4 +1,4 @@
-﻿(function (namespace) {
+﻿(function(namespace) {
     "use strict";
 
     var invalidArgumentPassed = "Invalid {0} passed.";
