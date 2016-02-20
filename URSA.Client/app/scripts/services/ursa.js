@@ -17,7 +17,6 @@
         this._http = http;
         this._promise = promise;
     };
-    ApiDocumentationService.prototype.constructor = ApiDocumentationService;
     ApiDocumentationService.prototype.load = function(entryPoint) {
         if ((entryPoint === undefined) || (entryPoint === null)) {
             entryPoint = window.location.href;

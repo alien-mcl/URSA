@@ -11,7 +11,6 @@
 
         this.$q = $q;
     };
-    JsonLdProcessor.prototype.constructor = JsonLdProcessor;
     JsonLdProcessor.prototype.$q = null;
     JsonLdProcessor.prototype.expand = function(graph) {
         var deferred = this.$q.defer();

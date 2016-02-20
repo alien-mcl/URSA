@@ -191,12 +191,26 @@
             return match.substr(2, 1);
         });
     };
+    Object.defineProperty(Function.prototype, ":", { enumerable: false, configurable: false, value: function(superClass) {
+        var givenClass = this;
+        for (var property in superClass) {
+            if (superClass.hasOwnProperty(property)) {
+                givenClass[property] = superClass[property];
+            }
+        }
+
+        function superClassAlias() {
+            this.constructor = givenClass;
+        }
+
+        superClassAlias.prototype = superClass.prototype;
+        givenClass.prototype = new superClassAlias();
+    }});
 }());
 
 (function(namespace) {
     "use strict";
 
-    var _ctor = "ctor";
     var invalidArgumentPassed = "Invalid {0} passed.";
 
     /**
@@ -208,22 +222,19 @@
      * @param {function} memberType Type of components provided.
      */
     var ComponentProvider = namespace.ComponentProvider = function(memberType) {
-        if ((arguments.length === 0) || (arguments[0] !== _ctor)) {
-            if (memberType === null) {
-                throw String.format(invalidArgumentPassed, "memberType");
-            }
-
-            this._memberType = memberType;
-            this.types = [];
+        if (memberType === null) {
+            throw String.format(invalidArgumentPassed, "memberType");
         }
+
+        this._memberType = memberType;
+        this.types = [];
     };
-    ComponentProvider.prototype.constructor = ComponentProvider;
     /**
      * Registers a given type in the provider.
      * @param {function} type Type to be registered.
      */
     ComponentProvider.prototype.register = function(type) {
-        if ((typeof(type) !== "function") || (type.prototype.constructor instanceof this._memberType)) {
+        if ((typeof(type) !== "function") || (!(type.prototype instanceof this._memberType))) {
             throw String.format(invalidArgumentPassed, "type");
         }
 

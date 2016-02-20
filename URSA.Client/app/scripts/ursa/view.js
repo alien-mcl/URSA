@@ -4,8 +4,6 @@
 
     var invalidArgumentPassed = "Invalid {0} passed.";
 
-    var _ctor = "_ctor";
-
     /**
      * Ultimate ResT API documentation view renderers namespace.
      * @namespace ursa.view
@@ -20,7 +18,6 @@
      * @class
      */
     var ViewRenderer = namespace.ViewRenderer = function() {};
-    ViewRenderer.prototype.constructor = ViewRenderer;
     ViewRenderer.prototype.apiMember = null;
     ViewRenderer.prototype._http = null;
     ViewRenderer.prototype._jsonld = null;
@@ -146,7 +143,6 @@
         this.placeholder = placeholder;
         this.pattern = pattern;
     };
-    DatatypeDescriptor.prototype.constructor = DatatypeDescriptor;
     /**
      * Checks if a given value is in range of this datatype descriptor values range.
      * @instance
@@ -229,8 +225,7 @@
     var SupportedPropertyRenderer = namespace.SupportedPropertyRenderer = function() {
         ViewRenderer.prototype.constructor.apply(this, arguments);
     };
-    SupportedPropertyRenderer.prototype = new ViewRenderer(_ctor);
-    SupportedPropertyRenderer.prototype.constructor = SupportedPropertyRenderer;
+    SupportedPropertyRenderer[":"](ViewRenderer);
     SupportedPropertyRenderer.prototype.isApplicableTo = function(apiMember) {
         ViewRenderer.prototype.isApplicableTo.apply(this, arguments);
         return apiMember instanceof ursa.model.SupportedProperty;
@@ -680,8 +675,7 @@
     var ClassRenderer = namespace.ClassRenderer = function() {
         ViewRenderer.prototype.constructor.apply(this, arguments);
     };
-    ClassRenderer.prototype = new ViewRenderer(_ctor);
-    ClassRenderer.prototype.constructor = ClassRenderer;
+    ClassRenderer[":"](ViewRenderer);
     ClassRenderer.prototype._viewRendererProvider = null;
     ClassRenderer.prototype.isApplicableTo = function(apiMember) {
         ViewRenderer.prototype.isApplicableTo.apply(this, arguments);
@@ -732,8 +726,7 @@
     var OperationRenderer = namespace.OperationRenderer = function() {
         ViewRenderer.prototype.constructor.apply(this, arguments);
     };
-    OperationRenderer.prototype = new ViewRenderer(_ctor);
-    OperationRenderer.prototype.constructor = OperationRenderer;
+    OperationRenderer[":"](ViewRenderer);
     OperationRenderer.prototype.isApplicableTo = function(apiMember) {
         ViewRenderer.prototype.isApplicableTo.apply(this, arguments);
         return apiMember instanceof ursa.model.Operation;
@@ -761,9 +754,9 @@
 
             var pager = "";
             var pages = "Action";
-            if (scope.itemsPerPageList) {
+            if (scope.filters.itemsPerPageList) {
                 pager = _OperationRenderer.generatePager.call(this, scope);
-                pages = "<select class=\"form-control\" ng-model=\"itemsPerPage\" ng-change=\"list(1)\" ng-options=\"take for take in itemsPerPageList track by take\"></select>";
+                pages = "<select class=\"form-control\" ng-model=\"filters.itemsPerPage\" ng-change=\"list(1)\" ng-options=\"take for take in itemsPerPageList track by take\"></select>";
             }
 
             var result = String.format(
@@ -806,9 +799,9 @@
             return String.format(
                 "<tr>" +
                     "<td colspan=\"{0}\"><nav><ul class=\"pagination\">" +
-                        "<li ng-hide=\"currentPage <= 1\"><a href ng-click=\"list(currentPage - 1)\">&laquo;</a></li>" +
+                        "<li ng-hide=\"filters.currentPage <= 1\"><a href ng-click=\"list(filters.currentPage - 1)\">&laquo;</a></li>" +
                         "<li ng-repeat=\"page in pages\"><a href ng-click=\"list(page)\">{{ page }}</a></li>" +
-                        "<li ng-hide=\"currentPage >= pages.length\"><a href ng-click=\"list(currentPage + 1)\">&raquo;</a></li>" +
+                        "<li ng-hide=\"filters.currentPage >= pages.length\"><a href ng-click=\"list(filters.currentPage + 1)\">&raquo;</a></li>" +
                         "</ul></nav>" +
                     "</td>" +
                 "</tr>", scope.supportedProperties.length);
@@ -816,6 +809,7 @@
         setupListScope: function(scope) {
             var that = this;
             scope.uniqueId = [];
+            scope.operation = this.apiMember;
             scope.deleteOperation = _OperationRenderer.findEntityCrudOperation.call(this, "DELETE");
             scope.updateOperation = _OperationRenderer.findEntityCrudOperation.call(this, "PUT");
             scope.getOperation = _OperationRenderer.findEntityCrudOperation.call(this, "GET");
@@ -824,17 +818,8 @@
                 scope.footerVisible = false;
             }
 
-            if (((scope.operation = this.apiMember).mappings !== null) && (this.apiMember.mappings.getByProperty(odata.skip, "property")) &&
-                (this.apiMember.mappings.getByProperty(odata.top, "property"))) {
-                scope.itemsPerPageList = [scope.itemsPerPage = 10, 20, 50, 100];
-                scope.pages = [];
-                scope.currentPage = 1;
-                scope.totalEntities = 0;
-            }
-
             scope.keyProperty = (this.apiMember.isRdf ? "@id" : "");
             scope.supportedProperties = new ursa.model.ApiMemberCollection();
-            scope.filters = new ursa.model.Filter(scope.supportedProperties);
             for (var index = 0; index < this.apiMember.owner.supportedProperties.length; index++) {
                 var supportedProperty = this.apiMember.owner.supportedProperties[index];
                 if (supportedProperty.key) {
@@ -844,6 +829,13 @@
                 if ((supportedProperty.maxOccurances === 1) && (supportedProperty.readable) && (supportedProperty.range instanceof ursa.model.DataType)) {
                     scope.supportedProperties.push(supportedProperty);
                 }
+            }
+
+            scope.filters = new ursa.model.Filter(scope.supportedProperties);
+            if ((scope.operation.mappings !== null) && (this._filterProvider.providesCapabilities(this.apiMember.mappings, ursa.model.FilterExpressionProvider.SupportsPaging))) {
+                scope.itemsPerPageList = [scope.filters.itemsPerPage = 10, 20, 50, 100];
+                scope.pages = [];
+                scope.totalEntities = 0;
             }
 
             scope.entities = null;
@@ -942,9 +934,9 @@
                 if ((matches !== null) && (matches.length === 4)) {
                     var startIndex = parseInt(matches[1]);
                     scope.totalEntities = parseInt(matches[3]);
-                    scope.currentPage = Math.ceil(startIndex / scope.itemsPerPage) + 1;
+                    scope.filters.currentPage = Math.ceil(startIndex / scope.filters.itemsPerPage) + 1;
                     scope.pages = [];
-                    for (var pageIndex = 1; pageIndex <= Math.ceil(scope.totalEntities / scope.itemsPerPage); pageIndex++) {
+                    for (var pageIndex = 1; pageIndex <= Math.ceil(scope.totalEntities / scope.filters.itemsPerPage) ; pageIndex++) {
                         scope.pages.push(pageIndex);
                     }
                 }
@@ -967,26 +959,25 @@
                 return;
             }
 
-            var skip;
-            var top;
-            if ((listOperation.mappings !== null) && ((skip = listOperation.mappings.getByProperty(odata.skip, "property")) !== null) &&
-                ((top = listOperation.mappings.getByProperty(odata.top, "property")) !== null)) {
-                if (typeof(page) !== "number") {
-                    page = scope.currentPage;
-                }
-
-                instance = instance || {};
-                instance[skip.propertyName(listOperation)] = (listOperation.isRdf ? [{ "@value": (page - 1) * scope.itemsPerPage }] : (page - 1) * scope.itemsPerPage);
-                instance[top.propertyName(listOperation)] = (listOperation.isRdf ? [{ "@value": scope.itemsPerPage }] : scope.itemsPerPage);
+            if (typeof(page) === "number") {
+                scope.filters.currentPage = page;
             }
 
-            var filter;
-            if ((listOperation.mappings !== null) && ((filter = listOperation.mappings.getByProperty(odata.filter, "property")) !== null)) {
-                var filterExpressionProvider = this._filterProvider.resolve(filter.property);
-                if (filterExpressionProvider !== null) {
-                    var filterExpression = filterExpressionProvider.createFilter(scope.filters);
+            if (listOperation.mappings !== null) {
+                for (var index = 0; index < listOperation.mappings.length; index++) {
+                    var mapping = listOperation.mappings[index];
+                    var filterExpressionProvider = this._filterProvider.resolve(mapping.property);
+                    if (filterExpressionProvider === null) {
+                        continue;
+                    }
+
+                    var filterExpression = filterExpressionProvider.createFilter(mapping, scope.filters);
+                    if (filterExpression === null) {
+                        continue;
+                    }
+
                     instance = instance || {};
-                    instance[filter.propertyName(listOperation)] = (listOperation.isRdf ? [{ "@value": filterExpression }] : filterExpression);
+                    instance[mapping.propertyName(listOperation)] = (listOperation.isRdf ? [{ "@value": filterExpression }] : filterExpression);
                 }
             }
 

@@ -1,10 +1,9 @@
 ﻿(function (namespace) {
     "use strict";
 
-    var _ctor = "ctor";
     var invalidArgumentPassed = "Invalid {0} passed.";
 
-    var DateTimeRegExp = function (regex, format, year, month, day, hour, minute, second) {
+    var DateTimeRegExp = function(regex, format, year, month, day, hour, minute, second) {
         this._regex = regex;
         this.format = format;
         this.year = year || -1;
@@ -14,7 +13,6 @@
         this.minute = minute || -1;
         this.second = second || -1;
     };
-    DateTimeRegExp.prototype.constructor = DateTimeRegExp;
     DateTimeRegExp.prototype.format = null;
     DateTimeRegExp.prototype.year = -1;
     DateTimeRegExp.prototype.month = -1;
@@ -62,7 +60,6 @@
         Array.prototype.constructor.apply(this, arguments);
     };
     RegExpArray.prototype = [];
-    RegExpArray.prototype.constructor = RegExpArray;
     RegExpArray.prototype.generateExpression = function(supportedProperty, value) {
         for (var index = 0; index < this.length; index++) {
             var regex = this[index];
@@ -100,23 +97,38 @@
      * @param {ursa.model.ApiMemberCollection<ursa.model.SupportedProperty>} supportedProperties Collection of supported properties suitable for filtering.
      */
     var Filter = namespace.Filter = function(supportedProperties) {
-        if ((arguments.length === 0) || (arguments[0] !== _ctor)) {
-            if (!(supportedProperties instanceof ursa.model.ApiMemberCollection)) {
-                throw String.format(invalidArgumentPassed, "supportedProperties");
-            }
-
-            this.supportedProperties = supportedProperties;
+        if (!(supportedProperties instanceof ursa.model.ApiMemberCollection)) {
+            throw String.format(invalidArgumentPassed, "supportedProperties");
         }
+
+        this.supportedProperties = supportedProperties;
+        this.itemsPerPage = 0;
+        this.currentPage = 1;
     };
-    Filter.prototype.constructor = Filter;
     /**
      * Collection of supported properties suitable for filtering.
-     * @memberof ursa.model.filter
+     * @memberof ursa.model.Filter
      * @instance
      * @protected
      * @member {ursa.model.ApiMemberCollection<ursa.model.SupportedProperty>} supportedProperties
      */
     Filter.prototype.supportedProperties = null;
+    /**
+     * Total entities per single view.
+     * @memberof ursa.model.Filter
+     * @instance
+     * @public
+     * @member {number} itemsPerPage
+     */
+    Filter.prototype.itemsPerPage = 0;
+    /**
+     * Current page view.
+     * @memberof ursa.model.Filter
+     * @instance
+     * @public
+     * @member {number} page
+     */
+    Filter.prototype.currentPage = 1;
 
     /**
      * Provides filter expression providers.
@@ -128,8 +140,7 @@
     var FilterProvider = namespace.FilterProvider = function() {
         ursa.ComponentProvider.prototype.constructor.call(this, FilterExpressionProvider);
     };
-    FilterProvider.prototype = new ursa.ComponentProvider(_ctor);
-    FilterProvider.prototype.constructor = FilterProvider;
+    FilterProvider[":"](ursa.ComponentProvider);
     /**
      * Resolves a filter suitable for given property Uri.
      * @instance
@@ -139,7 +150,15 @@
      * @returns {ursa.model.FilterExpressionProvider} Instance of the applicable filter expression provider or null if no suitable ones found.
      */
     FilterProvider.prototype.resolve = function(predicate) {
-        if ((predicate === undefined) || (predicate === null) || (typeof(predicate) !== "string") || (predicate.length === 0)) {
+        if ((predicate === undefined) || (predicate === null)) {
+            return null;
+        }
+
+        if (predicate instanceof Function) {
+            return ursa.ComponentProvider.prototype.resolve.call(this, predicate);
+        }
+
+        if ((typeof(predicate) !== "string") || (predicate.length === 0)) {
             return null;
         }
 
@@ -152,6 +171,25 @@
 
         return null;
     };
+    /**
+     * Checks if any of the filter expression providers registered provides given capabilities for given mappints.
+     * @instance
+     * @public
+     * @method providesCapabilities
+     * @param {ursa.model.ApiMemberCollection<ursa.model.Mapping>} mappings Mappings for which to check capabilities.
+     * @param {number} capabilities Capabilities to check against.
+     * @returns {boolean} True if any of the registered filter expression providers supports given capabilities; otherwise false.
+     */
+    FilterProvider.prototype.providesCapabilities = function(mappings, capabilities) {
+        for (var index = 0; index < this.types.length; index++) {
+            var instance = ursa.ComponentProvider.prototype.resolve.call(this, this.types[index]);
+            if (instance.capabilities(mappings) === capabilities) {
+                return true;
+            }
+        }
+
+        return false;
+    };
 
     /**
      * Provides an abstract for filter expression providers.
@@ -161,46 +199,46 @@
      * @class
      */
     var FilterExpressionProvider = namespace.FilterExpressionProvider = function() { };
-    FilterExpressionProvider.prototype.constructor = FilterExpressionProvider;
     /**
      * Creates a filter expression.
      * @instance
      * @public
      * @method createFilter
+     * @param {ursa.model.Mapping} mappings Mappings for which to provide capabilities.
      * @param {ursa.model.Filter} filter Property filters.
      * @returns {string} Expression filtering entities.
      */
-    FilterExpressionProvider.prototype.createFilter = function(filter) {
+    FilterExpressionProvider.prototype.createFilter = function(mapping, filter) {
         if ((filter === undefined) || (filter === null) || (!(filter instanceof Filter))) {
-            return "";
+            return null;
         }
 
-        var result = "";
+        var result = null;
         for (var property in filter) {
             if ((!filter.hasOwnProperty(property)) || (filter[property] === undefined) || (filter[property] === null)) {
                 continue;
             }
 
-            var supportedProperty = filter.supportedProperties.getByProperty(property, "property");
-            if ((supportedProperty === null) || (supportedProperty.range === null) || (!(supportedProperty.range instanceof ursa.model.DataType))) {
-                continue;
+            var filterExpression = this.createExpression(mapping, filter, property, filter[property]);
+            if (filterExpression !== null) {
+                result = (result === null ? "" : result) + filterExpression + " ";
             }
-
-            result += this.createExpression(supportedProperty, filter[property]) + " ";
         }
 
-        return result.trim();
+        return (result !== null ? result.trim() : null);
     };
     /**
      * Creates a property value expression.
      * @instance
      * @protected
      * @method createExpression
-     * @param {ursa.model.SupportedProperty} supportedProperty Supported property.
-     * @param {object} value The value.
+     * @param {ursa.model.Mapping} mappings Mappings for which to provide capabilities.
+     * @param {ursa.model.Filter} filter The filters.
+     * @param {string} property Current filter property.
+     * @param {object} value Current filter value.
      * @returns {string} Expression filtering given supported property with a value.
      */
-    FilterExpressionProvider.prototype.createExpression = function(supportedProperty, value) { return ""; };
+    FilterExpressionProvider.prototype.createExpression = function(mapping, filter, property, value) { return ""; };
     /**
      * Checks if a given expression provider is applicable for given property Uri.
      * @instance
@@ -210,7 +248,30 @@
      * @returns {boolean} True if the expression provider is applicable for the given uri; otherwise false.
      */
     FilterExpressionProvider.prototype.isApplicableTo = function(uri) { return false; };
+    /**
+     * Provides capabilities supported by the filter expression provider.
+     * @instance
+     * @public
+     * @method capabilities
+     * @param {ursa.model.ApiMemberCollection<ursa.model.Mapping>} mappings Mappings for which to provide capabilities.
+     * @returns Filter expression provider capaibilities for given mappings.
+     */
+    FilterExpressionProvider.prototype.capabilities = function(mappings) {
+        if ((mappings === undefined) || (mappings === null) || (!(mappings instanceof ursa.model.ApiMemberCollection))) {
+            throw String.format(invalidArgumentPassed, "mappings");
+        }
+
+        return 0;
+    }
     FilterExpressionProvider.prototype.toString = function() { return "ursa.model.FilterExpressionProvider"; };
+    /**
+     * Signals that the filter expression provider supports paging.
+     * @memberof ursa.model.FilterExpressionProvider
+     * @static
+     * @public
+     * @member {number} SupportsPaging
+     */
+    FilterExpressionProvider.SupportsPaging = 0x00000001;
 
     /**
      * Provides an OData compatibale filtering expression.
@@ -219,52 +280,82 @@
      * @public
      * @class
      */
-    var ODataFilterExpressionProvider = namespace.ODataFilterExpressionProvider = function () {
+    var ODataFilterExpressionProvider = namespace.ODataFilterExpressionProvider = function() {
         FilterExpressionProvider.prototype.constructor.apply(this, arguments);
     };
-    ODataFilterExpressionProvider.prototype = new FilterExpressionProvider(_ctor);
-    ODataFilterExpressionProvider.prototype.constructor = ODataFilterExpressionProvider;
-    ODataFilterExpressionProvider.prototype.createExpression = function(supportedProperty, value) {
-        switch (supportedProperty.range.id) {
-            case xsd.string:
-                return String.format("(indexOf(<{0}>, '{1}') ge 0)", supportedProperty.property, value.toString().replace(/'/g, "\\'"));
-            case xsd.boolean:
-                value = value.toString().toLowerCase();
-                return ((value === "true") || (value === "1") || (value === "yes") || (value === "on") ? String.format("(<{0}> eq true)", supportedProperty.property) :
-                    ((value === "false") || (value === "0") || (value === "no") || (value === "off") ?  String.format("(<{0}> eq false)", supportedProperty.property) : ""));
-            case xsd.byte:
-            case xsd.unsignedByte:
-            case xsd.short:
-            case xsd.unsignedShort:
-            case xsd.int:
-            case xsd.unsignedInt:
-            case xsd.long:
-            case xsd.unsignedLong:
-            case xsd.integer:
-            case xsd.nonPositiveInteger:
-            case xsd.nonNegativeInteger:
-            case xsd.positiveInteger:
-            case xsd.negativeInteger:
-            case xsd.float:
-            case xsd.double:
-            case xsd.decimal:
-                return (ursa.view.SupportedPropertyRenderer.dataTypes[supportedProperty.range.id].isInRange((typeof(value) === "number" ? value : value = parseInt(value.toString()))) ?
-                    String.format("(<{0}> eq {1})", supportedProperty.property, value) : "");
-            case xsd.dateTime:
-            case xsd.time:
-            case xsd.date:
-                return DateTimeRegExp[supportedProperty.range.id].generateExpression(supportedProperty, value.toString());
-            case xsd.gYear:
-            case xsd.gMonth:
-            case xsd.gDay:
-            case xsd.gYearMonth:
-                return (ursa.view.SupportedPropertyRenderer.dataTypes[supportedProperty.range.id].isInRange((typeof(value) === "number" ? value : value = parseInt(value.toString()))) ?
-                    String.format("(<{0}> eq {1})", supportedProperty.property, value) : "");
-            case guid.guid:
-                return (ursa.view.SupportedPropertyRenderer.dataTypes[supportedProperty.range.id].isInRange(value.toString()) ?
-                    String.format("(<{0}> eq guid('{1}'))", supportedProperty.property, value) : "");
+    ODataFilterExpressionProvider[":"](FilterExpressionProvider);
+    ODataFilterExpressionProvider.prototype.createExpression = function(mapping, filter, property, value) {
+        var supportedProperty = filter.supportedProperties.getByProperty(property, "property");
+        if ((supportedProperty === null) || (supportedProperty.range === null) || (!(supportedProperty.range instanceof ursa.model.DataType))) {
+            switch (property) {
+                case "currentPage":
+                    return (mapping.property === odata.skip ? ((filter.currentPage - 1) * filter.itemsPerPage).toString() : null);
+                case "itemsPerPage":
+                    return (mapping.property === odata.top ? filter.itemsPerPage.toString() : null);
+                default :
+                    return null;
+            }
         }
+
+        if (mapping.property !== odata.filter) {
+            return null;
+        }
+
+        return _ODataFilterExpressionProvider.createFilterExpression.call(this, supportedProperty, value);
     };
-    ODataFilterExpressionProvider.prototype.isApplicableTo = function(uri) { return uri === odata.filter; };
+    ODataFilterExpressionProvider.prototype.isApplicableTo = function(uri) { return (uri === odata.filter) || (uri === odata.top) || (uri === odata.skip); };
     ODataFilterExpressionProvider.prototype.toString = function() { return "ursa.model.ODataFilterExpressionProvider"; };
+    ODataFilterExpressionProvider.prototype.capabilities = function(mappings) {
+        FilterExpressionProvider.prototype.capabilities.apply(this, arguments);
+        if ((mappings.getByProperty(odata.skip, "property")) && (mappings.getByProperty(odata.top, "property"))) {
+            return FilterExpressionProvider.SupportsPaging;
+        }
+
+        return 0;
+    };
+    var _ODataFilterExpressionProvider = {
+        createFilterExpression: function (supportedProperty, value) {
+            switch (supportedProperty.range.id) {
+                case xsd.string:
+                    return String.format("(indexOf(<{0}>, '{1}') ge 0)", supportedProperty.property, value.toString().replace(/'/g, "\\'"));
+                case xsd.boolean:
+                    value = value.toString().toLowerCase();
+                    return ((value === "true") || (value === "1") || (value === "yes") || (value === "on") ? String.format("(<{0}> eq true)", supportedProperty.property) :
+                        ((value === "false") || (value === "0") || (value === "no") || (value === "off") ?  String.format("(<{0}> eq false)", supportedProperty.property) : ""));
+                case xsd.byte:
+                case xsd.unsignedByte:
+                case xsd.short:
+                case xsd.unsignedShort:
+                case xsd.int:
+                case xsd.unsignedInt:
+                case xsd.long:
+                case xsd.unsignedLong:
+                case xsd.integer:
+                case xsd.nonPositiveInteger:
+                case xsd.nonNegativeInteger:
+                case xsd.positiveInteger:
+                case xsd.negativeInteger:
+                case xsd.float:
+                case xsd.double:
+                case xsd.decimal:
+                    return (ursa.view.SupportedPropertyRenderer.dataTypes[supportedProperty.range.id].isInRange((typeof(value) === "number" ? value : value = parseInt(value.toString()))) ?
+                        String.format("(<{0}> eq {1})", supportedProperty.property, value) : "");
+                case xsd.dateTime:
+                case xsd.time:
+                case xsd.date:
+                    return DateTimeRegExp[supportedProperty.range.id].generateExpression(supportedProperty, value.toString());
+                case xsd.gYear:
+                case xsd.gMonth:
+                case xsd.gDay:
+                case xsd.gYearMonth:
+                    return (ursa.view.SupportedPropertyRenderer.dataTypes[supportedProperty.range.id].isInRange((typeof(value) === "number" ? value : value = parseInt(value.toString()))) ?
+                        String.format("(<{0}> eq {1})", supportedProperty.property, value) : "");
+                case guid.guid:
+                    return (ursa.view.SupportedPropertyRenderer.dataTypes[supportedProperty.range.id].isInRange(value.toString()) ?
+                        String.format("(<{0}> eq guid('{1}'))", supportedProperty.property, value) : "");
+                default:
+                    return null;
+            }
+        }  
+    };
 }(namespace("ursa.model")));
