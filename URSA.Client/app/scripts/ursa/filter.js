@@ -1,4 +1,5 @@
-﻿(function(namespace) {
+﻿/*globals xsd, ursa, guid, odata, namespace */
+(function(namespace) {
     "use strict";
 
     var invalidArgumentPassed = "Invalid {0} passed.";
@@ -21,7 +22,7 @@
     DateTimeRegExp.prototype.minute = -1;
     DateTimeRegExp.prototype.second = -1;
     DateTimeRegExp.prototype._regex = null;
-    DateTimeRegExp.prototype.test = function(value) { return this._regex.test(value); }
+    DateTimeRegExp.prototype.test = function(value) { return this._regex.test(value); };
     DateTimeRegExp.prototype.exec = function(value) { return this._regex.exec(value); };
     var YearMonthDayHourMinuteSecondRegex = new DateTimeRegExp(
         /^([\-0-9]{4})[^0-9]+([0-1]?[0-9])[^0-9]+([0-3]?[0-9])[^0-9]+([0-2]?[0-9])[^0-9]+([0-5]?[0-9])[^0-9]+([0-5]?[0-9])$/,
@@ -238,7 +239,7 @@
      * @param {object} value Current filter value.
      * @returns {string} Expression filtering given supported property with a value.
      */
-    FilterExpressionProvider.prototype.createExpression = function(mapping, filter, property, value) { return ""; };
+    FilterExpressionProvider.prototype.createExpression = function() { return ""; };
     /**
      * Checks if a given expression provider is applicable for given property Uri.
      * @instance
@@ -247,7 +248,7 @@
      * @param {string} uri Property Uri carrying a filter expression.
      * @returns {boolean} True if the expression provider is applicable for the given uri; otherwise false.
      */
-    FilterExpressionProvider.prototype.isApplicableTo = function(uri) { return false; };
+    FilterExpressionProvider.prototype.isApplicableTo = function() { return false; };
     /**
      * Provides capabilities supported by the filter expression provider.
      * @instance
@@ -262,7 +263,7 @@
         }
 
         return 0;
-    }
+    };
     FilterExpressionProvider.prototype.toString = function() { return "ursa.model.FilterExpressionProvider"; };
     /**
      * Signals that the filter expression provider supports paging.

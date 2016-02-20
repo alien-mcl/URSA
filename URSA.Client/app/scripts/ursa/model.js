@@ -1,4 +1,4 @@
-﻿/*globals xsd, rdf, rdfs,owl, hydra, ursa, shacl, guid, namespace, UriTemplate */
+﻿/*globals xsd, rdf, rdfs, owl, hydra, ursa, shacl, guid, namespace, UriTemplate */
 (function(namespace) {
     "use strict";
 

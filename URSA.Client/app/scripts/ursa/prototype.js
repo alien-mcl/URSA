@@ -1,6 +1,8 @@
-﻿/*globals xsd, rdf, rdfs, owl, guid, hydra, ursa, odata */
+﻿/*globals xsd, rdf, rdfs, owl, guid, hydra, ursa, odata, namespace */
 (function() {
     "use strict";
+
+    var invalidArgumentPassed = "Invalid {0} passed.";
 
     window.xsd = new String("http://www.w3.org/2001/XMLSchema#"); //jshint ignore:line
     xsd.string = xsd + "string";
@@ -199,12 +201,12 @@
             }
         }
 
-        function superClassAlias() {
+        function SuperClassAlias() {
             this.constructor = givenClass;
         }
 
-        superClassAlias.prototype = superClass.prototype;
-        givenClass.prototype = new superClassAlias();
+        SuperClassAlias.prototype = superClass.prototype;
+        givenClass.prototype = new SuperClassAlias();
     }});
 }());
 
