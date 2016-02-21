@@ -113,7 +113,7 @@
      * @protected
      * @member {ursa.model.ApiMemberCollection<ursa.model.SupportedProperty>} supportedProperties
      */
-    Filter.prototype.supportedProperties = null;
+    Object.defineProperty(Filter.prototype, "supportedProperties", { enumerable: false, configurable: false, writable: true, value: null });
     /**
      * Total entities per single view.
      * @memberof ursa.model.Filter
@@ -130,6 +130,7 @@
      * @member {number} page
      */
     Filter.prototype.currentPage = 1;
+    Filter.toString = function() { return "ursa.model.Filter"; };
 
     /**
      * Provides filter expression providers.

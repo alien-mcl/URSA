@@ -9,12 +9,18 @@
     var ImplementationType = function() { };
     ImplementationType[":"](ServiceType);
     ImplementationType.toString = function() { return "ursa.ImplementationType"; };
-    var SomeType = function(implementationType) { this.implementationType = implementationType; };
+    var AnotherImplementationType = function() { };
+    AnotherImplementationType[":"](ServiceType);
+    AnotherImplementationType.toString = function() { return "ursa.AnotherImplementationType"; };
+    var SomeType = function (implementationType) { this.implementationType = implementationType; };
     SomeType.prototype.implementationType = null;
     SomeType.toString = function() { return "ursa.SomeType"; };
     var SomeOtherType = function(someType) { this.someType = someType; };
     SomeOtherType.prototype.someType = null;
     SomeOtherType.toString = function() { return "ursa.SomeOtherType"; };
+    var YetAnotherType = function(arrayOfServiceType) { this.serviceTypes = arrayOfServiceType; };
+    YetAnotherType.prototype.serviceTypes = null;
+    YetAnotherType.toString = function() { return "ursa.YetAnotherType"; };
 
     describe("Component registration", function() {
         var registration;
@@ -62,8 +68,10 @@
             jasmine.addMatchers(matchers);
             container = new ursa.Container();
             container.register(ursa.Component.for(ServiceType).implementedBy(ImplementationType));
+            container.register(ursa.Component.for(ServiceType).implementedBy(AnotherImplementationType));
             container.register(ursa.Component.for(SomeType).implementedBy(SomeType));
             container.register(ursa.Component.for(SomeOtherType).implementedBy(SomeOtherType));
+            container.register(ursa.Component.for(YetAnotherType).implementedBy(YetAnotherType));
         });
         it("it should resolve an instance with dependencies", function() {
             var instance = container.resolve(SomeType);
@@ -78,6 +86,15 @@
             expect(instance.someType).toBeOfType(SomeType);
             expect(instance.someType.implementationType).not.toBe(null);
             expect(instance.someType.implementationType).toBeOfType(ImplementationType);
+        });
+        it("it should resolve an instance with array of dependencies", function() {
+            var instance = container.resolve(YetAnotherType);
+
+            expect(instance.serviceTypes).not.toBe(null);
+            expect(instance.serviceTypes).toBeOfType(Array);
+            expect(instance.serviceTypes.length).toBe(2);
+            expect(instance.serviceTypes[0]).toBeOfType(ImplementationType);
+            expect(instance.serviceTypes[1]).toBeOfType(AnotherImplementationType);
         });
     });
 }());

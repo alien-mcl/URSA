@@ -125,6 +125,26 @@
         return is.call(this.prototype, type);
     };
 
+    Object.defineProperty(Function, "requiresArgument", { enumerable: false, configurable: false, value: function (argumentName, argumentValue, argumentType) {
+        if (argumentValue === undefined) {
+            throw new ArgumentException(argumentName);
+        }
+
+        if (argumentValue === null) {
+            throw new ArgumentNullException(argumentName);
+        }
+
+        if (!argumentType) {
+            return;
+        }
+
+        if (((typeof (argumentType) === "string") && (typeof (argumentValue) !== argumentType)) ||
+            ((argumentType instanceof Function) && ((argumentValue !== argumentType) &&
+                (!(argumentValue.prototype instanceof argumentType)) && (!(argumentValue instanceof argumentType))))) {
+            throw new ArgumentOutOfRangeException(argumentName);
+        }
+    } });
+
     var forbiddenProperties = [/^webkit.*/];
     forbiddenProperties.matches = function(propertyName) {
         for (var index = 0; index < forbiddenProperties.length; index++) {

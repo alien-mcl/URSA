@@ -16,26 +16,6 @@
     })[":"](Error);
     InvalidOperationException.toString = function() { return "ursa.InvalidOperationException"; };
 
-    Object.defineProperty(Function, "requiresArgument", { enumerable: false, configurable: false, value:function (argumentName, argumentValue, argumentType) {
-        if (argumentValue === undefined) {
-            throw new ArgumentException(argumentName);
-        }
-
-        if (argumentValue === null) {
-            throw new ArgumentNullException(argumentName);
-        }
-
-        if (!argumentType) {
-            return;
-        }
-
-        if (((typeof(argumentType) === "string") && (typeof (argumentValue) !== argumentType)) ||
-            ((argumentType instanceof Function) && ((argumentValue !== argumentType) && 
-                (!(argumentValue.prototype instanceof argumentType)) && (!(argumentValue instanceof argumentType))))) {
-            throw new ArgumentOutOfRangeException(argumentName);
-        }
-    } });
-
     var Scope = namespace.Scope = { Singleton: "singleton", Transient: "transient" };
 
     var Registration = namespace.Registration = function(serviceType) {
@@ -47,12 +27,12 @@
         this._name = null;
         this._dependencies = [];
     };
-    Object.defineProperty(Registration.prototype, "_serviceType", { enumerable: false, configurable: true, writable: true, value: null });
-    Object.defineProperty(Registration.prototype, "_implementationType", { enumerable: false, configurable: true, writable: true, value: null });
-    Object.defineProperty(Registration.prototype, "_instance", { enumerable: false, configurable: true, writable: true, value: null });
-    Object.defineProperty(Registration.prototype, "_scope", { enumerable: false, configurable: true, writable: true, value: null });
-    Object.defineProperty(Registration.prototype, "_name", { enumerable: false, configurable: true, writable: true, value: null });
-    Object.defineProperty(Registration.prototype, "_dependencies", { enumerable: false, configurable: true, writable: true, value: null });
+    Object.defineProperty(Registration.prototype, "_serviceType", { enumerable: false, configurable: false, writable: true, value: null });
+    Object.defineProperty(Registration.prototype, "_implementationType", { enumerable: false, configurable: false, writable: true, value: null });
+    Object.defineProperty(Registration.prototype, "_instance", { enumerable: false, configurable: false, writable: true, value: null });
+    Object.defineProperty(Registration.prototype, "_scope", { enumerable: false, configurable: false, writable: true, value: null });
+    Object.defineProperty(Registration.prototype, "_name", { enumerable: false, configurable: false, writable: true, value: null });
+    Object.defineProperty(Registration.prototype, "_dependencies", { enumerable: false, configurable: false, writable: true, value: null });
     Registration.prototype.implementedBy = function(implementationType) {
         Function.requiresArgument("implementationType", implementationType, this._serviceType);
         this._implementationType = implementationType;
@@ -107,7 +87,7 @@
         Array.prototype.constructor.apply(this, Array.prototype.slice.call(arguments, 1));
         this._owner = owner || null;
     })[":"](Array);
-    Object.defineProperty(RegistrationsCollection.prototype, "_owner", { enumerable: false, configurable: true, writable: true, value: null });
+    Object.defineProperty(RegistrationsCollection.prototype, "_owner", { enumerable: false, configurable: false, writable: true, value: null });
     RegistrationsCollection.prototype.indexOf = function(registrationOrName) {
         if (registrationOrName instanceof Registration) {
             return Array.prototype.indexOf.apply(this, arguments);
@@ -129,13 +109,80 @@
     var Component = namespace.Component = {};
     Component.for = function(type) { return new Registration(type); }
 
-    var arrayIndicators = ["arrayOf", "collectionOf", "enumerationOf"];
-
-    var Container = namespace.Container = function () {
-        this._registrations = new RegistrationsCollection(this);
+    var Resolver = namespace.Resolver = function() {};
+    Resolver.prototype.isApplicableTo = function(dependency) {
+        Function.requiresArgument("dependency", dependency, "string");
+        return false;
     };
-    Object.defineProperty(Container.prototype, "_registrations", { enumerable: false, configurable: true, writable: true, value: null });
-    Container.prototype.register = function(registration) {
+    Resolver.prototype.resolve = function(dependency, dependencyStack) {
+        Function.requiresArgument("dependency", dependency, "string");
+        Function.requiresArgument("dependencyStack", dependencyStack, Array);
+        return null;
+    };
+    Object.defineProperty(Resolver.prototype, "container", { enumerable: false, configurable: false, writable: true, value: null });
+
+    var arrayIndicators = ["arrayOf", "collectionOf", "enumerationOf"];
+    var ArrayResolver = (namespace.ArrayResolver = function() {})[":"](Resolver);
+    ArrayResolver.prototype.isApplicableTo = function(dependency) {
+        Resolver.prototype.isApplicableTo.apply(this, arguments);
+        var normalizedDependency = _ArrayResolver.normalize.call(this, dependency);
+        return (normalizedDependency !== dependency);
+    };
+    ArrayResolver.prototype.resolve = function(dependency, dependencyStack) {
+        dependency = _ArrayResolver.normalize.call(this, dependency);
+        var result = [];
+        var registrationTypes = this.container.findType(dependency, true);
+        for (var index = 0; index < registrationTypes.length; index++) {
+            var instance = _Container.resolveInternal.call(this.container, registrationTypes[index], dependencyStack);
+            if (instance !== null) {
+                result.push(instance);
+            }
+        }
+
+        return result;
+    };
+    var _ArrayResolver = {};
+    _ArrayResolver.normalize = function(dependency) {
+        for (var indicatorIndex = 0; indicatorIndex < arrayIndicators.length; indicatorIndex++) {
+            var arrayIndicator = arrayIndicators[indicatorIndex];
+            if (dependency.indexOf(arrayIndicator) === 0) {
+                dependency = dependency.substring(arrayIndicator.length);
+                break;
+            }
+        }
+
+        return dependency;
+    };
+
+    var InstanceResolver = (namespace.InstanceResolver = function() {})[":"](Resolver);
+    InstanceResolver.prototype.isApplicableTo = function(dependency) {
+        Function.requiresArgument("dependency", dependency, "string");
+        var normalizedDependency = _ArrayResolver.normalize.call(this, dependency);
+        return (normalizedDependency === dependency);
+    };
+    InstanceResolver.prototype.resolve = function(dependency, dependencyStack) {
+        var argumentRegistration = this.container.findType(dependency);
+        if (argumentRegistration !== null) {
+            return _Container.resolveInternal.call(this.container, argumentRegistration, dependencyStack);
+        }
+
+        return null;
+    };
+
+    var Container = namespace.Container = function() {
+        this._registrations = new RegistrationsCollection(this);
+        this._resolvers = [];
+        this.withResolver(new InstanceResolver()).withResolver(new ArrayResolver());
+    };
+    Object.defineProperty(Container.prototype, "_registrations", { enumerable: false, configurable: false, writable: true, value: null });
+    Object.defineProperty(Container.prototype, "_resolvers", { enumerable: false, configurable: false, writable: true, value: null });
+    Container.prototype.withResolver = function(resolver) {
+        Function.requiresArgument("resolver", resolver, Resolver);
+        this._resolvers.push(resolver);
+        resolver.container = this;
+        return this;
+    };
+    Container.prototype.register = function (registration) {
         Function.requiresArgument("registration", registration, Registration);
         if (this._registrations.indexOf(registration._name) !== -1) {
             throw new Error(String.format("Registration with name of '{0}' already exists.", registration._name));
@@ -162,6 +209,44 @@
         return _Container.resolveInternal.call(this, registration, []);
     };
     Container.toString = function() { return "ursa.Container"; };
+    Object.defineProperty(Container.prototype, "findType", { enumerable: false, configurable: false, writeable: false, value: function(dependency, useServiceType) {
+        useServiceType = (typeof(useServiceType) === "boolean" ? useServiceType : false);
+        var result = [];
+        dependency = dependency.toLowerCase();
+        for (var index = 0; index < this._registrations.length; index++) {
+            var registration = this._registrations[index];
+            var targetName = (useServiceType ? registration._serviceType.toString() : registration._name);
+            var typeNames = [targetName];
+            if ((!useServiceType) && (targetName !== registration._implementationType.toString())) {
+                typeNames.push(registration._implementationType.toString());
+            }
+
+            for (var typeNameIndex = 0; typeNameIndex < typeNames.length; typeNameIndex++) {
+                var typeName = typeNames[typeNameIndex];
+                if (dependency === typeName) {
+                    if (useServiceType) {
+                        result.push(registration);
+                    }
+                    else {
+                        return registration;
+                    }
+                }
+
+                typeName = typeName.split(".");
+                typeName = typeName[typeName.length - 1];
+                if (typeName.toLowerCase().indexOf(dependency) !== -1) {
+                    if (useServiceType) {
+                        result.push(registration);
+                    }
+                    else {
+                        return registration;
+                    }
+                }
+            }
+        }
+
+        return (useServiceType ? result : null);
+    } });
     var _Container = {};
     _Container.resolveInternal = function(registration, dependencyStack) {
         if (dependencyStack.indexOf(registration) !== -1) {
@@ -170,30 +255,24 @@
 
         dependencyStack.push(registration);
         var args = _Container.resolveArguments.call(this, registration, dependencyStack);
+        dependencyStack.pop();
         return _Container.resolveInstance.call(this, registration, args);
     };
     _Container.resolveArguments = function(registration, dependencyStack) {
         var args = [];
         for (var index = 0; index < registration._dependencies.length; index++) {
+            var argumentInstance = null;
             var dependency = registration._dependencies[index];
-            var isArray = false;
-            for (var indicatorIndex = 0; indicatorIndex < arrayIndicators.length; indicatorIndex++) {
-                var arrayIndicator = arrayIndicators[indicatorIndex];
-                if (dependency.indexOf(arrayIndicator) === 0) {
-                    isArray = true;
-                    dependency = dependency.substring(arrayIndicator.length);
+            var resolver = null;
+            for (var resolverIndex = 0; resolverIndex < this._resolvers.length; resolverIndex++) {
+                if (this._resolvers[resolverIndex].isApplicableTo(dependency)) {
+                    resolver = this._resolvers[resolverIndex];
+                    break;
                 }
             }
 
-            var argumentInstance = (isArray ? [] : null);
-            var argumentRegistration = _Container.findType.call(this, dependency);
-            if (argumentRegistration !== null) {
-                if (isArray) {
-                    argumentInstance.push(_Container.resolveInternal.call(this, argumentRegistration, dependencyStack));
-                }
-                else {
-                    argumentInstance = _Container.resolveInternal.call(this, argumentRegistration, dependencyStack);
-                }
+            if (resolver !== null) {
+                argumentInstance = resolver.resolve(dependency, dependencyStack);
             }
 
             args.push(argumentInstance);
@@ -213,30 +292,5 @@
         }
 
         return instance;
-    };
-    _Container.findType = function(dependency) {
-        dependency = dependency.toLowerCase();
-        for (var index = 0; index < this._registrations.length; index++) {
-            var registration = this._registrations[index];
-            var typeNames = [registration._name];
-            if (registration._name !== registration._implementationType.toString()) {
-                typeNames.push(registration._implementationType.toString());
-            }
-
-            for (var typeNameIndex = 0; typeNameIndex < typeNames.length; typeNameIndex++) {
-                var typeName = typeNames[typeNameIndex];
-                if (dependency === typeName) {
-                    return registration;
-                }
-
-                typeName = typeName.split(".");
-                typeName = typeName[typeName.length - 1];
-                if (typeName.toLowerCase().indexOf(dependency) !== -1) {
-                    return registration;
-                }
-            }
-        }
-
-        return null;
     };
 }(namespace("ursa")));
