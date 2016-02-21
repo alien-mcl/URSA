@@ -112,20 +112,8 @@
 
         return current;
     };
-    var maxResolveDepth = 4;
-    var is = function(type) {
-        if ((this.prototype === undefined) || (this.prototype === null)) {
-            return false;
-        }
 
-        if (this.prototype instanceof type) {
-            return true;
-        }
-
-        return is.call(this.prototype, type);
-    };
-
-    Object.defineProperty(Function, "requiresArgument", { enumerable: false, configurable: false, value: function (argumentName, argumentValue, argumentType) {
+    Object.defineProperty(Function, "requiresArgument", { enumerable: false, configurable: false, value: function(argumentName, argumentValue, argumentType) {
         if (argumentValue === undefined) {
             throw new ArgumentException(argumentName);
         }
@@ -138,12 +126,25 @@
             return;
         }
 
-        if (((typeof (argumentType) === "string") && (typeof (argumentValue) !== argumentType)) ||
+        if (((typeof(argumentType) === "string") && (typeof(argumentValue) !== argumentType)) ||
             ((argumentType instanceof Function) && ((argumentValue !== argumentType) &&
                 (!(argumentValue.prototype instanceof argumentType)) && (!(argumentValue instanceof argumentType))))) {
-            throw new ArgumentOutOfRangeException(argumentName);
+            throw new ursa.ArgumentOutOfRangeException(argumentName);
         }
     } });
+
+    var maxResolveDepth = 4;
+    var is = function(type) {
+        if ((this.prototype === undefined) || (this.prototype === null)) {
+            return false;
+        }
+
+        if (this.prototype instanceof type) {
+            return true;
+        }
+
+        return is.call(this.prototype, type);
+    };
 
     var forbiddenProperties = [/^webkit.*/];
     forbiddenProperties.matches = function(propertyName) {

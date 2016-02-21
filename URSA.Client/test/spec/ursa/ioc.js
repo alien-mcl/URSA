@@ -4,12 +4,12 @@
 (function() {
     "use strict";
 
-    var ServiceType = function() { };
+    var ServiceType = window.ServiceType = function() { };
     ServiceType.toString = function() { return "ursa.ServiceType"; };
-    var ImplementationType = function() { };
+    var ImplementationType = window.ImplementationType = function() { };
     ImplementationType[":"](ServiceType);
     ImplementationType.toString = function() { return "ursa.ImplementationType"; };
-    var AnotherImplementationType = function() { };
+    var AnotherImplementationType = window.AnotherImplementationType = function() { };
     AnotherImplementationType[":"](ServiceType);
     AnotherImplementationType.toString = function() { return "ursa.AnotherImplementationType"; };
     var SomeType = function (implementationType) { this.implementationType = implementationType; };
@@ -66,35 +66,63 @@
         var container;
         beforeEach(function() {
             jasmine.addMatchers(matchers);
-            container = new ursa.Container();
-            container.register(ursa.Component.for(ServiceType).implementedBy(ImplementationType));
-            container.register(ursa.Component.for(ServiceType).implementedBy(AnotherImplementationType));
-            container.register(ursa.Component.for(SomeType).implementedBy(SomeType));
-            container.register(ursa.Component.for(SomeOtherType).implementedBy(SomeOtherType));
-            container.register(ursa.Component.for(YetAnotherType).implementedBy(YetAnotherType));
         });
-        it("it should resolve an instance with dependencies", function() {
-            var instance = container.resolve(SomeType);
 
-            expect(instance.implementationType).not.toBe(null);
-            expect(instance.implementationType).toBeOfType(ImplementationType);
+        describe("when registering services explicitely", function() {
+            beforeEach(function() {
+                container = new ursa.Container();
+                container.register(ursa.Component.for(ServiceType).implementedBy(ImplementationType).lifestyleSingleton());
+                container.register(ursa.Component.for(ServiceType).implementedBy(AnotherImplementationType));
+                container.register(ursa.Component.for(SomeType).implementedBy(SomeType));
+                container.register(ursa.Component.for(SomeOtherType).implementedBy(SomeOtherType));
+                container.register(ursa.Component.for(YetAnotherType).implementedBy(YetAnotherType));
+            });
+            it("it should resolve an instance with dependencies", function() {
+                var instance = container.resolve(SomeType);
+
+                expect(instance.implementationType).not.toBe(null);
+                expect(instance.implementationType).toBeOfType(ImplementationType);
+            });
+            it("it should resolve an instance with nested dependencies", function() {
+                var instance = container.resolve(SomeOtherType);
+
+                expect(instance.someType).not.toBe(null);
+                expect(instance.someType).toBeOfType(SomeType);
+                expect(instance.someType.implementationType).not.toBe(null);
+                expect(instance.someType.implementationType).toBeOfType(ImplementationType);
+            });
+            it("it should resolve an instance with array of dependencies", function() {
+                var instance = container.resolve(YetAnotherType);
+
+                expect(instance.serviceTypes).not.toBe(null);
+                expect(instance.serviceTypes).toBeOfType(Array);
+                expect(instance.serviceTypes.length).toBe(2);
+                expect(instance.serviceTypes[0]).toBeOfType(ImplementationType);
+                expect(instance.serviceTypes[1]).toBeOfType(AnotherImplementationType);
+            });
+            it("it should resolve same instances for singletons", function() {
+                var firstCallResult = container.resolve(ServiceType);
+                var secondCallResult = container.resolve(ServiceType);
+
+                expect(firstCallResult).toBe(secondCallResult);
+            });
+            it("it should resolve different instances for transient scope", function() {
+                var firstCallResult = container.resolve(SomeType);
+                var secondCallResult = container.resolve(SomeType);
+
+                expect(firstCallResult).not.toBe(secondCallResult);
+            });
         });
-        it("it should resolve an instance with nested dependencies", function() {
-            var instance = container.resolve(SomeOtherType);
 
-            expect(instance.someType).not.toBe(null);
-            expect(instance.someType).toBeOfType(SomeType);
-            expect(instance.someType.implementationType).not.toBe(null);
-            expect(instance.someType.implementationType).toBeOfType(ImplementationType);
-        });
-        it("it should resolve an instance with array of dependencies", function() {
-            var instance = container.resolve(YetAnotherType);
+        describe("when registering services by convention", function() {
+            beforeEach(function() {
+                container = new ursa.Container();
+                container.register(ursa.Classes.implementing(ServiceType));
+            });
 
-            expect(instance.serviceTypes).not.toBe(null);
-            expect(instance.serviceTypes).toBeOfType(Array);
-            expect(instance.serviceTypes.length).toBe(2);
-            expect(instance.serviceTypes[0]).toBeOfType(ImplementationType);
-            expect(instance.serviceTypes[1]).toBeOfType(AnotherImplementationType);
+            it("it should have correct types registered", function() {
+                expect(container._registrations.length).toBe(2);
+            });
         });
     });
 }());
