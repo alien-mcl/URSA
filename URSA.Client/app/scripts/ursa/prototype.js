@@ -207,7 +207,8 @@
 
         SuperClassAlias.prototype = superClass.prototype;
         givenClass.prototype = new SuperClassAlias();
-    }});
+        return givenClass;
+    } });
 }());
 
 (function(namespace) {

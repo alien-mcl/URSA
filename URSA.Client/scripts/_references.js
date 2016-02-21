@@ -15,6 +15,7 @@
 
 /// <reference path="/app/scripts/app.js" />
 /// <reference path="/app/scripts/ursa/prototype.js" />
+/// <reference path="/app/scripts/ursa/ioc.js" />
 /// <reference path="/app/scripts/ursa/model.js" />
 /// <reference path="/app/scripts/ursa/view.js" />
 /// <reference path="/app/scripts/ursa/filter.js" />
@@ -25,7 +26,6 @@
 /// <reference path="/app/scripts/filters/stringify.js" />
 /// <reference path="/app/scripts/directives/ursa.js" />
 /// <reference path="/app/scripts/controllers/main.js" />
-/// <reference path="/app/scripts/controllers/about.js" />
 
 /// <reference path="/test/fixtures/api-documentation.js" />
 /// <reference path="/test/matchers/toBeOfType.js" />
