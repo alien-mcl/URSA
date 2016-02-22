@@ -34,7 +34,7 @@
                 return $sce.trustAsResourceUrl(val);
             };
         }]).
-        run(["$rootScope", function ($rootScope) {
+        run(["$rootScope", function($rootScope) {
             $rootScope.authenticationEvent = ursa.view.Events.AuthenticationRequired;
             $rootScope.authenticateEvent = ursa.view.Events.Authenticate;
             $rootScope.authenticatedEvent = ursa.view.Events.Authenticated;
