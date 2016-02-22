@@ -32,7 +32,8 @@
         describe("when creating a registration", function() {
             it("should be created correctly", function () {
                 expect(registration._serviceType).toBe(ServiceType);
-                expect(registration._implementationType).toBe(ImplementationType);
+                expect(registration._implementationTypes.length).toBe(1);
+                expect(registration._implementationTypes[0]).toBe(ImplementationType);
                 expect(registration._name).toBe(ImplementationType.toString());
                 expect(registration._scope).toBe(ursa.Scope.Transient);
             });

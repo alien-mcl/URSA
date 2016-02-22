@@ -289,7 +289,7 @@
     Classes.implementing = function(type) {
         Function.requiresArgument("type", type, Function);
         var result = new Registration(type);
-        result._implementationTypes = _Component.resolve.call(this, type, window, [], 0);
+        result._implementationTypes = _Classes.resolve.call(this, type, window, [], 0);
         return result;
     };
     /**
@@ -300,8 +300,8 @@
      * @member {number} MaxResolutionDepth
      */
     Component.MaxResolutionDepth = 4;
-    var _Component = {};
-    _Component.is = function(type) {
+    var _Classes = {};
+    _Classes.is = function(type) {
         if ((this.prototype === undefined) || (this.prototype === null)) {
             return false;
         }
@@ -310,12 +310,12 @@
             return true;
         }
 
-        return _Component.is.call(this.prototype, type);
+        return _Classes.is.call(this.prototype, type);
     };
-    _Component.forbiddenProperties = [/^webkit.*/];
-    _Component.forbiddenProperties.matches = function(propertyName) {
-        for (var index = 0; index < _Component.forbiddenProperties.length; index++) {
-            var forbiddenProperty = _Component.forbiddenProperties[index];
+    _Classes.forbiddenProperties = [/^webkit.*/];
+    _Classes.forbiddenProperties.matches = function(propertyName) {
+        for (var index = 0; index < _Classes.forbiddenProperties.length; index++) {
+            var forbiddenProperty = _Classes.forbiddenProperties[index];
             if ((forbiddenProperty === propertyName) || (forbiddenProperty.test(propertyName))) {
                 return true;
             }
@@ -323,21 +323,21 @@
 
         return false;
     };
-    _Component.resolve = function(type, target, result, depth) {
+    _Classes.resolve = function(type, target, result, depth) {
         if (depth > Component.maxResolutionDepth) {
             return result;
         }
 
         for (var property in target) {
-            if (_Component.forbiddenProperties.matches(property)) {
+            if (_Classes.forbiddenProperties.matches(property)) {
                 continue;
             }
 
             if ((target.hasOwnProperty(property)) && (target[property] !== undefined) && (target[property] !== null)) {
                 if ((typeof(target[property]) === "object") && (target[property].__namespace)) {
-                    _Component.resolve.call(this, type, target[property], result, depth + 1);
+                    _Classes.resolve.call(this, type, target[property], result, depth + 1);
                 }
-                else if ((typeof(target[property]) === "function") && (result.indexOf(target[property]) === -1) && (_Component.is.call(target[property], type))) {
+                else if ((typeof(target[property]) === "function") && (result.indexOf(target[property]) === -1) && (_Classes.is.call(target[property], type))) {
                     result.push(target[property]);
                 }
             }
