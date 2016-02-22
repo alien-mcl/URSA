@@ -115,11 +115,11 @@
 
     Object.defineProperty(Function, "requiresArgument", { enumerable: false, configurable: false, value: function(argumentName, argumentValue, argumentType) {
         if (argumentValue === undefined) {
-            throw new ArgumentException(argumentName);
+            throw new ursa.ArgumentException(argumentName);
         }
 
         if (argumentValue === null) {
-            throw new ArgumentNullException(argumentName);
+            throw new ursa.ArgumentNullException(argumentName);
         }
 
         if (!argumentType) {

@@ -1,4 +1,4 @@
-﻿/*globals ursa, angular */
+﻿/*globals ursa, angular, namespace */
 (function(namespace) {
     "use strict";
 
@@ -136,7 +136,7 @@
         if ((angular.isDefined(context.autoScrollExp)) && ((!context.autoScrollExp) || (scope.$eval(context.autoScrollExp)))) {
             this._anchorScroll();
         }
-    }
+    };
     _ApiMemberViewDirective.linkInternal = function(scope, $element, $attr, ctrl, $transclude, autoScrollExp) {
         var context = {
             element: $element,

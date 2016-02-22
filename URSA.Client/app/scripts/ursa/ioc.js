@@ -1,4 +1,7 @@
-﻿(function(namespace) {
+﻿/*globals namespace */
+(function(namespace) {
+    "use strict";
+
     /**
      * Represents an expression where an argument was faulty for some reason.
      * @memberof ursa
@@ -65,7 +68,7 @@
      */
     var Scope = namespace.Scope = function(name) {
         Function.requiresArgument("name", name, "string");
-        this.toString = function() { return name; }
+        this.toString = function() { return name; };
     };
     /**
      * Defines a singleton scope.
@@ -132,7 +135,7 @@
         Function.requiresArgument("instance", instance, this._serviceType);
         this._instance = instance;
         this._implementationTypes = [instance.prototype];
-        tihs._name = instance.prototype.toString();
+        this._name = instance.prototype.toString();
         return this;
     };
     /**
@@ -174,7 +177,7 @@
         return this;
     };
     Registration.toString = function() { return "ursa.Registration"; };
-    var _Registration = {}
+    var _Registration = {};
     _Registration.initialize = function() {
         if (this._implementationTypes.length === 0) {
             throw new InvalidOperationException(String.format("Cannot finalize registration '{0}' of the '{1}' service.", this._name, this._serviceType));
@@ -264,7 +267,7 @@
      * @member {ursa.Registration} for
      * @param {Function} type Type of the service for which the registration is being defined.
      */
-    Component.for = function(type) { return new Registration(type); }
+    Component.for = function(type) { return new Registration(type); };
 
     /**
      * Entry point for fluent API for service registrations by convention.
@@ -288,7 +291,7 @@
         var result = new Registration(type);
         result._implementationTypes = _Component.resolve.call(this, type, window, [], 0);
         return result;
-    }
+    };
     /**
      * Gets a max resolution depth, which is 4 by default.
      * @memberof ursa.Classes
@@ -647,9 +650,10 @@
         }
 
         args.splice(0, 0, null);
-        var instance = new (Function.prototype.bind.apply(registration._implementationTypes[0], args));
+        var BoundType = Function.prototype.bind.apply(registration._implementationTypes[0], args);
+        var instance = new BoundType();
         if (registration._scope === Scope.Singleton) {
-            return registration._instance = instance;
+            return (registration._instance = instance);
         }
 
         return instance;
