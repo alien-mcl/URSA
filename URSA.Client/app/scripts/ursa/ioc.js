@@ -93,33 +93,149 @@
      * @public
      * @class
      * @param {Function} serviceType Type of service to be registered.
+     * @param {Function|object} implementation Class implementing a service or an instance to be used as implementation.
+     * @param {boolean} [implementationIsFactoryMethod] Flag indicating whether the implementation is not a class but a factory method.
+     * @param {ursa.Scope} [scope] Instance lifestyle.
+     * @param {string} [name] Name of the implementation.
      */
-    var Registration = namespace.Registration = function(serviceType) {
+    var Registration = namespace.Registration = function(serviceType, implementation, implementationIsFactoryMethod, scope, name) {
         Function.requiresArgument("serviceType", serviceType, Function);
+        Function.requiresArgument("implementation", implementation);
+        Function.requiresOptionalArgument("implementationIsFactoryMethod", implementationIsFactoryMethod, "boolean");
+        Function.requiresOptionalArgument("scope", scope, Scope);
+        Function.requiresOptionalArgument("name", name, "string");
+        if ((!(implementation instanceof Function)) && (typeof(implementation) !== "object")) {
+            throw new ArgumentOutOfRangeException("implementation");
+        }
+
+        implementationIsFactoryMethod = (typeof(implementationIsFactoryMethod) === "boolean" ? implementationIsFactoryMethod : false);
         this._serviceType = serviceType;
-        this._implementationTypes = [];
-        this._instance = null;
-        this._scope = Scope.Transient;
-        this._name = null;
+        this._implementationType = (implementation instanceof Function ? (implementationIsFactoryMethod ? null : implementation) : implementation.prototype);
+        this._instance = (implementation instanceof Function ? null : implementation);
+        this._factoryMethod = ((implementation instanceof Function) && (implementationIsFactoryMethod) ? implementation : null);
+        this._scope = scope || Scope.Transient;
+        this._name = (this._factoryMethod !== null ? name : (name || this._implementationType.toString()));
         this._dependencies = [];
+        if (this._factoryMethod === null) {
+            _Registration.initialize.call(this);
+        }
     };
     Object.defineProperty(Registration.prototype, "_serviceType", { enumerable: false, configurable: false, writable: true, value: null });
-    Object.defineProperty(Registration.prototype, "_implementationTypes", { enumerable: false, configurable: false, writable: true, value: null });
+    Object.defineProperty(Registration.prototype, "_implementationType", { enumerable: false, configurable: false, writable: true, value: null });
     Object.defineProperty(Registration.prototype, "_instance", { enumerable: false, configurable: false, writable: true, value: null });
+    Object.defineProperty(Registration.prototype, "_factoryMethod", { enumerable: false, configurable: false, writable: true, value: null });
     Object.defineProperty(Registration.prototype, "_scope", { enumerable: false, configurable: false, writable: true, value: null });
     Object.defineProperty(Registration.prototype, "_name", { enumerable: false, configurable: false, writable: true, value: null });
     Object.defineProperty(Registration.prototype, "_dependencies", { enumerable: false, configurable: false, writable: true, value: null });
+    var _Registration = {};
+    _Registration.initialize = function() {
+        var index;
+        if ((this._implementationType.dependencies) && (this._implementationType.dependencies instanceof Array)) {
+            for (index = 0; index < this._implementationType.dependencies.length; index++) {
+                this.dependencies.push(this._implementationType.dependencies[index]);
+            }
+        }
+        else {
+            var code = Function.prototype.toString.call(this._implementationType);
+            var parameters = code.match(/\(([^)]*)\)/);
+            if ((parameters !== null) && (parameters.length > 1)) {
+                parameters = parameters[1].split(",");
+                for (index = 0; index < parameters.length; index++) {
+                    var parameter = parameters[index].trim();
+                    if (parameter.length === 0) {
+                        continue;
+                    }
+
+                    this._dependencies.push(parameter);
+                }
+            }
+        }
+    };
+
+    /**
+     * Defines an abstract of a service description facility.
+     * @memberof ursa
+     * @name ServiceDescriptor
+     * @public
+     * @class
+     * @param {Function} serviceType Type of service to be registered.
+     */
+    var ServiceDescriptor = namespace.ServiceDescriptor = function(serviceType) {
+        Function.requiresArgument("serviceType", serviceType, Function);
+        this.serviceType = serviceType;
+        this.scope = Scope.Transient;
+    };
+    Object.defineProperty(ServiceDescriptor.prototype, "serviceType", { enumerable: false, configurable: false, writable: true, value: null });
+    Object.defineProperty(Registration.prototype, "scope", { enumerable: false, configurable: false, writable: true, value: null });
+    /**
+     * Registers service implementations in the given container.
+     * @memberof ursa
+     * @public
+     * @instance
+     * @member register
+     * @param {ursa.Container} container Target container to register in.
+     */
+    ServiceDescriptor.prototype.register = function(container) {
+        Function.requiresArgument("container", container, Container);
+    };
+    /**
+     * Defines a singleton scope of the instances being resolved for this registration.
+     * @memberof ursa
+     * @public
+     * @instance
+     * @member {ursa.ServiceDescriptor} lifestyleSingleton
+     */
+    ServiceDescriptor.prototype.lifestyleSingleton = function() {
+        this.scope = Scope.Singleton;
+        return this;
+    };
+    /**
+     * Defines a transient scope of the instances being resolved for this registration.
+     * @memberof ursa
+     * @public
+     * @instance
+     * @member {ursa.ServiceDescriptor} lifestyleTransient
+     */
+    ServiceDescriptor.prototype.lifestyleTransient = function() {
+        this.scope = Scope.Transient;
+        return this;
+    };
+    ServiceDescriptor.toString = function() { return "ursa.ServiceDescriptor"; };
+
+    /**
+     * Defines a component descriptor.
+     * @memberof ursa
+     * @name ComponentDescriptor
+     * @public
+     * @class
+     * @param {Function} serviceType Type of service to be registered.
+     */
+    var ComponentDescriptor = (namespace.ComponentDescriptor = function() {
+        ServiceDescriptor.prototype.constructor.apply(this, arguments);
+        this._implementationType = null;
+        this._instance = null;
+        this._factoryMethod = null;
+        this._name = null;
+        this._dependencies = null;
+    })[":"](ServiceDescriptor);
+    Object.defineProperty(ComponentDescriptor.prototype, "_implementationType", { enumerable: false, configurable: false, writable: true, value: null });
+    Object.defineProperty(ComponentDescriptor.prototype, "_instance", { enumerable: false, configurable: false, writable: true, value: null });
+    Object.defineProperty(ComponentDescriptor.prototype, "_factoryMethod", { enumerable: false, configurable: false, writable: true, value: null });
+    Object.defineProperty(ComponentDescriptor.prototype, "_name", { enumerable: false, configurable: false, writable: true, value: null });
+    Object.defineProperty(ComponentDescriptor.prototype, "_dependencies", { enumerable: false, configurable: false, writable: true, value: null });
     /**
      * Defines a type to be registered as an implementation of the service type.
      * @memberof ursa
      * @public
      * @instance
-     * @member {ursa.Registration} implementedBy
+     * @member {ursa.ComponentDescriptor} implementedBy
      * @param {Function} implementationType Type implementing a service.
      */
-    Registration.prototype.implementedBy = function(implementationType) {
-        Function.requiresArgument("implementationType", implementationType, this._serviceType);
-        this._implementationTypes = [implementationType];
+    ComponentDescriptor.prototype.implementedBy = function(implementationType) {
+        Function.requiresArgument("implementationType", implementationType, this.serviceType);
+        this._implementationType = implementationType;
+        this._instance = null;
+        this._factoryMethod = null;
         this._name = implementationType.toString();
         return this;
     };
@@ -128,46 +244,40 @@
      * @memberof ursa
      * @public
      * @instance
-     * @member {ursa.Registration} instance
+     * @member {ursa.ComponentDescriptor} instance
      * @param {object} instance Instance implementing a service.
      */
-    Registration.prototype.instance = function(instance) {
-        Function.requiresArgument("instance", instance, this._serviceType);
+    ComponentDescriptor.prototype.instance = function(instance) {
+        Function.requiresArgument("instance", instance, this.serviceType);
         this._instance = instance;
-        this._implementationTypes = [instance.prototype];
+        this._implementationType = instance.prototype;
+        this._factoryMethod = null;
         this._name = instance.prototype.toString();
         return this;
     };
     /**
-     * Defines a singleton scope of the instances being resolved for this registration.
+     * Defines an instance to be registered as an implementation of the service type.
      * @memberof ursa
      * @public
      * @instance
-     * @member {ursa.Registration} lifestyleSingleton
+     * @member {ursa.ComponentDescriptor} usingFactoryMethod
+     * @param {object} instance Instance implementing a service.
      */
-    Registration.prototype.lifestyleSingleton = function() {
-        this._scope = Scope.Singleton;
+    ComponentDescriptor.prototype.usingFactoryMethod = function(factoryMethod) {
+        Function.requiresArgument("factoryMethod", factoryMethod, Function);
+        this._instance = null;
+        this._implementationType = null;
+        this._factoryMethod = factoryMethod;
         return this;
     };
     /**
-     * Defines a transient scope of the instances being resolved for this registration.
+     * Defines a name for this component registration.
      * @memberof ursa
      * @public
      * @instance
-     * @member {ursa.Registration} lifestyleTransient
+     * @member {ursa.ComponentDescriptor} named
      */
-    Registration.prototype.lifestyleTransient = function() {
-        this._scope = Scope.Transient;
-        return this;
-    };
-    /**
-     * Defines a name for this registration.
-     * @memberof ursa
-     * @public
-     * @instance
-     * @member {ursa.Registration} named
-     */
-    Registration.prototype.named = function(name) {
+    ComponentDescriptor.prototype.named = function(name) {
         Function.requiresArgument("name", name, "string");
         if (name.length === 0) {
             throw new ArgumentOutOfRangeException("name");
@@ -176,38 +286,35 @@
         this._name = name;
         return this;
     };
-    Registration.toString = function() { return "ursa.Registration"; };
-    var _Registration = {};
-    _Registration.initialize = function() {
-        if (this._implementationTypes.length === 0) {
-            throw new InvalidOperationException(String.format("Cannot finalize registration '{0}' of the '{1}' service.", this._name, this._serviceType));
-        }
+    ComponentDescriptor.prototype.register = function(container) {
+        ServiceDescriptor.prototype.register.apply(this, arguments);
+        var registration = new Registration(
+            this.serviceType,
+            (this._factoryMethod != null ? this._factoryMethod : (this._instance || this._implementationType)),
+            this._factoryMethod != null,
+            this.scope,
+            this._name);
+        container.register(registration);
+    };
+    ComponentDescriptor.toString = function() { return "ursa.ComponentDescriptor"; };
 
-        for (var implementationTypeIndex = 0; implementationTypeIndex < this._implementationTypes.length; implementationTypeIndex ++) {
-            var index;
-            var implementationType = this._implementationTypes[implementationTypeIndex];
-            var dependencies = [];
-            this._dependencies.push(dependencies);
-            if ((implementationType.dependencies) && (implementationType.dependencies instanceof Array)) {
-                for (index = 0; index < implementationType.dependencies.length; index++) {
-                    dependencies.push(implementationType.dependencies[index]);
-                }
-            }
-            else {
-                var code = Function.prototype.toString.call(implementationType);
-                var parameters = code.match(/\(([^)]*)\)/);
-                if ((parameters !== null) && (parameters.length > 1)) {
-                    parameters = parameters[1].split(",");
-                    for (index = 0; index < parameters.length; index++) {
-                        var parameter = parameters[index].trim();
-                        if (parameter.length === 0) {
-                            continue;
-                        }
-
-                        dependencies.push(parameter);
-                    }
-                }
-            }
+     /**
+     * Defines a class conventions descriptor.
+     * @memberof ursa
+     * @name ConventionDescriptor
+     * @public
+     * @class
+     * @param {Function} serviceType Type of service to be registered.
+     */
+    var ConventionDescriptor = (namespace.ConventionDescriptor = function() {
+        ServiceDescriptor.prototype.constructor.apply(this, arguments);
+        this._implementationTypes = null;
+    })[":"](ServiceDescriptor);
+    Object.defineProperty(ConventionDescriptor.prototype, "_implementationTypes", { enumerable: false, configurable: false, writable: true, value: null });
+    ConventionDescriptor.prototype.register = function(container) {
+        ServiceDescriptor.prototype.register.apply(this, arguments);
+        for (var index = 0; index < this._implementationTypes.length; index++) {
+            container.register(new Registration(this.serviceType, this._implementationTypes[index], false, this.scope));
         }
     };
 
@@ -264,10 +371,13 @@
      * @memberof ursa.Component
      * @public
      * @static
-     * @member {ursa.Registration} for
+     * @member {ursa.ComponentDescriptor} for
      * @param {Function} type Type of the service for which the registration is being defined.
      */
-    Component.for = function(type) { return new Registration(type); };
+    Component.for = function(type) {
+        Function.requiresArgument("type", type, Function);
+        return new ComponentDescriptor(type);
+    };
 
     /**
      * Entry point for fluent API for service registrations by convention.
@@ -283,12 +393,12 @@
      * @memberof ursa.Classes
      * @public
      * @static
-     * @member {ursa.Registration} implementing
+     * @member {ursa.ConventionDescriptor} implementing
      * @param {Function} type Type of the service to find implementations for.
      */
     Classes.implementing = function(type) {
         Function.requiresArgument("type", type, Function);
-        var result = new Registration(type);
+        var result = new ConventionDescriptor(type);
         result._implementationTypes = _Classes.resolve.call(this, type, window, [], 0);
         return result;
     };
@@ -299,7 +409,7 @@
      * @static
      * @member {number} MaxResolutionDepth
      */
-    Component.MaxResolutionDepth = 4;
+    Classes.MaxResolutionDepth = 4;
     var _Classes = {};
     _Classes.is = function(type) {
         if ((this.prototype === undefined) || (this.prototype === null)) {
@@ -324,7 +434,7 @@
         return false;
     };
     _Classes.resolve = function(type, target, result, depth) {
-        if (depth > Component.maxResolutionDepth) {
+        if (depth > Classes.maxResolutionDepth) {
             return result;
         }
 
@@ -485,32 +595,20 @@
      * @public
      * @instance
      * @member {ursa.Container} register
-     * @param {ursa.Registration} registration Registration to be added.
+     * @param {...(ursa.Registration|ursa.ServiceDescriptor)} registration Registrations to be added.
      */
-    Container.prototype.register = function(registration) {
-        Function.requiresArgument("registration", registration, Registration);
-        _Registration.initialize.call(registration);
-        if (registration._implementationTypes.length === 1) {
-            if (this._registrations.indexOf(registration._name) !== -1) {
-                throw new Error(String.format("Registration with name of '{0}' already exists.", registration._name));
+    Container.prototype.register = function() {
+        for (var index = 0; index < arguments.length; index++) {
+            var registration = arguments[index];
+            if (registration instanceof Registration) {
+                _Container.registerRegistration.call(this, registration);
             }
-
-            this._registrations.push(registration);
-            return this;
-        }
-
-        for (var index = 0; index < registration._implementationTypes.length; index++) {
-            var implementationType = registration._implementationTypes[index];
-            var newRegistration = new Registration(registration._serviceType);
-            newRegistration._implementationTypes = [implementationType];
-            newRegistration._scope = registration._scope;
-            newRegistration._name = implementationType.toString();
-            newRegistration._dependencies = registration._dependencies[index];
-            if (this._registrations.indexOf(newRegistration._name) !== -1) {
-                throw new Error(String.format("Registration with name of '{0}' already exists.", newRegistration._name));
+            else if (registration instanceof ServiceDescriptor) {
+                registration.register(this);
             }
-
-            this._registrations.push(newRegistration);
+            else {
+                throw new ArgumentOutOfRangeException("registration");
+            }
         }
 
         return this;
@@ -554,8 +652,8 @@
         for (var index = 0; index < this._registrations.length; index++) {
             var registration = this._registrations[index];
             var typeNames = [registration._name];
-            if (typeNames[0] !== registration._implementationTypes[0].toString()) {
-                typeNames.push(registration._implementationTypes[0].toString());
+            if ((registration._implementationType !== null) && (typeNames[0] !== registration._implementationType.toString())) {
+                typeNames.push(registration._implementationType.toString());
             }
 
             for (var typeNameIndex = 0; typeNameIndex < typeNames.length; typeNameIndex++) {
@@ -613,7 +711,7 @@
      */
     Object.defineProperty(Container.prototype, "resolveInternal", { enumerable: false, configurable: false, writeable: false, value: function(registration, dependencyStack) {
         if (dependencyStack.indexOf(registration) !== -1) {
-            throw new InvalidOperationException(String.format("Dependency loop detected for type '{0}'.", registration._implementationTypes[0]));
+            throw new InvalidOperationException(String.format("Dependency loop detected for type '{0}'.", registration._implementationType));
         }
 
         dependencyStack.push(registration);
@@ -622,11 +720,20 @@
         return _Container.resolveInstance.call(this, registration, args);
     } });
     var _Container = {};
+    _Container.registerRegistration = function(registration) {
+        Function.requiresArgument("registration", registration, Registration);
+        if (this._registrations.indexOf(registration._name) !== -1) {
+            throw new Error(String.format("Registration with name of '{0}' already exists.", registration._name));
+        }
+
+        this._registrations.push(registration);
+        return this;
+    };
     _Container.resolveArguments = function(registration, dependencyStack) {
         var args = [];
-        for (var index = 0; index < registration._dependencies[0].length; index++) {
+        for (var index = 0; index < registration._dependencies.length; index++) {
             var argumentInstance = null;
-            var dependency = registration._dependencies[0][index];
+            var dependency = registration._dependencies[index];
             var resolver = null;
             for (var resolverIndex = 0; resolverIndex < this._resolvers.length; resolverIndex++) {
                 if (this._resolvers[resolverIndex].isApplicableTo(dependency)) {
@@ -649,9 +756,16 @@
             return registration._instance;
         }
 
-        args.splice(0, 0, null);
-        var BoundType = Function.prototype.bind.apply(registration._implementationTypes[0], args);
-        var instance = new BoundType();
+        var instance;
+        if (registration._factoryMethod != null) {
+            instance = registration._factoryMethod(this);
+        }
+        else {
+            args.splice(0, 0, null);
+            var BoundType = Function.prototype.bind.apply(registration._implementationType, args);
+            instance = new BoundType();
+        }
+
         if (registration._scope === Scope.Singleton) {
             return (registration._instance = instance);
         }

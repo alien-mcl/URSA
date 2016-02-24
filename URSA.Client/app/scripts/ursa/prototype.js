@@ -132,6 +132,14 @@
             throw new ursa.ArgumentOutOfRangeException(argumentName);
         }
     } });
+    Object.defineProperty(Function, "requiresOptionalArgument", { enumerable: false, configurable: false, value: function(argumentName, argumentValue, argumentType) {
+        if ((argumentValue !== undefined) && (argumentValue !== null) && (argumentType) &&
+            (((typeof(argumentType) === "string") && (typeof(argumentValue) !== argumentType)) ||
+            ((argumentType instanceof Function) && ((argumentValue !== argumentType) &&
+                (!(argumentValue.prototype instanceof argumentType)) && (!(argumentValue instanceof argumentType)))))) {
+            throw new ursa.ArgumentOutOfRangeException(argumentName);
+        }
+    } });
 
     var maxResolveDepth = 4;
     var is = function(type) {

@@ -12,7 +12,7 @@
     var AnotherImplementationType = window.AnotherImplementationType = function() { };
     AnotherImplementationType[":"](ServiceType);
     AnotherImplementationType.toString = function() { return "ursa.AnotherImplementationType"; };
-    var SomeType = function (implementationType) { this.implementationType = implementationType; };
+    var SomeType = function(implementationType) { this.implementationType = implementationType; };
     SomeType.prototype.implementationType = null;
     SomeType.toString = function() { return "ursa.SomeType"; };
     var SomeOtherType = function(someType) { this.someType = someType; };
@@ -31,11 +31,10 @@
 
         describe("when creating a registration", function() {
             it("should be created correctly", function () {
-                expect(registration._serviceType).toBe(ServiceType);
-                expect(registration._implementationTypes.length).toBe(1);
-                expect(registration._implementationTypes[0]).toBe(ImplementationType);
+                expect(registration.serviceType).toBe(ServiceType);
+                expect(registration._implementationType).toBe(ImplementationType);
                 expect(registration._name).toBe(ImplementationType.toString());
-                expect(registration._scope).toBe(ursa.Scope.Transient);
+                expect(registration.scope).toBe(ursa.Scope.Transient);
             });
             it("should use a given name", function() {
                 var expectedName = "test";
@@ -46,7 +45,7 @@
             it("should use a given lifestyle", function() {
                 registration.lifestyleSingleton();
 
-                expect(registration._scope).toBe(ursa.Scope.Singleton);
+                expect(registration.scope).toBe(ursa.Scope.Singleton);
             });
         });
     });
@@ -56,7 +55,7 @@
         beforeEach(function() {
             jasmine.addMatchers(matchers);
             collection = new ursa.RegistrationsCollection(null);
-            collection.push(new ursa.Registration(ServiceType).implementedBy(ImplementationType));
+            collection.push(new ursa.Registration(ServiceType, ImplementationType));
         });
         it("it should contain a named registration", function() {
             expect(collection.indexOf(ImplementationType.toString())).not.toBe(-1);
@@ -123,6 +122,26 @@
 
             it("it should have correct types registered", function() {
                 expect(container._registrations.length).toBe(2);
+            });
+        });
+
+        describe("when registering service by factory method", function() {
+            var calls = 0;
+            var instance = null;
+            beforeEach(function() {
+                container = new ursa.Container();
+                container.register(ursa.Component.for(ServiceType).usingFactoryMethod(function() {
+                    calls++;
+                    return instance = {};
+                }).named("implementationType"));
+                container.register(ursa.Component.for(SomeType).implementedBy(SomeType));
+            });
+
+            it("it should resolve instance correctly", function() {
+                var resolved = container.resolve(SomeType);
+
+                expect(calls).toBe(1);
+                expect(resolved.implementationType).toBe(instance);
             });
         });
     });
