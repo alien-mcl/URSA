@@ -39,6 +39,7 @@ module.exports = function(config) {
             "bower_components/angular-mocks/angular-mocks.js",
             // endbower
             "app/scripts/ursa/*.js",
+            "app/scripts/ursa/angular-js.js",
             "app/scripts/directives/*.js",
             "app/scripts/filters/*.js",
             "app/scripts/services/*.js",

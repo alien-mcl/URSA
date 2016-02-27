@@ -311,6 +311,7 @@
 
         return result;
     } });
+    ApiMember.toString = function() { return "ursa.model.ApiMember"; };
 
     /**
      * Collection of {@link ursa.model.ApiMember} instances.
@@ -363,6 +364,7 @@
 
         return null;
     };
+    ApiMemberCollection.toString = function() { return "ursa.model.ApiMemberCollection"; };
 
     /**
      * Marks an API member as a type constrained.
@@ -409,6 +411,7 @@
      * @default false
      */
     TypeConstrainedApiMember.prototype.required = false;
+    TypeConstrainedApiMember.toString = function() { return "ursa.model.TypeConstrainedApiMember"; };
     var typeConstrainedMerge = function(source) {
         if (typeof(source.maxOccurances) === "number") {
             this.maxOccurances = source.maxOccurances;
@@ -463,6 +466,7 @@
      * @member {string} range
      */
     RangeTypeConstrainedApiMember.prototype.rangeDescription = null;
+    RangeTypeConstrainedApiMember.toString = function() { return "ursa.model.RangeTypeConstrainedApiMember"; };
 
     /**
      * Marks an API member as a property range type constrained.
@@ -519,6 +523,7 @@
 
         return this.property;
     };
+    PropertyRangeTypeConstrainedApiMember.toString = function() { return "ursa.model.PropertyRangeTypeConstrainedApiMember"; };
 
     /**
      * Describes a class' supported property.
@@ -632,6 +637,7 @@
      * @member {ursa.model.SupportedProperty} Subject
      */
     SupportedProperty.Subject = new SupportedProperty(null, subject, subjectGraph);
+    SupportedProperty.toString = function() { return "ursa.model.SupportedProperty"; };
 
     /**
      * Describes an IRI template mapping.
@@ -691,6 +697,7 @@
 
         return this.property;
     };
+    Mapping.toString = function() { return "ursa.model.Mapping"; };
 
     /**
      * Describes an ReST operation.
@@ -865,6 +872,7 @@
      * @member {boolean} isRdf
      */
     Object.defineProperty(Operation.prototype, "isRdf", { get: function() { return this.mediaTypes.indexOf(EntityFormat.ApplicationLdJson) !== -1; } });
+    Operation.toString = function() { return "ursa.model.Operation"; };
 
     /**
      * Describes a datatype.
@@ -880,6 +888,7 @@
         TypeConstrainedApiMember.prototype.constructor.apply(this, arguments);
     };
     DataType[":"](TypeConstrainedApiMember);
+    DataType.toString = function() { return "ursa.model.DataType"; };
 
     /**
      * Describes a class.
@@ -1096,6 +1105,7 @@
 
         return key;
     };
+    Class.toString = function() { return "ursa.model.Class"; };
 
     /**
      * Describes an entity formats.
@@ -1146,6 +1156,79 @@
      * @member {ursa.model.EntityFormat} JSON
      */
     (EntityFormat.JSON = new EntityFormat(EntityFormat.ApplicationJson)).toString = function() { return "ursa.model.EntityFormat.JSON"; };
+    EntityFormat.toString = function() { return "ursa.model.EntityFormat"; };
+
+    var JsonLdProcessor = namespace.JsonLdProcessor = function(promiseProvider) {
+        Function.requiresArgument("promiseProvider", promiseProvider, ursa.IPromiseProvider);
+        this._promiseProvider = promiseProvider;
+    };
+    Object.defineProperty(JsonLdProcessor.prototype, "promiseProvider", { enumerable: false, configurable: false, writable: true, value: null });
+    JsonLdProcessor.prototype.expand = function(graph) {
+        var deferred = this._promiseProvider.defer();
+        jsonld.expand(graph, function(error, expanded) {
+            if (error) {
+                deferred.reject(error);
+            }
+
+            deferred.resolve(expanded);
+        });
+        return deferred.promise;
+    };
+    JsonLdProcessor.toString = function() { return "ursa.model.JsonLdProcessor"; };
+
+    var ApiDocumentationProvider = namespace.ApiDocumentationProvider = function(jsonLdProcessor, httpService, promiseProvider) {
+        Function.requiresArgument("jsonLdProcessor", jsonLdProcessor, ursa.JsonLDProcessor);
+        Function.requiresArgument("httpService", httpService, ursa.web.HttpService);
+        Function.requiresArgument("promiseProvider", promiseProvider, ursa.IPromiseProvider);
+        this._jsonLdProcessor = jsonLdProcessor;
+        this._httpService = httpService;
+        this._promiseProvider = promiseProvider;
+    };
+    Object.defineProperty(ApiDocumentationProvider.prototype, "_jsonLdProcessor", { enumerable: false, configurable: false, writable: true, value: null });
+    Object.defineProperty(ApiDocumentationProvider.prototype, "_httpService", { enumerable: false, configurable: false, writable: true, value: null });
+    Object.defineProperty(ApiDocumentationProvider.prototype, "_promiseProvider", { enumerable: false, configurable: false, writable: true, value: null });
+    ApiDocumentationProvider.prototype.load = function(entryPoint) {
+        if ((entryPoint === undefined) || (entryPoint === null)) {
+            entryPoint = window.location.href;
+        }
+
+        if (entryPoint instanceof String) {
+            entryPoint = entryPoint.toString();
+        }
+
+        if (typeof(entryPoint) !== "string") {
+            throw new Error(invalidArgumentPassed.replace("{0}", "entryPoint"));
+        }
+
+        if ((entryPoint.length === 0) || (entryPoint.match(/^http[s]?:\/\//i) === null)) {
+            throw new Error(invalidArgumentPassed.replace("{0}", "entryPoint"));
+        }
+
+        var that = this;
+        var deferred = this._promiseProvider.defer();
+        var request = new ursa.web.HttpRequest("OPTIONS", entryPoint, { "Accept": ["application/ld+json", "application/json"] });
+        this._httpService.sendRequest(request).
+            then(function(response) { return _ApiDocumentationProvider.onLoad.call(that, deferred, response); }).
+            catch(function(response) { return _ApiDocumentationProvider.onError.call(that, deferred, response); });
+        return deferred.promise;
+    };
+    ApiDocumentationProvider.toString = function() { return "ursa.model.ApiDocumentationProvider"; };
+    var _ApiDocumentationProvider = {};
+    _ApiDocumentationProvider.onExpanded = function(deferred, expanded) {
+        deferred.resolve(new ApiDocumentation(expanded));
+    };
+    _ApiDocumentationProvider.onExpansionError = function(deferred, error) {
+        deferred.reject(error);
+    };
+    _ApiDocumentationProvider.onError = function(deferred, response) {
+        deferred.reject(response.data);
+    };
+    _ApiDocumentationProvider.onLoad = function(deferred, response) {
+        var that = this;
+        this._jsonLdProcessor.expand(response.data).
+            then(function(expanded) { _ApiDocumentationProvider.onExpanded.call(that, deferred, expanded); }).
+            catch(function(error) { _ApiDocumentationProvider.onExpansionError.call(that, deferred, error); });
+    };
 
     /**
      * Provides an enumeration of HTTP status codes.

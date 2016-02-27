@@ -9,31 +9,38 @@
     var view = null;
     var scope = null;
     var apiMember = null;
+    var promiseProvider = { when: function() {}, defer: function() {} };
     var httpResult = null;
-    var http = function() { return httpResult; };
-    var jsonld = {};
+    var http = new ursa.web.HttpService();
+    http.sendRequest = function() { return httpResult; };
+    var jsonLdProcessor = new ursa.model.JsonLdProcessor(promiseProvider);
+    var authenticationProvider = new ursa.web.AuthenticationProvider(new ursa.Base64Encoder(), promiseProvider);
+    var filterProvider = new ursa.model.FilterProvider([new ursa.model.ODataFilterExpressionProvider()]);
 
     describe("Given instance of the view generator engine's", function() {
         beforeEach(function() {
             jasmine.addMatchers(matchers);
             scope = {
+                parentScope: scope,
+                rootScope: scope,
                 targetInstance: "newInstance",
                 operation: apiDocumentation.supportedClasses[0].supportedOperations[0],
-                $on: function() { },
-                $emit: function() { },
-                $broadcast: function() { }
+                onEvent: function() {},
+                emitEvent: function() {},
+                broadcastEvent: function() {},
+                updateView: function() {}
             };
-            scope.$root = scope;
+            scope.rootScope = scope;
         });
 
         describe("ursa.view.SupportedPropertyRenderer class", function() {
             beforeEach(function () {
-                renderer = new ursa.view.SupportedPropertyRenderer();
+                renderer = new ursa.view.SupportedPropertyRenderer(http, jsonLdProcessor, authenticationProvider, filterProvider);
             });
 
             describe("when rendering an xsd:int based property", function() {
                 beforeEach(function () {
-                    renderer.initialize(apiMember = apiDocumentation.supportedClasses[0].supportedProperties[1], null, null, null);
+                    renderer.initialize(apiMember = apiDocumentation.supportedClasses[0].supportedProperties[1]);
                     view = renderer.render(scope);
                 });
 
@@ -55,7 +62,7 @@
 
             describe("when rendering an multiple xsd:string values based property", function () {
                 beforeEach(function () {
-                    renderer.initialize(apiMember = apiDocumentation.supportedClasses[0].supportedProperties[2], null, null, null);
+                    renderer.initialize(apiMember = apiDocumentation.supportedClasses[0].supportedProperties[2]);
                     view = renderer.render(scope);
                 });
 
@@ -82,36 +89,33 @@
 
         describe("ursa.view.OperationRenderer class", function() {
             beforeEach(function() {
-                renderer = new ursa.view.OperationRenderer();
+                renderer = new ursa.view.OperationRenderer(http, jsonLdProcessor, authenticationProvider, filterProvider);
             });
 
             describe("when rendering an entity collection operation", function () {
                 var entityId = "http://temp.uri/resource/id";
-                var httpResultTransformer = function (data) { return [data]; };
+                var httpResultTransformer = function(data) { return [data]; };
                 var status = ursa.model.HttpStatusCodes.OK;
                 beforeEach(function() {
                     apiMember = apiDocumentation.supportedClasses[0].supportedOperations[1];
                     httpResult = {
-                        then: function (handler) {
+                        then: function(handler) {
                             if (status !== ursa.model.HttpStatusCodes.OK) {
                                 return httpResult;
                             }
 
                             var entity = apiDocumentation.supportedClasses[0].createInstance(apiMember);
                             entity["@id"] = entityId;
-                            handler({ headers: function() { return "application/json"; }, data: httpResultTransformer(entity) });
+                            handler({ headers: { "Content-Type": "application/json" }, data: httpResultTransformer(entity) });
                             return httpResult;
                         },
                         catch: function(handler) {
-                            handler({ headers: function() { return "Basic"; }, status: status });
+                            handler({ headers: { "WWW-Authenticate": "Basic" }, status: status });
                             return httpResult;
                         }
                     };
 
-                    var filterProvider = new ursa.model.FilterProvider();
-                    filterProvider.resolve = function () { return null; };
-                    filterProvider.providesCapabilities = function() { return true; };
-                    renderer.initialize(apiMember, http, jsonld, null, filterProvider);
+                    renderer.initialize(apiMember);
                     view = renderer.render(scope);
                 });
 
@@ -170,7 +174,7 @@
                     httpResultTransformer = function (entity) { return entity; };
                     status = ursa.model.HttpStatusCodes.Unauthorized;
                     var eventRaised;
-                    scope.$root.$broadcast = function(event) { eventRaised = event; };
+                    scope.rootScope.broadcastEvent = function(event) { eventRaised = event; };
 
                     scope.get({ "@id": entityId });
 

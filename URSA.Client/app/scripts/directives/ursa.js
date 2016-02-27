@@ -117,7 +117,7 @@
 
         var viewRenderer = this._viewRendererProvider.createRenderer(apiMember);
         if (viewRenderer !== null) {
-            context.ctrl.template = viewRenderer.render(newScope);
+            context.ctrl.template = viewRenderer.render(ursa.view.angular.AngularViewScope.createInstance(newScope));
         }
         else {
             context.ctrl.template = "Error generating view for api member.";

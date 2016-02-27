@@ -20,8 +20,7 @@
             "ngSanitize",
             "ngTouch",
             "ui.bootstrap",
-            "ursa",
-            "jsonld"
+            "ursa"
         ]).
         config(["$routeProvider", function($routeProvider) {
             $routeProvider.

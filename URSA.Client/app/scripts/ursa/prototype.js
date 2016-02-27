@@ -126,18 +126,56 @@
             return;
         }
 
-        if (((typeof(argumentType) === "string") && (typeof(argumentValue) !== argumentType)) ||
-            ((argumentType instanceof Function) && ((argumentValue !== argumentType) &&
-                (!(argumentValue.prototype instanceof argumentType)) && (!(argumentValue instanceof argumentType))))) {
+        if (!Function.is(argumentValue, argumentType)) {
             throw new ursa.ArgumentOutOfRangeException(argumentName);
         }
     } });
     Object.defineProperty(Function, "requiresOptionalArgument", { enumerable: false, configurable: false, value: function(argumentName, argumentValue, argumentType) {
-        if ((argumentValue !== undefined) && (argumentValue !== null) && (argumentType) &&
-            (((typeof(argumentType) === "string") && (typeof(argumentValue) !== argumentType)) ||
-            ((argumentType instanceof Function) && ((argumentValue !== argumentType) &&
-                (!(argumentValue.prototype instanceof argumentType)) && (!(argumentValue instanceof argumentType)))))) {
+        if ((argumentValue !== undefined) && (argumentValue !== null) && (argumentType) && (!Function.is(argumentValue, argumentType))) {
             throw new ursa.ArgumentOutOfRangeException(argumentName);
+        }
+    } });
+    Object.defineProperty(Function, "is", { enumerable: false, configurable: false, value: function(instance, type) {
+        if (!type) {
+            return true;
+        }
+
+        if (typeof(type) === "string") {
+            return (typeof(instance) === type);
+        }
+
+        if (type instanceof Function) {
+            if ((instance === type) || (instance instanceof type) || ((instance.prototype) && (Function.is(instance.prototype, type)))) {
+                return true;
+            }
+
+            if (Function.isInterface(type)) {
+                return Function.implements(instance, type);
+            }
+
+            return false;
+        }
+
+        return true;
+    } });
+    Object.defineProperty(Function, "implements", { enumerable: false, configurable: false, value: function(instance, $interface) {
+        for (var property in $interface) {
+            if ($interface.hasOwnProperty(property)) {
+                if (typeof(instance[property]) !== typeof($interface[property])) {
+                    return false;
+                } 
+            }
+        }
+
+        return true;
+    } });
+    Object.defineProperty(Function, "isInterface", { enumerable: false, configurable: false, value: function(Type) {
+        try {
+            var instance = new Type();
+            return false;
+        }
+        catch (exception) {
+            return true;
         }
     } });
 
@@ -243,7 +281,7 @@
 (function(namespace) {
     "use strict";
 
-    var invalidArgumentPassed = "Invalid {0} passed.";
+    //var invalidArgumentPassed = "Invalid {0} passed.";
 
     /**
      * Provides an abstract for components provider.
@@ -253,25 +291,25 @@
      * @class
      * @param {function} memberType Type of components provided.
      */
-    var ComponentProvider = namespace.ComponentProvider = function(memberType) {
+    /*var ComponentProvider = namespace.ComponentProvider = function(memberType) {
         if (memberType === null) {
             throw String.format(invalidArgumentPassed, "memberType");
         }
 
         this._memberType = memberType;
         this.types = [];
-    };
+    };*/
     /**
      * Registers a given type in the provider.
      * @param {function} type Type to be registered.
      */
-    ComponentProvider.prototype.register = function(type) {
+    /*ComponentProvider.prototype.register = function(type) {
         if ((typeof(type) !== "function") || (!(type.prototype instanceof this._memberType))) {
             throw String.format(invalidArgumentPassed, "type");
         }
 
         this.types.push(type);
-    };
+    };*/
     /**
      * Provides an instance of a given type.
      * @instance
@@ -280,7 +318,7 @@
      * @param {function} type Type to be resolved.
      * @returns {object} Instance of a given type or null if the type was not registed.
      */
-    ComponentProvider.prototype.resolve = function(type) {
+    /*ComponentProvider.prototype.resolve = function(type) {
         for (var index = 0; index < this.types.length; index++) {
             if (this.types[index] === type) {
                 return new this.types[index]();
@@ -288,7 +326,7 @@
         }
 
         return null;
-    };
+    };*/
     /**
      * Registered types.
      * @memberof ursa.ComponentProvider
@@ -296,6 +334,6 @@
      * @public
      * @member {Array<function>} types
      */
-    ComponentProvider.prototype.types = null;
-    ComponentProvider.prototype._memberType = null;
+    /*ComponentProvider.prototype.types = null;
+    ComponentProvider.prototype._memberType = null;*/
 }(namespace("ursa")));

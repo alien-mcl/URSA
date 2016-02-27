@@ -3,17 +3,41 @@
     "use strict";
 
     /**
+     * Represents a general exception.
+     * @memberof ursa
+     * @name Exception
+     * @public
+     * @class
+     * @extends Error
+     * @param {string} message Message of the exception.
+     */
+    var Exception = (namespace.Exception = function(message) {
+        if (!this.message) {
+            this.message = message;
+        }
+
+        var error = Error.prototype.constructor.call(this, this.message);
+        error.name = this.name = this.constructor.toString();
+        Object.defineProperty(this, "stack", { get: function() { return error.stack; } });
+    })[":"](Error);
+    Exception.toString = function() { return "ursa.Exception"; };
+
+    /**
      * Represents an expression where an argument was faulty for some reason.
      * @memberof ursa
      * @name ArgumentException
      * @public
      * @class
-     * @extends Error
+     * @extends ursa.Exception
      * @param {string} argumentName Name of the faulty argument.
      */
     var ArgumentException = (namespace.ArgumentException = function(argumentName) {
-        Error.prototype.constructor.call(this, String.format("Argument '{0}' is invalid.", argumentName));
-    })[":"](Error);
+        if (!this.message) {
+            this.message = String.format("Argument '{0}' is invalid.", argumentName);
+        }
+
+        Exception.prototype.constructor.call(this, this.message);
+    })[":"](Exception);
     ArgumentException.toString = function() { return "ursa.ArgumentException"; };
 
     /**
@@ -26,7 +50,11 @@
      * @param {string} argumentName Name of the argument that was null.
      */
     var ArgumentNullException = (namespace.ArgumentNullException = function(argumentName) {
-        Error.prototype.constructor.call(this, String.format("Argument '{0}' cannot be null.", argumentName));
+        if (!this.message) {
+            this.message = String.format("Argument '{0}' cannot be null.", argumentName);
+        }
+
+        ArgumentException.prototype.constructor.call(this, this.message);
     })[":"](ArgumentException);
     ArgumentNullException.toString = function() { return "ursa.ArgumentNullException"; };
 
@@ -40,7 +68,11 @@
      * @param {string} argumentName Name of the argument that was out of range.
      */
     var ArgumentOutOfRangeException = (namespace.ArgumentOutOfRangeException = function(argumentName) {
-        Error.prototype.constructor.call(this, String.format("Argument '{0}' is out of range.", argumentName));
+        if (!this.message) {
+            this.message = String.format("Argument '{0}' is out of range.", argumentName);
+        }
+
+        ArgumentException.prototype.constructor.call(this, this.message);
     })[":"](ArgumentException);
     ArgumentOutOfRangeException.toString = function() { return "ursa.ArgumentOutOfRangeException"; };
 
@@ -50,12 +82,12 @@
      * @name InvalidOperationException
      * @public
      * @class
-     * @extends Error
+     * @extends ursa.Exception
      * @param {string} message Message of the exception.
      */
     var InvalidOperationException = (namespace.InvalidOperationException = function() {
-        Error.prototype.constructor.apply(this, arguments);
-    })[":"](Error);
+        Exception.prototype.constructor.apply(this, arguments);
+    })[":"](Exception);
     InvalidOperationException.toString = function() { return "ursa.InvalidOperationException"; };
 
     /**
@@ -456,6 +488,13 @@
         return result;
     };
 
+    var IComponentFactory = namespace.IComponentFactory = function() {
+        throw new InvalidOperationException("Cannot instantiate interface ursa.IComponentFactory.");
+    };
+    IComponentFactory.resolve = function() {};
+    IComponentFactory.resolveAll = function() {};
+    IComponentFactory.toString = function() { return "ursa.IComponentFactory"; };
+
     /**
      * An abstract of the type resolver.
      * @memberof ursa
@@ -498,8 +537,20 @@
      * @member {ursa.Container} container
      */
     Object.defineProperty(Resolver.prototype, "container", { enumerable: false, configurable: false, writable: true, value: null });
+    var _Resolver = {};
+    _Resolver.normalize = function(dependency, names) {
+        for (var nameIndex = 0; nameIndex < names.length; nameIndex++) {
+            var name = new RegExp(names[nameIndex]).exec(dependency);
+            if ((name !== null) && (name.length > 1)) {
+                dependency = name[1];
+                break;
+            }
+        }
 
-    var arrayIndicators = ["arrayOf", "collectionOf", "enumerationOf"];
+        return dependency;
+    };
+
+    var arrayIndicators = ["^arrayOf(.*)", "^collectionOf(.*)", "^enumerationOf(.*)"];
     /**
      * Resolves arrays of types.
      * @memberof ursa
@@ -510,11 +561,11 @@
     var ArrayResolver = (namespace.ArrayResolver = function() {})[":"](Resolver);
     ArrayResolver.prototype.isApplicableTo = function(dependency) {
         Resolver.prototype.isApplicableTo.apply(this, arguments);
-        var normalizedDependency = _ArrayResolver.normalize.call(this, dependency);
+        var normalizedDependency = _Resolver.normalize.call(this, dependency, arrayIndicators);
         return (normalizedDependency !== dependency);
     };
     ArrayResolver.prototype.resolve = function(dependency, dependencyStack) {
-        dependency = _ArrayResolver.normalize.call(this, dependency);
+        dependency = _Resolver.normalize.call(this, dependency, arrayIndicators);
         var result = [];
         var registrationTypes = this.container.findServices(dependency);
         for (var index = 0; index < registrationTypes.length; index++) {
@@ -525,18 +576,6 @@
         }
 
         return result;
-    };
-    var _ArrayResolver = {};
-    _ArrayResolver.normalize = function(dependency) {
-        for (var indicatorIndex = 0; indicatorIndex < arrayIndicators.length; indicatorIndex++) {
-            var arrayIndicator = arrayIndicators[indicatorIndex];
-            if (dependency.indexOf(arrayIndicator) === 0) {
-                dependency = dependency.substring(arrayIndicator.length);
-                break;
-            }
-        }
-
-        return dependency;
     };
 
     /**
@@ -549,7 +588,9 @@
     var InstanceResolver = (namespace.InstanceResolver = function() {})[":"](Resolver);
     InstanceResolver.prototype.isApplicableTo = function(dependency) {
         Function.requiresArgument("dependency", dependency, "string");
-        var normalizedDependency = _ArrayResolver.normalize.call(this, dependency);
+        var normalizedDependency = _Resolver.normalize.call(this, dependency, arrayIndicators);
+        normalizedDependency = _Resolver.normalize.call(this, normalizedDependency, typeIndicators);
+        normalizedDependency = _Resolver.normalize.call(this, normalizedDependency, factoryIndicators);
         return (normalizedDependency === dependency);
     };
     InstanceResolver.prototype.resolve = function(dependency, dependencyStack) {
@@ -561,6 +602,65 @@
         return null;
     };
 
+    var typeIndicators = ["(.*)Type$", "(.*)Types$"];
+    /**
+     * Resolves types themselves.
+     * @memberof ursa
+     * @name TypeResolver
+     * @public
+     * @class
+     */
+    var TypeResolver = (namespace.TypeResolver = function() {})[":"](Resolver);
+    TypeResolver.prototype.isApplicableTo = function(dependency) {
+        Function.requiresArgument("dependency", dependency, "string");
+        var normalizedDependency = _Resolver.normalize.call(this, dependency, typeIndicators);
+        return (normalizedDependency !== dependency);
+    };
+    TypeResolver.prototype.resolve = function(dependency, dependencyStack) {
+        var normalizedDependency = _Resolver.normalize.call(this, dependency, arrayIndicators);
+        var isArray = dependency !== normalizedDependency;
+        dependency = _Resolver.normalize.call(this, normalizedDependency, typeIndicators);
+        var serviceTypes = this.container.findServices(dependency);
+        return (isArray ? serviceTypes : (serviceTypes.length > 0 ? serviceType[0] : null));
+    };
+
+    var factoryIndicators = ["(.*)Factory$", "(.*)Factory$"];
+    /**
+     * Resolves component factories.
+     * @memberof ursa
+     * @name FactoryResolver
+     * @public
+     * @class
+     */
+    var FactoryResolver = (namespace.FactoryResolver = function() {})[":"](Resolver);
+    FactoryResolver.prototype.isApplicableTo = function(dependency) {
+        Function.requiresArgument("dependency", dependency, "string");
+        var normalizedDependency = _Resolver.normalize.call(this, dependency,factoryIndicators);
+        return (normalizedDependency !== dependency);
+    };
+    FactoryResolver.prototype.resolve = function(dependency, dependencyStack) {
+        var container = this.container;
+        dependency = _Resolver.normalize.call(this, dependency, factoryIndicators);
+        var dependencyArray = "arrayOf" + dependency.substring(0, 1).toUpperCase() + dependency.substring(1);
+        var instanceResolver = _Container.findResolver.call(container, dependency);
+        var arrayResolver = _Container.findResolver.call(container, dependencyArray);
+        if ((instanceResolver === null) && (arrayResolver === null)) {
+            return null;
+        }
+
+        var factory = {};
+        factory.resolve = function() {
+            return instanceResolver.resolve(dependency, []);
+        };
+
+        factory.resolveAll = function() {
+            return arrayResolver.resolve(dependencyArray, []);
+        };
+
+        return factory;
+    };
+
+    var forbiddenNames = ["provider", "factory"];
     /**
      * Inverse of Control container for resolving instances of given types.
      * @memberof ursa
@@ -571,7 +671,10 @@
     var Container = namespace.Container = function() {
         this._registrations = new RegistrationsCollection(this);
         this._resolvers = [];
-        this.withResolver(new InstanceResolver()).withResolver(new ArrayResolver());
+        this.withResolver(new FactoryResolver())
+            .withResolver(new TypeResolver())
+            .withResolver(new ArrayResolver())
+            .withResolver(new InstanceResolver());
     };
     Object.defineProperty(Container.prototype, "_registrations", { enumerable: false, configurable: false, writable: true, value: null });
     Object.defineProperty(Container.prototype, "_resolvers", { enumerable: false, configurable: false, writable: true, value: null });
@@ -614,29 +717,96 @@
         return this;
     };
     /**
-     * Resolves an instance of a given type.
+     * Resolves an instance(s) of a given type.
      * @memberof ursa
      * @public
      * @instance
      * @member {object} resolve
-     * @param {Function} type Type to resolve instance of.
+     * @param {Function|Array<Function>} type Type to resolve instance of. If argument is an array, array of types will be returned.
+     * @returns {object|Array<object>}
      */
     Container.prototype.resolve = function(type) {
-        Function.requiresArgument("type", type, Function);
-        var registration = null;
-        for (var index = 0; index < this._registrations.length; index++) {
-            var currentRegistration = this._registrations[index];
-            if ((currentRegistration._serviceType.prototype instanceof type) || (currentRegistration._serviceType === type)) {
-                registration = currentRegistration;
-                break;
+        Function.requiresArgument("type", type);
+        var isArray = (type instanceof Array);
+        if (isArray) {
+            if (type.length !== 1) {
+                throw new ArgumentOutOfRangeException("type");
+            }
+
+            type = type[0];
+        }
+        else {
+            if (!(type instanceof Function)) {
+                throw new ArgumentOutOfRangeException("type");
             }
         }
 
-        if (registration === null) {
+        var index;
+        var result = [];
+        for (index = 0; index < this._registrations.length; index++) {
+            var currentRegistration = this._registrations[index];
+            if ((currentRegistration._serviceType.prototype instanceof type) || (currentRegistration._serviceType === type)) {
+                result.push(currentRegistration);
+                if (!isArray) {
+                    break;
+                }
+            }
+        }
+
+        if ((!isArray) && (result.length === 0)) {
             throw new InvalidOperationException(String.format("There are no components registered for service type of '{0}'.", type.toString()));
         }
 
-        return this.resolveInternal(registration, []);
+        for (index = 0; index < result.length; index++) {
+            result[index] = this.resolveInternal(result[index], []);
+        }
+
+        return (isArray ? result : result[0]);
+    };
+    /**
+     * Resolves type(s) implementing a given type.
+     * @memberof ursa
+     * @public
+     * @instance
+     * @member {object} resolveType
+     * @param {Function|Array<Function>} type Type to resolve instance of. If argument is an array, array of types will be returned.
+     * @returns {Function|Array<Function>}
+     */
+    Container.prototype.resolveType = function(type) {
+        Function.requiresArgument("type", type);
+        var isArray = (type instanceof Array);
+        if (isArray) {
+            if (type.length !== 1) {
+                throw new ArgumentOutOfRangeException("type");
+            }
+
+            type = type[0];
+        }
+        else {
+            if (!(type instanceof Function)) {
+                throw new ArgumentOutOfRangeException("type");
+            }
+        }
+
+        var result = [];
+        for (var index = 0; index < this._registrations.length; index++) {
+            var currentRegistration = this._registrations[index];
+            if ((currentRegistration._implementationType !== null) && 
+                ((currentRegistration._serviceType.prototype instanceof type) || (currentRegistration._serviceType === type))) {
+                if (isArray) {
+                    result.push(currentRegistration._implementationType);
+                }
+                else {
+                    return currentRegistration._implementationType;
+                }
+            }
+        }
+
+        if (isArray) {
+            return result;
+        }
+
+        throw new InvalidOperationException(String.format("There are no components registered for service type of '{0}'.", type.toString()));
     };
     Container.toString = function() { return "ursa.Container"; };
     /**
@@ -649,28 +819,19 @@
      */
     Object.defineProperty(Container.prototype, "findType", { enumerable: false, configurable: false, writeable: false, value: function(dependency) {
         dependency = dependency.toLowerCase();
-        for (var index = 0; index < this._registrations.length; index++) {
-            var registration = this._registrations[index];
+        var result = _Container.findTypeByNames.call(this, dependency, function(registration) {
             var typeNames = [registration._name];
             if ((registration._implementationType !== null) && (typeNames[0] !== registration._implementationType.toString())) {
                 typeNames.push(registration._implementationType.toString());
             }
 
-            for (var typeNameIndex = 0; typeNameIndex < typeNames.length; typeNameIndex++) {
-                var typeName = typeNames[typeNameIndex];
-                if (dependency === typeName) {
-                    return registration;
-                }
-
-                typeName = typeName.split(".");
-                typeName = typeName[typeName.length - 1];
-                if (typeName.toLowerCase().indexOf(dependency) !== -1) {
-                    return registration;
-                }
-            }
+            return typeNames;
+        });
+        if (result !== null) {
+            return result;
         }
-
-        return null;
+        
+        return _Container.findTypeByNames.call(this, dependency, function(registration) { return [registration._serviceType.toString()]; });
     } });
     /**
      * Searches registration for a given service name.
@@ -692,8 +853,9 @@
             }
 
             typeName = typeName.split(".");
-            typeName = typeName[typeName.length - 1];
-            if (typeName.toLowerCase().indexOf(dependency) !== -1) {
+            typeName = typeName[typeName.length - 1].toLowerCase();
+            var matchingName = typeName.replace(dependency, "");
+            if ((matchingName !== typeName) && ((matchingName.length === 0) || ((matchingName.length > 0) && (forbiddenNames.indexOf(matchingName) === -1)))) {
                 result.push(registration);
             }
         }
@@ -729,19 +891,23 @@
         this._registrations.push(registration);
         return this;
     };
+    _Container.findResolver = function(dependency) {
+        var resolver = null;
+        for (var resolverIndex = 0; resolverIndex < this._resolvers.length; resolverIndex++) {
+            if (this._resolvers[resolverIndex].isApplicableTo(dependency)) {
+                resolver = this._resolvers[resolverIndex];
+                break;
+            }
+        }
+
+        return resolver;
+    };
     _Container.resolveArguments = function(registration, dependencyStack) {
         var args = [];
         for (var index = 0; index < registration._dependencies.length; index++) {
             var argumentInstance = null;
             var dependency = registration._dependencies[index];
-            var resolver = null;
-            for (var resolverIndex = 0; resolverIndex < this._resolvers.length; resolverIndex++) {
-                if (this._resolvers[resolverIndex].isApplicableTo(dependency)) {
-                    resolver = this._resolvers[resolverIndex];
-                    break;
-                }
-            }
-
+            var resolver = _Container.findResolver.call(this, dependency);
             if (resolver !== null) {
                 argumentInstance = resolver.resolve(dependency, dependencyStack);
             }
@@ -771,5 +937,25 @@
         }
 
         return instance;
+    };
+    _Container.findTypeByNames = function(dependency, typeNameSelector) {
+        for (var index = 0; index < this._registrations.length; index++) {
+            var registration = this._registrations[index];
+            var typeNames = typeNameSelector(registration);
+            for (var typeNameIndex = 0; typeNameIndex < typeNames.length; typeNameIndex++) {
+                var typeName = typeNames[typeNameIndex];
+                if (dependency === typeName) {
+                    return registration;
+                }
+
+                typeName = typeName.split(".");
+                typeName = typeName[typeName.length - 1];
+                if (typeName.toLowerCase().indexOf(dependency) !== -1) {
+                    return registration;
+                }
+            }
+        }
+
+        return null;
     };
 }(namespace("ursa")));

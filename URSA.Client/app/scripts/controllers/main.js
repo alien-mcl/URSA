@@ -49,6 +49,10 @@
                     $scope.$root.documentationUrl = apiDocumentationOperation.createCallUrl();
                 }
 
+                if (!$scope.$root.$$phase) {
+                    $scope.$root.$apply();
+                }
+
                 return apiDocumentation;
             });
     }]);
