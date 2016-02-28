@@ -6,11 +6,11 @@
         Function.requiresArgument("$q", $q);
         Function.requiresArgument("$http", $http);
         if (typeof($q.defer) !== "function") {
-            throw new ursa.ArgumentOutOfRangeException("$q");
+            throw new joice.ArgumentOutOfRangeException("$q");
         }
 
         if (typeof($http.get) !== "function") {
-            throw new ursa.ArgumentOutOfRangeException("$http");
+            throw new joice.ArgumentOutOfRangeException("$http");
         }
 
         this._q = $q;
@@ -49,7 +49,7 @@
     var AngularAuthenticationProvider = (namespace.AngularAuthenticationProvider = function(base64Encoder, promiseProvider, $http) {
         ursa.web.AuthenticationProvider.prototype.constructor.apply(this, arguments);
         if (typeof($http.get) !== "function") {
-            throw new ursa.ArgumentOutOfRangeException("$http");
+            throw new joice.ArgumentOutOfRangeException("$http");
         }
 
         this._http = $http;
@@ -99,14 +99,14 @@
 (function() {
     "use strict";
 
-    var container = new ursa.Container();
-    container.register(ursa.Component.for(ursa.model.JsonLdProcessor).implementedBy(ursa.model.JsonLdProcessor).lifestyleSingleton());
-    container.register(ursa.Component.for(ursa.Base64Encoder).implementedBy(ursa.Base64Encoder).lifestyleSingleton());
-    container.register(ursa.Classes.implementing(ursa.model.FilterExpressionProvider).lifestyleSingleton());
-    container.register(ursa.Component.for(ursa.model.FilterProvider).implementedBy(ursa.model.FilterProvider).lifestyleSingleton());
-    container.register(ursa.Classes.implementing(ursa.view.ViewRenderer));
-    container.register(ursa.Component.for(ursa.view.ViewRendererProvider).implementedBy(ursa.view.ViewRendererProvider).lifestyleSingleton());
-    container.register(ursa.Component.for(ursa.model.ApiDocumentationProvider).implementedBy(ursa.model.ApiDocumentationProvider).lifestyleSingleton());
+    var container = new joice.Container();
+    container.register(joice.Component.for(ursa.model.JsonLdProcessor).implementedBy(ursa.model.JsonLdProcessor).lifestyleSingleton());
+    container.register(joice.Component.for(ursa.Base64Encoder).implementedBy(ursa.Base64Encoder).lifestyleSingleton());
+    container.register(joice.Classes.implementing(ursa.model.FilterExpressionProvider).lifestyleSingleton());
+    container.register(joice.Component.for(ursa.model.FilterProvider).implementedBy(ursa.model.FilterProvider).lifestyleSingleton());
+    container.register(joice.Classes.implementing(ursa.view.ViewRenderer));
+    container.register(joice.Component.for(ursa.view.ViewRendererProvider).implementedBy(ursa.view.ViewRendererProvider).lifestyleSingleton());
+    container.register(joice.Component.for(ursa.model.ApiDocumentationProvider).implementedBy(ursa.model.ApiDocumentationProvider).lifestyleSingleton());
     var module;
     try {
         module = angular.module("ursa");
@@ -117,21 +117,21 @@
 
     var injector = angular.injector(["ng", "ursa"]);
     module.
-    config(function($httpProvider, $provide) {
+    config(function($httpProvider) {
         $httpProvider.defaults.headers.common["X-Requested-With"] = "XMLHttpRequest";
         $httpProvider.interceptors.push("authenticationInterceptor");
-        container.register(ursa.Component.for(ursa.IPromiseProvider).named("ursa.angular.AngularPromiseProvider").usingFactoryMethod(function() {
+        container.register(joice.Component.for(ursa.IPromiseProvider).named("ursa.angular.AngularPromiseProvider").usingFactoryMethod(function() {
             var result;
             injector.invoke(["$q", function($q) { result = $q; }]);
             return result;
         }).lifestyleSingleton());
-        container.register(ursa.Component.for(ursa.web.HttpService).named("ursa.web.angular.AngularHttpService").usingFactoryMethod(function() {
+        container.register(joice.Component.for(ursa.web.HttpService).named("ursa.web.angular.AngularHttpService").usingFactoryMethod(function() {
             var httpService;
             var qService;
             injector.invoke(["$q", "$http", function($q, $http) { qService = $q; httpService = $http; }]);
             return new ursa.web.angular.AngularHttpService(qService, httpService);
         }).lifestyleSingleton());
-        container.register(ursa.Component.for(ursa.web.AuthenticationProvider).named("ursa.web.angular.AuthenticationProvider").usingFactoryMethod(function() {
+        container.register(joice.Component.for(ursa.web.AuthenticationProvider).named("ursa.web.angular.AuthenticationProvider").usingFactoryMethod(function() {
             var httpService;
             injector.invoke(["$http", function($http) { httpService = $http; }]);
             return new ursa.web.angular.AngularAuthenticationProvider(container.resolve(ursa.Base64Encoder), container.resolve(ursa.IPromiseProvider), httpService);

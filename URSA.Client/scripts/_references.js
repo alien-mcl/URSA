@@ -12,10 +12,10 @@
 ///<reference path="/bower_components/es6-promise/promise.js" />
 ///<reference path="/bower_components/jsonld/js/jsonld.js" />
 ///<reference path="/bower_components/uri-templates/uri-templates.js" />
+///<reference path="/bower_components/joice/dist/joice.js" />
 
 /// <reference path="/app/scripts/app.js" />
 /// <reference path="/app/scripts/ursa/prototype.js" />
-/// <reference path="/app/scripts/ursa/ioc.js" />
 /// <reference path="/app/scripts/ursa/abstract.js" />
 /// <reference path="/app/scripts/ursa/model.js" />
 /// <reference path="/app/scripts/ursa/view.js" />

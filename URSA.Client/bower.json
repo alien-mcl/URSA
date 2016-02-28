@@ -13,9 +13,10 @@
         "angular-touch": "^1.3.0",
         "angular-bootstrap": "~0.14.0",
         "jsonld": "~0.4.1",
-        "uri-templates": "~0.1.9"
+        "uri-templates": "~0.1.9",
+        "joice": "*"
     },
-        "devDependencies": {
+    "devDependencies": {
         "angular-mocks": "^1.3.0"
     },
     "appPath": "app",

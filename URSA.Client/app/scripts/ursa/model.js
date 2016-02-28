@@ -2,8 +2,6 @@
 (function(namespace) {
     "use strict";
 
-    var invalidArgumentPassed = "Invalid {0} passed.";
-
     var getById = function(id) {
         for (var index = 0; index < this.length; index++) {
             if (this[index]["@id"] === id) {
@@ -376,14 +374,13 @@
      * @param {ursa.model.ApiMember} owner Owner if this instance being created.
      * @param {object} [resource] JSON-LD resource describing this API member.
      */
-    var TypeConstrainedApiMember = namespace.TypeConstrainedApiMember = function(owner, resource) {
+    var TypeConstrainedApiMember = (namespace.TypeConstrainedApiMember = function(owner, resource) {
         ApiMember.prototype.constructor.apply(this, arguments);
         var value;
         this.required = (getValue.call(resource, hydra.required) || this.required) || false;
         this.minOccurances = (this.required ? 1 : 0);
         this.maxOccurances = (((value = getValue.call(resource, ursa.singleValue)) !== undefined ? value : false) ? 1 : this.maxOccurances);
-    };
-    TypeConstrainedApiMember[":"](ApiMember);
+    })[":"](ApiMember);
     /**
      * Min occurances of the instance.
      * @memberof ursa.model.TypeConstrainedApiMember
@@ -437,7 +434,7 @@
      * @param {object} [resource] JSON-LD resource describing this API member.
      * @param {object} [graph] JSON-LD graph of resources.
      */
-    var RangeTypeConstrainedApiMember = namespace.RangeTypeConstrainedApiMember = function(owner, resource, graph) {
+    var RangeTypeConstrainedApiMember = (namespace.RangeTypeConstrainedApiMember = function(owner, resource, graph) {
         TypeConstrainedApiMember.prototype.constructor.apply(this, arguments);
         var range = (resource[rdfs.range] ? resource[rdfs.range][0] : null);
         if (range !== null) {
@@ -448,8 +445,7 @@
             this.range = getClass.call(range, this, graph, context);
             typeConstrainedMerge.call(this, context);
         }
-    };
-    RangeTypeConstrainedApiMember[":"](TypeConstrainedApiMember);
+    })[":"](TypeConstrainedApiMember);
     /**
      * Range of values.
      * @memberof ursa.model.RangeTypeConstrainedApiMember
@@ -479,11 +475,11 @@
      * @param {object} [resource] JSON-LD resource describing this API member.
      * @param {object} [graph] JSON-LD graph of resources.
      */
-    var PropertyRangeTypeConstrainedApiMember = namespace.PropertyRangeTypeConstrainedApiMember = function (owner, resource, graph) {
+    var PropertyRangeTypeConstrainedApiMember = (namespace.PropertyRangeTypeConstrainedApiMember = function(owner, resource, graph) {
         RangeTypeConstrainedApiMember.prototype.constructor.apply(this, arguments);
         var property = resource[hydra.property];
         if ((property === undefined) || (property === null) || (!(property instanceof Array)) || (property.length === 0)) {
-            throw new Error(invalidArgumentPassed.replace("{0}", "resource"));
+            throw new joice.ArgumentOutOfRangeException("resource");
         }
 
         property = graph.getById(this.property = property[0]["@id"] || this.property);
@@ -496,8 +492,7 @@
             this.range = getClass.call(range, this, graph, context);
             typeConstrainedMerge.call(this, context);
         }
-    };
-    PropertyRangeTypeConstrainedApiMember[":"](RangeTypeConstrainedApiMember);
+    })[":"](RangeTypeConstrainedApiMember);
     /**
      * Target instance property.
      * @memberof ursa.model.PropertyRangeTypeConstrainedApiMember
@@ -536,7 +531,7 @@
      * @param {object} [resource] JSON-LD resource describing this API member.
      * @param {object} [graph] JSON-LD graph of resources.
      */
-    var SupportedProperty = namespace.SupportedProperty = function(owner, supportedProperty, graph) {
+    var SupportedProperty = (namespace.SupportedProperty = function(owner, supportedProperty, graph) {
         PropertyRangeTypeConstrainedApiMember.prototype.constructor.apply(this, arguments);
         var property = graph.getById(this.property);
         this.key = (property["@type"] || []).indexOf(owl.InverseFunctionalProperty) !== -1;
@@ -547,8 +542,7 @@
         this.sortable = (this.maxOccurances > 1) && (this.range !== null) && (this.range.isList);
         this.supportedOperations = [];
         getOperations.call(this, supportedProperty, graph, hydra.operation);
-    };
-    SupportedProperty[":"](PropertyRangeTypeConstrainedApiMember);
+    })[":"](PropertyRangeTypeConstrainedApiMember);
     /**
      * Marks a property as readable.
      * @memberof ursa.model.SupportedProperty
@@ -649,12 +643,11 @@
      * @param {ursa.model.ApiMember} owner Owner if this instance being created.
      * @param {object} [resource] JSON-LD resource describing this API member.
      */
-    var Mapping = namespace.Mapping = function(owner, mapping) {
+    var Mapping = (namespace.Mapping = function(owner, mapping) {
         TypeConstrainedApiMember.prototype.constructor.apply(this, arguments);
         this.variable = getValue.call(mapping, hydra.variable);
         this.property = getValue.call(mapping, hydra.property);
-    };
-    Mapping[":"](TypeConstrainedApiMember);
+    })[":"](TypeConstrainedApiMember);
     /**
      * Name of the template variable.
      * @memberof ursa.model.Mapping
@@ -711,7 +704,7 @@
      * @param {object} [template] JSON-LD resource describing this API member.
      * @param {object} [graph] JSON-LD graph of resources.
      */
-    var Operation = namespace.Operation = function(owner, supportedOperation, template, graph) {
+    var Operation = (namespace.Operation = function(owner, supportedOperation, template, graph) {
         ApiMember.prototype.constructor.apply(this, arguments);
         var index;
         if ((template) && (template[hydra.template])) {
@@ -760,8 +753,7 @@
         };
         setupTypeCollection.call(this, supportedOperation[hydra.returns], this.returns);
         setupTypeCollection.call(this, supportedOperation[hydra.expects], this.expects);
-    };
-    Operation[":"](ApiMember);
+    })[":"](ApiMember);
     /**
      * List of allowed HTTP verbs for this operation.
      * @memberof ursa.model.Mapping
@@ -884,10 +876,9 @@
      * @param {ursa.model.ApiMember} owner Owner if this instance being created.
      * @param {object} [resource] JSON-LD resource describing this API member.
      */
-    var DataType = namespace.DataType = function() {
+    var DataType = (namespace.DataType = function() {
         TypeConstrainedApiMember.prototype.constructor.apply(this, arguments);
-    };
-    DataType[":"](TypeConstrainedApiMember);
+    })[":"](TypeConstrainedApiMember);
     DataType.toString = function() { return "ursa.model.DataType"; };
 
     /**
@@ -902,7 +893,7 @@
      * @param {object} [graph] JSON-LD graph of resources.
      * @param {boolean} [deferredInitialization] Defers properties and operations initialization so the class can be dereferenced multiple times.
      */
-    var Class = namespace.Class = function(owner, supportedClass, graph, deferredInitialization) {
+    var Class = (namespace.Class = function(owner, supportedClass, graph, deferredInitialization) {
         TypeConstrainedApiMember.prototype.constructor.apply(this, arguments);
         if (typeof (deferredInitialization) !== "boolean") {
             deferredInitialization = false;
@@ -913,8 +904,7 @@
         if (!deferredInitialization) {
             classCompleteInitialization.call(this, supportedClass, graph);
         }
-    };
-    Class[":"](TypeConstrainedApiMember);
+    })[":"](TypeConstrainedApiMember);
     var classCompleteInitialization = function (supportedClass, graph) {
         var index;
         var subClassOf = supportedClass[rdfs.subClassOf] || [];
@@ -1197,11 +1187,11 @@
         }
 
         if (typeof(entryPoint) !== "string") {
-            throw new Error(invalidArgumentPassed.replace("{0}", "entryPoint"));
+            throw new joice.ArgumentOutOfRangeException("entryPoint");
         }
 
         if ((entryPoint.length === 0) || (entryPoint.match(/^http[s]?:\/\//i) === null)) {
-            throw new Error(invalidArgumentPassed.replace("{0}", "entryPoint"));
+            throw new joice.ArgumentOutOfRangeExceptio("entryPoint");
         }
 
         var that = this;
@@ -1725,7 +1715,7 @@
      */
     var ApiDocumentation = namespace.ApiDocumentation = function(graph) {
         if ((graph === undefined) || (graph === null) || (!(graph instanceof Array))) {
-            throw new Error(invalidArgumentPassed.replace("{0}", "graph"));
+            throw new joice.ArgumentOutOfRangeExceptio("graph");
         }
 
         ApiMember.prototype.constructor.call(this, null, null);

@@ -137,7 +137,7 @@
     var FilterProvider = namespace.FilterProvider = function(arrayOfFilterExpressionProvider) {
         Function.requiresArgument("filterExpressionProvider", arrayOfFilterExpressionProvider, Array);
         if (arrayOfFilterExpressionProvider.length === 0) {
-            throw new ursa.ArgumentOutOfRangeException("arrayOfFilterExpressionProvider");
+            throw new joice.ArgumentOutOfRangeException("arrayOfFilterExpressionProvider");
         }
 
         this._filterExpressionProviders = arrayOfFilterExpressionProvider;
@@ -154,7 +154,7 @@
     FilterProvider.prototype.resolve = function(predicate) {
         Function.requiresArgument("predicate", predicate, "string");
         if (predicate.length === 0) {
-            throw new ursa.ArgumentOutOfRangeException("predicate");
+            throw new joice.ArgumentOutOfRangeException("predicate");
         }
 
         for (var index = 0; index < this._filterExpressionProviders.length; index++) {

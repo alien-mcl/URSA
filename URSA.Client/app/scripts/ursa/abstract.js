@@ -3,14 +3,14 @@
     "use strict";
 
     var IPromise = namespace.IPromise = function() {
-        throw new ursa.InvalidOperationException("Cannot instantiate interface ursa.IPromise.");
+        throw new joice.InvalidOperationException("Cannot instantiate interface ursa.IPromise.");
     };
     IPromise.then = function() {};
     IPromise.catch = function() {};
     IPromise.toString = function() { return "ursa.IPromise"; };
 
     var IDeferred = namespace.IDeferred = function() {
-        throw new ursa.InvalidOperationException("Cannot instantiate interface ursa.IDeferred.");
+        throw new joice.InvalidOperationException("Cannot instantiate interface ursa.IDeferred.");
     };
     IDeferred.promise = null;
     IDeferred.resolve = function() {};
@@ -18,7 +18,7 @@
     IDeferred.toString = function() { return "ursa.IPromise"; };
 
     var IPromiseProvider = namespace.IPromiseProvider = function() {
-        throw new ursa.InvalidOperationException("Cannot instantiate interface ursa.IPromiseProvider.");
+        throw new joice.InvalidOperationException("Cannot instantiate interface ursa.IPromiseProvider.");
     };
     IPromiseProvider.when = function() {};
     IPromiseProvider.defer = function() {};
@@ -67,7 +67,7 @@
     Base64Encoder.prototype.decode = function(input) {
         Encoder.prototype.decode.apply(this, arguments);
         if (/[^A-Za-z0-9\+\/\=]/g.exec(input)) {
-            throw new ArgumentOutOfRangeException("input");
+            throw new joice.ArgumentOutOfRangeException("input");
         }
 
         input = input.replace(/[^A-Za-z0-9\+\/\=]/g, "");
@@ -106,7 +106,7 @@
         Function.requiresArgument("url", url, "string");
         Function.requiresOptionalArgument("headers", headers, Object);
         if (!url.match(/^http[s]?:\/\//)) {
-            throw new ursa.ArgumentOutOfRangeException("url");
+            throw new joice.ArgumentOutOfRangeException("url");
         }
 
         this.url = url;
@@ -126,7 +126,7 @@
         Function.requiresArgument("statusText", statusText, "string");
         Function.requiresOptionalArgument("headers", headers, Object);
         if (!url.match(/^http[s]?:\/\//)) {
-            throw new ursa.ArgumentOutOfRangeException("url");
+            throw new joice.ArgumentOutOfRangeException("url");
         }
 
         this.url = url;
@@ -165,7 +165,7 @@
             case "basic":
                 return this.basicAuthentication(userName, password);
             default:
-                throw new ursa.InvalidOperationException(String.format("Unsupported chellenge scheme '{0}'.", scheme));
+                throw new joice.InvalidOperationException(String.format("Unsupported chellenge scheme '{0}'.", scheme));
         }
     };
     AuthenticationProvider.prototype.basicAuthentication = function(userName, password) {
@@ -182,7 +182,7 @@
     "use strict";
 
     var IViewScope = namespace.IViewScope = function() {
-        throw new ursa.InvalidOperationException("Cannot instantiate interface ursa.view.IViewScope.");
+        throw new joice.InvalidOperationException("Cannot instantiate interface ursa.view.IViewScope.");
     };
     IViewScope.parentScope = null;
     IViewScope.rootScope = null;
