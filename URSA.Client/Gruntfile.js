@@ -300,15 +300,33 @@ module.exports = function(grunt) {
         //     }
         //   }
         // },
-        // uglify: {
-        //   dist: {
-        //     files: {
-        //       "<%= yeoman.dist %>/scripts/scripts.js": [
-        //         "<%= yeoman.dist %>/scripts/scripts.js"
-        //       ]
-        //     }
-        //   }
-        // },
+         uglify: {
+            options: {
+                mangle: {
+                    except: [
+                        "httpService",
+                        "jsonLdProcessor",
+                        "authenticationProvider",
+                        "filterProvider",
+                        "viewRendererFactory",
+                        "authenticationProvider",
+                        "filterProvider",
+                        "viewRendererProvider",
+                        "promiseProvider",
+                        "arrayOfFilterExpressionProvider",
+                        "base64Encoder"
+                    ]
+                }
+            },
+            dist: {
+                files: {
+                    "<%= yeoman.dist %>/scripts/scripts.js": [
+                        "<%= yeoman.dist %>/scripts/scripts.js"
+                    ]
+                }
+
+            }
+        },
         // concat: {
         //   dist: {}
         // },

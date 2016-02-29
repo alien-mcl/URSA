@@ -147,6 +147,7 @@ namespace URSA.Web.Http
 
         private ResponseInfo MakeListResponse(IRequestMapping requestMapping, IEnumerable resultingValues, object[] arguments, int totalItems = 0)
         {
+            var status = HttpStatusCode.OK;
             ResponseInfo result = (ResponseInfo)requestMapping.Target.Response;
             if ((arguments[0] != null) && (arguments[1] != null))
             {
@@ -155,15 +156,18 @@ namespace URSA.Web.Http
                 take = (take == 0 ? totalItems : Math.Min(take, resultingValues.Cast<object>().Count()));
                 var contentRangeHeaderValue = String.Format("members {0}-{1}/{2}", skip, Math.Max(0, take - 1), totalItems);
                 result.Headers.Add(new Header("Content-Range", contentRangeHeaderValue));
+                status = HttpStatusCode.PartialContent;
             }
 
-            return ObjectResponseInfo<object>.CreateInstance(
+            result = ObjectResponseInfo<object>.CreateInstance(
                 result.Encoding,
                 result.Request,
                 requestMapping.Operation.UnderlyingMethod.ReturnType,
                 resultingValues,
                 _converterProvider,
                 result.Headers);
+            result.Status = status;
+            return result;
         }
 
         private ResponseInfo MakeGetResponse(IRequestMapping requestMapping, object resultingValue)

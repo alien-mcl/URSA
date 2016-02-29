@@ -14,7 +14,7 @@ namespace URSA.Web.Http.Description
 
         private static readonly IDictionary<Verb, IEnumerable<HttpStatusCode>> ControllerCrudMethodStatusCodes = new Dictionary<Verb, IEnumerable<HttpStatusCode>>()
             {
-                { Verb.Empty, new[] { HttpStatusCode.OK } },
+                { Verb.Empty, new[] { HttpStatusCode.OK, HttpStatusCode.PartialContent } },
                 { Verb.GET, new[] { HttpStatusCode.OK } },
                 { Verb.POST, new[] { HttpStatusCode.Created, HttpStatusCode.BadRequest } },
                 { Verb.PUT, new[] { HttpStatusCode.NoContent, HttpStatusCode.NotFound, HttpStatusCode.Conflict } },
