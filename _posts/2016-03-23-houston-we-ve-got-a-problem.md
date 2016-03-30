@@ -9,4 +9,4 @@ I thought that having i.e. a collection class with a values range property holdi
 
 Currently I tend to move to a class description that holds it's properties and cardinality information. This will also take off this information from the properties themselves.
 
-I'm just a bit tired of these major changes and I'm gonna have some break once I'm done with that!
+I'm just a bit tired of these major changes and I'm gonna have some break once I'm done with that! I just wonder when I will be able to push all my changes back to GitHub?!?
