@@ -14,18 +14,18 @@
 ///<reference path="/bower_components/uri-templates/uri-templates.js" />
 ///<reference path="/bower_components/joice/dist/joice.js" />
 
-/// <reference path="/app/scripts/app.js" />
-/// <reference path="/app/scripts/ursa/prototype.js" />
-/// <reference path="/app/scripts/ursa/abstract.js" />
-/// <reference path="/app/scripts/ursa/model.js" />
-/// <reference path="/app/scripts/ursa/view.js" />
-/// <reference path="/app/scripts/ursa/filter.js" />
-/// <reference path="/app/scripts/ursa/angular-js/implementation.js" />
-/// <reference path="/app/scripts/services/configuration.js" />
-/// <reference path="/app/scripts/filters/as-id.js" />
-/// <reference path="/app/scripts/filters/stringify.js" />
-/// <reference path="/app/scripts/directives/ursa.js" />
-/// <reference path="/app/scripts/controllers/main.js" />
+///<reference path="/app/scripts/app.js" />
+///<reference path="/app/scripts/ursa/prototype.js" />
+///<reference path="/app/scripts/ursa/abstract.js" />
+///<reference path="/app/scripts/ursa/model.js" />
+///<reference path="/app/scripts/ursa/view.js" />
+///<reference path="/app/scripts/ursa/filter.js" />
+///<reference path="/app/scripts/ursa/angular-js/implementation.js" />
+///<reference path="/app/scripts/services/configuration.js" />
+///<reference path="/app/scripts/filters/as-id.js" />
+///<reference path="/app/scripts/filters/stringify.js" />
+///<reference path="/app/scripts/directives/ursa.js" />
+///<reference path="/app/scripts/controllers/main.js" />
 
-/// <reference path="/test/fixtures/api-documentation.js" />
-/// <reference path="/test/matchers/toBeOfType.js" />
+///<reference path="/test/fixtures/api-documentation.js" />
+///<reference path="/test/matchers/toBeOfType.js" />

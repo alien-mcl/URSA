@@ -17,7 +17,7 @@ using URSA.Web.Http.Description.Hydra;
 using URSA.Web.Http.Tests.Testing;
 using URSA.Web.Tests;
 
-namespace URSA.Http.Description.Tests.Given_instance_of_the
+namespace Given_instance_of_the
 {
     [TestClass]
     public class ApiEntryPointDescriptionBuilder_class

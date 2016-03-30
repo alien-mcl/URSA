@@ -1,4 +1,4 @@
-﻿/*globals xsd, ursa, guid, odata, namespace */
+﻿/*globals ursa, namespace, joice */
 (function(namespace) {
     "use strict";
 
@@ -143,14 +143,14 @@
     HttpResponse.prototype.headers = null;
     HttpResponse.prototype.data = null;
     HttpResponse.prototype.toString = function() { return (this.data ? this.data : String.format("Content-Type: {0}", this.headers["Content-Type"])); };
-    HttpResponse.toString = function() { return "ursa.web.HttpResponse"; }
+    HttpResponse.toString = function() { return "ursa.web.HttpResponse"; };
 
     var HttpService = namespace.HttpService = function() { };
     HttpService.prototype.sendRequest = function(request) {
         Function.requiresArgument("request", request, HttpRequest);
         return null;
     };
-    HttpService.toString = function() { return "ursa.web.HttpService"; }
+    HttpService.toString = function() { return "ursa.web.HttpService"; };
 
     var AuthenticationProvider = namespace.AuthenticationProvider = function(base64Encoder, promiseProvider) {
         Function.requiresArgument("base64Encoder", base64Encoder, ursa.Base64Encoder);
@@ -197,5 +197,5 @@
     IViewScope.broadcastEvent = function(eventName) {
         Function.requiresArgument("eventName", eventName, "string");
     };
-    IViewScope.toString = function() { return "ursa.web.IViewScope"; }
+    IViewScope.toString = function() { return "ursa.web.IViewScope"; };
 }(namespace("ursa.view")));

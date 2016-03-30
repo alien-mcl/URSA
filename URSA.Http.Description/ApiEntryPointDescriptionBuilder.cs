@@ -2,17 +2,11 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using Resta.UriTemplates;
 using RomanticWeb.Entities;
-using URSA.Reflection;
 using URSA.Web.Description;
 using URSA.Web.Description.Http;
-using URSA.Web.Http.Description;
 using URSA.Web.Http.Description.Hydra;
-using URSA.Web.Mapping;
 
 namespace URSA.Web.Http.Description
 {
@@ -57,7 +51,7 @@ namespace URSA.Web.Http.Description
         public void BuildDescription(IApiDocumentation apiDocumentation, IEnumerable<Uri> profiles)
         {
             ControllerInfo entryPointControllerInfo = null;
-            IHttpControllerDescriptionBuilder<EntryPointDescriptionController> entryPointcontrollerDescriptionBuilder = null;
+            IHttpControllerDescriptionBuilder<EntryPointDescriptionController> entryPointControllerDescriptionBuilder = null;
             foreach (var controllerDescriptionBuilder in _controllerDescriptionBuilders)
             {
                 var controllerDescriptionBuilderType = controllerDescriptionBuilder.GetType();
@@ -73,7 +67,7 @@ namespace URSA.Web.Http.Description
                 var controllerDescription = controllerDescriptionBuilder.BuildDescriptor();
                 if (controllerDescriptionBuilder is IHttpControllerDescriptionBuilder<EntryPointDescriptionController>)
                 {
-                    entryPointcontrollerDescriptionBuilder = (IHttpControllerDescriptionBuilder<EntryPointDescriptionController>)controllerDescriptionBuilder;
+                    entryPointControllerDescriptionBuilder = (IHttpControllerDescriptionBuilder<EntryPointDescriptionController>)controllerDescriptionBuilder;
                     entryPointControllerInfo = controllerDescription;
                     continue;
                 }
@@ -89,14 +83,14 @@ namespace URSA.Web.Http.Description
 
             if (entryPointControllerInfo != null)
             {
-                BuildEntryPointDescription(apiDocumentation, entryPointControllerInfo, entryPointcontrollerDescriptionBuilder);
+                BuildEntryPointDescription(apiDocumentation, entryPointControllerInfo, entryPointControllerDescriptionBuilder);
             }
         }
 
         private void BuildEntryPointDescription(
             IApiDocumentation apiDocumentation,
             ControllerInfo entryPointControllerInfo,
-            IHttpControllerDescriptionBuilder<EntryPointDescriptionController> entryPointcontrollerDescriptionBuilder)
+            IHttpControllerDescriptionBuilder<EntryPointDescriptionController> entryPointControllerDescriptionBuilder)
         {
             var classUri = apiDocumentation.Context.Mappings.MappingFor(typeof(IApiDocumentation)).Classes.Select(item => item.Uri).FirstOrDefault();
             var apiDocumentationClass = apiDocumentation.Context.Create<IClass>(classUri);
@@ -118,7 +112,6 @@ namespace URSA.Web.Http.Description
                 supportedOperation.Method.Add(operation.ProtocolSpecificCommand.ToString());
                 var returned = apiDocumentation.Context.Create<IClass>(apiDocumentation.CreateBlankId());
                 returned.SubClassOf.Add(apiDocumentationClass);
-                returned.SingleValue = true;
                 supportedOperation.Returns.Add(returned);
                 apiDocumentationClass.SupportedOperations.Add(supportedOperation);
             }

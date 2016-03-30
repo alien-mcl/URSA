@@ -71,6 +71,7 @@
     <Compile Include="Security\ResourceSecurityInfo.cs" />
     <Compile Include="Security\SecurableResourceInfoExtensions.cs" />
     <Compile Include="Security\SecuritySpecificationInfo.cs" />
+    <Compile Include="Web\IModelTransformer.cs" />
     <Compile Include="Web\IPostRequestHandler.cs" />
     <Compile Include="Web\IPreRequestHandler.cs" />
     <Compile Include="Web\UnauthenticatedAccessException.cs" />

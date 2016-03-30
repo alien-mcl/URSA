@@ -11,7 +11,7 @@ using URSA.Web.Http.Description.NamedGraphs;
 using URSA.Web.Http.Description.Tests;
 using URSA.Web.Http.Tests.Testing;
 
-namespace URSA.Http.Description.Tests.Given_instance_of_the
+namespace Given_instance_of_the
 {
     [TestClass]
     public class OwningResourceNamedGraphSelector_class

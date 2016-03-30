@@ -7,7 +7,6 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 using System;
-using System.Dynamic;
 using URSA.Web.Http;
 
 namespace {0}
@@ -15,6 +14,10 @@ namespace {0}
     [System.CodeDom.Compiler.GeneratedCode("URSA HTTP client proxy generation tool", "1.0")]
     public partial class {1}Client : Client
     {{
+        public {1}Client(Uri baseUri, string authenticationScheme) : base(baseUri, authenticationScheme)
+        {{
+        }}
+
         public {1}Client(Uri baseUri) : base(baseUri)
         {{
         }}{2}

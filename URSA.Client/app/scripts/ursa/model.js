@@ -1,4 +1,4 @@
-﻿/*globals xsd, rdf, rdfs, owl, hydra, ursa, shacl, guid, namespace, UriTemplate */
+﻿/*globals xsd, rdf, rdfs, owl, hydra, ursa, shacl, guid, namespace, UriTemplate, joice, jsonld */
 (function(namespace) {
     "use strict";
 
@@ -24,7 +24,7 @@
             dateTime = dateTime.substr(0, position);
         }
 
-        var date = "0000-01-01";
+        var date;
         var time = "00:00:00.000";
         if ((position = dateTime.indexOf("T")) !== -1) {
             date = dateTime.substr(0, position);
@@ -65,7 +65,7 @@
             case xsd.int:
             case xsd.unsignedInt:
             case xsd.long:
-            case xsd.unsignedInt:
+            case xsd.unsignedLong:
             case xsd.integer:
             case xsd.nonPositiveInteger:
             case xsd.nonNegativeInteger:
@@ -121,38 +121,115 @@
         return result;
     };
 
-    var getClass = function(owner, graph, context) {
-        context = context || {};
-        var $class = this;
-        var originalClass = this;
-        if (($class["@id"].charAt(0) === "_") && (getValue.call($class, rdfs.subClassOf))) {
-            $class = graph.getById(getValue.call($class, rdfs.subClassOf));
+    var canOverrideSuperClassId = function(superClassId) {
+        return (superClassId === null) || ((superClassId === hydra.Collection) && (this["@id"] === rdf.List)) || ((isBlankNode.call(superClassId)) && (!isBlankNode(this)));
+    };
+
+    var isBlankNode = function(resource) {
+        return (resource ? resource["@id"] : this).indexOf("_:") === 0;
+    };
+
+    var isRestriction = function(resource) {
+        return !!((resource[owl.onProperty]) || (resource[owl.allValuesFrom]));
+    };
+
+    var composeClass = function($class, graph, levels, level) {
+        levels = levels || [];
+        level = level || 0;
+        var superClasses = [];
+        var superClassId = ((this["@id"]) && (this["@id"].indexOf("_:") === 0) ? this["@id"] : null);
+        for (var property in $class) {
+            if (!$class.hasOwnProperty(property)) {
+                continue;
+            }
+
+            switch (property) {
+                case "@id":
+                    if (!this["@id"]) {
+                        this["@id"] = $class["@id"];
+                    }
+
+                    if ((canOverrideSuperClassId.call($class, superClassId)) && (!isBlankNode($class)) && (!isRestriction($class)) && (this["@id"] !== $class["@id"])) {
+                        superClassId = $class["@id"];
+                    }
+
+                    break;
+                case "@type":
+                    if (!this["@type"]) {
+                        this["@type"] = $class["@type"];
+                    }
+                    else {
+                        for (var typeIndex = 0; typeIndex < $class["@type"].length; typeIndex++) {
+                            this["@type"].push($class["@type"][typeIndex]);
+                        }
+                    }
+
+                    break;
+                case rdfs.subClassOf:
+                    superClasses = $class[rdfs.subClassOf];
+                    break;
+                default:
+                    if ((!this[property]) || ((this[property]) && (levels[property]) && (levels[property] > level))) {
+                        this[property] = $class[property];
+                        levels[property] = level;
+                    }
+
+                    break;
+            }
         }
 
-        if ($class !== originalClass) {
-            TypeConstrainedApiMember.prototype.constructor.call(context, owner, originalClass);
+        for (var index = 0; index < superClasses.length; index++) {
+            var superSuperClassId = composeClass.call(this, graph.getById(superClasses[index]["@id"]), graph, levels, level + 1);
+            if ((superClassId === null) || ((superSuperClassId === hydra.Collection) && (superClassId !== rdf.List)) || (superSuperClassId === rdf.List)) {
+                superClassId = superSuperClassId;
+            }
         }
 
-        var existingClass = owner.apiDocumentation.knownTypes.getById($class["@id"]);
-        if (existingClass !== null) {
-            return existingClass;
+        return superClassId;
+    };
+
+    var getClass = function(owner, graph) {
+        var $class = {};
+        var targetClass = $class;
+        var superClassId = composeClass.call($class, this, graph);
+        var isEnumerable = false;
+        var isList = false;
+        if (superClassId !== null) {
+            switch (superClassId) {
+                case hydra.Collection:
+                    isEnumerable = true;
+                    targetClass = graph.getById($class[owl.allValuesFrom][0]["@id"]);
+                    break;
+                case rdf.List:
+                    isEnumerable = isList = true;
+                    targetClass = graph.getById($class[owl.allValuesFrom][0]["@id"]);
+                    break;
+                default:
+                    targetClass = graph.getById(superClassId);
+                    break;
+            }
         }
 
-        if (($class["@id"].indexOf(xsd) === -1) && ($class["@id"].indexOf(guid) === -1)) {
-            return new Class(owner.apiDocumentation || owner, $class, graph);
+        var result = owner.apiDocumentation.knownTypes.getById(targetClass["@id"]);
+        if (result === null) {
+            var Ctor = ((targetClass["@id"].indexOf(xsd) === -1) && (targetClass["@id"].indexOf(guid) === -1) ? Class : DataType);
+            result = new Ctor(owner.apiDocumentation || owner, targetClass, graph);
         }
-        else {
-            return new DataType(owner.apiDocumentation || owner, $class);
+
+        if ($class === targetClass) {
+            return result;
         }
+
+        result = result.subClass($class["@id"]);
+        Type.prototype.constructor.call(result, owner, $class, graph);
+        result.maxOccurances = (isEnumerable ? Number.MAX_VALUE : result.maxOccurances);
+        result.isList = isList;
+        return result;
     };
 
     var createLiteralValue = function(type) {
-        if ((type instanceof Class) && (type.valueRange !== null)) {
-            type = type.valueRange;
-        }
-
         var result = null;
-        switch (type.id) {
+        switch (type.typeId) {
             case xsd.anyUri:
             case xsd.string: result = ""; break;
             case xsd.boolean: result = false; break;
@@ -232,9 +309,16 @@
      * @param {object} [resource] JSON-LD resource describing this API member.
      */
     var ApiMember = namespace.ApiMember = function(owner, resource) {
+        if ((arguments.length === 1) && (owner instanceof ApiMember)) {
+            this.id = owner.id;
+            this.label = owner.id;
+            this.description = owner.description;
+            return;
+        }
+
         this.owner = owner || null;
         if ((resource !== null) && (typeof(resource) === "object")) {
-            this.id = (resource["@id"].charAt(0) !== "_" ? resource["@id"] : this.id || "");
+            this.id = (!isBlankNode(resource) ? resource["@id"] : this.id || "");
             this.label = (getValue.call(resource, rdfs.label) || this.label) || "";
             this.description = (getValue.call(resource, rdfs.comment) || this.description) || "";
         }
@@ -365,184 +449,39 @@
     ApiMemberCollection.toString = function() { return "ursa.model.ApiMemberCollection"; };
 
     /**
-     * Marks an API member as a type constrained.
-     * @memberof ursa.model
-     * @name TypeConstrainedApiMember
-     * @public
-     * @extends {ursa.model.ApiMember}
-     * @class
-     * @param {ursa.model.ApiMember} owner Owner if this instance being created.
-     * @param {object} [resource] JSON-LD resource describing this API member.
-     */
-    var TypeConstrainedApiMember = (namespace.TypeConstrainedApiMember = function(owner, resource) {
-        ApiMember.prototype.constructor.apply(this, arguments);
-        var value;
-        this.required = (getValue.call(resource, hydra.required) || this.required) || false;
-        this.minOccurances = (this.required ? 1 : 0);
-        this.maxOccurances = (((value = getValue.call(resource, ursa.singleValue)) !== undefined ? value : false) ? 1 : this.maxOccurances);
-    })[":"](ApiMember);
-    /**
-     * Min occurances of the instance.
-     * @memberof ursa.model.TypeConstrainedApiMember
-     * @instance
-     * @public
-     * @member {number} minOccurances
-     * @default 0
-     */
-    TypeConstrainedApiMember.prototype.minOccurances = 0;
-    /**
-     * Max occurances of the instance.
-     * @memberof ursa.model.TypeConstrainedApiMember
-     * @instance
-     * @public
-     * @member {number} maxOccurances
-     * @default Number.MAX_VALUE
-     */
-    TypeConstrainedApiMember.prototype.maxOccurances = Number.MAX_VALUE;
-    /**
-     * Marks that an instance is required.
-     * @memberof ursa.model.TypeConstrainedApiMember
-     * @instance
-     * @public
-     * @member {boolean} required
-     * @default false
-     */
-    TypeConstrainedApiMember.prototype.required = false;
-    TypeConstrainedApiMember.toString = function() { return "ursa.model.TypeConstrainedApiMember"; };
-    var typeConstrainedMerge = function(source) {
-        if (typeof(source.maxOccurances) === "number") {
-            this.maxOccurances = source.maxOccurances;
-        }
-
-        if (typeof(source.minOccurances) === "number") {
-            this.minOccurances = source.minOccurances;
-        }
-
-        if (typeof(source.description) === "string") {
-            this.description = source.description;
-        }
-    };
-
-    /**
-     * Marks an API member as a range type constrained.
-     * @memberof ursa.model
-     * @name RangeTypeConstrainedApiMember
-     * @public
-     * @extends {ursa.model.TypeConstrainedApiMember}
-     * @class
-     * @param {ursa.model.ApiMember} owner Owner if this instance being created.
-     * @param {object} [resource] JSON-LD resource describing this API member.
-     * @param {object} [graph] JSON-LD graph of resources.
-     */
-    var RangeTypeConstrainedApiMember = (namespace.RangeTypeConstrainedApiMember = function(owner, resource, graph) {
-        TypeConstrainedApiMember.prototype.constructor.apply(this, arguments);
-        var range = (resource[rdfs.range] ? resource[rdfs.range][0] : null);
-        if (range !== null) {
-            range = graph.getById(range["@id"]);
-            var value;
-            this.maxOccurances = (((value = getValue.call(range, ursa.singleValue)) !== undefined ? value : false) ? 1 : this.maxOccurances);
-            var context = {};
-            this.range = getClass.call(range, this, graph, context);
-            typeConstrainedMerge.call(this, context);
-        }
-    })[":"](TypeConstrainedApiMember);
-    /**
-     * Range of values.
-     * @memberof ursa.model.RangeTypeConstrainedApiMember
-     * @instance
-     * @public
-     * @member {ursa.model.ApiMember} range
-     */
-    RangeTypeConstrainedApiMember.prototype.range = null;
-    /**
-     * Description of range of values.
-     * @memberof ursa.model.RangeTypeConstrainedApiMember
-     * @instance
-     * @public
-     * @member {string} range
-     */
-    RangeTypeConstrainedApiMember.prototype.rangeDescription = null;
-    RangeTypeConstrainedApiMember.toString = function() { return "ursa.model.RangeTypeConstrainedApiMember"; };
-
-    /**
-     * Marks an API member as a property range type constrained.
-     * @memberof ursa.model
-     * @name PropertyRangeTypeConstrainedApiMember
-     * @public
-     * @extends {ursa.model.TypeConstrainedApiMember}
-     * @class
-     * @param {ursa.model.ApiMember} owner Owner if this instance being created.
-     * @param {object} [resource] JSON-LD resource describing this API member.
-     * @param {object} [graph] JSON-LD graph of resources.
-     */
-    var PropertyRangeTypeConstrainedApiMember = (namespace.PropertyRangeTypeConstrainedApiMember = function(owner, resource, graph) {
-        RangeTypeConstrainedApiMember.prototype.constructor.apply(this, arguments);
-        var property = resource[hydra.property];
-        if ((property === undefined) || (property === null) || (!(property instanceof Array)) || (property.length === 0)) {
-            throw new joice.ArgumentOutOfRangeException("resource");
-        }
-
-        property = graph.getById(this.property = property[0]["@id"] || this.property);
-        var range = (property[rdfs.range] ? property[rdfs.range][0] : null);
-        if (range !== null) {
-            range = graph.getById(range["@id"]);
-            var value;
-            this.maxOccurances = (((value = getValue.call(range, ursa.singleValue)) !== undefined ? value : false) ? 1 : this.maxOccurances);
-            var context = {};
-            this.range = getClass.call(range, this, graph, context);
-            typeConstrainedMerge.call(this, context);
-        }
-    })[":"](RangeTypeConstrainedApiMember);
-    /**
-     * Target instance property.
-     * @memberof ursa.model.PropertyRangeTypeConstrainedApiMember
-     * @instance
-     * @public
-     * @member {string} property
-     */
-    PropertyRangeTypeConstrainedApiMember.prototype.property = null;
-    /**
-     * Searches the collection for a member with a given property value.
-     * @memberof ursa.model.PropertyRangeTypeConstrainedApiMember
-     * @instance
-     * @public
-     * @method propertyName
-     * @param {ursa.model.Operation} operation Operation in which of context to create a property name. Operation is used to determine whether it accepts RDF payloads or not.
-     * @returns {string} Name of the property suitable for given operation.
-     */
-    PropertyRangeTypeConstrainedApiMember.prototype.propertyName = function (operation) {
-        if (!operation.isRdf) {
-            var parts = this.property.split(/[^a-zA-Z0-9_]/);
-            return parts[parts.length - 1];
-        }
-
-        return this.property;
-    };
-    PropertyRangeTypeConstrainedApiMember.toString = function() { return "ursa.model.PropertyRangeTypeConstrainedApiMember"; };
-
-    /**
      * Describes a class' supported property.
      * @memberof ursa.model
      * @name SupportedProperty
      * @public
-     * @extends {ursa.model.PropertyRangeTypeConstrainedApiMember}
+     * @extends {ursa.model.ApiMember}
      * @class
      * @param {ursa.model.ApiMember} owner Owner if this instance being created.
      * @param {object} [resource] JSON-LD resource describing this API member.
      * @param {object} [graph] JSON-LD graph of resources.
      */
     var SupportedProperty = (namespace.SupportedProperty = function(owner, supportedProperty, graph) {
-        PropertyRangeTypeConstrainedApiMember.prototype.constructor.apply(this, arguments);
-        var property = graph.getById(this.property);
+        ApiMember.prototype.constructor.apply(this, arguments);
+        var property = supportedProperty[hydra.property];
+        if ((property === undefined) || (property === null) || (!(property instanceof Array)) || (property.length === 0)) {
+            throw new joice.ArgumentOutOfRangeException("supportedProperty");
+        }
+
+        property = graph.getById(this.property = property[0]["@id"]);
+        var range = (property[rdfs.range] ? property[rdfs.range][0] : null);
+        if (range !== null) {
+            this.range = getClass.call(graph.getById(range["@id"]), this, graph);
+        }
+
         this.key = (property["@type"] || []).indexOf(owl.InverseFunctionalProperty) !== -1;
         this.label = (this.label || getValue.call(property, rdfs.label)) || "";
         this.description = (this.description || getValue.call(property, rdfs.comment)) || "";
         this.readable = getValue.call(supportedProperty, hydra.readable) || true;
         this.writeable = getValue.call(supportedProperty, hydra.writeable) || true;
         this.sortable = (this.maxOccurances > 1) && (this.range !== null) && (this.range.isList);
+        this.required = (getValue.call(supportedProperty, hydra.required) || this.required) || false;
         this.supportedOperations = [];
         getOperations.call(this, supportedProperty, graph, hydra.operation);
-    })[":"](PropertyRangeTypeConstrainedApiMember);
+    })[":"](ApiMember);
     /**
      * Marks a property as readable.
      * @memberof ursa.model.SupportedProperty
@@ -562,6 +501,23 @@
      */
     SupportedProperty.prototype.writeable = true;
     /**
+     * Marks that an instance is required.
+     * @memberof ursa.model.SupportedProperty
+     * @instance
+     * @public
+     * @member {boolean} required
+     * @default false
+     */
+    SupportedProperty.prototype.required = false;
+    /**
+     * Range of values.
+     * @memberof ursa.model.SupportedProperty
+     * @instance
+     * @public
+     * @member {ursa.model.ApiMember} range
+     */
+    SupportedProperty.prototype.range = null;
+    /**
      * Marks a property as sortable.
      * @memberof ursa.model.SupportedProperty
      * @instance
@@ -579,7 +535,7 @@
      * @default false
      */
     SupportedProperty.prototype.key = false;
-        /**
+    /**
      * List of supported operations.
      * @memberof ursa.model.SupportedProperty
      * @instance
@@ -587,6 +543,40 @@
      * @member {Array.<ursa.model.Operation>} supportedOperations
      */
     SupportedProperty.prototype.supportedOperations = null;
+    /**
+     * Min occurances of the property value.
+     * @memberof ursa.model.SupportedProperty
+     * @instance
+     * @public
+     * @member {number} minOccurances
+     * @default 0
+     */
+    Object.defineProperty(SupportedProperty.prototype, "minOccurances", { get: function() { return Math.max(this.required ? 1 : 0, this.range ? this.range.minOccurances : 0); } });
+    /**
+     * Max occurances of the property value.
+     * @memberof ursa.model.SupportedProperty
+     * @instance
+     * @public
+     * @member {number} maxOccurances
+     * @default 1
+     */
+    Object.defineProperty(SupportedProperty.prototype, "maxOccurances", { get: function() { return (this.range ? this.range.maxOccurances : 1); } });
+    /**
+     * Gets flag indicating whether the class represents a list in terms of rdf:List.
+     * @memberof ursa.model.SupportedProperty
+     * @instance
+     * @public
+     * @member {ursa.model.Class} base
+     */
+    Object.defineProperty(SupportedProperty.prototype, "isList", { get: function() { return (this.range ? this.range.isList : false); } });
+    /**
+     * Target instance property.
+     * @memberof ursa.model.SupportedProperty
+     * @instance
+     * @public
+     * @member {string} property
+     */
+    SupportedProperty.prototype.property = null;
     /**
      * Creates an instance of value accepted by this property.
      * @memberof ursa.model.SupportedProperty
@@ -599,19 +589,37 @@
         return createLiteralValue.call(this, this.range);
     };
     /**
+     * Searches the collection for a member with a given property value.
+     * @memberof ursa.model.SupportedProperty
+     * @instance
+     * @public
+     * @method propertyName
+     * @param {ursa.model.Operation} operation Operation in which of context to create a property name. Operation is used to determine whether it accepts RDF payloads or not.
+     * @returns {string} Name of the property suitable for given operation.
+     */
+    SupportedProperty.prototype.propertyName = function(operation) {
+        if (!operation.isRdf) {
+            var parts = this.property.split(/[^a-zA-Z0-9_]/);
+            return parts[parts.length - 1];
+        }
+
+        return this.property;
+    };
+    /**
      * Initializes a supported property in a given instance.
      * @memberof ursa.model.SupportedProperty
      * @instance
      * @public
      * @method initializeInstance
+     * @param {ursa.model.Operation} operation Operation in which of context to create a property name. Operation is used to determine whether it accepts RDF payloads or not.
+     * @param {object} instance Object instance to initialize a property on.
      * @returns {object} Value initialized.
      */
     SupportedProperty.prototype.initializeInstance = function(operation, instance) {
         var propertyName = this.propertyName(operation);
         var value = (instance ? instance[propertyName] : undefined);
         if (!value) {
-            value = (!operation.isRdf ? (this.maxOccurances > 1 ? [] : null) :
-                ((this.range instanceof Class) && (this.range.valueRange !== null) ? [{ "@list": [] }] : []));
+            value = (!operation.isRdf ? (this.minOccurances > 1 ? [] : null) : (this.isList ? [{ "@list": [] }] : []));
             if (instance) {
                 instance[propertyName] = value;
             }
@@ -638,16 +646,17 @@
      * @memberof ursa.model
      * @name Mapping
      * @public
-     * @extends {ursa.model.TypeConstrainedApiMember}
+     * @extends {ursa.model.ApiMember}
      * @class
      * @param {ursa.model.ApiMember} owner Owner if this instance being created.
      * @param {object} [resource] JSON-LD resource describing this API member.
      */
     var Mapping = (namespace.Mapping = function(owner, mapping) {
-        TypeConstrainedApiMember.prototype.constructor.apply(this, arguments);
+        ApiMember.prototype.constructor.apply(this, arguments);
         this.variable = getValue.call(mapping, hydra.variable);
         this.property = getValue.call(mapping, hydra.property);
-    })[":"](TypeConstrainedApiMember);
+        this.required = getValue.call(mapping, hydra.required) || false;
+    })[":"](ApiMember);
     /**
      * Name of the template variable.
      * @memberof ursa.model.Mapping
@@ -657,15 +666,6 @@
      */
     Mapping.prototype.variable = null;
     /**
-     * Max occurances of the instance.
-     * @memberof ursa.model.Mapping
-     * @instance
-     * @public
-     * @member {number} maxOccurances
-     * @default 1
-     */
-    Mapping.prototype.maxOccurances = 1;
-    /**
      * Property bound on the server side associated with this variable mapping.
      * @memberof ursa.model.Mapping
      * @instance
@@ -673,6 +673,15 @@
      * @member {string} property
      */
     Mapping.prototype.property = null;
+    /**
+     * Marks that a variable replacement is required.
+     * @memberof ursa.model.Mapping
+     * @instance
+     * @public
+     * @member {boolean} required
+     * @default false
+     */
+    Mapping.prototype.required = false;
     /**
      * Searches the collection for a member with a given property value.
      * @memberof ursa.model.Mapping
@@ -692,6 +701,7 @@
     };
     Mapping.toString = function() { return "ursa.model.Mapping"; };
 
+    var _Operation = {};
     /**
      * Describes an ReST operation.
      * @memberof ursa.model
@@ -706,7 +716,6 @@
      */
     var Operation = (namespace.Operation = function(owner, supportedOperation, template, graph) {
         ApiMember.prototype.constructor.apply(this, arguments);
-        var index;
         if ((template) && (template[hydra.template])) {
             if ((this.url = template[hydra.template][0]["@value"]).match(/^[a-zA-Z][a-zA-Z0-9\+\-\.]*/) === null) {
                 var apiDocumentation = this.apiDocumentation;
@@ -715,7 +724,7 @@
             }
 
             this.mappings = new ApiMemberCollection(this);
-            for (index = 0; index < template[hydra.mapping].length; index++) {
+            for (var index = 0; index < template[hydra.mapping].length; index++) {
                 this.mappings.push(new Mapping(this, graph.getById(template[hydra.mapping][index]["@id"]), graph));
             }
         }
@@ -738,21 +747,8 @@
             });
         }
 
-        var setupTypeCollection = function (source, target) {
-            if (!source) {
-                return;
-            }
-
-            for (index = 0; index < source.length; index++) {
-                var context = { "@id": "" };
-                context[hydra.property] = [{ "@id": "_:_" }];
-                context = new RangeTypeConstrainedApiMember(this, context, graph);
-                context.range = getClass.call(graph.getById(source[index]["@id"]), this, graph, context);
-                target.push(context);
-            }
-        };
-        setupTypeCollection.call(this, supportedOperation[hydra.returns], this.returns);
-        setupTypeCollection.call(this, supportedOperation[hydra.expects], this.expects);
+        _Operation.setupTypeCollection.call(this, supportedOperation[hydra.returns], this.returns, graph);
+        _Operation.setupTypeCollection.call(this, supportedOperation[hydra.expects], this.expects, graph);
     })[":"](ApiMember);
     /**
      * List of allowed HTTP verbs for this operation.
@@ -767,7 +763,7 @@
      * @memberof ursa.model.Mapping
      * @instance
      * @public
-     * @member {Array.<ursa.model.TypeConstrainedApiMember>} expects
+     * @member {Array.<ursa.model.Type>} expects
      */
     Operation.prototype.expects = null;
     /**
@@ -775,7 +771,7 @@
      * @memberof ursa.model.Mapping
      * @instance
      * @public
-     * @member {Array.<ursa.model.TypeConstrainedApiMember>} returns
+     * @member {Array.<ursa.model.Type>} returns
      */
     Operation.prototype.returns = null;
     /**
@@ -865,28 +861,134 @@
      */
     Object.defineProperty(Operation.prototype, "isRdf", { get: function() { return this.mediaTypes.indexOf(EntityFormat.ApplicationLdJson) !== -1; } });
     Operation.toString = function() { return "ursa.model.Operation"; };
+    _Operation.setupTypeCollection = function(source, target, graph) {
+        if (!source) {
+            return;
+        }
+
+        for (var index = 0; index < source.length; index++) {
+            target.push(getClass.call(graph.getById(source[index]["@id"]), this, graph));
+        }
+    };
+
+    /**
+     * Describes an abstract type.
+     * @memberof ursa.model
+     * @name Type
+     * @public
+     * @extends {ursa.model.ApiMember}
+     * @class
+     * @param {ursa.model.ApiMember} owner Owner if this instance being created.
+     * @param {object} [resource] JSON-LD resource describing this API member.
+     */
+    var Type = (namespace.Type = function(owner, resource, graph) {
+        if ((arguments.length === 1) && (owner instanceof Type)) {
+            ApiMember.prototype.constructor.apply(this, arguments);
+            this.minOccurances = owner.minOccurances;
+            this.maxOccurances = owner.maxOccurances;
+            this.isList = owner.isList;
+            return;
+        }
+
+        this.minOccurances = 0;
+        this.maxOccurances = 1;
+        ApiMember.prototype.constructor.call(this, owner, resource, graph);
+        var subClassOf = resource[rdfs.subClassOf] || [];
+        for (var index = 0; index < subClassOf.length; index++) {
+            if (subClassOf[index]["@id"] === rdf.List) {
+                this.isList = true;
+                break;
+            }
+        }
+    })[":"](ApiMember);
+    /**
+     * Min occurances of the instance.
+     * @memberof ursa.model.Class
+     * @instance
+     * @public
+     * @member {number} minOccurances
+     * @default 0
+     */
+    Type.prototype.minOccurances = 0;
+    /**
+     * Max occurances of the instance.
+     * @memberof ursa.model.Class
+     * @instance
+     * @public
+     * @member {number} maxOccurances
+     * @default 1
+     */
+    Type.prototype.maxOccurances = 1;
+    /**
+     * Gets the super-class identifier of a given type if any.
+     * @memberof ursa.model.Type
+     * @instance
+     * @public
+     * @member {string} baseId
+     */
+    Type.prototype.baseId = null;
+    /**
+     * Gets flag indicating whether the class represents a list in terms of rdf:List.
+     * @memberof ursa.model.Class
+     * @instance
+     * @public
+     * @member {ursa.model.Class} base
+     */
+    Type.prototype.isList = false;
+    /**
+     * Gets flag indicating whether the class represents a list in terms of rdf:List.
+     * @memberof ursa.model.SupportedProperty
+     * @instance
+     * @public
+     * @member {ursa.model.Class} base
+     */
+    Object.defineProperty(Type.prototype, "typeId", { get: function() { return this.baseId || this.id; } });
+    Type.toString = function() { return "ursa.model.Type"; };
 
     /**
      * Describes a datatype.
      * @memberof ursa.model
      * @name DataType
      * @public
-     * @extends {ursa.model.TypeConstrainedApiMember}
+     * @extends {ursa.model.ApiMember}
      * @class
      * @param {ursa.model.ApiMember} owner Owner if this instance being created.
      * @param {object} [resource] JSON-LD resource describing this API member.
      */
-    var DataType = (namespace.DataType = function() {
-        TypeConstrainedApiMember.prototype.constructor.apply(this, arguments);
-    })[":"](TypeConstrainedApiMember);
+    var DataType = (namespace.DataType = function(owner, resource, graph) {
+        if ((arguments.length === 1) && (owner instanceof DataType)) {
+            Type.prototype.constructor.apply(this, arguments);
+            return;
+        }
+
+        var flattenedClassDefinition = {};
+        composeClass.call(flattenedClassDefinition, resource, graph);
+        Type.prototype.constructor.call(this, owner, flattenedClassDefinition, graph);
+    })[":"](Type);
+    /**
+     * Inherits from this data type.
+     * @memberof ursa.model.DataType
+     * @instance
+     * @public
+     * @method subClass
+     * @param {string} id Sub-class identifier.
+     * @returns {ursa.model.DataType} Inheriting data type.
+     */
+    DataType.prototype.subClass = function(id) {
+        var result = new DataType(this);
+        result.baseId = this.id;
+        result.id = id;
+        return result;
+    };
     DataType.toString = function() { return "ursa.model.DataType"; };
 
+    var _Class = {};
     /**
      * Describes a class.
      * @memberof ursa.model
      * @name Class
      * @public
-     * @extends {ursa.model.TypeConstrainedApiMember}
+     * @extends {ursa.model.ApiMember}
      * @class
      * @param {ursa.model.ApiMember} owner Owner if this instance being created.
      * @param {object} [supportedOperation] JSON-LD resource describing this API member.
@@ -894,59 +996,27 @@
      * @param {boolean} [deferredInitialization] Defers properties and operations initialization so the class can be dereferenced multiple times.
      */
     var Class = (namespace.Class = function(owner, supportedClass, graph, deferredInitialization) {
-        TypeConstrainedApiMember.prototype.constructor.apply(this, arguments);
-        if (typeof (deferredInitialization) !== "boolean") {
-            deferredInitialization = false;
+        if ((arguments.length === 1) && (owner instanceof Class)) {
+            Type.prototype.constructor.apply(this, arguments);
+            _Class.initializeSubClass.call(this, owner.id);
+            return;
         }
 
-        this.supportedProperties = new ApiMemberCollection(this);
-        this.supportedOperations = [];
-        if (!deferredInitialization) {
-            classCompleteInitialization.call(this, supportedClass, graph);
+        var flattenedClassDefinition = {};
+        var superClassId = composeClass.call(flattenedClassDefinition, supportedClass, graph);
+        Type.prototype.constructor.call(this, owner, flattenedClassDefinition, graph);
+        if ((superClassId !== null) && (superClassId !== supportedClass["@id"])) {
+            _Class.initializeSubClass.call(this, superClassId);
         }
-    })[":"](TypeConstrainedApiMember);
-    var classCompleteInitialization = function (supportedClass, graph) {
-        var index;
-        var subClassOf = supportedClass[rdfs.subClassOf] || [];
-        var restriction;
-        if (supportedClass[hydra.supportedProperty]) {
-            for (index = 0; index < supportedClass[hydra.supportedProperty].length; index++) {
-                var supportedPropertyResource = graph.getById(supportedClass[hydra.supportedProperty][index]["@id"]);
-                var supportedProperty = new SupportedProperty(this, supportedPropertyResource, graph);
-                for (var restrictionIndex = 0; restrictionIndex < subClassOf.length; restrictionIndex++) {
-                    restriction = graph.getById(subClassOf[restrictionIndex]["@id"]);
-                    if ((!restriction["@type"]) || (restriction["@type"].indexOf(owl.Restriction) === -1) ||
-                        (getValue.call(restriction, owl.onProperty) !== supportedProperty.property)) {
-                        continue;
-                    }
-
-                    var maxCardinality = getValue.call(restriction, owl.maxCardinality);
-                    supportedProperty.maxOccurances = (maxCardinality !== null ? maxCardinality : supportedProperty.maxOccurances);
-                    subClassOf.splice(restrictionIndex, 1);
-                }
-
-                this.supportedProperties.push(supportedProperty);
-            }
+        else {
+            this.supportedProperties = new ApiMemberCollection(this);
+            this.supportedOperations = [];
         }
 
-        for (index = 0; index < subClassOf.length; index++) {
-            if (subClassOf[index]["@id"] === rdf.List) {
-                this.valueRange = Class.Thing;
-            }
-            else {
-                restriction = graph.getById(subClassOf[index]["@id"]);
-                if ((!restriction["@type"]) || (restriction["@type"].indexOf(owl.Restriction) === -1) ||
-                    (getValue.call(restriction, owl.onProperty) !== rdf.first)) {
-                    continue;
-                }
-
-                this.valueRange = getClass.call(graph.getById(restriction[owl.allValuesFrom][0]["@id"]), this, graph);
-                break;
-            }
+        if (!(typeof(deferredInitialization) !== "boolean" ? false : deferredInitialization)) {
+            _Class.completeInitialization.call(this, flattenedClassDefinition, graph);
         }
-
-        getOperations.call(this, supportedClass, graph);
-    };
+    })[":"](Type);
     /**
      * List of supported properties.
      * @memberof ursa.model.Class
@@ -964,37 +1034,13 @@
      */
     Class.prototype.supportedOperations = null;
     /**
-     * Type of the values in case this instance is a collection that maintains order or provides indexing in general.
+     * Gets the super-class instance of a given class if any.
      * @memberof ursa.model.Class
      * @instance
      * @public
-     * @member {ursa.model.Class} valueRange
+     * @member {ursa.model.Class} base
      */
-    Class.prototype.valueRange = null;
-    /**
-     * Type of the index in case this instance is a collection that maintains order or provides indexing in general.
-     * @memberof ursa.model.Class
-     * @instance
-     * @public
-     * @member {ursa.model.Class} indexRange
-     */
-    Class.prototype.indexRange = null;
-    /**
-     * Flag determining whether the index type is define explictely as this class is a key-value-like map or it's more like a list or array.
-     * @memberof ursa.model.Class
-     * @instance
-     * @public
-     * @member {boolean} explicitIndex
-     */
-    Class.prototype.explicitIndex = false;
-    /**
-     * Instace of the class that represents any kind of type.
-     * @memberof ursa.model.Class
-     * @static
-     * @public
-     * @member {ursa.model.Class} Thing
-     */
-    Class.Thing = new Class(null, { "@id": owl.Thing });
+    Class.prototype.base = null;
     /**
      * Creates an instance of this class.
      * @memberof ursa.model.Class
@@ -1010,9 +1056,67 @@
         }
 
         var entityFormat = ((operation !== null) && (operation.isRdf) ? EntityFormat.RDF : EntityFormat.JSON);
-        return (entityFormat === EntityFormat.RDF ? classCreateRdfInstance.call(this, operation) : classCreateJsonInstance.call(this, operation));
+        return (entityFormat === EntityFormat.RDF ? _Class.createRdfInstance.call(this, operation) : _Class.createJsonInstance.call(this, operation));
     };
-    var classCreateJsonInstance = function(operation) {
+    /**
+     * Gets a property that uniquely identifies a resource.
+     * @memberof ursa.model.Class
+     * @instance
+     * @public
+     * @method getKeyProperty
+     * @param {ursa.model.Operation} operation Operation that holds details about RDF requirement.
+     * @returns {ursa.model.SupportedProperty} Key property of an instance of this class.
+     */
+    Class.prototype.getKeyProperty = function(operation) {
+        for (var index = 0; index < this.supportedProperties.length; index++) {
+            var supportedProperty = this.supportedProperties[index];
+            if (supportedProperty.key) {
+                return supportedProperty;
+            }
+        }
+
+        return (operation.isRdf ? SupportedProperty.Subject : null);
+    };
+    /**
+     * Gets a property that should be used as an display name of the instance, i.e. for lists.
+     * @memberof ursa.model.Class
+     * @instance
+     * @public
+     * @method getInstanceDisplayNameProperty
+     * @param {ursa.model.Operation} operation Operation that holds details about RDF requirement.
+     * @returns {ursa.model.SupportedProperty} Display name property of an instance of this class.
+     */
+    Class.prototype.getInstanceDisplayNameProperty = function(operation) {
+        var key = (operation.isRdf ? SupportedProperty.Subject : null);
+        for (var index = 0; index < this.supportedProperties.length; index++) {
+            var supportedProperty = this.supportedProperties[index];
+            if (supportedProperty.key) {
+                key = supportedProperty;
+            }
+
+            if ((supportedProperty.property === rdfs.label) || ((supportedProperty.range === xsd.string) && (supportedProperty.maxOccurances === 1))) {
+                return supportedProperty;
+            }
+        }
+
+        return key;
+    };
+    /**
+     * Sub-classes a given class.
+     * @memberof ursa.model.Class
+     * @instance
+     * @public
+     * @method subClass
+     * @param {string} id Sub-class identifier.
+     * @returns {ursa.model.Class} Sub-class.
+     */
+    Class.prototype.subClass = function(id) {
+        var result = new Class(this);
+        result.id = id;
+        return result;
+    };
+    Class.toString = function() { return "ursa.model.Class"; };
+    _Class.createJsonInstance = function(operation) {
         var result = {};
         for (var index = 0; index < this.supportedProperties.length; index++) {
             var supportedProperty = this.supportedProperties[index];
@@ -1034,7 +1138,7 @@
 
         return result;
     };
-    var classCreateRdfInstance = function(operation) {
+    _Class.createRdfInstance = function(operation) {
         var result = { "@id": "_:bnode" + Math.random().toString().replace(".", "").substr(1) };
         if (this.id.indexOf("_") !== 0) {
             result["@type"] = this.id;
@@ -1055,47 +1159,76 @@
 
         return result;
     };
-    /**
-     * Gets a property that uniquely identifies a resource.
-     * @memberof ursa.model.Class
-     * @instance
-     * @public
-     * @member {ursa.model.SupportedProperty} getKeyProperty
-     */
-    Class.prototype.getKeyProperty = function(operation) {
-        for (var index = 0; index < this.supportedProperties.length; index++) {
-            var supportedProperty = this.supportedProperties[index];
-            if (supportedProperty.key) {
-                return supportedProperty;
+    _Class.initializeProperties = function(supportedClass, graph, subClassOf) {
+        if (supportedClass[hydra.supportedProperty]) {
+            for (var index = 0; index < supportedClass[hydra.supportedProperty].length; index++) {
+                var supportedPropertyResource = graph.getById(supportedClass[hydra.supportedProperty][index]["@id"]);
+                var supportedProperty = new SupportedProperty(this, supportedPropertyResource, graph);
+                if (supportedProperty.range === null) {
+                    this.supportedProperties.push(supportedProperty);
+                    continue;
+                }
+
+                for (var restrictionIndex = 0; restrictionIndex < subClassOf.length; restrictionIndex++) {
+                    var restriction = graph.getById(subClassOf[restrictionIndex]["@id"]);
+                    if ((!restriction["@type"]) || (restriction["@type"].indexOf(owl.Restriction) === -1) ||
+                        (getValue.call(restriction, owl.onProperty) !== supportedProperty.property)) {
+                        continue;
+                    }
+
+                    var maxCardinality = getValue.call(restriction, owl.maxCardinality);
+                    if (maxCardinality !== null) {
+                        if (maxCardinality !== supportedProperty.range.maxOccurances) {
+                            supportedProperty.range = supportedProperty.range.subClass(restriction["@id"]);
+                        }
+
+                        supportedProperty.range.maxOccurances = maxCardinality;
+                    }
+
+                    subClassOf.splice(restrictionIndex, 1);
+                }
+
+                this.supportedProperties.push(supportedProperty);
+            }
+        }
+    };
+    _Class.completeInitialization = function(supportedClass, graph) {
+        var subClassOf = supportedClass[rdfs.subClassOf] || [];
+        if (this.baseId === null) {
+            _Class.initializeProperties.call(this, supportedClass, graph, subClassOf);
+        }
+
+        getOperations.call(this, supportedClass, graph);
+    };
+    _Class.getBase = function() {
+        if (this.baseId === null) {
+            return null;
+        }
+
+        for (var index = 0; index < this.apiDocumentation.knownTypes.length; index++) {
+            var knownType = this.apiDocumentation.knownTypes[index];
+            if (knownType.id === this.baseId) {
+                return knownType;
             }
         }
 
-        return (operation.isRdf ? SupportedProperty.Subject : null);
+        return null;
     };
-
+    _Class.initializeSubClass = function(superClassId) {
+        this.baseId = superClassId;
+        var base = null;
+        Object.defineProperty(this, "base", { get: function() { return (base === null ? base = _Class.getBase.call(this) : base); } });
+        Object.defineProperty(this, "supportedProperties", { get: function() { return (this.base !== null ? this.base.supportedProperties : null); } });
+        Object.defineProperty(this, "supportedOperations", { get: function() { return (this.base !== null ? this.base.supportedOperations : null); } });
+    };
     /**
-     * Gets a property that should be used as an display name of the instance, i.e. for lists.
+     * Instace of the class that represents any kind of type.
      * @memberof ursa.model.Class
-     * @instance
+     * @static
      * @public
-     * @member {ursa.model.SupportedProperty} getInstanceDisplayNameProperty
+     * @member {ursa.model.Class} Thing
      */
-    Class.prototype.getInstanceDisplayNameProperty = function(operation) {
-        var key = (operation.isRdf ? SupportedProperty.Subject : null);
-        for (var index = 0; index < this.supportedProperties.length; index++) {
-            var supportedProperty = this.supportedProperties[index];
-            if (supportedProperty.key) {
-                key = supportedProperty;
-            }
-
-            if ((supportedProperty.property === rdfs.label) || ((supportedProperty.range === xsd.string) && (supportedProperty.maxOccurances === 1))) {
-                return supportedProperty;
-            }
-        }
-
-        return key;
-    };
-    Class.toString = function() { return "ursa.model.Class"; };
+    Class.Thing = new Class(null, { "@id": owl.Thing });
 
     /**
      * Describes an entity formats.
@@ -1748,7 +1881,7 @@
                 var supportedClass = new Class(this, supportedClassDefinition, graph, true);
                 this.supportedClasses.push(supportedClass);
                 this.knownTypes.push(supportedClass);
-                classCompleteInitialization.call(supportedClass, supportedClassDefinition, graph);
+                _Class.completeInitialization.call(supportedClass, supportedClassDefinition, graph);
             }
         }
     };

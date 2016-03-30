@@ -59,8 +59,15 @@
     ageProperty[rdfs.range] = [{ "@id": xsd.int }];
     ageProperty[rdfs.label] = [{ "@value": "Age" }];
 
+    var stringsCollectionRestriction = { "@id": "_:stringsCollectionRestriction", "@type": [owl.Restriction] };
+    stringsCollectionRestriction[owl.onProperty] = [{ "@id": hydra.member }];
+    stringsCollectionRestriction[owl.allValuesFrom] = [{ "@id": xsd.string }];
+
+    var stringsCollection = { "@id": "javascript:collectionOfString", "@type": [hydra.Class] };
+    stringsCollection[rdfs.subClassOf] = [{ "@id": hydra.Collection }, { "@id": stringsCollectionRestriction["@id"] }];
+
     var rolesProperty = { "@id": "http://temp.uri/vocab#role", "@type": [rdf.Property] };
-    rolesProperty[rdfs.range] = [{ "@id": xsd.string }];
+    rolesProperty[rdfs.range] = [{ "@id": stringsCollection["@id"] }];
     rolesProperty[rdfs.label] = [{ "@value": "Roles" }];
     idMapping[hydra.property] = [{ "@id": rolesProperty["@id"] }];
 
@@ -86,6 +93,7 @@
     setRolesOperation[ursa.mediaType] = [{ "@value": "application/ld+json" }];
     setRolesOperation[hydra.method] = [{ "@value": "POST" }];
     setRolesTemplatedLink[hydra.supportedOperation] = [{ "@id": setRolesOperation["@id"] }];
+
     rolesSupportedProperty[hydra.property] = [{ "@id": rolesProperty["@id"] }];
     rolesSupportedProperty[hydra.required] = [{ "@value": false }];
     rolesSupportedProperty[hydra.readable] = [{ "@value": true }];
@@ -95,17 +103,26 @@
     var personSubClass = { "@id": "_:personSubClass", "@type": [hydra.Class] };
     personSubClass[rdfs.comment] = [{ "@value": "Person of given key." }];
     personSubClass[rdfs.subClassOf] = [{ "@id": personClass["@id"] }];
-    personSubClass[ursa.singleValue] = [{ "@value": true }];
 
     getRdfOperation[ursa.mediaType] = [{ "@value": "application/ld+json" }];
     getRdfOperation[hydra.returns] = [{ "@id": personSubClass["@id"] }];
     getRdfOperation[hydra.expects] = [{ "@id": personClass["@id"] }];
     getRdfOperation[hydra.method] = [{ "@value": "GET" }];
 
+    var personCollectionRestriction = { "@id": "_:personCollectionRestriction", "@type": [owl.Restriction] };
+    personCollectionRestriction[owl.onProperty] = [{ "@id": hydra.member }];
+    personCollectionRestriction[owl.allValuesFrom] = [{ "@id": personClass["@id"] }];
+
+    var personListRestriction = { "@id": "_:personListRestriction", "@type": [owl.Restriction] };
+    personListRestriction[owl.onProperty] = [{ "@id": rdf.first }];
+    personListRestriction[owl.allValuesFrom] = [{ "@id": personClass["@id"] }];
+
+    var personCollection = { "@id": "javascript:collectionOfPerson", "@type": [hydra.Class] };
+    personCollection[rdfs.subClassOf] = [{ "@id": hydra.Collection }, { "@id": rdf.List }, { "@id": personCollectionRestriction["@id"] }, { "@id": personListRestriction["@id"] }];
+
     listRdfTemplatedLink[hydra.supportedOperation] = [{ "@id": listRdfOperation["@id"] }];
     listRdfOperation[ursa.mediaType] = [{ "@value": "application/ld+json" }];
-    listRdfOperation[hydra.returns] = [{ "@id": personClass["@id"] }];
-    listRdfOperation[hydra.expects] = [{ "@id": personClass["@id"] }];
+    listRdfOperation[hydra.returns] = [{ "@id": personCollection["@id"] }];
     listRdfOperation[hydra.method] = [{ "@value": "GET" }];
 
     emailRestriction[owl.onProperty] = [{ "@id": emailProperty["@id"] }];
@@ -138,7 +155,10 @@
     window.apiDocumentation.push(window.apiDocumentation.emailSupportedProperty = emailSupportedProperty);
     window.apiDocumentation.push(window.apiDocumentation.emailProperty = emailProperty);
     window.apiDocumentation.push(window.apiDocumentation.getRdfOperation = getRdfOperation);
+    window.apiDocumentation.push(window.apiDocumentation.personCollectionRestriction = personCollectionRestriction);
+    window.apiDocumentation.push(window.apiDocumentation.personListRestriction = personListRestriction);
     window.apiDocumentation.push(window.apiDocumentation.listRdfOperation = listRdfOperation);
+    window.apiDocumentation.push(window.apiDocumentation.personCollection = personCollection);
     window.apiDocumentation.push(window.apiDocumentation.topMapping = topMapping);
     window.apiDocumentation.push(window.apiDocumentation.skipMapping = skipMapping);
     window.apiDocumentation.push(window.apiDocumentation.listRdfIriTemplate = listRdfIriTemplate);
@@ -147,7 +167,11 @@
     window.apiDocumentation.push(window.apiDocumentation.setRolesIriTemplate = setRolesIriTemplate);
     window.apiDocumentation.push(window.apiDocumentation.setRolesTemplatedLink = setRolesTemplatedLink);
     window.apiDocumentation.push(window.apiDocumentation.setRolesOperation = setRolesOperation);
+    window.apiDocumentation.push(window.apiDocumentation.stringsCollectionRestriction = stringsCollectionRestriction);
+    window.apiDocumentation.push(window.apiDocumentation.stringsCollection = stringsCollection);
     window.apiDocumentation.push(window.apiDocumentation.xsdString = xsdString);
     window.apiDocumentation.push(window.apiDocumentation.xsdInt = xsdInt);
-    window.apiDocumentation.getById = function(id) { return getById.call(window.apiDocumentation, id); };
+    window.apiDocumentation.push(window.apiDocumentation.rdfList = { "@id": rdf.List });
+    window.apiDocumentation.push(window.apiDocumentation.hydraCollection = { "@id": hydra.Collection });
+    window.apiDocumentation.getById = function (id) { return getById.call(window.apiDocumentation, id); };
 }());

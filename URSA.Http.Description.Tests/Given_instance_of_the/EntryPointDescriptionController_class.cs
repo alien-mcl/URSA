@@ -3,13 +3,11 @@ using System.Diagnostics.CodeAnalysis;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using RomanticWeb;
 using URSA.Web.Http.Description;
 using URSA.Web.Http.Description.Entities;
 using URSA.Web.Http.Description.NamedGraphs;
-using VDS.RDF;
 
-namespace URSA.Http.Description.Tests.Given_instance_of_the
+namespace Given_instance_of_the
 {
     [ExcludeFromCodeCoverage]
     [TestClass]

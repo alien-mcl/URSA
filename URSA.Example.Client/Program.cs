@@ -12,12 +12,13 @@ namespace URSA.Example
         {
             CredentialCache.DefaultNetworkCredentials.UserName = ConfigurationManager.AppSettings["DefaultCredentials"].Split(':')[0];
             CredentialCache.DefaultNetworkCredentials.Password = ConfigurationManager.AppSettings["DefaultCredentials"].Split(':')[1];
-            var client = new PersonClient(new Uri(new SqlConnectionStringBuilder(ConfigurationManager.ConnectionStrings["ServerUri"].ConnectionString).DataSource));
+            var uri = new Uri(new SqlConnectionStringBuilder(ConfigurationManager.ConnectionStrings["ServerUri"].ConnectionString).DataSource);
+            var client = new PersonClient(uri, ConfigurationManager.AppSettings["DefaultAuthenticationScheme"]);
             var person = new Person() { Firstname = "Test", Lastname = "Testing", Roles = new[] { "Role" } };
             person.Key = client.Create(person);
             Console.WriteLine("Created person '{0}'.", person.Key);
             int totalEntities;
-            var persons = client.List(out totalEntities, 0, 0);
+            var persons = client.List(out totalEntities, null, 0, 0);
             Console.WriteLine("Listing all {0} person(s):", totalEntities);
             foreach (var item in persons)
             {

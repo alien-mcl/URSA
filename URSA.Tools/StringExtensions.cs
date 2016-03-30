@@ -105,8 +105,8 @@ namespace System
             string result = value;
             if (!String.IsNullOrEmpty(result))
             {
-                result = Regex.Replace(Regex.Replace(value, "([a-zA-Z])(\\s+)([a-zA-Z])", ReplaceSpace), "\\W", "_");
-                result = (lowerCase ? Char.ToLower(value[0]) : Char.ToUpper(value[0])) + value.Substring(1);
+                result = Regex.Replace(value, "([a-zA-Z])(\\s+)([a-zA-Z])", ReplaceSpace);
+                result = (lowerCase ? Char.ToLower(result[0]) : Char.ToUpper(result[0])) + result.Substring(1);
             }
 
             return result;

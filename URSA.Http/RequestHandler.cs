@@ -20,6 +20,7 @@ namespace URSA.Web.Http
         private readonly ICollection<IPreRequestHandler> _authenticationProviders;
         private readonly ICollection<IPreRequestHandler> _preRequestHandlers;
         private readonly ICollection<IPostRequestHandler> _postRequestHandlers;
+        private readonly IEnumerable<IModelTransformer> _modelTransformers;
         private readonly IPostRequestHandler _defaultAuthenticationScheme;
 
         /// <summary>Initializes a new instance of the <see cref="RequestHandler"/> class.</summary>
@@ -28,12 +29,14 @@ namespace URSA.Web.Http
         /// <param name="responseComposer">Response composer.</param>
         /// <param name="preRequestHandlers">Handlers executed before the request is processed.</param>
         /// <param name="postRequestHandlers">Handlers executed after the request is processed.</param>
+        /// <param name="modelTransformers">Model transformers executed after the request is processed and just before the post handlers are invoked.</param>
         public RequestHandler(
             IArgumentBinder<RequestInfo> argumentBinder,
             IDelegateMapper<RequestInfo> delegateMapper,
             IResponseComposer responseComposer,
             IEnumerable<IPreRequestHandler> preRequestHandlers,
-            IEnumerable<IPostRequestHandler> postRequestHandlers)
+            IEnumerable<IPostRequestHandler> postRequestHandlers,
+            IEnumerable<IModelTransformer> modelTransformers)
         {
             if (argumentBinder == null)
             {
@@ -77,6 +80,8 @@ namespace URSA.Web.Http
                     _postRequestHandlers.Add(postRequestHandler);
                 }
             }
+
+            _modelTransformers = modelTransformers ?? new IModelTransformer[0];
         }
 
         /// <inheritdoc />
@@ -105,6 +110,7 @@ namespace URSA.Web.Http
                 ValidateArguments(requestMapping.Operation.UnderlyingMethod.GetParameters(), arguments);
                 await ProcessPreRequestHandlers(request);
                 object output = await ProcessResult(requestMapping.Invoke(arguments));
+                output = await ProcessModelTransformers(requestMapping, request, output, arguments);
                 response = _responseComposer.ComposeResponse(requestMapping, output, arguments);
                 await ProcessPostRequestHandlers(response);
                 return response;
@@ -200,6 +206,16 @@ namespace URSA.Web.Http
             {
                 await postRequestHandler.Process(responseInfo);
             }
+        }
+
+        private async Task<object> ProcessModelTransformers(IRequestMapping requestMapping, RequestInfo requestInfo, object result, object[] arguments)
+        {
+            foreach (IModelTransformer modelTransformer in _modelTransformers)
+            {
+                result = await modelTransformer.Transform(requestMapping, requestInfo, result, arguments);
+            }
+
+            return result;
         }
     }
 }

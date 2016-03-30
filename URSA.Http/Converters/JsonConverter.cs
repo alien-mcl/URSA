@@ -68,7 +68,7 @@ namespace URSA.Web.Http.Converters
                 throw new ArgumentNullException("request");
             }
 
-            if (request.Body.Length == 0)
+            if ((request.Body.CanSeek) && (request.Body.Length == 0))
             {
                 return (expectedType.IsValueType ? Activator.CreateInstance(expectedType) : null);
             }

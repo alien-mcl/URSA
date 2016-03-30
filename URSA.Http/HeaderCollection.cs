@@ -36,12 +36,12 @@ namespace URSA.Web.Http
             get
             {
                 Header result;
-                if (!_headers.TryGetValue(name, out result))
+                if (_headers.TryGetValue(name, out result))
                 {
-                    result = null;
+                    return result;
                 }
 
-                return result;
+                return null;
             }
 
             set

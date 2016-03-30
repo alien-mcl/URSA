@@ -7,7 +7,6 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 using System;
-using System.Dynamic;
 using URSA.Web.Http;
 
 namespace Test
@@ -15,13 +14,17 @@ namespace Test
     [System.CodeDom.Compiler.GeneratedCode("URSA HTTP client proxy generation tool", "1.0")]
     public partial class TypeClient : Client
     {
+        public TypeClient(Uri baseUri, string authenticationScheme) : base(baseUri, authenticationScheme)
+        {
+        }
+
         public TypeClient(Uri baseUri) : base(baseUri)
         {
         }
 
         public void List()
         {
-            dynamic uriArguments = new ExpandoObject();
+            System.Collections.Generic.IDictionary<string, object> uriArguments = new System.Collections.Generic.Dictionary<string, object>();
             var accept = new string[0];
             var contentType = new string[0];
             Call(Verb.GET, "/type/#GET", accept, contentType, uriArguments);
@@ -29,10 +32,10 @@ namespace Test
 
         public void Get(System.Int32 id)
         {
-            dynamic uriArguments = new ExpandoObject();
+            System.Collections.Generic.IDictionary<string, object> uriArguments = new System.Collections.Generic.Dictionary<string, object>();
             var accept = new string[0];
             var contentType = new string[0];
-            uriArguments.id = id;
+            uriArguments["id"] = id;
             Call(Verb.GET, "/type/id/{?id}", accept, contentType, uriArguments);
         }
     }

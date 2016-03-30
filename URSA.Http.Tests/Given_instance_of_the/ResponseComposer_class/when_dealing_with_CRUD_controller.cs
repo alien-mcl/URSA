@@ -31,7 +31,7 @@ namespace Given_instance_of_the.ResponseComposer_class
             result.GetType().IsGenericType.Should().BeTrue();
             result.GetType().GetGenericTypeDefinition().Should().Be(typeof(ObjectResponseInfo<>));
             typeof(IEnumerable<Person>).IsAssignableFrom(result.GetType().GetGenericArguments()[0]).Should().BeTrue();
-            result.Status.Should().Be(HttpStatusCode.OK);
+            result.Status.Should().Be(HttpStatusCode.PartialContent);
             Converter.Verify(instance => instance.ConvertFrom(It.Is<IEnumerable>(collection => collection.Cast<Person>().Contains(expected[0])), It.IsAny<IResponseInfo>()), Times.Once);
         }
 

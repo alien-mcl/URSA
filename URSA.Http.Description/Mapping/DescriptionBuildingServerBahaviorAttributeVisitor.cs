@@ -9,7 +9,8 @@ namespace URSA.Web.Http.Description.Mapping
     /// <typeparam name="TMember">Type of the member of which the attributes should be visited.</typeparam>
     public class DescriptionBuildingServerBahaviorAttributeVisitor<TMember> : IServerBehaviorAttributeVisitor where TMember : ICustomAttributeProvider
     {
-        private static readonly string OData = "http://docs.oasis-open.org/odata/odata/v4.0/";
+        /// <summary>Exposes an OData namespace.</summary>
+        public static readonly string OData = "http://docs.oasis-open.org/odata/odata/v4.0/";
 
         private static readonly Type[] AllowedTypes = { typeof(ParameterInfo) };
 

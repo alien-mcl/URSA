@@ -112,6 +112,7 @@ namespace Given_instance_of_the.HydraClassGenerator_class
             _mappingsRepository = new Mock<IMappingsRepository>(MockBehavior.Strict);
             SetupMapping<IInverseFunctionalProperty>(new Uri(Owl.BaseUri));
             SetupMapping<ICreateResourceOperation>(new Uri(EntityConverter.Hydra.AbsoluteUri + "CreateResourceOperation"));
+            SetupMapping<ICollection>(new Uri(EntityConverter.Hydra.AbsoluteUri + "Collection"));
             _context.SetupGet(instance => instance.Mappings).Returns(_mappingsRepository.Object);
         }
 
@@ -137,6 +138,7 @@ namespace Given_instance_of_the.HydraClassGenerator_class
             restriction.SetupGet(instance => instance.Id).Returns(new EntityId(new Uri("urn:guid:" + Guid.NewGuid())));
             restriction.SetupGet(instance => instance.OnProperty).Returns(_property.Object);
             restriction.SetupGet(instance => instance.MaxCardinality).Returns(1);
+            restriction.SetupGet(instance => instance.SubClassOf).Returns(new URSA.Web.Http.Description.Rdfs.IClass[0]);
 
             _class = new Mock<IClass>(MockBehavior.Strict);
             _class.SetupGet(instance => instance.Context).Returns(_context.Object);

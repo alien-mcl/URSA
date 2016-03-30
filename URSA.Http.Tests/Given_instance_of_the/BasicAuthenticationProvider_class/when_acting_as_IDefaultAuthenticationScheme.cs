@@ -22,7 +22,7 @@ namespace Given_instance_of_the.BasicAuthenticationProvider_class
 
             await _authenticationProvider.Process(response);
 
-            response.Headers.WWWAuthenticate.Should().Be(BasicAuthenticationProvider.AuthenticationScheme);
+            response.Headers.WWWAuthenticate.Should().Be(BasicAuthenticationProvider.AuthenticationScheme + " realm=\"" + RequestExtensions.DefaultHost + "\"");
         }
 
         [TestMethod]
@@ -52,7 +52,7 @@ namespace Given_instance_of_the.BasicAuthenticationProvider_class
 
             await _authenticationProvider.Process(response);
 
-            response.Headers[BasicAuthenticationProvider.XWWWAuthenticate].Value.Should().Be(BasicAuthenticationProvider.AuthenticationScheme);
+            response.Headers[BasicAuthenticationProvider.XWWWAuthenticate].Value.Should().Be(BasicAuthenticationProvider.AuthenticationScheme + " realm=\"" + RequestExtensions.DefaultHost + "\"");
             response.Headers.AccessControlExposeHeaders.Should().Contain(BasicAuthenticationProvider.XWWWAuthenticate);
         }
 

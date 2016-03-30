@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
@@ -75,7 +76,7 @@ namespace URSA.Web.Http.Security
         private static Task Challenge(ResponseInfo response)
         {
             var challengeScheme = (response.Request.Headers.XRequestedWith != XMLHttpRequest ? Header.WWWAuthenticate : XWWWAuthenticate);
-            response.Headers.Add(challengeScheme, AuthenticationScheme);
+            response.Headers.Add(new Header(challengeScheme, String.Format("{0} realm=\"{1}\"", AuthenticationScheme, response.Request.Uri.Host)));
             var accessControlExposeHeaders = response.Headers.AccessControlExposeHeaders ?? String.Empty;
             if (!String.IsNullOrEmpty(response.Request.Headers.Origin))
             {

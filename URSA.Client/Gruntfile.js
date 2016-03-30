@@ -15,7 +15,8 @@ module.exports = function(grunt) {
     require("jit-grunt")(grunt, {
         useminPrepare: "grunt-usemin",
         ngtemplates: "grunt-angular-templates",
-        cdnify: "grunt-google-cdn"
+        cdnify: "grunt-google-cdn",
+        joiceAnnotate: "./bower_components/joice/dist/grunt-joice-annotate.js"
     });
 
     // Configurable paths for the application
@@ -300,7 +301,7 @@ module.exports = function(grunt) {
         //     }
         //   }
         // },
-         uglify: {
+        uglify: {
             options: {
                 mangle: {
                     except: [
@@ -482,6 +483,18 @@ module.exports = function(grunt) {
                     template: "<%= yeoman.app %>/../node_modules/ink-docstrap/template"
                 }
             }
+        },
+
+        // JoICe Annotate
+        joiceAnnotate: {
+            dist: {
+                files: [{
+                    expand: true,
+                    cwd: ".tmp/concat/scripts",
+                    src: "scripts.js",
+                    dest: ".tmp/concat/scripts"
+                }]
+            }
         }
     });
 
@@ -524,6 +537,7 @@ module.exports = function(grunt) {
         "ngtemplates",
         "concat",
         "ngAnnotate",
+        "joiceAnnotate",
         "copy:dist",
         "cdnify",
         "cssmin",

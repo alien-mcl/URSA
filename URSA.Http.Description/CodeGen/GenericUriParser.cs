@@ -24,9 +24,14 @@ namespace URSA.Web.Http.Description.CodeGen
                 throw new ArgumentNullException("uri");
             }
 
-            var parts = uri.Segments.Take(uri.Scheme.Length - 1).Select(item => item.Trim('/').ToUpperCamelCase()).Where(item => item.Length > 0);
-            @namespace = String.Join(".", parts);
-            return uri.Segments.Last().Trim('/').ToUpperCamelCase();
+            var parts = uri.Segments.Select(item => item.Trim('/').ToUpperCamelCase()).Where(item => item.Length > 0);
+            if (uri.Fragment.Length > 1)
+            {
+                parts = parts.Concat(new[] { uri.Fragment.Substring(1) });
+            }
+
+            @namespace = String.Join(".", parts.Take(parts.Count() - 1));
+            return parts.Last();
         }
     }
 }

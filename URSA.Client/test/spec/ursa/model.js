@@ -29,6 +29,8 @@
 
                 it("it should initialize an instance correctly", function() {
                     expect($class.id).toBe(window.apiDocumentation.personClass["@id"]);
+                    expect($class.minOccurances).toBe(0);
+                    expect($class.maxOccurances).toBe(1);
                     expect($class.supportedProperties.length).toBe(4);
                     expect($class.supportedProperties[0].id).toBe(window.apiDocumentation.firstNameSupportedProperty["@id"]);
                     expect($class.supportedOperations.length).toBe(2);
@@ -55,16 +57,18 @@
                     operation = apiDocumentation.supportedClasses[0].supportedOperations[0];
                 });
 
-                it("it should initialize an instance correctly", function () {
+                it("it should initialize an operation instance correctly", function () {
                     expect(operation.isRdf).toBeTruthy();
                     expect(operation.methods.length).toBe(1);
                     expect(operation.methods[0]).toBe("GET");
                     expect(operation.expects.length).toBe(1);
-                    expect(operation.expects[0].range).toBeOfType(ursa.model.Class);
-                    expect(operation.expects[0].range.id).toBe(window.apiDocumentation.personClass["@id"]);
+                    expect(operation.expects[0]).toBeOfType(ursa.model.Class);
+                    expect(operation.expects[0].id).toBe(window.apiDocumentation.personClass["@id"]);
                     expect(operation.returns.length).toBe(1);
-                    expect(operation.returns[0].range).toBeOfType(ursa.model.Class);
-                    expect(operation.returns[0].range.id).toBe(window.apiDocumentation.personClass["@id"]);
+                    expect(operation.returns[0].minOccurances).toBe(0);
+                    expect(operation.returns[0].maxOccurances).toBe(1);
+                    expect(operation.returns[0]).toBeOfType(ursa.model.Class);
+                    expect(operation.returns[0].typeId).toBe(window.apiDocumentation.personClass["@id"]);
                     expect(operation.returns[0].description).toBe(window.apiDocumentation.personSubClass[rdfs.comment][0]["@value"]);
                 });
 
@@ -80,19 +84,18 @@
                     operation = apiDocumentation.supportedClasses[0].supportedOperations[1];
                 });
 
-                it("it should initialize an instance correctly", function () {
+                it("it should initialize an operation instance correctly", function () {
                     expect(operation.isRdf).toBeTruthy();
                     expect(operation.url).toBe(apiDocumentation.entryPoints[0] + window.apiDocumentation.listRdfIriTemplate[hydra.template][0]["@value"].substr(1));
                     expect(operation.mappings.length).toBe(2);
                     expect(operation.methods[0]).toBe("GET");
                     expect(operation.methods.length).toBe(1);
                     expect(operation.methods[0]).toBe("GET");
-                    expect(operation.expects.length).toBe(1);
-                    expect(operation.expects[0].range).toBeOfType(ursa.model.Class);
-                    expect(operation.expects[0].range.id).toBe(window.apiDocumentation.personClass["@id"]);
                     expect(operation.returns.length).toBe(1);
-                    expect(operation.returns[0].range).toBeOfType(ursa.model.Class);
-                    expect(operation.returns[0].range.id).toBe(window.apiDocumentation.personClass["@id"]);
+                    expect(operation.returns[0].minOccurances).toBe(0);
+                    expect(operation.returns[0].maxOccurances).toBe(Number.MAX_VALUE);
+                    expect(operation.returns[0]).toBeOfType(ursa.model.Class);
+                    expect(operation.returns[0].typeId).toBe(window.apiDocumentation.personClass["@id"]);
                 });
 
                 it("it should create a correct call URL", function() {
@@ -154,6 +157,23 @@
                 it("it should initialize an instance correctly", function () {
                     expect(supportedProperty.supportedOperations.length).toBe(1);
                     expect(supportedProperty.supportedOperations[0].id).toBe(window.apiDocumentation.setRolesOperation["@id"]);
+                });
+            });
+
+            describe("which defines a multiple values range", function () {
+                beforeEach(function () {
+                    supportedProperty = apiDocumentation.supportedClasses[0].supportedProperties[2];
+                });
+
+                it("it should initialize an instance correctly", function () {
+                    expect(supportedProperty.required).toBe(window.apiDocumentation.rolesSupportedProperty[hydra.required][0]["@value"]);
+                    expect(supportedProperty.readable).toBe(window.apiDocumentation.rolesSupportedProperty[hydra.readable][0]["@value"]);
+                    expect(supportedProperty.writeable).toBe(window.apiDocumentation.rolesSupportedProperty[hydra.writeable][0]["@value"]);
+                    expect(supportedProperty.property).toBe(window.apiDocumentation.rolesProperty["@id"]);
+                    expect(supportedProperty.minOccurances).toBe(0);
+                    expect(supportedProperty.maxOccurances).toBe(Number.MAX_VALUE);
+                    expect(supportedProperty.range).not.toBe(null);
+                    expect(supportedProperty.range.typeId).toBe(xsd.string);
                 });
             });
         });

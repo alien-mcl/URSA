@@ -2,6 +2,7 @@
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using URSA.Web.Http.Description;
+using URSA.Web.Http.Description.Entities;
 using URSA.Web.Http.Description.Hydra;
 
 namespace Given_instance_of_the.HydraCompliantTypeDescriptionBuilder_class
@@ -16,7 +17,7 @@ namespace Given_instance_of_the.HydraCompliantTypeDescriptionBuilder_class
             var result = context.BuildTypeDescription();
             result = context.TypeDescriptionBuilder.SubClass(context, result);
 
-            result.SingleValue.Should().HaveValue().And.Subject.Value.Should().BeTrue();
+            result.IsCollection().Should().BeFalse();
             result.Should().BeAssignableTo<IClass>();
         }
 

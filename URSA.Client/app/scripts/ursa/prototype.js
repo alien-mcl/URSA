@@ -1,4 +1,4 @@
-﻿/*globals xsd, rdf, rdfs, owl, guid, hydra, ursa, odata, namespace */
+﻿/*globals xsd, rdf, rdfs, owl, guid, hydra, ursa, odata */
 (function() {
     "use strict";
 
@@ -61,6 +61,7 @@
     hydra.CreateResourceOperation = hydra + "CreateResourceOperation";
     hydra.ReplaceResourceOperation = hydra + "ReplaceResourceOperation";
     hydra.DeleteResourceOperation = hydra + "DeleteResourceOperation";
+    hydra.Collection = hydra + "Collection";
     hydra.entrypoint = hydra + "entrypoint";
     hydra.property = hydra + "property";
     hydra.supportedProperty = hydra + "supportedProperty";
@@ -79,8 +80,9 @@
     hydra.variable = hydra + "variable";
     hydra.title = hydra + "title";
     hydra.description = hydra + "description";
+    hydra.manages = hydra + "manages";
+    hydra.member = hydra + "member";
     window.ursa = new String("http://alien-mcl.github.io/URSA/vocabulary#"); //jshint ignore:line
-    ursa.singleValue = ursa + "singleValue";
     ursa.mediaType = ursa + "mediaType";
     window.odata = new String("http://docs.oasis-open.org/odata/odata/v4.0/"); //jshint ignore:line
     odata.skip = odata + "$skip";

@@ -1,4 +1,4 @@
-﻿/*globals namespace, container, xsd, guid, ursa, odata, confirm */
+﻿/*globals namespace, xsd, guid, ursa, odata, confirm */
 (function(namespace) {
     "use strict";
 
@@ -19,7 +19,7 @@
      * @param {ursa.web.AuthenticationProvider} authenticationProvider Authentication provider.
      * @param {ursa.model.FilterProvider} filterProvider Filter provider.
      */
-    var ViewRenderer = namespace.ViewRenderer = function(httpService, jsonLdProcessor, authenticationProvider, filterProvider) {
+    var ViewRenderer = namespace.ViewRenderer = function (httpService, jsonLdProcessor, authenticationProvider, filterProvider) {
         Function.requiresArgument("httpService", httpService, ursa.web.HttpService);
         Function.requiresArgument("jsonLdProcessor", jsonLdProcessor, ursa.model.JsonLdProcessor);
         Function.requiresArgument("authenticationProvider", authenticationProvider, ursa.web.AuthenticationProvider);
@@ -213,6 +213,7 @@
      */
     DatatypeDescriptor.prototype.pattern = null;
 
+    var _SupportedPropertyRenderer = {};
     /**
      * Default renderer for {@link ursa.model.SupportedProperty}.
      * @memberof ursa.view
@@ -251,7 +252,6 @@
         return _SupportedPropertyRenderer.renderCollection.call(this, scope, context, result);
     };
     // TODO: Add validation when adding item to collection
-    var _SupportedPropertyRenderer = {};
     _SupportedPropertyRenderer.initialize = function(scope, classNames) {
         if (this.apiMember.key) {
             scope.supportedPropertyKeys[this.apiMember.id] = true;
@@ -261,24 +261,22 @@
             scope.supportedPropertyReadonly[this.apiMember.id] = true;
         }
 
-        var range = ((this.apiMember.range instanceof ursa.model.Class) && (this.apiMember.range.valueRange !== null) ? this.apiMember.range.valueRange : this.apiMember.range);
         var result = {
             classNames: String.format("class=\"form-control{0}\" ", (typeof(classNames) === "string" ? classNames : "")),
             propertyName: this.apiMember.propertyName(scope.operation),
             propertySelector: scope.targetInstance +
             (!scope.operation.isRdf ? "['{0}']" : "['{0}']" + (this.apiMember.maxOccurances > 1 ?
-            ((this.apiMember.range !== range) ? "[0]['@list']" : "") :
-            (range instanceof ursa.model.DataType ? "[0]['@value']" : "[0]['@id']")))
+            ((this.apiMember.range) && (this.apiMember.isList) ? "[0]['@list']" : "") :
+            (this.apiMember.range instanceof ursa.model.DataType ? "[0]['@value']" : "[0]['@id']")))
         };
         result.literalSelector = String.format(result.propertySelector, result.propertyName) + "[$index]";
         result.valueSelector = (this.apiMember.maxOccurances <= 1 ? result.propertySelector : result.literalSelector + (!scope.operation.isRdf ? "" :
-        (range instanceof ursa.model.DataType ? "['@value']" : "")));
+            (this.apiMember.range instanceof ursa.model.DataType ? "['@value']" : "")));
         return result;
     };
     _SupportedPropertyRenderer.renderField = function(scope, context) {
         var operation = null;
-        var valueRange = ((this.apiMember.range instanceof ursa.model.Class) && (this.apiMember.range.valueRange !== null) ? this.apiMember.range.valueRange : this.apiMember.range);
-        var controlType = (SupportedPropertyRenderer.dataTypes[valueRange.id] ? "input" : "select");
+        var controlType = ((this.apiMember.range) && (SupportedPropertyRenderer.dataTypes[this.apiMember.range.typeId]) ? "input" : "select");
         if ((controlType === "select") && ((operation = _OperationRenderer.findEntityCrudOperation.call(this, "GET", true)) === null)) {
             controlType = "input";
         }
@@ -292,7 +290,7 @@
             ((this.apiMember.required) && (!this.apiMember.key) ? "required " : ""),
             context.propertyName);
         var parameters = [context.propertyName];
-        var dataType = SupportedPropertyRenderer.dataTypes[valueRange.id] || { type: "text" };
+        var dataType = (this.apiMember.range ? SupportedPropertyRenderer.dataTypes[this.apiMember.range.typeId] : null) || { type: "text" };
         for (var property in dataType) {
             if ((dataType.hasOwnProperty(property)) && (dataType[property] !== undefined) && (dataType[property] !== null)) {
                 format += (property === "pattern" ? "ng-" + property : property) + "=\"{" + parameters.length + "}\" ";
@@ -302,15 +300,13 @@
 
         var closure = "/>";
         if (controlType === "select") {
-            var range = ((this.apiMember.range instanceof ursa.model.Class) && (this.apiMember.range.valueRange !== null) ? this.apiMember.range.valueRange : this.apiMember.range);
-            range = (range instanceof ursa.model.Class ? this.apiMember.apiDocumentation.supportedClasses.getById(range.id) : range);
             var displayName = this.apiMember.owner.getInstanceDisplayNameProperty(operation);
-            scope.supportedPropertyTypeValues[range.id] = [];
-            _SupportedPropertyRenderer.loadItems.call(this, scope, range);
+            scope.supportedPropertyTypeValues[this.apiMember.range.typeId] = [];
+            _SupportedPropertyRenderer.loadItems.call(this, scope, this.apiMember.range);
             closure = String.format(
                 " ng-focus=\"initialize('{4}')\" ng-options=\"item as item['{0}']{3} for item in supportedPropertyTypeValues['{1}'] track by item['{2}']\"></select>",
                 displayName.propertyName(operation),
-                range.id,
+                this.apiMember.range.typeId,
                 (operation.isRdf ? "@id" : this.apiMember.owner.getKeyProperty(operation).propertyName(operation)),
                 (operation.isRdf ? "[0]['@value']" : ""),
                 this.apiMember.id);
@@ -323,7 +319,7 @@
     _SupportedPropertyRenderer.renderCollection = function(scope, context, field) {
         scope.supportedPropertyNewValues[context.propertyName] = this.apiMember.createInstance();
         var listControls = "";
-        if ((this.apiMember.range instanceof ursa.model.Class) && (this.apiMember.range.valueType !== null)) {
+        if (this.apiMember.isList) {
             listControls = "<button class=\"btn\" ng-disabled=\"$index === 0\" ng-click=\"movePropertyItem('{3}', $index, -1)\"><span class=\"glyphicon glyphicon-arrow-up\"></span></button>" +
                 "<button class=\"btn\" ng-disabled=\"$index === {1}.length - 1\" ng-click=\"movePropertyItem('{3}', $index, 1)\"><span class=\"glyphicon glyphicon-arrow-down\"></span></button>";
         }
@@ -375,7 +371,7 @@
     };
     _SupportedPropertyRenderer.entityLoaded = function(scope, type) {
         scope.supportedPropertyNewValues = {};
-        if (type.id === this.apiMember.owner.id) {
+        if (type.typeId === this.apiMember.owner.typeId) {
             for (var index = 0; index < this.apiMember.owner.supportedProperties.length; index++) {
                 _SupportedPropertyRenderer.isPropertyReadonly.call(this, scope, this.apiMember.owner.supportedProperties[index].id);
             }
@@ -383,7 +379,7 @@
     };
     _SupportedPropertyRenderer.entityEvent = function(scope, type) {
         scope.supportedPropertyNewValues = {};
-        if (type.id === this.apiMember.owner.id) {
+        if (type.typeId === this.apiMember.owner.typeId) {
             _SupportedPropertyRenderer.loadItems.call(this, scope, type);
         }
     };
@@ -394,7 +390,7 @@
         if (instance !== null) {
             var value = instance[propertyName] || null;
             if ((value !== null) && (instance[propertyName] instanceof Array)) {
-                value = ((scope.operation.isRdf) && (supportedProperty.range instanceof ursa.model.Class) && (supportedProperty.range.valueRange !== null) ?
+                value = ((scope.operation.isRdf) && (supportedProperty.range instanceof ursa.model.Class) && (supportedProperty.range.isList) ?
                     instance[propertyName][0]["@list"] : instance[propertyName]);
                 if (value.length === 0) {
                     value = null;
@@ -444,7 +440,7 @@
     _SupportedPropertyRenderer.addPropertyItem = function(scope, supportedPropertyId) {
         var supportedProperty = scope.supportedProperties.getById(supportedPropertyId);
         var propertyName = supportedProperty.propertyName(scope.operation);
-        var isRdfList = ((scope.operation.isRdf) && (supportedProperty.range instanceof ursa.model.Class) && (supportedProperty.range.valueRange !== null));
+        var isRdfList = ((scope.operation.isRdf) && (supportedProperty.isList));
         var propertyItems = scope[scope.targetInstance][propertyName] || (scope[scope.targetInstance][propertyName] = (isRdfList ? [{ "@list": [] }] : []));
         if ((propertyItems = (isRdfList ? propertyItems[0]["@list"] : propertyItems)).indexOf(scope.supportedPropertyNewValues[propertyName]) === -1) {
             propertyItems.push(scope.supportedPropertyNewValues[propertyName]);
@@ -462,7 +458,7 @@
         var instance = scope[scope.targetInstance];
         var value = instance[propertyName] || null;
         if ((value !== null) && (instance[propertyName] instanceof Array)) {
-            value = ((scope.operation.isRdf) && (supportedProperty.range instanceof ursa.model.Class) && (supportedProperty.range.valueRange !== null) ?
+            value = ((scope.operation.isRdf) && (supportedProperty.range instanceof ursa.model.Class) && (supportedProperty.range.isList) ?
                 instance[propertyName][0]["@list"] : instance[propertyName]);
             if (value.length === 0) {
                 value = null;
@@ -477,7 +473,7 @@
     _SupportedPropertyRenderer.movePropertyItem = function(scope, supportedPropertyId, index, direction) {
         var supportedProperty = scope.supportedProperties.getById(supportedPropertyId);
         var propertyName = supportedProperty.propertyName(scope.operation);
-        var isRdfList = ((scope.operation.isRdf) && (supportedProperty.range instanceof ursa.model.Class) && (supportedProperty.range.valueRange !== null));
+        var isRdfList = ((scope.operation.isRdf) && (supportedProperty.range instanceof ursa.model.Class) && (supportedProperty.range.isList));
         var propertyItems = scope[scope.targetInstance][propertyName];
         var propertyItem = (propertyItems = (isRdfList ? propertyItems[0]["@list"] : propertyItems))[index];
         propertyItems[index] = propertyItems[index + direction];
@@ -497,11 +493,11 @@
                 if ((response.headers["Content-Type"] || "*/*").indexOf(ursa.model.EntityFormat.ApplicationLdJson) === 0) {
                     that.jsonLdProcessor.expand(response.data).
                         then(function(expanded) {
-                            scope.supportedPropertyTypeValues[type.id] = expanded;
+                            scope.supportedPropertyTypeValues[type.typeId] = expanded;
                         });
                 }
                 else {
-                    scope.supportedPropertyTypeValues[type.id] = response.data;
+                    scope.supportedPropertyTypeValues[type.typeId] = response.data;
                 }
             });
     };
@@ -732,7 +728,7 @@
     };
     OperationRenderer.prototype.render = function(scope, classNames) {
         ViewRenderer.prototype.render.apply(this, arguments);
-        if (this.apiMember.owner.maxOccurances === Number.MAX_VALUE) {
+        if ((this.apiMember.returns.length === 1) && (this.apiMember.returns[0].maxOccurances === Number.MAX_VALUE)) {
             return _OperationRenderer.renderEntityList.call(this, scope, classNames);
         }
 

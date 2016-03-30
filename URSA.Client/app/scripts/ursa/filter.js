@@ -1,4 +1,4 @@
-﻿/*globals xsd, ursa, guid, odata, namespace */
+﻿/*globals xsd, ursa, guid, odata, namespace, joice */
 (function(namespace) {
     "use strict";
 
@@ -307,7 +307,7 @@
         return 0;
     };
     ODataFilterExpressionProvider.toString = function() { return "ursa.model.ODataFilterExpressionProvider"; };
-    var _ODataFilterExpressionProvider = {}
+    var _ODataFilterExpressionProvider = {};
     _ODataFilterExpressionProvider.createFilterExpression = function(supportedProperty, value) {
         switch (supportedProperty.range.id) {
             case xsd.string:

@@ -31,7 +31,7 @@ namespace System.Reflection
             }
 
             return (!type.IsArray) && (((type.IsGenericType) && (type.GetGenericTypeDefinition() == typeof(IList<>))) ||
-                (type.GetInterfaces().Any(@interface => (@interface.IsGenericTypeDefinition) && (typeof(IList<>).IsAssignableFrom(@interface.GetGenericTypeDefinition())))));
+                (type.GetInterfaces().Any(@interface => (@interface.IsGenericType) && (typeof(IList<>).IsAssignableFrom(@interface.GetGenericTypeDefinition())))));
         }
 
         /// <summary>Checks if a given type is of either type <see cref="ICollection" /> or <see cref="ICollection{T}" />.</summary>
@@ -58,7 +58,7 @@ namespace System.Reflection
             }
 
             return (!type.IsArray) && (((type.IsGenericType) && (type.GetGenericTypeDefinition() == typeof(ICollection<>))) ||
-                (type.GetInterfaces().Any(@interface => (@interface.IsGenericTypeDefinition) && (typeof(ICollection<>).IsAssignableFrom(@interface.GetGenericTypeDefinition())))));
+                (type.GetInterfaces().Any(@interface => (@interface.IsGenericType) && (typeof(ICollection<>).IsAssignableFrom(@interface.GetGenericTypeDefinition())))));
         }
 
         /// <summary>Checks if the type can be assigned to the <see cref="IEnumerable" /> interface.</summary> 
@@ -85,8 +85,8 @@ namespace System.Reflection
                 throw new ArgumentNullException("type");
             }
 
-            return (!type.IsArray) && (((type.IsGenericType) && (type.GetGenericTypeDefinition() == typeof(IEnumerable<>))) ||
-                (type.GetInterfaces().Any(@interface => (@interface.IsGenericTypeDefinition) && (typeof(IEnumerable<>).IsAssignableFrom(@interface.GetGenericTypeDefinition())))));
+            return (!type.IsArray) && (type != typeof(string)) && (((type.IsGenericType) && (type.GetGenericTypeDefinition() == typeof(IEnumerable<>))) ||
+                (type.GetInterfaces().Any(@interface => (@interface.IsGenericType) && (typeof(IEnumerable<>).IsAssignableFrom(@interface.GetGenericTypeDefinition())))));
         }
 
         /// <summary>Gets the item type of the collection type or the type itself.</summary>

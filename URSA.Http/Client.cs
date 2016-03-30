@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Dynamic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -20,23 +21,39 @@ namespace URSA.Web.Http
     /// <summary>Acts as a base class for HTTP client proxies.</summary>
     public class Client
     {
+        private const string DefaultAuthenticationScheme = "Basic";
         private static readonly string[] AllowedProtocols = { "http", "https" };
 
         private readonly IWebRequestProvider _webRequestProvider;
         private readonly IConverterProvider _converterProvider;
         private readonly IResultBinder<RequestInfo> _resultBinder;
+        private readonly string _authenticationScheme;
 
         /// <summary>Initializes a new instance of the <see cref="Client"/> class.</summary>
         /// <param name="baseUri">The base URI.</param>
         [ExcludeFromCodeCoverage]
-        public Client(Uri baseUri) : this()
+        public Client(Uri baseUri) : this(baseUri, DefaultAuthenticationScheme)
+        {
+        }
+
+        /// <summary>Initializes a new instance of the <see cref="Client"/> class.</summary>
+        /// <param name="baseUri">The base URI.</param>
+        /// <param name="authenticationScheme">Authentication scheme.</param>
+        [ExcludeFromCodeCoverage]
+        public Client(Uri baseUri, string authenticationScheme) : this()
         {
             if (baseUri == null)
             {
                 throw new ArgumentNullException("baseUri");
             }
 
+            if ((authenticationScheme == null) || (authenticationScheme.Length == 0))
+            {
+                authenticationScheme = DefaultAuthenticationScheme;
+            }
+
             BaseUri = baseUri;
+            _authenticationScheme = authenticationScheme;
         }
 
         private Client()
@@ -57,16 +74,12 @@ namespace URSA.Web.Http
 
         private Uri BaseUri { get; set; }
 
-        internal Uri BuildUri(string url, ExpandoObject uriArguments)
+        internal Uri BuildUri(string url, IDictionary<string, object> uriArguments)
         {
             var template = new UriTemplate(BaseUri + url.TrimStart('/'));
-            var variables = new Dictionary<string, object>();
-            foreach (KeyValuePair<string, object> property in uriArguments)
-            {
-                variables[property.Key] = property.Value.ToString();
-            }
-
-            return template.ResolveUri(variables);
+            var result = template.ResolveUri(uriArguments.ToDictionary(entry => entry.Key, entry => (object)(entry.Value != null ? entry.Value.ToString() : null)));
+            result = new Uri(Regex.Replace(result.ToString(), "%([0-9]+)", match => Convert.ToChar(UInt32.Parse(match.Groups[1].Value, NumberStyles.HexNumber)).ToString()));
+            return result;
         }
 
         /// <summary>Calls the ReST service using specified HTTP verb.</summary>
@@ -78,7 +91,7 @@ namespace URSA.Web.Http
         /// <param name="uriArguments">The URI template arguments.</param>
         /// <param name="bodyArguments">The body arguments.</param>
         /// <returns>Result of the call.</returns>
-        protected internal T Call<T>(Verb verb, string url, IEnumerable<string> mediaTypes, IEnumerable<string> contentType, ExpandoObject uriArguments, params object[] bodyArguments)
+        protected internal T Call<T>(Verb verb, string url, IEnumerable<string> mediaTypes, IEnumerable<string> contentType, IDictionary<string, object> uriArguments, params object[] bodyArguments)
         {
             var result = Call(verb, url, mediaTypes, contentType, typeof(T), uriArguments, bodyArguments);
             return (result == null ? default(T) : (result is T ? (T)result : (T)Convert.ChangeType(result, typeof(T))));
@@ -91,7 +104,7 @@ namespace URSA.Web.Http
         /// <param name="contentType">Enumeration of possible content type media types.</param>
         /// <param name="uriArguments">The URI template arguments.</param>
         /// <param name="bodyArguments">The body arguments.</param>
-        protected void Call(Verb verb, string url, IEnumerable<string> accept, IEnumerable<string> contentType, ExpandoObject uriArguments, params object[] bodyArguments)
+        protected void Call(Verb verb, string url, IEnumerable<string> accept, IEnumerable<string> contentType, IDictionary<string, object> uriArguments, params object[] bodyArguments)
         {
             Call(verb, url, accept, contentType, uriArguments, bodyArguments);
         }
@@ -105,7 +118,7 @@ namespace URSA.Web.Http
         /// <param name="uriArguments">The URI template arguments.</param>
         /// <param name="bodyArguments">The body arguments.</param>
         /// <returns>Result of the call.</returns>
-        protected object Call(Verb verb, string url, IEnumerable<string> accept, IEnumerable<string> contentType, Type responseType, ExpandoObject uriArguments, params object[] bodyArguments)
+        protected object Call(Verb verb, string url, IEnumerable<string> accept, IEnumerable<string> contentType, Type responseType, IDictionary<string, object> uriArguments, params object[] bodyArguments)
         {
             var uri = BuildUri(url, uriArguments);
             var validAccept = (!accept.Any() ? _converterProvider.SupportedMediaTypes :
@@ -114,7 +127,10 @@ namespace URSA.Web.Http
             WebRequest request = _webRequestProvider.CreateRequest(uri, new Dictionary<string, string>() { { Header.Accept, String.Join(", ", accepted) } });
             if ((!String.IsNullOrEmpty(CredentialCache.DefaultNetworkCredentials.UserName)) && (!String.IsNullOrEmpty(CredentialCache.DefaultNetworkCredentials.Password)))
             {
-                request.Credentials = CredentialCache.DefaultNetworkCredentials;
+                var credentials = new CredentialCache();
+                credentials.Add(uri, _authenticationScheme, new NetworkCredential(CredentialCache.DefaultNetworkCredentials.UserName, CredentialCache.DefaultNetworkCredentials.Password));
+                request.Credentials = credentials;
+                request.PreAuthenticate = true;
             }
 
             request.Method = verb.ToString();
@@ -161,13 +177,13 @@ namespace URSA.Web.Http
             }
         }
 
-        private void ParseContentRange(HttpWebResponse response, dynamic uriArguments)
+        private void ParseContentRange(HttpWebResponse response, IDictionary<string, object> uriArguments)
         {
             try
             {
-                if ((uriArguments.totalEntities == 0) && (!String.IsNullOrEmpty(response.Headers["Content-Range"])))
+                if (((!uriArguments.ContainsKey("totalEntities")) || (Equals(uriArguments["totalEntities"], 0))) && (!String.IsNullOrEmpty(response.Headers["Content-Range"])))
                 {
-                    uriArguments.totalEntities = Int32.Parse(Regex.Match(response.Headers["Content-Range"], "[0-9]+\\-[0-9]+/(?<TotalEntities>[0-9]+)").Groups["TotalEntities"].Value);
+                    uriArguments["totalEntities"] = Int32.Parse(Regex.Match(response.Headers["Content-Range"], "[0-9]+\\-[0-9]+/(?<TotalEntities>[0-9]+)").Groups["TotalEntities"].Value);
                 }
             }
             catch (FormatException)

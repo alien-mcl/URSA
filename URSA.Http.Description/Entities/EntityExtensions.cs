@@ -7,9 +7,9 @@ using RomanticWeb.Configuration;
 using RomanticWeb.DotNetRDF;
 using RomanticWeb.Entities;
 using RomanticWeb.Model;
-using RomanticWeb.NamedGraphs;
 using RomanticWeb.Vocabularies;
 using URSA.Configuration;
+using URSA.Web.Http.Description.Hydra;
 using URSA.Web.Http.Description.Owl;
 using URSA.Web.Http.Description.Rdfs;
 using VDS.RDF;
@@ -119,14 +119,14 @@ namespace URSA.Web.Http.Description.Entities
             itemRestriction = null;
             foreach (var superClass in @class.SubClassOf)
             {
-                if (superClass.Is(RomanticWeb.Vocabularies.Rdf.List))
+                if (superClass.IsClass(Rdf.List))
                 {
                     result = true;
                 }
 
-                IRestriction restriction = null;
+                IRestriction restriction;
                 if ((superClass.Is(RomanticWeb.Vocabularies.Owl.Restriction)) &&
-                    ((restriction = superClass.AsEntity<IRestriction>()).OnProperty != null) && (restriction.OnProperty.Id == RomanticWeb.Vocabularies.Rdf.first) &&
+                    ((restriction = superClass.AsEntity<IRestriction>()).OnProperty != null) && (restriction.OnProperty.Id == Rdf.first) &&
                     (restriction.AllValuesFrom != null) && (restriction.AllValuesFrom.Is(RomanticWeb.Vocabularies.Rdfs.Resource)))
                 {
                     itemRestriction = restriction.AllValuesFrom.AsEntity<IResource>();
@@ -134,6 +134,11 @@ namespace URSA.Web.Http.Description.Entities
             }
 
             return result;
+        }
+
+        internal static bool IsCollection(this Rdfs.IClass @class)
+        {
+            return @class.IsClass(@class.Context.Mappings.MappingFor<ICollection>().Classes.First().Uri);
         }
 
         internal static IEnumerable<Rdfs.IResource> GetUniqueIdentifierType(this IClass @class)
@@ -158,6 +163,24 @@ namespace URSA.Web.Http.Description.Entities
             typeConstrain.OnProperty = onProperty;
             typeConstrain.MaxCardinality = maxCardinality;
             return typeConstrain;
+        }
+
+        internal static bool IsClass(this Rdfs.IClass @class, Uri type)
+        {
+            return ((!(@class.Id is BlankId)) && (AbsoluteUriComparer.Default.Equals(@class.Id.Uri, type))) ||
+                (@class.SubClassOf.Any(superClass => superClass.IsClass(type)));
+        }
+
+        internal static IEnumerable<Rdfs.IClass> SuperClasses(this Rdfs.IClass @class)
+        {
+            IList<Rdfs.IClass> result = new List<Rdfs.IClass>();
+            foreach (var superClass in @class.SubClassOf)
+            {
+                result.AddRange(superClass.SuperClasses());
+                result.Add(superClass);
+            }
+
+            return result;
         }
 
         private static INode Clone(this INode node, IGraph targetGraph, Uri currentId, Uri newId)

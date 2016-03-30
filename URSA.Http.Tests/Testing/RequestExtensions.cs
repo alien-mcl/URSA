@@ -7,9 +7,11 @@ namespace URSA.Web.Http.Testing
 {
     internal static class RequestExtensions
     {
+        internal const string DefaultHost = "temp.uri";
+
         internal static RequestInfo CreateRequest(this object unitTest, params Header[] headers)
         {
-            return new RequestInfo(Verb.GET, new Uri("/", UriKind.Relative), new MemoryStream(), new BasicClaimBasedIdentity(), headers);
+            return new RequestInfo(Verb.GET, new Uri("http://" + DefaultHost + "/", UriKind.Absolute), new MemoryStream(), new BasicClaimBasedIdentity(), headers);
         }
 
         internal static ResponseInfo CreateResponse(this object unitTest, params Header[] headers)

@@ -11,10 +11,6 @@ namespace URSA.Web.Http.Description.Hydra
         [Collection("hydra", "operation")]
         ICollection<IOperation> Operations { get; }
 
-        /// <summary>Gets or sets a flag indicating whether the resource is a single value or not.</summary>
-        [Property("ursa", "singleValue")]
-        bool? SingleValue { get; set; }
-
         /// <summary>Gets the media types supported by given operation.</summary>
         [Collection("ursa", "mediaType")]
         ICollection<string> MediaTypes { get; }

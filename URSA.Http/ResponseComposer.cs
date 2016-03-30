@@ -149,7 +149,7 @@ namespace URSA.Web.Http
         {
             var status = HttpStatusCode.OK;
             ResponseInfo result = (ResponseInfo)requestMapping.Target.Response;
-            if ((arguments[0] != null) && (arguments[1] != null))
+            if ((arguments[1] != null) && (arguments[2] != null))
             {
                 int skip = (int)arguments[1];
                 int take = (int)arguments[2];

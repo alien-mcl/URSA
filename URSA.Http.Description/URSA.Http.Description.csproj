@@ -100,6 +100,7 @@
     <Compile Include="CodeGen\XsdUriParser.cs" />
     <Compile Include="CodeGen\HydraUriParser.cs" />
     <Compile Include="CodeGen\IClassGenerator.cs" />
+    <Compile Include="CollectionModelTransformer.cs" />
     <Compile Include="Configuration\ComponentProviderExtensions.cs" />
     <Compile Include="Configuration\DescriptionConfigurationSection.cs" />
     <Compile Include="Converters\EntityConverter.cs" />
@@ -111,6 +112,8 @@
     <Compile Include="EntryPointDescriptionController.cs" />
     <Compile Include="Hydra\ClassExtensions.cs" />
     <Compile Include="Hydra\IApiDocumentation.cs" />
+    <Compile Include="Hydra\IPartialCollectionView.cs" />
+    <Compile Include="Hydra\ICollection.cs" />
     <Compile Include="Hydra\ISupportedOperationsOwner.cs" />
     <Compile Include="Hydra\IReplaceResourceOperation.cs" />
     <Compile Include="Hydra\IDeleteResourceOperation.cs" />

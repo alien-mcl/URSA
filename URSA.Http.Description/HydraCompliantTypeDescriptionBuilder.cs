@@ -66,9 +66,14 @@ namespace URSA.Web.Http.Description
                 return context.BuildTypeDescription(out requiresRdf);
             }
 
-            if (context.Type.IsList())
+            if (System.Reflection.TypeExtensions.IsEnumerable(context.Type))
             {
-                return CreateListDefinition(context, out requiresRdf, context.Type.IsGenericList());
+                if (context.Type.IsList())
+                {
+                    return CreateListDefinition(context, out requiresRdf, context.Type.IsGenericList());
+                }
+
+                return CreateCollectionDefinition(context, out requiresRdf, context.Type.IsGenericEnumerable());
             }
 
             requiresRdf = false;
@@ -126,7 +131,6 @@ namespace URSA.Web.Http.Description
 
             IClass result = context.ApiDocumentation.Context.Create<IClass>(@class.CreateBlankId());
             result.SubClassOf.Add(@class);
-            result.SingleValue = !System.Reflection.TypeExtensions.IsEnumerable(contextTypeOverride ?? context.Type);
             return result;
         }
 
@@ -163,22 +167,54 @@ namespace URSA.Web.Http.Description
 
         private IClass CreateListDefinition(DescriptionContext context, out bool requiresRdf, bool isGeneric = true)
         {
+            Type itemType;
+            var result = CreateCollectionDefinition(context, out requiresRdf, out itemType, isGeneric);
+            if (!isGeneric)
+            {
+                return result;
+            }
+
+            var memberType = (context.ContainsType(itemType) ? context[itemType] : BuildTypeDescription(context.ForType(itemType), out requiresRdf));
+            result.SubClassOf.Add(context.ApiDocumentation.Context.Create<IClass>(Rdf.List));
+            result.SubClassOf.Add(result.CreateRestriction(Rdf.first, memberType));
+            result.SubClassOf.Add(result.CreateRestriction(Rdf.rest, result));
+            return result;
+        }
+
+        private IClass CreateCollectionDefinition(DescriptionContext context, out bool requiresRdf, bool isGeneric = true)
+        {
+            Type itemType;
+            return CreateCollectionDefinition(context, out requiresRdf, out itemType, isGeneric);
+        }
+
+        private IClass CreateCollectionDefinition(DescriptionContext context, out bool requiresRdf, out Type itemType, bool isGeneric = true)
+        {
+            var result = CreateEnumerableDefinition(context, context.ApiDocumentation.Context.Mappings.MappingFor<ICollection>().Classes.First().Uri, out requiresRdf, out itemType, isGeneric);
+            if (!isGeneric)
+            {
+                return result;
+            }
+
+            var memberType = (context.ContainsType(itemType) ? context[itemType] : BuildTypeDescription(context.ForType(itemType), out requiresRdf));
+            result.SubClassOf.Add(result.CreateRestriction(context.ApiDocumentation.Context.Mappings.MappingFor<ICollection>().PropertyFor("Members").Uri, memberType));
+            return result;
+        }
+
+        private IClass CreateEnumerableDefinition(DescriptionContext context, Uri baseType, out bool requiresRdf, out Type itemType, bool isGeneric = true)
+        {
+            itemType = null;
             requiresRdf = false;
             if (!isGeneric)
             {
-                return context.ApiDocumentation.Context.Create<IClass>(new EntityId(Rdf.List));
+                return context.ApiDocumentation.Context.Create<IClass>(baseType);
             }
 
-            var itemType = context.Type.GetItemType();
-            IClass result = context.ApiDocumentation.Context.Create<IClass>(new EntityId(context.Type.MakeUri()));
+            itemType = context.Type.GetItemType();
+            IClass result = context.ApiDocumentation.Context.Create<IClass>(context.Type.MakeUri());
             result.Label = context.Type.MakeTypeName(false, true);
             result.Description = _xmlDocProvider.GetDescription(context.Type);
-            result.SubClassOf.Add(context.ApiDocumentation.Context.Create<IClass>(new EntityId(Rdf.List)));
-
-            result.SubClassOf.Add(result.CreateRestriction(Rdf.first, (context.ContainsType(itemType) ? context[itemType] : BuildTypeDescription(context.ForType(itemType), out requiresRdf))));
+            result.SubClassOf.Add(context.ApiDocumentation.Context.Create<IClass>(baseType));
             requiresRdf |= context.RequiresRdf(itemType);
-
-            result.SubClassOf.Add(result.CreateRestriction(Rdf.rest, result));
             context.Describe(result, requiresRdf);
             return result;
         }
@@ -201,7 +237,7 @@ namespace URSA.Web.Http.Description
             result.Property.Description = _xmlDocProvider.GetDescription(property);
             result.Property.Domain.Add(@class);
             IClass propertyType;
-            var itemPropertyType = (property.PropertyType.IsList() ? property.PropertyType : property.PropertyType.FindItemType());
+            var itemPropertyType = (System.Reflection.TypeExtensions.IsEnumerable(property.PropertyType) ? property.PropertyType : property.PropertyType.GetItemType());
             if (!context.ContainsType(itemPropertyType))
             {
                 bool requiresRdf;

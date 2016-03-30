@@ -7,6 +7,10 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using RomanticWeb;
 using RomanticWeb.Entities;
+using RomanticWeb.Mapping;
+using RomanticWeb.Mapping.Model;
+using RomanticWeb.Vocabularies;
+using URSA.Web.Http.Converters;
 using URSA.Web.Http.Description;
 using URSA.Web.Http.Description.Hydra;
 using URSA.Web.Http.Description.Owl;
@@ -45,8 +49,18 @@ namespace Given_instance_of_the.HydraCompliantTypeDescriptionBuilder_class
         {
             var blankIdGenerator = new Mock<IBlankNodeIdGenerator>(MockBehavior.Strict);
             blankIdGenerator.Setup(instance => instance.Generate()).Returns("bnode" + new Random().Next());
+            var collectionClassMapping = new Mock<IClassMapping>(MockBehavior.Strict);
+            collectionClassMapping.SetupGet(instance => instance.Uri).Returns(new Uri(EntityConverter.Hydra.AbsoluteUri + "Collection"));
+            var managesMapping = new Mock<IPropertyMapping>(MockBehavior.Strict);
+            managesMapping.SetupGet(instance => instance.Uri).Returns(new Uri(EntityConverter.Hydra.AbsoluteUri + "member"));
+            var collectionMapping = new Mock<IEntityMapping>(MockBehavior.Strict);
+            collectionMapping.SetupGet(instance => instance.Classes).Returns(new[] { collectionClassMapping.Object });
+            collectionMapping.Setup(instance => instance.PropertyFor("Members")).Returns(managesMapping.Object);
+            var mappings = new Mock<IMappingsRepository>(MockBehavior.Strict);
+            mappings.Setup(instance => instance.MappingFor<ICollection>()).Returns(collectionMapping.Object);
             var entityContext = new Mock<IEntityContext>(MockBehavior.Strict);
             entityContext.SetupGet(instance => instance.BlankIdGenerator).Returns(blankIdGenerator.Object);
+            entityContext.SetupGet(instance => instance.Mappings).Returns(mappings.Object);
             entityContext.Setup(instance => instance.Create<IClass>(It.IsAny<EntityId>())).Returns<EntityId>(id => CreateClass(entityContext.Object, id));
             entityContext.Setup(instance => instance.Create<ISupportedProperty>(It.IsAny<EntityId>())).Returns<EntityId>(id => CreateSupportedProperty(entityContext.Object, id));
             entityContext.Setup(instance => instance.Create<IProperty>(It.IsAny<EntityId>())).Returns<EntityId>(id => CreateProperty<IProperty>(entityContext.Object, id));
@@ -61,34 +75,29 @@ namespace Given_instance_of_the.HydraCompliantTypeDescriptionBuilder_class
         private static IResource CreateResource(IEntityContext entityContext, EntityId id)
         {
             var result = new Mock<IResource>(MockBehavior.Strict);
-            bool? singleValue = null;
             string label = null;
             string description = null;
             result.SetupSet(instance => instance.Label = It.IsAny<string>()).Callback<string>(value => label = value);
             result.SetupSet(instance => instance.Description = It.IsAny<string>()).Callback<string>(value => description = value);
-            result.SetupSet(instance => instance.SingleValue = It.IsAny<bool?>()).Callback<bool?>(value => singleValue = value);
             result.SetupGet(instance => instance.Context).Returns(entityContext);
             result.SetupGet(instance => instance.Id).Returns(id);
             result.SetupGet(instance => instance.Label).Returns(() => label);
             result.SetupGet(instance => instance.Description).Returns(() => description);
-            result.SetupGet(instance => instance.SingleValue).Returns(() => singleValue);
             return result.Object;
         }
 
         private static IClass CreateClass(IEntityContext entityContext, EntityId id)
         {
             var result = new Mock<IClass>(MockBehavior.Strict);
-            bool? singleValue = null;
+            result.As<ITypedEntity>().SetupGet(instance => instance.Types).Returns(new[] { new EntityId(Rdfs.Class), new EntityId(new Uri(EntityConverter.Hydra.AbsoluteUri + "Class")),  });
             string label = null;
             string description = null;
             result.SetupSet(instance => instance.Label = It.IsAny<string>()).Callback<string>(value => label = value);
             result.SetupSet(instance => instance.Description = It.IsAny<string>()).Callback<string>(value => description = value);
-            result.SetupSet(instance => instance.SingleValue = It.IsAny<bool?>()).Callback<bool?>(value => singleValue = value);
             result.SetupGet(instance => instance.Context).Returns(entityContext);
             result.SetupGet(instance => instance.Id).Returns(id);
             result.SetupGet(instance => instance.Label).Returns(() => label);
             result.SetupGet(instance => instance.Description).Returns(() => description);
-            result.SetupGet(instance => instance.SingleValue).Returns(() => singleValue);
             result.SetupGet(instance => instance.SupportedProperties).Returns(new List<ISupportedProperty>());
             result.SetupGet(instance => instance.SubClassOf).Returns(new List<URSA.Web.Http.Description.Rdfs.IClass>());
             return result.Object;
@@ -120,10 +129,12 @@ namespace Given_instance_of_the.HydraCompliantTypeDescriptionBuilder_class
 
         private static TProperty CreateProperty<TProperty>(IEntityContext entityContext, EntityId id) where TProperty : class, IProperty
         {
-            var propertyFullName = id.Uri.AbsoluteUri.Substring(id.Uri.AbsoluteUri.LastIndexOf(':') + 1);
+            string propertyFullName = (id.Uri.AbsoluteUri == EntityConverter.Hydra.AbsoluteUri + "member" ? 
+                String.Format("{0}.Members", typeof(ICollection).FullName) : 
+                id.Uri.AbsoluteUri.Substring(id.Uri.AbsoluteUri.LastIndexOf(':') + 1));
             var declaringTypeName = propertyFullName.Substring(0, propertyFullName.LastIndexOf('.'));
             var propertyName = propertyFullName.Substring(declaringTypeName.Length + 1);
-            var propertyInfo = Type.GetType(declaringTypeName).GetProperty(propertyName);
+            var propertyInfo = (propertyName == "Members" ? typeof(ICollection) : Type.GetType(declaringTypeName)).GetProperty(propertyName);
             var result = new Mock<TProperty>(MockBehavior.Strict);
             string label = null;
             string description = null;
@@ -141,14 +152,19 @@ namespace Given_instance_of_the.HydraCompliantTypeDescriptionBuilder_class
         private static IRestriction CreateRestriction(IEntityContext entityContext, EntityId id)
         {
             var result = new Mock<IRestriction>(MockBehavior.Strict);
+            result.As<ITypedEntity>().SetupGet(instance => instance.Types).Returns(new[] { new EntityId(Owl.Restriction) });
             IProperty property = null;
+            IEntity allValuesFrom = null;
+            uint maxCardinality = 0;
             result.SetupSet(instance => instance.OnProperty = It.IsAny<IProperty>()).Callback<IProperty>(value => property = value);
-            result.SetupSet(instance => instance.MaxCardinality = 1);
-            result.SetupSet(instance => instance.AllValuesFrom = It.IsAny<IEntity>());
+            result.SetupSet(instance => instance.MaxCardinality = It.IsAny<uint>()).Callback<uint>(value => maxCardinality = value);
+            result.SetupSet(instance => instance.AllValuesFrom = It.IsAny<IEntity>()).Callback<IEntity>(value => allValuesFrom = value);
+            result.SetupGet(instance => instance.AllValuesFrom).Returns(() => allValuesFrom);
             result.SetupGet(instance => instance.Context).Returns(entityContext);
             result.SetupGet(instance => instance.Id).Returns(id);
-            result.SetupGet(instance => instance.MaxCardinality).Returns(1);
+            result.SetupGet(instance => instance.MaxCardinality).Returns(() => maxCardinality);
             result.SetupGet(instance => instance.OnProperty).Returns(() => property);
+            result.SetupGet(instance => instance.SubClassOf).Returns(new List<URSA.Web.Http.Description.Rdfs.IClass>());
             return result.Object;
         }
     }
