@@ -19,9 +19,9 @@ namespace URSA.Example.WebApplication.Data
 
         URSA.Example.WebApplication.Data.Person Spouse { get; set; }
 
-        System.Collections.Generic.IList<Person> Superiors { get; set; }
-
         System.Collections.Generic.IList<String> FavouriteDishes { get; set; }
+
+        System.Collections.Generic.IList<Person> Superiors { get; set; }
 
         System.String Firstname { get; set; }
 
@@ -45,9 +45,9 @@ namespace URSA.Example.WebApplication.Data
 
         public URSA.Example.WebApplication.Data.Person Spouse { get; set; }
 
-        public System.Collections.Generic.IList<Person> Superiors { get; set; }
-
         public System.Collections.Generic.IList<String> FavouriteDishes { get; set; }
+
+        public System.Collections.Generic.IList<Person> Superiors { get; set; }
 
         public System.String Firstname { get; set; }
 

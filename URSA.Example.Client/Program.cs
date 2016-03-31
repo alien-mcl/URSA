@@ -18,7 +18,7 @@ namespace URSA.Example
             person.Key = client.Create(person);
             Console.WriteLine("Created person '{0}'.", person.Key);
             int totalEntities;
-            var persons = client.List(out totalEntities, null, 0, 0);
+            var persons = client.List(out totalEntities, 0, 0, null);
             Console.WriteLine("Listing all {0} person(s):", totalEntities);
             foreach (var item in persons)
             {

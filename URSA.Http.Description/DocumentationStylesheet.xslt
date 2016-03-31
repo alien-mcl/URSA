@@ -461,7 +461,7 @@
                                         <td>{{ mapping.description }}</td>
                                     </tr>
                                     <tr ng-repeat="expected in currentMember.expects">
-                                        <td>{{ variableName(mapping.variable) }}</td>
+                                        <td>{{ variableName(expected.variable) }}</td>
                                         <td ng-attr-title="expected.type">{{ mapType(currentClass, expected.type) }}</td>
                                         <td>{{ expected.description }}</td>
                                     </tr>
@@ -502,15 +502,8 @@
                         <xsl:variable name="id" select="@rdf:resource" />
                         <xsl:variable name="supportedProperty" select="/rdf:RDF/hydra:SupportedProperty[@rdf:about = $id]|/rdf:RDF/*[rdf:type/@rdf:resource = '&hydra;SupportedProperty' and @rdf:about = $id]" />
                         <xsl:variable name="property" select="/rdf:RDF/rdf:Property[@rdf:about = $supportedProperty/hydra:property/@rdf:resource]|/rdf:RDF/*[rdf:type/@rdf:resource = '&rdf;Property' and @rdf:about = $supportedProperty/hydra:property/@rdf:resource]" />
-                        <xsl:variable name="isEnumerable">
-                            <xsl:choose>
-                                <xsl:when test="/rdf:RDF/owl:Restriction[owl:onProperty[@rdf:resource = $property/@rdf:about] and owl:maxCardinality/text() = '1']">false</xsl:when>
-                                <xsl:otherwise>true</xsl:otherwise>
-                            </xsl:choose>
-                        </xsl:variable>
                         <xsl:call-template name="hydra-SupportedProperty">
                             <xsl:with-param name="supportedProperty" select="$supportedProperty" />
-                            <xsl:with-param name="isEnumerable" select="$isEnumerable" />
                         </xsl:call-template><xsl:if test="position() != last()">,</xsl:if>
                     </xsl:for-each>
                 ],
@@ -565,14 +558,13 @@
 
     <xsl:template name="hydra-SupportedProperty">
         <xsl:param name="supportedProperty" />
-        <xsl:param name="isEnumerable" />
         <xsl:variable name="property" select="/rdf:RDF/rdf:Property[@rdf:about = $supportedProperty/hydra:property/@rdf:resource]|/rdf:RDF/*[rdf:type/@rdf:resource = '&rdf;Property' and @rdf:about = $supportedProperty/hydra:property/@rdf:resource]" />
                     {
                         "@id": "<xsl:value-of select="$supportedProperty/@rdf:about" />",
                         "@type": hydra.supportedProperty,
                         "label": "<xsl:value-of select="$property/rdfs:label" />",<xsl:if test="$property/rdfs:comment">
                         "description": "<xsl:value-of select="$property/rdfs:comment/text()"/>",</xsl:if>
-                        "type": "<xsl:call-template name="type"><xsl:with-param name="type" select="/rdf:RDF/*[@rdf:nodeID = $property/rdfs:range/@rdf:nodeID]/rdfs:subClassOf/@rdf:resource|$property/rdfs:range/@rdf:resource" /><xsl:with-param name="isEnumerable" select="$isEnumerable" /></xsl:call-template>",
+                        "type": "<xsl:call-template name="type-description"><xsl:with-param name="type" select="$property/rdfs:range/@rdf:nodeID | $property/rdfs:range/@rdf:resource" /></xsl:call-template>",
                         "property": "<xsl:value-of select="$property/@rdf:about" />",
                         "readable": <xsl:choose><xsl:when test="$supportedProperty/hydra:readable"><xsl:value-of select="$supportedProperty/hydra:readable"/></xsl:when><xsl:otherwise>false</xsl:otherwise></xsl:choose>,
                         "writeable": <xsl:choose><xsl:when test="$supportedProperty/hydra:writeable"><xsl:value-of select="$supportedProperty/hydra:writeable"/></xsl:when><xsl:otherwise>false</xsl:otherwise></xsl:choose>
@@ -599,25 +591,19 @@
                                 "@id": "<xsl:value-of select="'&xsd;int'" />",
                                 "description": "Total items in collection"
                             }<xsl:if test="$supportedOperation/hydra:returns">, </xsl:if></xsl:if
-                            ><xsl:for-each select="$supportedOperation/hydra:returns"><xsl:variable name="current" select="./@rdf:nodeID" 
-                                /><xsl:variable name="resource" select="/rdf:RDF/*[@rdf:nodeID = $current]" 
-                                /><xsl:variable name="enumerable"><xsl:choose><xsl:when test="$resource/ursa:singleValue/text() = 'true'">false</xsl:when><xsl:otherwise>true</xsl:otherwise></xsl:choose
-                                ></xsl:variable>
+                            ><xsl:for-each select="$supportedOperation/hydra:returns"
+                            ><xsl:variable name="current" select="@rdf:nodeID"
+                            /><xsl:variable name="resource" select="/rdf:RDF/*[@rdf:nodeID = $current]" />
                             {
-                                "@id": "<xsl:call-template name="type"><xsl:with-param name="type" select="/rdf:RDF/*[@rdf:nodeID = $current]/rdfs:subClassOf/@rdf:resource" /><xsl:with-param name="isEnumerable" select="$enumerable" /></xsl:call-template>",
+                                "@id": "<xsl:call-template name="type-description"><xsl:with-param name="type" select="$resource/rdfs:subClassOf/@rdf:resource | $resource/rdfs:subClassOf/@rdf:nodeID" /></xsl:call-template>",
                                 "description": "<xsl:value-of select="$resource/rdfs:comment" />"
                             }<xsl:if test="position() != last()">, </xsl:if></xsl:for-each>
                         ],
                         "expects": [<xsl:for-each select="$supportedOperation/hydra:expects">
-                            {   <xsl:variable name="current" select="./@rdf:nodeID" />
+                            {   <xsl:variable name="current" select="@rdf:nodeID" />
                                 <xsl:variable name="resource" select="/rdf:RDF/*[@rdf:nodeID = $current]" />
-                                <xsl:variable name="enumerable"><xsl:choose><xsl:when test="$resource/ursa:singleValue/text() = 'true'">false</xsl:when><xsl:otherwise>true</xsl:otherwise></xsl:choose></xsl:variable>
                                 "variable": "<xsl:value-of select="$resource/rdfs:label" />",
-                                "type": "<xsl:call-template name="type"
-                                    ><xsl:with-param name="type" select="/rdf:RDF/*[@rdf:nodeID = $current]/rdfs:subClassOf/@rdf:resource" 
-                                    /><xsl:with-param name="isEnumerable" select="$enumerable" 
-                                    /></xsl:call-template
-                                >",
+                                "type": "<xsl:call-template name="type-description"><xsl:with-param name="type" select="$resource/rdfs:subClassOf/@rdf:resource | $resource/rdfs:subClassOf/@rdf:nodeID" /></xsl:call-template>",
                                 "description": "<xsl:value-of select="$resource/rdfs:comment" />"
                             }<xsl:if test="position() != last()">, </xsl:if></xsl:for-each>
                         ],
@@ -652,6 +638,36 @@
                     </xsl:choose>
                 </xsl:variable><xsl:value-of select="$itemType" />[]</xsl:when>
             <xsl:otherwise><xsl:value-of select="$type" /><xsl:if test="$isEnumerable = 'true'">&lt;&gt;</xsl:if></xsl:otherwise>
+        </xsl:choose>
+    </xsl:template>
+
+    <xsl:template name="type-description">
+        <xsl:param name="type" />
+        <xsl:variable name="typeDescription" select="/rdf:RDF/*[@rdf:about = $type | @rdf:nodeID = $type]" />
+        <xsl:choose>
+            <xsl:when test="$typeDescription/rdfs:subClassOf[@rdf:resource = '&rdf;List']">
+                <xsl:choose>
+                    <xsl:when test="/rdf:RDF/*[@rdf:about = $typeDescription/rdfs:subClassOf/@rdf:resource or @rdf:nodeID = $typeDescription/rdfs:subClassOf/@rdf:nodeID]/owl:allValuesFrom[@rdf:resource]">
+                        <xsl:value-of select="concat(/rdf:RDF/*[@rdf:about = $typeDescription/rdfs:subClassOf/@rdf:resource or @rdf:nodeID = $typeDescription/rdfs:subClassOf/@rdf:nodeID]/owl:allValuesFrom/@rdf:resource, '[]')" />
+                    </xsl:when>
+                    <xsl:otherwise>
+                        <xsl:value-of select="concat($typeDescription/@rdf:about, '[]')" />
+                    </xsl:otherwise>
+                </xsl:choose>
+            </xsl:when>
+            <xsl:when test="$typeDescription/rdfs:subClassOf[@rdf:resource = '&hydra;Collection']">
+                <xsl:choose>
+                    <xsl:when test="/rdf:RDF/*[@rdf:about = $typeDescription/rdfs:subClassOf/@rdf:resource or @rdf:nodeID = $typeDescription/rdfs:subClassOf/@rdf:nodeID]/owl:allValuesFrom[@rdf:resource]">
+                        <xsl:value-of select="concat(/rdf:RDF/*[@rdf:about = $typeDescription/rdfs:subClassOf/@rdf:resource or @rdf:nodeID = $typeDescription/rdfs:subClassOf/@rdf:nodeID]/owl:allValuesFrom/@rdf:resource, '&lt;&gt;')" />
+                    </xsl:when>
+                    <xsl:otherwise>
+                        <xsl:value-of select="concat($typeDescription/@rdf:about, '&lt;&gt;')" />
+                    </xsl:otherwise>
+                </xsl:choose>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:value-of select="$typeDescription/@rdf:about" />
+            </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
 </xsl:stylesheet>

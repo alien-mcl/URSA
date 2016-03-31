@@ -26,36 +26,36 @@ namespace Vocab
         {
             System.Collections.Generic.IDictionary<string, object> uriArguments = new System.Collections.Generic.Dictionary<string, object>();
             var accept = new string[] {
+                "application/ld+json",
                 "application/owl+xml",
                 "application/rdf+xml",
-                "text/turtle",
-                "application/ld+json" };
+                "text/turtle" };
             var contentType = new string[] {
+                "application/ld+json",
                 "application/owl+xml",
                 "application/rdf+xml",
-                "text/turtle",
-                "application/ld+json" };
+                "text/turtle" };
             var result = Call<System.Guid>(Verb.POST, "/api/product/#POSTProduct", accept, contentType, uriArguments, product);
             return result;
         }
 
-        public System.Collections.Generic.ICollection<Product> List(out System.Int32 totalEntities, System.Int32 _skip, System.Int32 _top, System.String _filter)
+        public System.Collections.Generic.ICollection<Product> List(out System.Int32 totalEntities, System.String _filter, System.Int32 _skip, System.Int32 _top)
         {
             System.Collections.Generic.IDictionary<string, object> uriArguments = new System.Collections.Generic.Dictionary<string, object>();
             var accept = new string[] {
-                "application/ld+json",
                 "application/owl+xml",
                 "application/rdf+xml",
+                "application/ld+json",
                 "text/turtle" };
             var contentType = new string[] {
-                "application/ld+json",
                 "application/owl+xml",
                 "application/rdf+xml",
+                "application/ld+json",
                 "text/turtle" };
+            uriArguments["%24filter"] = _filter;
             uriArguments["totalEntities"] = totalEntities = 0;
             uriArguments["%24skip"] = _skip;
             uriArguments["%24top"] = _top;
-            uriArguments["%24filter"] = _filter;
             var result = Call<System.Collections.Generic.ICollection<Product>>(Verb.GET, "/api/product{?%24skip,%24top,%24filter}", accept, contentType, uriArguments);
             totalEntities = (int)uriArguments["totalEntities"];
             return result;
@@ -65,15 +65,15 @@ namespace Vocab
         {
             System.Collections.Generic.IDictionary<string, object> uriArguments = new System.Collections.Generic.Dictionary<string, object>();
             var accept = new string[] {
-                "application/ld+json",
-                "application/owl+xml",
                 "application/rdf+xml",
-                "text/turtle" };
+                "application/ld+json",
+                "text/turtle",
+                "application/owl+xml" };
             var contentType = new string[] {
-                "application/ld+json",
-                "application/owl+xml",
                 "application/rdf+xml",
-                "text/turtle" };
+                "application/ld+json",
+                "text/turtle",
+                "application/owl+xml" };
             uriArguments["id"] = id;
             var result = Call<Vocab.Product>(Verb.GET, "/api/product/{id}", accept, contentType, uriArguments);
             return result;
@@ -84,10 +84,10 @@ namespace Vocab
             System.Collections.Generic.IDictionary<string, object> uriArguments = new System.Collections.Generic.Dictionary<string, object>();
             var accept = new string[0];
             var contentType = new string[] {
+                "application/rdf+xml",
                 "text/turtle",
                 "application/ld+json",
-                "application/owl+xml",
-                "application/rdf+xml" };
+                "application/owl+xml" };
             uriArguments["id"] = id;
             Call(Verb.PUT, "/api/product/{id}", accept, contentType, uriArguments, product);
         }

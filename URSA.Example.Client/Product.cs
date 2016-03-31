@@ -16,23 +16,23 @@ namespace Vocab
     [RomanticWeb.Mapping.Attributes.Class("http://temp.uri/vocab#Product")]
     public interface IProduct : RomanticWeb.Entities.IEntity
     {
-        [RomanticWeb.Mapping.Attributes.Property("http://temp.uri/vocab#name")]
-        System.String Name { get; set; }
+        [RomanticWeb.Mapping.Attributes.Collection("http://temp.uri/vocab#feature")]
+        System.Collections.Generic.ICollection<String> Features { get;}
+
+        [RomanticWeb.Mapping.Attributes.Property("http://temp.uri/vocab#key")]
+        System.Guid Key { get; set; }
 
         [RomanticWeb.Mapping.Attributes.Collection("http://temp.uri/vocab#category")]
         System.Collections.Generic.IList<String> Categories { get;}
 
+        [RomanticWeb.Mapping.Attributes.Property("http://temp.uri/vocab#name")]
+        System.String Name { get; set; }
+
         [RomanticWeb.Mapping.Attributes.Property("http://temp.uri/vocab#partOf")]
         Vocab.Product PartOf { get; set; }
 
-        [RomanticWeb.Mapping.Attributes.Collection("http://temp.uri/vocab#feature")]
-        System.Collections.Generic.ICollection<String> Features { get;}
-
         [RomanticWeb.Mapping.Attributes.Property("http://temp.uri/vocab#price")]
         System.Double Price { get; set; }
-
-        [RomanticWeb.Mapping.Attributes.Property("http://temp.uri/vocab#key")]
-        System.Guid Key { get; set; }
 
         [RomanticWeb.Mapping.Attributes.Collection("http://temp.uri/vocab#replacement")]
         System.Collections.Generic.IList<Product> Replacements { get;}
@@ -50,21 +50,21 @@ namespace Vocab
 
         RomanticWeb.Entities.EntityId RomanticWeb.Entities.IEntity.Id { get { return _id; } }
 
-        public System.String Name { get; set; }
+        private System.Collections.Generic.ICollection<String> _features = new System.Collections.Generic.List<String>();
+
+        public System.Collections.Generic.ICollection<String> Features { get { return _features; } }
+
+        public System.Guid Key { get; set; }
 
         private System.Collections.Generic.IList<String> _categories = new System.Collections.Generic.List<String>();
 
         public System.Collections.Generic.IList<String> Categories { get { return _categories; } }
 
+        public System.String Name { get; set; }
+
         public Vocab.Product PartOf { get; set; }
 
-        private System.Collections.Generic.ICollection<String> _features = new System.Collections.Generic.List<String>();
-
-        public System.Collections.Generic.ICollection<String> Features { get { return _features; } }
-
         public System.Double Price { get; set; }
-
-        public System.Guid Key { get; set; }
 
         private System.Collections.Generic.IList<Product> _replacements = new System.Collections.Generic.List<Product>();
 
