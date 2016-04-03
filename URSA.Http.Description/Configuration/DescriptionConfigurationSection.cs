@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Configuration;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using URSA.Web.Http.Description;
 
 namespace URSA.Configuration
@@ -37,18 +36,11 @@ namespace URSA.Configuration
         }
 
         /// <summary>Gets or sets the hypermedia output mode.</summary>
+        [ConfigurationProperty(HypermediaModeAttributeName)]
         public HypermediaModes HypermediaMode
         {
-            get
-            {
-                return (!Properties.Cast<ConfigurationProperty>().Any(property => property.Name == HypermediaModeAttributeName) ?
-                    HypermediaModes.Transport : (HypermediaModes)this[HypermediaModeAttributeName]);
-            }
-
-            set
-            {
-                this[HypermediaModeAttributeName] = value;
-            }
+            get { return (HypermediaModes)this[HypermediaModeAttributeName]; }
+            set { this[HypermediaModeAttributeName] = value; }
         }
 
         /// <summary>Gets or sets the type description builder type name.</summary>

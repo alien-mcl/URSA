@@ -4,7 +4,7 @@ using RomanticWeb.Mapping.Attributes;
 namespace URSA.Web.Http.Description.Hydra
 {
     /// <summary>Describes a partial collection view.</summary>
-    [Class("hydra", "PartialCollection")]
+    [Class("hydra", "PartialCollectionView")]
     public interface IPartialCollectionView : IResource
     {
         /// <summary>Gets or sets a link to the next page.</summary>

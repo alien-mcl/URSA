@@ -1,4 +1,4 @@
-﻿/*globals namespace, xsd, guid, ursa, odata, confirm */
+﻿/*globals namespace, xsd, guid, ursa, hydra, odata, confirm */
 (function(namespace) {
     "use strict";
 
@@ -919,8 +919,13 @@
 
         _OperationRenderer.handleOperation.call(this, scope, deleteOperation, null, instance, _OperationRenderer.onDeleteEntitySuccess, null, _OperationRenderer.deleteEntity);
     };
-    _OperationRenderer.onLoadEntityListSuccess = function(scope, deleteOperation, instance, request, response) {
-        var that = this;
+    _OperationRenderer.setupPaging = function(scope) {
+        scope.pages = [];
+        for (var pageIndex = 1; pageIndex <= Math.ceil(scope.totalEntities / scope.filters.itemsPerPage) ; pageIndex++) {
+            scope.pages.push(pageIndex);
+        }
+    };
+    _OperationRenderer.parseContentRange = function(scope, response) {
         var contentRange = response.headers["Content-Range"];
         if ((contentRange !== undefined) && (contentRange !== null)) {
             var matches = contentRange.match(/^members ([0-9]+)-([0-9]+)\/([0-9]+)/);
@@ -928,17 +933,41 @@
                 var startIndex = parseInt(matches[1]);
                 scope.totalEntities = parseInt(matches[3]);
                 scope.filters.currentPage = Math.ceil(startIndex / scope.filters.itemsPerPage) + 1;
-                scope.pages = [];
-                for (var pageIndex = 1; pageIndex <= Math.ceil(scope.totalEntities / scope.filters.itemsPerPage); pageIndex++) {
-                    scope.pages.push(pageIndex);
+                _OperationRenderer.setupPaging.call(this, scope);
+            }
+        }
+    };
+    _OperationRenderer.parseHypermediaControls = function(scope, response, graph) {
+        for (var index = graph.length - 1; index >= 0; index--) {
+            var resource = graph[index];
+            if (!resource["@type"]) {
+                continue;
+            }
+
+            if (resource["@type"].indexOf(hydra.Collection) !== -1) {
+                graph.splice(index, 1);
+                // TODO: Add trimming to hydra:member enumerated items.
+                if (resource[hydra.totalItems]) {
+                    if ((typeof(scope.totalEntities = resource[hydra.totalItems][0]["@value"])) === "string") {
+                        scope.totalEntities = parseInt(scope.totalEntities);
+                    }
                 }
+            }
+            else if (resource["@type"].indexOf(hydra.PartialCollectionView) !== -1) {
+                graph.splice(index, 1);
             }
         }
 
+        _OperationRenderer.setupPaging.call(this, scope);
+        return graph;
+    };
+    _OperationRenderer.onLoadEntityListSuccess = function(scope, listOperation, instance, request, response) {
+        var that = this;
+        _OperationRenderer.parseContentRange.call(this, scope, response);
         if ((response.headers["Content-Type"] || "*/*").indexOf(ursa.model.EntityFormat.ApplicationLdJson) === 0) {
             that.jsonLdProcessor.expand(response.data).
                 then(function(expanded) {
-                    scope.entities = expanded;
+                    scope.entities = _OperationRenderer.parseHypermediaControls.call(this, scope, response, expanded);
                     scope.updateView();
                     return expanded;
                 });

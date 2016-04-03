@@ -90,6 +90,7 @@ namespace URSA.CastleWindsor
             container.Register(Component.For(typeof(IApiDescriptionBuilder<>)).ImplementedBy(typeof(ApiDescriptionBuilder<>)).LifestyleSingleton().Forward<IApiDescriptionBuilder>());
             container.Register(Component.For<IApiEntryPointDescriptionBuilder>().ImplementedBy<ApiEntryPointDescriptionBuilder>().LifestyleSingleton().Forward<IApiDescriptionBuilder>());
             container.Register(Component.For<IApiDescriptionBuilderFactory>().AsFactory(typedFactory).LifestyleSingleton());
+            container.Register(Component.For<IModelTransformer>().ImplementedBy<CollectionModelTransformer>().LifestyleSingleton());
         }
 
         private IEntityContext CreateEntityContext(IKernel kernel, CreationContext context)

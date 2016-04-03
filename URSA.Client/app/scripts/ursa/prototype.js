@@ -62,6 +62,7 @@
     hydra.ReplaceResourceOperation = hydra + "ReplaceResourceOperation";
     hydra.DeleteResourceOperation = hydra + "DeleteResourceOperation";
     hydra.Collection = hydra + "Collection";
+    hydra.PartialCollectionView = hydra + "PartialCollectionView";
     hydra.entrypoint = hydra + "entrypoint";
     hydra.property = hydra + "property";
     hydra.supportedProperty = hydra + "supportedProperty";
@@ -82,6 +83,7 @@
     hydra.description = hydra + "description";
     hydra.manages = hydra + "manages";
     hydra.member = hydra + "member";
+    hydra.totalItems = hydra + "totalItems";
     window.ursa = new String("http://alien-mcl.github.io/URSA/vocabulary#"); //jshint ignore:line
     ursa.mediaType = ursa + "mediaType";
     window.odata = new String("http://docs.oasis-open.org/odata/odata/v4.0/"); //jshint ignore:line

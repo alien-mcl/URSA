@@ -79,12 +79,14 @@ namespace URSA.Web.Http.Description
 
             if ((skip <= 0) && (take <= 0))
             {
+                _entityContextProvider.EntityContext.Commit();
                 return await Task.FromResult(result);
             }
 
-            var view = _entityContextProvider.EntityContext.Load<IPartialCollectionView>(collection.CreateBlankId());
+            var view = _entityContextProvider.EntityContext.Load<IPartialCollectionView>(collection.Id.Uri.AddFragment("view"));
             collection.View = view;
             view.TotalItems = (take > 0 ? take : totalItems);
+            _entityContextProvider.EntityContext.Commit();
             return await Task.FromResult(result);
         }
 
@@ -94,10 +96,9 @@ namespace URSA.Web.Http.Description
                                      join supportedMediaType in EntityConverter.MediaTypes.Concat(new[] { "*/*" }) on accepted.Value equals supportedMediaType
                                      select supportedMediaType;
             return 
-                ((DescriptionConfigurationSection.Default.HypermediaMode != HypermediaModes.SameGraph) || 
-                (!System.Reflection.TypeExtensions.IsEnumerable(returnType)) ||
-                (requestInfo == null) || 
-                ((requestInfo.Headers[Header.Accept] != null) && (!matchingMediaTypes.Any())));
+                ((DescriptionConfigurationSection.Default.HypermediaMode == HypermediaModes.SameGraph) && 
+                (System.Reflection.TypeExtensions.IsEnumerable(returnType)) && 
+                (requestInfo != null) && ((requestInfo.Headers[Header.Accept] != null) && (matchingMediaTypes.Any())));
         }
     }
 }

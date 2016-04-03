@@ -9,7 +9,7 @@ namespace URSA.Web.Http.Description.Hydra
     public interface ICollection : IResource
     {
         /// <summary>Gets the members of this collection.</summary>
-        [Property("hydra", "member")]
+        [Collection("hydra", "member")]
         ICollection<IResource> Members { get; }
 
         /// <summary>Gets or sets a property that this collection is bound to.</summary>

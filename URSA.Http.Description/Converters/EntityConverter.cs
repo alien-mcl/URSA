@@ -293,7 +293,7 @@ namespace URSA.Web.Http.Converters
             }
 
             //// TODO: Add support for graph based serializations.
-            var graph = CreateResultingGraph(instance);
+            var graph = CreateResultingGraph(instance, requestInfo.Uri);
             WriteResponseBody(graph, mediaType, response);
         }
 
@@ -350,36 +350,46 @@ namespace URSA.Web.Http.Converters
             return result;
         }
 
-        private IGraph CreateResultingGraph(object instance)
+        private IGraph CreateResultingGraph(object instance, Uri requestUri)
         {
             var entities = (instance is IEnumerable<IEntity> ? (IEnumerable<IEntity>)instance : new[] { (IEntity)instance });
             IGraph graph = new Graph();
             var relatedEntities = new List<IUriNode>();
-            var visitedRelatedEntities = new List<bool>();
+            var visitedEntities = new List<string>();
             foreach (var entity in entities)
             {
-                AssertEntityTriples(entity, graph, relatedEntities, visitedRelatedEntities);
+                AssertEntityTriples(entity, graph, relatedEntities, visitedEntities);
             }
 
-            int index = 0;
-            while (index < relatedEntities.Count)
+            for (int index = 0; index < relatedEntities.Count; index++)
             {
-                if (!visitedRelatedEntities[index])
-                {
-                    AssertEntityTriples(index, graph, relatedEntities, visitedRelatedEntities);
-                }
+                AssertEntityTriples(index, graph, relatedEntities, visitedEntities);
+            }
 
-                index++;
+            if (!visitedEntities.Contains(requestUri.ToString()))
+            {
+                relatedEntities.Add(_entityContextProvider.TripleStore.Graphs.First().CreateUriNode(requestUri));
+                int startAt = relatedEntities.Count - 1;
+                AssertEntityTriples(startAt, graph, relatedEntities, visitedEntities);
+                for (int index = startAt + 1; index < relatedEntities.Count; index++)
+                {
+                    AssertEntityTriples(index, graph, relatedEntities, visitedEntities);
+                }
             }
 
             return graph;
         }
 
-        private void AssertEntityTriples(IEntity entity, IGraph graph, IList<IUriNode> relatedEntities, IList<bool> visitedRelatedEntities)
+        private void AssertEntityTriples(IEntity entity, IGraph graph, IList<IUriNode> relatedEntities, IList<string> visitedEntities)
         {
             var graphUri = _namedGraphSelectorFactory.NamedGraphSelector.SelectGraph(entity.Id, null, null);
             foreach (var triple in _entityContextProvider.TripleStore.Graphs[graphUri].Triples)
             {
+                if (triple.Subject is IUriNode)
+                {
+                    visitedEntities.Add(((IUriNode)triple.Subject).Uri.ToString());
+                }
+
                 if (triple.Object is IUriNode)
                 {
                     var uriNode = (IUriNode)triple.Object;
@@ -387,7 +397,6 @@ namespace URSA.Web.Http.Converters
                     if ((!AbsoluteUriComparer.Default.Equals(uriNodeGraphUri, graphUri)) && (!relatedEntities.Contains(uriNode)))
                     {
                         relatedEntities.Add(uriNode);
-                        visitedRelatedEntities.Add(false);
                     }
                 }
 
@@ -395,10 +404,9 @@ namespace URSA.Web.Http.Converters
             }
         }
 
-        private void AssertEntityTriples(int index, IGraph graph, IList<IUriNode> relatedEntities, IList<bool> visitedRelatedEntities)
+        private void AssertEntityTriples(int index, IGraph graph, IList<IUriNode> relatedEntities, IList<string> visitedEntities)
         {
             var entity = relatedEntities[index];
-            visitedRelatedEntities[index] = true;
             var graphUri = _namedGraphSelectorFactory.NamedGraphSelector.SelectGraph(new EntityId(entity.Uri), null, null);
             var sourceGraph = _entityContextProvider.TripleStore.Graphs.FirstOrDefault(existingGraph => AbsoluteUriComparer.Default.Equals(existingGraph.BaseUri, graphUri));
             if (sourceGraph == null)
@@ -408,6 +416,11 @@ namespace URSA.Web.Http.Converters
 
             foreach (var triple in sourceGraph.Triples)
             {
+                if (triple.Subject is IUriNode)
+                {
+                    visitedEntities.Add(((IUriNode)triple.Subject).Uri.ToString());
+                }
+
                 if (triple.Object is IUriNode)
                 {
                     var uriNode = (IUriNode)triple.Object;
@@ -415,7 +428,6 @@ namespace URSA.Web.Http.Converters
                     if ((!AbsoluteUriComparer.Default.Equals(uriNodeGraphUri, graphUri)) && (!relatedEntities.Contains(uriNode)))
                     {
                         relatedEntities.Add(uriNode);
-                        visitedRelatedEntities.Add(false);
                     }
                 }
 
