@@ -14,11 +14,11 @@ using URSA.Web.Http;
 using URSA.Web.Mapping;
 using URSA.Web.Tests;
 
-namespace Given_instance_of_the
+namespace Given_instance_of_the.DelegateMapper_class
 {
     [ExcludeFromCodeCoverage]
     [TestClass]
-    public class HandlerMapper_class
+    public class when_mapping_a_request
     {
         private DelegateMapper _mapper;
 
@@ -44,6 +44,17 @@ namespace Given_instance_of_the
             mapping.Operation.UnderlyingMethod.Should().BeSameAs(typeof(TestController).GetMethod("Add"));
         }
 
+        [TestMethod]
+        public void it_should_map_Add_method_correctly_with_additional_unneeded_parameters()
+        {
+            var mapping = _mapper.MapRequest(new RequestInfo(Verb.GET, new Uri("http://temp.uri/api/test/add?random=1&operandB=2&_=whatever&operandA=1"), new MemoryStream(), new BasicClaimBasedIdentity()));
+
+            mapping.Should().NotBeNull();
+            mapping.Target.Should().NotBeNull();
+            mapping.Target.Should().BeOfType<TestController>();
+            mapping.Operation.UnderlyingMethod.Should().BeSameAs(typeof(TestController).GetMethod("Add"));
+        }
+
         [TestInitialize]
         public void Setup()
         {
@@ -53,8 +64,8 @@ namespace Given_instance_of_the
             var operation = new OperationInfo<Verb>(
                 method,
                 operationUri,
-                operationUri.ToString() + "?operandA={?operandA}&operandB={?operandB}",
-                new Regex(operationUri.ToString() + "[?&](operandA|operandB)=[^&]+", RegexOptions.IgnoreCase),
+                operationUri + "?operandA={?operandA}&operandB={?operandB}",
+                new Regex(operationUri + "[?&](operandA|operandB)=[^&]+", RegexOptions.IgnoreCase),
                 Verb.GET,
                 new ArgumentInfo(method.GetParameters()[0], FromQueryStringAttribute.For(method.GetParameters()[0]), "&operandA={?operandA}", "operandA"),
                 new ArgumentInfo(method.GetParameters()[1], FromQueryStringAttribute.For(method.GetParameters()[1]), "&operandB={?operandB}", "operandB"));

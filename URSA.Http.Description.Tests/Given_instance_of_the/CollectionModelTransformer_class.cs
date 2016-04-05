@@ -70,6 +70,7 @@ namespace Given_instance_of_the
             var blankNodeIdGenerator = new Mock<IBlankNodeIdGenerator>(MockBehavior.Strict);
             blankNodeIdGenerator.Setup(instance => instance.Generate()).Returns("bnode001");
             _entityContext.SetupGet(instance => instance.BlankIdGenerator).Returns(blankNodeIdGenerator.Object);
+            _entityContext.Setup(instance => instance.Commit());
             var entityContextProvider = new Mock<IEntityContextProvider>(MockBehavior.Strict);
             entityContextProvider.SetupGet(instance => instance.EntityContext).Returns(_entityContext.Object);
             _modelTransformer = new CollectionModelTransformer(entityContextProvider.Object);
@@ -97,7 +98,7 @@ namespace Given_instance_of_the
 
             collection.SetupSet(instance => instance.View = view.Object);
             collection.SetupGet(instance => instance.Context).Returns(_entityContext.Object);
-            view.SetupSet(instance => instance.TotalItems = take);
+            view.SetupSet(instance => instance.ItemsPerPage = take);
             return collection;
         }
     }

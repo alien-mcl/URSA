@@ -4,9 +4,11 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Net;
 using System.Reflection;
+using System.Web;
 using URSA.Web.Description;
 using URSA.Web.Description.Http;
 using URSA.Web.Http.Description;
+using URSA.Web.Mapping;
 
 namespace URSA.Web.Http
 {
@@ -50,31 +52,28 @@ namespace URSA.Web.Http
         /// <inheritdoc />
         public IRequestMapping MapRequest(RequestInfo request)
         {
-            string requestUri = request.Uri.ToRelativeUri().ToString();
             var allowedOptions = new List<OperationInfo<Verb>>();
             var methodMismatch = false;
-            foreach (var controller in _controllerDescriptors.Value)
+            var possibleOperations = GetPossibleOperations(request);
+            foreach (var match in possibleOperations)
             {
-                foreach (var operation in controller.Operations.Cast<OperationInfo<Verb>>().Where(operation => operation.TemplateRegex.IsMatch(requestUri)))
+                allowedOptions.Add(match.Value);
+                if ((request.IsCorsPreflight) && (!typeof(OptionsController).IsAssignableFrom(match.Value.UnderlyingMethod.DeclaringType)))
                 {
-                    allowedOptions.Add(operation);
-                    if ((request.IsCorsPreflight) && (!typeof(OptionsController).IsAssignableFrom(operation.UnderlyingMethod.DeclaringType)))
-                    {
-                        continue;
-                    }
-
-                    if (request.Method != operation.ProtocolSpecificCommand)
-                    {
-                        methodMismatch = true;
-                        continue;
-                    }
-
-                    var controllerInstance = _controllerActivator.CreateInstance(controller.GetType().GetGenericArguments()[0], controller.Arguments);
-                    return new RequestMapping(controllerInstance, operation, operation.Uri);
+                    continue;
                 }
+
+                if (request.Method != match.Value.ProtocolSpecificCommand)
+                {
+                    methodMismatch = true;
+                    continue;
+                }
+
+                var controllerInstance = _controllerActivator.CreateInstance(match.Key.GetType().GetGenericArguments()[0], match.Key.Arguments);
+                return new RequestMapping(controllerInstance, match.Value, match.Value.Uri);
             }
 
-            if (allowedOptions.Count <= 0)
+            if (allowedOptions.Count == 0)
             {
                 return null;
             }
@@ -85,6 +84,29 @@ namespace URSA.Web.Http
                 option.Uri,
                 (methodMismatch ? HttpStatusCode.MethodNotAllowed : HttpStatusCode.OK),
                 allowedOptions.Select(item => item.ProtocolSpecificCommand.ToString()).ToArray());
+        }
+
+        private IEnumerable<KeyValuePair<ControllerInfo, OperationInfo<Verb>>> GetPossibleOperations(RequestInfo request)
+        {
+            string requestUri = request.Uri.ToRelativeUri().ToString();
+            int indexOf = requestUri.IndexOf('?');
+            string requestPath = (indexOf != -1 ? requestUri.Substring(0, indexOf) : requestUri);
+            var queryString = (indexOf != -1 ? HttpUtility.ParseQueryString(requestUri.Substring(indexOf)).Cast<string>().Select(key => key.ToLower()).ToArray() : new string[0]);
+            return from controller in _controllerDescriptors.Value
+                   from operation in controller.Operations
+                   where String.Compare(operation.UriTemplate.Split('?')[0], requestPath, true) == 0
+                   let rank = (double)GetMatchingArguments(operation, queryString).Count() / queryString.Length
+                   orderby rank descending
+                   select new KeyValuePair<ControllerInfo, OperationInfo<Verb>>(controller, (OperationInfo<Verb>)operation);
+        }
+
+        private IEnumerable<string> GetMatchingArguments(OperationInfo operation, string[] queryString)
+        {
+            return from argument in operation.Arguments
+                   where argument.Source is FromQueryStringAttribute
+                   let key = argument.VariableName.ToLower()
+                   join queryStringKey in queryString on key equals queryStringKey
+                   select key;
         }
     }
 }

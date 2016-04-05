@@ -355,7 +355,7 @@ namespace URSA.Web.Http.Converters
             var entities = (instance is IEnumerable<IEntity> ? (IEnumerable<IEntity>)instance : new[] { (IEntity)instance });
             IGraph graph = new Graph();
             var relatedEntities = new List<IUriNode>();
-            var visitedEntities = new List<string>();
+            var visitedEntities = new HashSet<string>();
             foreach (var entity in entities)
             {
                 AssertEntityTriples(entity, graph, relatedEntities, visitedEntities);
@@ -380,7 +380,7 @@ namespace URSA.Web.Http.Converters
             return graph;
         }
 
-        private void AssertEntityTriples(IEntity entity, IGraph graph, IList<IUriNode> relatedEntities, IList<string> visitedEntities)
+        private void AssertEntityTriples(IEntity entity, IGraph graph, IList<IUriNode> relatedEntities, ISet<string> visitedEntities)
         {
             var graphUri = _namedGraphSelectorFactory.NamedGraphSelector.SelectGraph(entity.Id, null, null);
             foreach (var triple in _entityContextProvider.TripleStore.Graphs[graphUri].Triples)
@@ -404,7 +404,7 @@ namespace URSA.Web.Http.Converters
             }
         }
 
-        private void AssertEntityTriples(int index, IGraph graph, IList<IUriNode> relatedEntities, IList<string> visitedEntities)
+        private void AssertEntityTriples(int index, IGraph graph, IList<IUriNode> relatedEntities, ISet<string> visitedEntities)
         {
             var entity = relatedEntities[index];
             var graphUri = _namedGraphSelectorFactory.NamedGraphSelector.SelectGraph(new EntityId(entity.Uri), null, null);

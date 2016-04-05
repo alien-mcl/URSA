@@ -937,7 +937,23 @@
             }
         }
     };
+    _OperationRenderer.gatherMembers = function(scope, graph, members) {
+        var result = [];
+        for (var memberIndex = 0; memberIndex < members.length; memberIndex++) {
+            for (var graphIndex = 0; graphIndex < graph.length; graphIndex++) {
+                var graphNode = graph[graphIndex];
+                if (members[memberIndex]["@id"] === graphNode["@id"]) {
+                    result.push(graphNode);
+                    break;
+                }
+            }
+        }
+
+        _OperationRenderer.setupPaging.call(this, scope);
+        return result;
+    };
     _OperationRenderer.parseHypermediaControls = function(scope, response, graph) {
+        var result = graph;
         for (var index = graph.length - 1; index >= 0; index--) {
             var resource = graph[index];
             if (!resource["@type"]) {
@@ -946,11 +962,14 @@
 
             if (resource["@type"].indexOf(hydra.Collection) !== -1) {
                 graph.splice(index, 1);
-                // TODO: Add trimming to hydra:member enumerated items.
                 if (resource[hydra.totalItems]) {
                     if ((typeof(scope.totalEntities = resource[hydra.totalItems][0]["@value"])) === "string") {
                         scope.totalEntities = parseInt(scope.totalEntities);
                     }
+                }
+
+                if (resource[hydra.member]) {
+                    return _OperationRenderer.gatherMembers.call(this, scope, graph, resource[hydra.member]);
                 }
             }
             else if (resource["@type"].indexOf(hydra.PartialCollectionView) !== -1) {
@@ -959,7 +978,7 @@
         }
 
         _OperationRenderer.setupPaging.call(this, scope);
-        return graph;
+        return result;
     };
     _OperationRenderer.onLoadEntityListSuccess = function(scope, listOperation, instance, request, response) {
         var that = this;

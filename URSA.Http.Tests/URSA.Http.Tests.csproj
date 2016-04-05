@@ -116,7 +116,7 @@
     <Compile Include="Given_instance_of_the\RequestInfo_class.cs" />
     <Compile Include="Given_instance_of_the\MultiObjectResponseInfo_class.cs" />
     <Compile Include="Given_instance_of_the\HeaderValue_class\when_not_specialized_instance_is_given.cs" />
-    <Compile Include="Given_instance_of_the\DelegateMapper_class.cs" />
+    <Compile Include="Given_instance_of_the\DelegateMapper_class\when_receiving_a_request.cs" />
     <Compile Include="Given_instance_of_the\DefaultValueRelationSelector_class\when_handlig_request.cs" />
     <Compile Include="Given_instance_of_the\HeaderParameterCollection_class.cs" />
     <Compile Include="Given_instance_of_the\Client_class.cs" />
@@ -136,7 +136,7 @@
     <Compile Include="Given_instance_of_the\converter_of\JsonConverter_class.cs" />
     <Compile Include="Given_instance_of_the\converter_of\TimeSpanConverter_class.cs" />
     <Compile Include="Given_instance_of_the\converter_of\DateTimeConverter_class.cs" />
-    <Compile Include="Given_instance_of_the\HandlerMapper_class.cs" />
+    <Compile Include="Given_instance_of_the\DelegateMapper_class\when_mapping_a_request.cs" />
     <Compile Include="Given_instance_of_the\HeaderCollection_class.cs" />
     <Compile Include="Given_instance_of_the\Header_class.cs" />
     <Compile Include="Given_instance_of_the\converter_of\BooleanConverter_class.cs" />

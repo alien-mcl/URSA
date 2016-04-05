@@ -16,11 +16,11 @@ using URSA.Web.Http.Description;
 using URSA.Web.Mapping;
 using URSA.Web.Tests;
 
-namespace Given_instance_of_the
+namespace Given_instance_of_the.DelegateMapper_class
 {
     [ExcludeFromCodeCoverage]
     [TestClass]
-    public class DelegateMapper_class
+    public class when_receiving_a_request
     {
         private IController _controller;
         private OperationInfo _operation; 
@@ -56,7 +56,7 @@ namespace Given_instance_of_the
             _operation = new OperationInfo<Verb>(
                 method,
                 new Uri("add", UriKind.Relative),
-                "add?{?operandA}&{?operandB}",
+                "/api/test/add?{?operandA}&{?operandB}",
                 new Regex(".*"),
                 Verb.GET,
                 method.GetParameters().Select(parameter => (ValueInfo)new ArgumentInfo(parameter, FromQueryStringAttribute.For(parameter), "add?{?" + parameter.Name + "}", parameter.Name)).ToArray());

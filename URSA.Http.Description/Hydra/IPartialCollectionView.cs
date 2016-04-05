@@ -23,8 +23,8 @@ namespace URSA.Web.Http.Description.Hydra
         [Property("hydra", "last")]
         IEntity Last { get; set; }
 
-        /// <summary>Gets or sets the number of total items of this view.</summary>
-        [Property("hydra", "totalItems")]
-        int TotalItems { get; set; }
+        /// <summary>Gets or sets the number of items per single page.</summary>
+        [Property("hydra", "itemsPerPage")]
+        int ItemsPerPage { get; set; }
     }
 }

@@ -70,8 +70,10 @@ namespace URSA.Web.Http.Description
 
         private async Task<object> TransformCollection(object result, Uri requestUri, int totalItems, int skip, int take)
         {
-            var collection = _entityContextProvider.EntityContext.Load<ICollection>(requestUri);
+            var entityContext = _entityContextProvider.EntityContext;
+            var collection = entityContext.Load<ICollection>(requestUri);
             collection.TotalItems = totalItems;
+            collection.Members.Clear();
             foreach (IEntity entity in (IEnumerable)result)
             {
                 collection.Members.Add(entity.AsEntity<IResource>());
@@ -79,14 +81,21 @@ namespace URSA.Web.Http.Description
 
             if ((skip <= 0) && (take <= 0))
             {
-                _entityContextProvider.EntityContext.Commit();
+                entityContext.Commit();
                 return await Task.FromResult(result);
             }
 
-            var view = _entityContextProvider.EntityContext.Load<IPartialCollectionView>(collection.Id.Uri.AddFragment("view"));
+            var viewId = collection.Id.Uri.AddFragment("view");
+            var view = entityContext.Load<IPartialCollectionView>(viewId);
             collection.View = view;
-            view.TotalItems = (take > 0 ? take : totalItems);
-            _entityContextProvider.EntityContext.Commit();
+            view.ItemsPerPage = (take > 0 ? take : totalItems);
+            entityContext.Commit();
+            entityContext.Disposed += () =>
+                {
+                    entityContext.Delete(requestUri);
+                    entityContext.Delete(viewId);
+                    entityContext.Commit();
+                };
             return await Task.FromResult(result);
         }
 
