@@ -76,8 +76,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "URSA.Example.OwinApplicatio
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "URSA.Http.CastleWindsor", "URSA.Http.CastleWindsor\URSA.Http.CastleWindsor.csproj", "{F3348ED4-2300-4A5E-BDE0-3961660397AF}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{008AA9A6-1553-4685-B7BB-1E873FBE4309}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

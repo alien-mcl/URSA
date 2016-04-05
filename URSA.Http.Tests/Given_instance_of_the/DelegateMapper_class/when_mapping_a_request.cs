@@ -65,7 +65,7 @@ namespace Given_instance_of_the.DelegateMapper_class
                 method,
                 operationUri,
                 operationUri + "?operandA={?operandA}&operandB={?operandB}",
-                new Regex(operationUri + "[?&](operandA|operandB)=[^&]+", RegexOptions.IgnoreCase),
+                new Regex(operationUri.ToString(), RegexOptions.IgnoreCase),
                 Verb.GET,
                 new ArgumentInfo(method.GetParameters()[0], FromQueryStringAttribute.For(method.GetParameters()[0]), "&operandA={?operandA}", "operandA"),
                 new ArgumentInfo(method.GetParameters()[1], FromQueryStringAttribute.For(method.GetParameters()[1]), "&operandB={?operandB}", "operandB"));

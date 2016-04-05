@@ -30,19 +30,6 @@ namespace URSA.Web.Description
                 throw new ArgumentOutOfRangeException("underlyingMethod");
             }
 
-            if (!String.IsNullOrEmpty(uriTemplate))
-            {
-                if (values == null)
-                {
-                    throw new ArgumentNullException("values");
-                }
-
-                if (values.Length == 0)
-                {
-                    throw new ArgumentOutOfRangeException("values");
-                }
-            }
-
             if (templateRegex == null)
             {
                 throw new ArgumentNullException("templateRegex");
@@ -55,7 +42,7 @@ namespace URSA.Web.Description
             var results = new List<ResultInfo>();
             Arguments = arguments;
             Results = results;
-            foreach (var value in values)
+            foreach (var value in values ?? new ValueInfo[0])
             {
                 value.Method = UnderlyingMethod;
                 if (value is ResultInfo)

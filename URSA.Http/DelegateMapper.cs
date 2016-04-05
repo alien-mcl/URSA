@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Net;
-using System.Reflection;
 using System.Web;
 using URSA.Web.Description;
 using URSA.Web.Description.Http;
@@ -15,6 +14,17 @@ namespace URSA.Web.Http
     /// <summary>Provides a default implementation of the <see cref="IDelegateMapper{RequestInfo}"/> interface.</summary>
     public class DelegateMapper : IDelegateMapper<RequestInfo>
     {
+        private static readonly IDictionary<Verb, double> VerbRanks = new Dictionary<Verb, double>()
+            {
+                { Verb.GET, 1.0 },
+                { Verb.PUT, 0.9 },
+                { Verb.DELETE, 0.8 },
+                { Verb.POST, 0.7 },
+                { Verb.HEAD, 0.6 },
+                { Verb.OPTIONS, 0.5 },
+                { Verb.Empty, 0.4 }
+            };
+
         private readonly Lazy<IEnumerable<ControllerInfo>> _controllerDescriptors;
         private readonly IControllerActivator _controllerActivator;
 
@@ -94,19 +104,33 @@ namespace URSA.Web.Http
             var queryString = (indexOf != -1 ? HttpUtility.ParseQueryString(requestUri.Substring(indexOf)).Cast<string>().Select(key => key.ToLower()).ToArray() : new string[0]);
             return from controller in _controllerDescriptors.Value
                    from operation in controller.Operations
-                   where String.Compare(operation.UriTemplate.Split('?')[0], requestPath, true) == 0
-                   let rank = (double)GetMatchingArguments(operation, queryString).Count() / queryString.Length
+                   where operation.TemplateRegex.IsMatch(requestPath)
+                   let httpOperation = (OperationInfo<Verb>)operation
+                   let rank = GetMatchRank(controller, httpOperation, queryString, request.Method)
                    orderby rank descending
-                   select new KeyValuePair<ControllerInfo, OperationInfo<Verb>>(controller, (OperationInfo<Verb>)operation);
+                   select new KeyValuePair<ControllerInfo, OperationInfo<Verb>>(controller, httpOperation);
         }
 
-        private IEnumerable<string> GetMatchingArguments(OperationInfo operation, string[] queryString)
+        private double GetMatchRank(ControllerInfo controller, OperationInfo<Verb> operation, string[] queryString, Verb method)
         {
-            return from argument in operation.Arguments
-                   where argument.Source is FromQueryStringAttribute
-                   let key = argument.VariableName.ToLower()
-                   join queryStringKey in queryString on key equals queryStringKey
-                   select key;
+            var requiredQueryStringArguments = new List<string>();
+            var optionalQueryStringArguments = new List<string>();
+            var matchingRequiredParameters = new List<string>();
+            var matchingOptionalParameters = new List<string>();
+            foreach (var argument in operation.Arguments.Where(argument => argument.Source is FromQueryStringAttribute))
+            {
+                (argument.Parameter.HasDefaultValue ? optionalQueryStringArguments : requiredQueryStringArguments).Add(argument.VariableName);
+                if (queryString.Contains(argument.VariableName, StringComparer.InvariantCultureIgnoreCase))
+                {
+                    (argument.Parameter.HasDefaultValue ? matchingOptionalParameters : matchingRequiredParameters).Add(argument.VariableName);
+                }
+            }
+
+            var result = (controller.ControllerType.IsGenericType ? 0 : 1) +
+                (operation.ProtocolSpecificCommand == method ? (VerbRanks.ContainsKey(method) ? VerbRanks[method] : VerbRanks[Verb.Empty]) : 0);
+            result += Math.Max(0, matchingRequiredParameters.Count - requiredQueryStringArguments.Count) +
+                (Math.Max(0, matchingOptionalParameters.Count - optionalQueryStringArguments.Count) * 10);
+            return result;
         }
     }
 }

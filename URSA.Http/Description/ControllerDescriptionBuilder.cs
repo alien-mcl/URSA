@@ -153,7 +153,6 @@ namespace URSA.Web.Description.Http
 
         private ValueInfo[] BuildParameterDescriptors(MethodInfo method, Verb verb, UriTemplateBuilder templateRegex, ref UriTemplateBuilder uriTemplate)
         {
-            bool restUriTemplate = true;
             IList<ValueInfo> result = new List<ValueInfo>();
             if (method.ReturnParameter.ParameterType != typeof(void))
             {
@@ -180,17 +179,15 @@ namespace URSA.Web.Description.Http
                 string variableName = (isBodyParameter ? null : UriTemplateBuilder.VariableTemplateRegex.Match(parameterUriTemplate).Groups["ParameterName"].Value);
                 if (parameterTemplateRegex != null)
                 {
-                    restUriTemplate = false;
-                    templateRegex.Add(parameterTemplateRegex, source, parameter, parameter.HasDefaultValue);
+                    if (!(source is FromQueryStringAttribute))
+                    {
+                        templateRegex.Add(parameterTemplateRegex, source, parameter, parameter.HasDefaultValue);
+                    }
+
                     uriTemplate.Add(parameterUriTemplate, source, parameter, parameter.HasDefaultValue);
                 }
 
                 result.Add(new ArgumentInfo(parameter, source, (isBodyParameter ? null : (parameterTemplateRegex.StartsWith("([?&]") ? parameterUriTemplate : uriTemplate.ToString(false))), variableName));
-            }
-
-            if (restUriTemplate)
-            {
-                uriTemplate = null;
             }
 
             return result.ToArray();

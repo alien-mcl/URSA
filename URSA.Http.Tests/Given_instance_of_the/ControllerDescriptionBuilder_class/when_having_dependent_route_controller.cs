@@ -26,7 +26,7 @@ namespace Given_instance_of_the.ControllerDescriptionBuilder_class
 
             details.Should().NotBeNull();
             details.ProtocolSpecificCommand.Should().Be(Verb.GET);
-            details.UriTemplate.Should().BeNull();
+            details.UriTemplate.Should().Be("/api/test");
             details.TemplateRegex.ToString().Should().Be("^/api/test$");
             details.Uri.ToString().Should().Be("/api/test");
             details.Arguments.Should().HaveCount(method.GetParameters().Length);

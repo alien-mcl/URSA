@@ -31,7 +31,7 @@ namespace Given_instance_of_the.ControllerDescriptionBuilder_class
             details.Should().NotBeNull();
             details.ProtocolSpecificCommand.Should().Be(Verb.GET);
             details.UriTemplate.Should().Be("/api/test/add{?operandA,operandB}");
-            details.TemplateRegex.ToString().Should().Be("^/api/test/add([?&](operandA|operandB)=[^&]*){0,}$");
+            details.TemplateRegex.ToString().Should().Be("^/api/test/add$");
             details.Uri.ToString().Should().Be("/api/test/add");
             details.Arguments.Should().HaveCount(method.GetParameters().Length);
             details.Arguments.First().Parameter.Should().Be(method.GetParameters().First());
@@ -51,7 +51,7 @@ namespace Given_instance_of_the.ControllerDescriptionBuilder_class
             details.Should().NotBeNull();
             details.ProtocolSpecificCommand.Should().Be(Verb.GET);
             details.UriTemplate.Should().Be("/api/test/sub/{operandA}?operandB={operandB}");
-            details.TemplateRegex.ToString().Should().Be("^/api/test/sub/[^/?]+([?&](operandB)=[^&]+){1,}$");
+            details.TemplateRegex.ToString().Should().Be("^/api/test/sub/[^/?]+$");
             details.Uri.ToString().Should().Be("/api/test/sub");
             details.Arguments.Should().HaveCount(method.GetParameters().Length);
             details.Arguments.First().Parameter.Should().Be(method.GetParameters().First());
@@ -71,7 +71,7 @@ namespace Given_instance_of_the.ControllerDescriptionBuilder_class
             details.Should().NotBeNull();
             details.ProtocolSpecificCommand.Should().Be(Verb.GET);
             details.UriTemplate.Should().Be("/api/test/multiply/{operandB}?operandA={operandA}");
-            details.TemplateRegex.ToString().Should().Be("^/api/test/multiply/[^/?]+([?&](operandA)=[^&]+){1,}$");
+            details.TemplateRegex.ToString().Should().Be("^/api/test/multiply/[^/?]+$");
             details.Uri.ToString().Should().Be("/api/test/multiply");
             details.Arguments.Should().HaveCount(method.GetParameters().Length);
             details.Arguments.First().Parameter.Should().Be(method.GetParameters().First());
