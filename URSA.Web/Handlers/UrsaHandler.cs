@@ -89,7 +89,17 @@ namespace URSA.Web.Handlers
                 context.Request.InputStream,
                 new HttpContextPrincipal(context.User),
                 headers);
-            var response = _requestHandler.HandleRequest(requestInfo);
+            context.Items["URSA.Http.RequestInfo"] = requestInfo;
+            ResponseInfo response;
+            try
+            {
+                response = _requestHandler.HandleRequest(requestInfo);
+            }
+            finally
+            {
+                context.Items.Remove("URSA.Http.RequestInfo");
+            }
+
             context.Response.ContentEncoding = context.Response.HeaderEncoding = response.Encoding;
             context.Response.StatusCode = (int)response.Status;
             foreach (var header in response.Headers)

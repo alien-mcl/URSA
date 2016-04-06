@@ -17,12 +17,7 @@ namespace URSA.Owin.Security
         /// <param name="principal">The principal.</param>
         public OwinPrincipal(ClaimsPrincipal principal)
         {
-            if (principal == null)
-            {
-                throw new ArgumentNullException("principal");
-            }
-
-            _principal = principal;
+            _principal = principal ?? new ClaimsPrincipal(new ClaimsIdentity(new [] { new Claim(ClaimTypes.Anonymous, "anonymous") }));
         }
 
         /// <inheritdoc />

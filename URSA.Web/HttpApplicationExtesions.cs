@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using System.Web;
 using System.Web.Routing;
+using RomanticWeb.NamedGraphs;
 using URSA.ComponentModel;
 using URSA.Configuration;
 using URSA.Security;
@@ -14,6 +15,7 @@ using URSA.Web.Handlers;
 using URSA.Web.Http;
 using URSA.Web.Http.Configuration;
 using URSA.Web.Http.Converters;
+using URSA.Web.Http.Description.NamedGraphs;
 using URSA.Web.Http.Security;
 
 namespace URSA.Web
@@ -48,6 +50,11 @@ namespace URSA.Web
                         var routesToAdd = (IDictionary<string, Route>)RegisterApiT.MakeGenericMethod(controller).Invoke(null, new object[] { container, description });
                         routes.AddRange(routesToAdd.Where(route => !routes.ContainsKey(route.Key)));
                     });
+                var namedGraphSelector = container.Resolve<INamedGraphSelector>() as ILocallyControlledNamedGraphSelector;
+                if (namedGraphSelector != null)
+                {
+                    namedGraphSelector.CurrentRequest = () => HttpContext.Current.Items["URSA.Http.RequestInfo"] as IRequestInfo;
+                }
 
                 routes.ForEach(route => RouteTable.Routes.Add(route.Key, route.Value));
             }

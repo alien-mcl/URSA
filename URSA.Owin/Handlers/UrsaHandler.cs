@@ -105,7 +105,17 @@ namespace URSA.Owin.Handlers
                 context.Request.Body,
                 new OwinPrincipal(context.Authentication.User),
                 headers);
-            var response = await _requestHandler.HandleRequestAsync(requestInfo);
+            System.Runtime.Remoting.Messaging.CallContext.HostContext = requestInfo;
+            ResponseInfo response;
+            try
+            {
+                response = await _requestHandler.HandleRequestAsync(requestInfo);
+            }
+            finally
+            {
+                System.Runtime.Remoting.Messaging.CallContext.HostContext = null;
+            }
+
             if ((IsResponseNoMatchingRouteFoundException(response)) && (Next != null))
             {
                 await Next.Invoke(context);

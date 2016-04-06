@@ -4,12 +4,15 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.Remoting.Messaging;
+using System.Threading;
 using System.Threading.Tasks;
 using RomanticWeb.Entities;
 using URSA.Configuration;
 using URSA.Web.Http.Converters;
 using URSA.Web.Http.Description.Entities;
 using URSA.Web.Http.Description.Hydra;
+using URSA.Web.Http.Description.NamedGraphs;
 using ICollection = URSA.Web.Http.Description.Hydra.ICollection;
 
 namespace URSA.Web.Http.Description
@@ -18,28 +21,36 @@ namespace URSA.Web.Http.Description
     public class CollectionModelTransformer : IModelTransformer
     {
         private readonly IEntityContextProvider _entityContextProvider;
+        private readonly INamedGraphSelectorFactory _namedGraphSelectorFactory;
 
         /// <summary>Initializes a new instance of the <see cref="CollectionModelTransformer"/> class.</summary>
         /// <param name="entityContextProvider">The entity context provider.</param>
+        /// <param name="namedGraphSelectorFactory">Named graph selector factory.</param>
         [ExcludeFromCodeCoverage]
-        public CollectionModelTransformer(IEntityContextProvider entityContextProvider)
+        public CollectionModelTransformer(IEntityContextProvider entityContextProvider, INamedGraphSelectorFactory namedGraphSelectorFactory)
         {
             if (entityContextProvider == null)
             {
                 throw new ArgumentNullException("entityContextProvider");
             }
 
+            if (namedGraphSelectorFactory == null)
+            {
+                throw new ArgumentNullException("namedGraphSelectorFactory");
+            }
+
             _entityContextProvider = entityContextProvider;
+            _namedGraphSelectorFactory = namedGraphSelectorFactory;
         }
 
         /// <inheritdoc />
-        public async Task<object> Transform(IRequestMapping requestMapping, IRequestInfo request, object result, object[] arguments)
+        public Task<object> Transform(IRequestMapping requestMapping, IRequestInfo request, object result, object[] arguments)
         {
             RequestInfo requestInfo;
             MethodInfo underlyingMethod;
             if (!CanOutputHypermedia((underlyingMethod = requestMapping.Operation.UnderlyingMethod).ReturnType, requestInfo = request as RequestInfo))
             {
-                return result;
+                return Task.FromResult(result);
             }
 
             int totalItems = ((IEnumerable)result).Cast<object>().Count();
@@ -65,10 +76,42 @@ namespace URSA.Web.Http.Description
                 }
             }
 
-            return await TransformCollection(result, requestInfo.Uri, totalItems, skip, take);
+            var namedGraphSelector = _namedGraphSelectorFactory.NamedGraphSelector;
+            ILocallyControlledNamedGraphSelector locallyControlledNamedGraphSelector = namedGraphSelector as ILocallyControlledNamedGraphSelector;
+            result = (locallyControlledNamedGraphSelector == null ? TransformCollection(result, requestInfo.Uri, totalItems, skip, take) :
+                TransformColectionWithLock(locallyControlledNamedGraphSelector, result, requestInfo, totalItems, skip, take));
+            return Task.FromResult(result);
         }
 
-        private async Task<object> TransformCollection(object result, Uri requestUri, int totalItems, int skip, int take)
+        private object TransformColectionWithLock(
+            ILocallyControlledNamedGraphSelector locallyControlledNamedGraphSelector,
+            object result,
+            RequestInfo request,
+            int totalItems,
+            int skip,
+            int take)
+        {
+            lock (locallyControlledNamedGraphSelector)
+            {
+                var requestId = Guid.NewGuid().ToString();
+                var graphUri = request.Uri.AddFragment(requestId);
+                var collectionId = new EntityId(request.Uri);
+                var viewId = new EntityId(request.Uri.AddFragment("view-" + requestId));
+                locallyControlledNamedGraphSelector.MapEntityGraphForRequest(request, collectionId, graphUri);
+                locallyControlledNamedGraphSelector.MapEntityGraphForRequest(request, viewId, graphUri);
+                result = TransformCollection(result, request.Uri, totalItems, skip, take);
+                _entityContextProvider.EntityContext.Disposed += () =>
+                    {
+                        _entityContextProvider.TripleStore.Remove(graphUri);
+                        locallyControlledNamedGraphSelector.UnmapEntityGraphForRequest(request, collectionId);
+                        locallyControlledNamedGraphSelector.UnmapEntityGraphForRequest(request, viewId);
+                    };
+            }
+
+            return result;
+        }
+
+        private object TransformCollection(object result, Uri requestUri, int totalItems, int skip, int take)
         {
             var entityContext = _entityContextProvider.EntityContext;
             var collection = entityContext.Load<ICollection>(requestUri);
@@ -82,7 +125,7 @@ namespace URSA.Web.Http.Description
             if ((skip <= 0) && (take <= 0))
             {
                 entityContext.Commit();
-                return await Task.FromResult(result);
+                return result;
             }
 
             var viewId = collection.Id.Uri.AddFragment("view");
@@ -90,13 +133,7 @@ namespace URSA.Web.Http.Description
             collection.View = view;
             view.ItemsPerPage = (take > 0 ? take : totalItems);
             entityContext.Commit();
-            entityContext.Disposed += () =>
-                {
-                    entityContext.Delete(requestUri);
-                    entityContext.Delete(viewId);
-                    entityContext.Commit();
-                };
-            return await Task.FromResult(result);
+            return result;
         }
 
         private bool CanOutputHypermedia(Type returnType, RequestInfo requestInfo)

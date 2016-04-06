@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using Owin;
+using RomanticWeb.NamedGraphs;
 using URSA.ComponentModel;
 using URSA.Configuration;
 using URSA.Owin.Handlers;
@@ -9,6 +10,7 @@ using URSA.Security;
 using URSA.Web;
 using URSA.Web.Http;
 using URSA.Web.Http.Configuration;
+using URSA.Web.Http.Description.NamedGraphs;
 using URSA.Web.Http.Security;
 
 namespace URSA.Owin
@@ -33,10 +35,13 @@ namespace URSA.Owin
                 var container = UrsaConfigurationSection.InitializeComponentProvider();
                 container.Register<IHttpServerConfiguration>(new LazyHttpServerConfiguration());
                 container.WithAutodiscoveredControllers();
-                application.Use(
-                    typeof(UrsaHandler),
-                    container.Resolve<IRequestHandler<RequestInfo, ResponseInfo>>(),
-                    container.ResolveAll<IAuthenticationProvider>());
+                var namedGraphSelector = container.Resolve<INamedGraphSelector>() as ILocallyControlledNamedGraphSelector;
+                if (namedGraphSelector != null)
+                {
+                    namedGraphSelector.CurrentRequest = () => System.Runtime.Remoting.Messaging.CallContext.HostContext as IRequestInfo;
+                }
+
+                application.Use(typeof(UrsaHandler), container.Resolve<IRequestHandler<RequestInfo, ResponseInfo>>());
             }
 
             return application;
