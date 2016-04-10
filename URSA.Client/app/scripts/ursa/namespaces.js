@@ -28,18 +28,21 @@
     xsd.gMonth = xsd + "gMonth";
     xsd.gDay = xsd + "gDay";
     xsd.gYearMonth = xsd + "gYearMonth";
+
     window.rdf = new String("http://www.w3.org/1999/02/22-rdf-syntax-ns#"); //jshint ignore:line
     rdf.subject = rdf + "subject";
     rdf.first = rdf + "first";
     rdf.last = rdf + "last";
     rdf.Property = rdf + "Property";
     rdf.List = rdf + "List";
+
     window.rdfs = new String("http://www.w3.org/2000/01/rdf-schema#"); //jshint ignore:line
     rdfs.Class = rdfs + "Class";
     rdfs.subClassOf = rdfs + "subClassOf";
     rdfs.range = rdfs + "range";
     rdfs.label = rdfs + "label";
     rdfs.comment = rdfs + "comment";
+
     window.owl = new String("http://www.w3.org/2002/07/owl#"); //jshint ignore:line
     owl.onProperty = owl + "onProperty";
     owl.minCardinality = owl + "minCardinality";
@@ -48,6 +51,7 @@
     owl.InverseFunctionalProperty = owl + "InverseFunctionalProperty";
     owl.Restriction = owl + "Restriction";
     owl.Thing = owl + "Thing";
+
     window.hydra = new String("http://www.w3.org/ns/hydra/core#"); //jshint ignore:line
     hydra.Resource = hydra + "Resource";
     hydra.Class = hydra + "Class";
@@ -84,13 +88,17 @@
     hydra.manages = hydra + "manages";
     hydra.member = hydra + "member";
     hydra.totalItems = hydra + "totalItems";
+
     window.ursa = new String("http://alien-mcl.github.io/URSA/vocabulary#"); //jshint ignore:line
     ursa.mediaType = ursa + "mediaType";
+
     window.odata = new String("http://docs.oasis-open.org/odata/odata/v4.0/"); //jshint ignore:line
     odata.skip = odata + "$skip";
     odata.top = odata + "$top";
     odata.filter = odata + "$filter";
+
     window.shacl = new String("http://www.w3.org/ns/shacl#"); //jshint ignore:line
+
     window.guid = new String("http://openguid.net/rdf#"); //jshint ignore:line
     guid.guid = guid + "guid";
 }());
