@@ -1,9 +1,12 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.Serialization;
 
 namespace URSA.Web
 {
     /// <summary>Exception related to denied access to a resource.</summary>
+    [ExcludeFromCodeCoverage]
+    [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
     [Serializable]
     public class AccessDeniedException : Exception
     {

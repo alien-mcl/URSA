@@ -55,7 +55,7 @@ namespace URSA.Security
                 ((!securityRequirements.Allowed.Any()) || (securityRequirements.Allowed.Matches(identity)));
         }
 
-        private static bool Matches(this SecuritySpecificationInfo securitySpecificationInfo, IClaimBasedIdentity identity)
+        internal static bool Matches(this SecuritySpecificationInfo securitySpecificationInfo, IClaimBasedIdentity identity)
         {
             foreach (var claimType in securitySpecificationInfo)
             {
@@ -66,11 +66,6 @@ namespace URSA.Security
                 }
 
                 var claimValues = securitySpecificationInfo[claimType];
-                if (claimValues == null)
-                {
-                    continue;
-                }
-
                 var anyValues = claimValues.Any();
                 var matchingClaims = from value in claimValues join claim in claims on value equals claim select claim;
                 if ((!anyValues) || (matchingClaims.Any()))

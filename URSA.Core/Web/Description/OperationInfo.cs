@@ -8,7 +8,6 @@ using System.Text.RegularExpressions;
 namespace URSA.Web.Description
 {
     /// <summary>Describes an controller operation.</summary>
-    [ExcludeFromCodeCoverage]
     [DebuggerDisplay("{UriTemplate}", Name = "{Uri}")]
     public abstract class OperationInfo : SecurableResourceInfo
     {
@@ -72,6 +71,8 @@ namespace URSA.Web.Description
         public IEnumerable<ResultInfo> Results { get; private set; }
 
         /// <inheritdoc />
+        [ExcludeFromCodeCoverage]
+        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
         public override SecurableResourceInfo Owner { get { return Controller; } }
 
         /// <summary>Gets or sets the controller descriptor.</summary>
@@ -81,7 +82,6 @@ namespace URSA.Web.Description
     /// <summary>Describes an controller operation.</summary>
     /// <typeparam name="T">Type of the protocol specific command.</typeparam>
     [SuppressMessage("StyleCop.CSharp.MaintainabilityRules", "SA1402:FileMayOnlyContainASingleClass", Justification = "Generic and non-generic interfaces. Suppression is OK.")]
-    [ExcludeFromCodeCoverage]
     [DebuggerDisplay("{ProtocolSpecificCommand} {UriTemplate}", Name = "{Uri}")]
     public class OperationInfo<T> : OperationInfo
     {
@@ -92,6 +92,8 @@ namespace URSA.Web.Description
         /// <param name="templateRegex">Regular expression template with all arguments included.</param>
         /// <param name="protocolSpecificCommand">Protocol specific command.</param>
         /// <param name="values">Values descriptions.</param>
+        [ExcludeFromCodeCoverage]
+        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
         public OperationInfo(MethodInfo underlyingMethod, Uri uri, string uriTemplate, Regex templateRegex, T protocolSpecificCommand, params ValueInfo[] values)
             : base(underlyingMethod, uri, uriTemplate, templateRegex, values)
         {
@@ -125,12 +127,13 @@ namespace URSA.Web.Description
         {
             return ((Equals(operandA, null)) && (!Equals(operandB, null))) ||
                 ((!Equals(operandA, null)) && (Equals(operandB, null))) || 
-                ((!Equals(operandA, null)) && (!Equals(operandB, null)) &&
-                ((!operandA.UnderlyingMethod.Equals(operandB.UnderlyingMethod)) || (!operandA.ProtocolSpecificCommand.Equals(operandB.ProtocolSpecificCommand)) ||
-                (!operandA.Uri.ToString().Equals(operandB.Uri.ToString()))));
+                ((!Equals(operandA, null)) && ((!operandA.UnderlyingMethod.Equals(operandB.UnderlyingMethod)) || 
+                    (!operandA.ProtocolSpecificCommand.Equals(operandB.ProtocolSpecificCommand)) || (!operandA.Uri.ToString().Equals(operandB.Uri.ToString()))));
         }
 
         /// <inheritdoc />
+        [ExcludeFromCodeCoverage]
+        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
         public override int GetHashCode()
         {
             return UnderlyingMethod.GetHashCode() ^ Uri.ToString().GetHashCode();

@@ -1,9 +1,12 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.Serialization;
 
 namespace URSA.Web
 {
     /// <summary>Describes an exception when there is no matching route found.</summary>
+    [ExcludeFromCodeCoverage]
+    [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
     [Serializable]
     public class NoMatchingRouteFoundException : NotFoundException
     {

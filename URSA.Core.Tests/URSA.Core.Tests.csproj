@@ -6,8 +6,8 @@
     <ProjectGuid>{60971EEE-A6CF-485C-968A-5757EC6E9240}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>URSA.Tests</RootNamespace>
-    <AssemblyName>URSA.Tests</AssemblyName>
+    <RootNamespace>URSA.Core.Tests</RootNamespace>
+    <AssemblyName>URSA.Core.Tests</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{3AC096D0-A1C2-E12C-1390-A8335801FDAB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
@@ -74,11 +74,18 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
-    <Compile Include="Given_instance_of\DefaultConverterProvider_class.cs" />
+    <Compile Include="Given_instance_of\DefaultConverterProvider_class\when_returning_a_response.cs" />
+    <Compile Include="Given_instance_of\DefaultConverterProvider_class\when_receiving_a_request.cs" />
     <Compile Include="Given_instance_of\DefaultControllerActivator_class.cs" />
+    <Compile Include="Given_instance_of\RouteAttribute_class.cs" />
+    <Compile Include="Given_instance_of\FromUriAttribute_class.cs" />
     <Compile Include="Given_instance_of\ResourceSecurityInfo_class.cs" />
     <Compile Include="Given_instance_of\SecurableResourceInfo_class.cs" />
+    <Compile Include="Given_instance_of\SecuritySpecificationInfo_class.cs" />
     <Compile Include="Given_instance_of\UrsaConfigurationSection_class.cs" />
+    <Compile Include="Given_instance_of\OperationInfo_class.cs" />
+    <Compile Include="Given_instance_of\FromQueryStringAttribute_class.cs" />
+    <Compile Include="Given_instance_of\ValueInfo_class.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Web\TestController.cs" />
   </ItemGroup>

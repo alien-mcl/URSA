@@ -5,14 +5,15 @@ using URSA.Security;
 namespace URSA.Web.Description
 {
     /// <summary>Describes a resource being a subject to security constraints.</summary>
-    [ExcludeFromCodeCoverage]
     public abstract class SecurableResourceInfo
     {
         private ResourceSecurityInfo _unifiedResourceSecurityInfo;
 
         /// <summary>Initializes a new instance of the <see cref="SecurableResourceInfo"/> class.</summary>
         /// <param name="uri">The URI of the resource.</param>
-        protected SecurableResourceInfo(Uri uri)
+        [ExcludeFromCodeCoverage]
+        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
+        protected internal SecurableResourceInfo(Uri uri)
         {
             if (uri == null)
             {

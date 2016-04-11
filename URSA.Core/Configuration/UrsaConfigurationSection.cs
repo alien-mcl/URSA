@@ -12,7 +12,6 @@ using URSA.Web.Converters;
 namespace URSA.Configuration
 {
     /// <summary>Describes the base URSA configuration section.</summary>
-    [ExcludeFromCodeCoverage]
     public class UrsaConfigurationSection : ConfigurationSection
     {
         /// <summary>Defines a configuration section group name for URSA framework.</summary>
@@ -28,6 +27,8 @@ namespace URSA.Configuration
 
         /// <summary>Gets or sets the installer assembly name mask.</summary>
         [ConfigurationProperty(InstallerAssemblyNameMaskAttribute)]
+        [ExcludeFromCodeCoverage]
+        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "Wrapper without testable logic.")]
         public string InstallerAssemblyNameMask
         {
             get { return (string)this[InstallerAssemblyNameMaskAttribute]; }
@@ -35,6 +36,8 @@ namespace URSA.Configuration
         }
 
         /// <summary>Gets or sets the service provider type.</summary>
+        [ExcludeFromCodeCoverage]
+        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "Wrapper without testable logic.")]
         public Type ServiceProviderType
         {
             get { return Type.GetType(ServiceProviderTypeName); }
@@ -42,6 +45,8 @@ namespace URSA.Configuration
         }
 
         /// <summary>Gets or sets the converter provider type.</summary>
+        [ExcludeFromCodeCoverage]
+        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "Wrapper without testable logic.")]
         public Type ConverterProviderType
         {
             get { return Type.GetType(ConverterProviderTypeName); }
@@ -49,6 +54,8 @@ namespace URSA.Configuration
         }
 
         /// <summary>Gets or sets the controller activator type.</summary>
+        [ExcludeFromCodeCoverage]
+        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "Wrapper without testable logic.")]
         public Type ControllerActivatorType
         {
             get { return Type.GetType(ControllerActivatorTypeName); }
@@ -59,6 +66,8 @@ namespace URSA.Configuration
         internal static IComponentProvider ComponentProvider { get; set; }
 
         [ConfigurationProperty(ServiceProviderTypeNameAttribute)]
+        [ExcludeFromCodeCoverage]
+        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "Wrapper without testable logic.")]
         private string ServiceProviderTypeName
         {
             get { return (string)this[ServiceProviderTypeNameAttribute]; }
@@ -66,6 +75,8 @@ namespace URSA.Configuration
         }
 
         [ConfigurationProperty(ConverterProviderTypeNameAttribute)]
+        [ExcludeFromCodeCoverage]
+        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "Wrapper without testable logic.")]
         private string ConverterProviderTypeName
         {
             get { return (string)this[ConverterProviderTypeNameAttribute]; }
@@ -73,6 +84,8 @@ namespace URSA.Configuration
         }
 
         [ConfigurationProperty(ControllerActivatorTypeNameAttribute)]
+        [ExcludeFromCodeCoverage]
+        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "Wrapper without testable logic.")]
         private string ControllerActivatorTypeName
         {
             get { return (string)this[ControllerActivatorTypeNameAttribute]; }
@@ -81,6 +94,8 @@ namespace URSA.Configuration
 
         /// <summary>Initializes the component provider configured.</summary>
         /// <returns>Implementation of the <see cref="IComponentProvider" /> pointed in the configuration with installers loaded.</returns>
+        [ExcludeFromCodeCoverage]
+        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "Helper method used for initialization, which may proove to be difficult for testing.")]
         public static IComponentProvider InitializeComponentProvider()
         {
             if (ComponentProvider != null)
@@ -109,6 +124,8 @@ namespace URSA.Configuration
 
         /// <summary>Gets the default installer assemblies.</summary>
         /// <returns>Enumeration of assemblies used by the container initialization.</returns>
+        [ExcludeFromCodeCoverage]
+        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "Helper method used for initialization, which may proove to be difficult for testing.")]
         public static IEnumerable<Assembly> GetInstallerAssemblies()
         {
             UrsaConfigurationSection configuration =
@@ -117,6 +134,8 @@ namespace URSA.Configuration
             return GetInstallerAssemblies(configuration.InstallerAssemblyNameMask ?? DefaultInstallerAssemblyNameMask);
         }
 
+        [ExcludeFromCodeCoverage]
+        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "Method uses local file system, which may proove to be diffucult for testing.")]
         private static IEnumerable<Assembly> GetInstallerAssemblies(string mask)
         {
             var assemblyNameRegex = new Regex(Regex.Escape(mask).Replace("\\*", ".*").Replace("\\?", "."));

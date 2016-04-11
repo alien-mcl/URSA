@@ -5,6 +5,7 @@ namespace URSA.Security
 {
     /// <summary>Restricts identities with a given claims an access to a restricted resource.</summary>
     [ExcludeFromCodeCoverage]
+    [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
     public abstract class ClaimBasedSecurityConstraintAttribute : Attribute
     {
         /// <summary>Initializes a new instance of the <see cref="ClaimBasedSecurityConstraintAttribute"/> class.</summary>

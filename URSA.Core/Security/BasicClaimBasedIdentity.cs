@@ -7,6 +7,7 @@ namespace URSA.Security
 {
     /// <summary>Provides a basic implementation of the <see cref="IClaimBasedIdentity" />.</summary>
     [ExcludeFromCodeCoverage]
+    [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "Wrapper without testable logic.")]
     public class BasicClaimBasedIdentity : IClaimBasedIdentity
     {
         private static readonly string[] Anonymous = { "anonymous" };

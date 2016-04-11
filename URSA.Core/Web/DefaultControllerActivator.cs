@@ -14,6 +14,7 @@ namespace URSA.Web
         /// <summary>Initializes a new instance of the <see cref="DefaultControllerActivator" /> class.</summary>
         /// <param name="container">Dependency injection container.</param>
         [ExcludeFromCodeCoverage]
+        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
         public DefaultControllerActivator(IComponentProvider container)
         {
             if (container == null)

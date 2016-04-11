@@ -14,5 +14,10 @@ namespace URSA.Tests.Web
         public void Operation()
         {
         }
+
+        public int Result(int input = 0)
+        {
+            return input;
+        }
     }
 }

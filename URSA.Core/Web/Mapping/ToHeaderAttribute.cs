@@ -5,6 +5,7 @@ namespace URSA.Web.Mapping
 {
     /// <summary>Marks the parameter to be bound to the response header.</summary>
     [ExcludeFromCodeCoverage]
+    [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
     public class ToHeaderAttribute : ResultTargetAttribute
     {
         private const string DefaultFormat = "{0}";

@@ -15,6 +15,7 @@ namespace URSA.Configuration
         /// <param name="parameterTypes">Optional constructor parameter types.</param>
         /// <returns>Default constructor.</returns>
         [ExcludeFromCodeCoverage]
+        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "Helper method used mostly for validation.")]
         public static ConstructorInfo GetProvider<T>(this ConfigurationElement configSection, Type type, params Type[] parameterTypes)
         {
             if (type == null)

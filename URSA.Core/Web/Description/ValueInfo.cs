@@ -1,13 +1,10 @@
 ﻿using System;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
-using URSA.Web.Mapping;
 
 namespace URSA.Web.Description
 {
     /// <summary>Describes a parameter.</summary>
-    [ExcludeFromCodeCoverage]
     [DebuggerDisplay("{Parameter}", Name = "{Parameter}")]
     public abstract class ValueInfo
     {

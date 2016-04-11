@@ -53,7 +53,7 @@ namespace URSA.Web.Converters
             foreach (var item in _converters)
             {
                 var level = item.CanConvertTo(expectedType, request);
-                if (((!ignoreProtocol) && ((ignoreProtocol) || ((level & CompatibilityLevel.ProtocolMatch) != CompatibilityLevel.ProtocolMatch))) || 
+                if (((!ignoreProtocol) && ((level & CompatibilityLevel.ProtocolMatch) != CompatibilityLevel.ProtocolMatch)) || 
                     ((level & CompatibilityLevel.TypeMatch) != CompatibilityLevel.TypeMatch))
                 {
                     continue;

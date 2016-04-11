@@ -6,6 +6,7 @@ namespace URSA.Security
     /// <summary>Denies identities with a given claims an access to a restricted resource.</summary>
     [AttributeUsage(AttributeTargets.Assembly | AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = true)]
     [ExcludeFromCodeCoverage]
+    [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
     public sealed class DenyClaimAttribute : ClaimBasedSecurityConstraintAttribute
     {
         /// <summary>Initializes a new instance of the <see cref="DenyClaimAttribute"/> class.</summary>

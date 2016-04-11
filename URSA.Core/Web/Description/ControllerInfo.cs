@@ -8,6 +8,7 @@ namespace URSA.Web.Description
 {
     /// <summary>Describes a controller.</summary>
     [ExcludeFromCodeCoverage]
+    [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
     [DebuggerDisplay("{Uri}", Name = "{Uri}")]
     public abstract class ControllerInfo : SecurableResourceInfo
     {
@@ -45,6 +46,7 @@ namespace URSA.Web.Description
     /// <summary>Describes a controller.</summary>
     /// <typeparam name="T">Type of the controller.</typeparam>
     [ExcludeFromCodeCoverage]
+    [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
     [SuppressMessage("StyleCop.CSharp.MaintainabilityRules", "SA1402:FileMayOnlyContainASingleClass", Justification = "Generic and non-generic interfaces. Suppression is OK.")]
     public class ControllerInfo<T> : ControllerInfo where T : IController
     {

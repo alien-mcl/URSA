@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Linq.Expressions;
 
@@ -93,7 +94,7 @@ namespace URSA.Security
         {
             if (specificSecurityInfo == null)
             {
-                throw new ArgumentNullException();
+                throw new ArgumentNullException("specificSecurityInfo");
             }
 
             var result = Clone();
@@ -110,6 +111,8 @@ namespace URSA.Security
         }
 
         /// <inheritdoc />
+        [ExcludeFromCodeCoverage]
+        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
         object ICloneable.Clone()
         {
             return Clone();

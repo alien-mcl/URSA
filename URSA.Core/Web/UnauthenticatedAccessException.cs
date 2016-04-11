@@ -1,9 +1,12 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.Serialization;
 
 namespace URSA.Web
 {
     /// <summary>Exception related to access to a resource by an unauthenticated identity.</summary>
+    [ExcludeFromCodeCoverage]
+    [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
     [Serializable]
     public class UnauthenticatedAccessException : Exception
     {

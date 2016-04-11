@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using URSA.Web.Mapping;
@@ -8,6 +7,7 @@ namespace URSA.Web.Description
 {
     /// <summary>Describes a parameter.</summary>
     [ExcludeFromCodeCoverage]
+    [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
     public class ArgumentInfo : ValueInfo
     {
         /// <summary>Initializes a new instance of the <see cref="ArgumentInfo" /> class.</summary>

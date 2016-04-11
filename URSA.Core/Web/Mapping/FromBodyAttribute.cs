@@ -6,6 +6,7 @@ namespace URSA.Web.Mapping
 {
     /// <summary>Marks the parameter to be bound to the body of the request.</summary>
     [ExcludeFromCodeCoverage]
+    [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
     public sealed class FromBodyAttribute : ParameterSourceAttribute
     {
         /// <summary>Initializes a new instance of the <see cref="FromBodyAttribute" /> class.</summary>

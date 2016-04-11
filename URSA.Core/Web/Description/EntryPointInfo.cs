@@ -5,6 +5,7 @@ namespace URSA.Web.Description
 {
     /// <summary>Describes an entry point;</summary>
     [ExcludeFromCodeCoverage]
+    [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
     public class EntryPointInfo : SecurableResourceInfo
     {
         /// <summary>Initializes a new instance of the <see cref="EntryPointInfo"/> class.</summary>

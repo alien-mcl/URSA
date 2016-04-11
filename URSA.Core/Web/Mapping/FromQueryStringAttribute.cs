@@ -5,7 +5,6 @@ using System.Reflection;
 namespace URSA.Web.Mapping
 {
     /// <summary>Marks the parameter to be bound to the query string.</summary>
-    [ExcludeFromCodeCoverage]
     public sealed class FromQueryStringAttribute : ParameterSourceAttribute, IUriTemplateParameterSourceAttribute
     {
         /// <summary>Defines a part of the uri responsible for mapping the actual value of the parameter in the uri.</summary>
@@ -17,9 +16,11 @@ namespace URSA.Web.Mapping
         /// <summary>Defines a default query string pattern.</summary>
         public static readonly string Default = "{?key}";
 
-        private string _default = null;
+        private string _default;
 
         /// <summary>Initializes a new instance of the <see cref="FromQueryStringAttribute" /> class.</summary>
+        [ExcludeFromCodeCoverage]
+        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
         public FromQueryStringAttribute()
         {
             UriTemplate = Default;
@@ -49,9 +50,13 @@ namespace URSA.Web.Mapping
         public string UriTemplate { get; private set; }
 
         /// <inheritdoc />
+        [ExcludeFromCodeCoverage]
+        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
         string IUriTemplateParameterSourceAttribute.Template { get { return UriTemplate; } }
 
         /// <inheritdoc />
+        [ExcludeFromCodeCoverage]
+        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
         string IUriTemplateParameterSourceAttribute.DefaultTemplate { get { return _default ?? Default; } }
 
         /// <summary>Creates an instance of the <see cref="FromQueryStringAttribute" /> for given <paramref name="parameter "/>.</summary>
@@ -73,12 +78,16 @@ namespace URSA.Web.Mapping
         }
 
         /// <inheritdoc />
+        [ExcludeFromCodeCoverage]
+        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
         ParameterSourceAttribute IUriTemplateParameterSourceAttribute.For(ParameterInfo parameter)
         {
             return For(parameter);
         }
 
         /// <inheritdoc />
+        [ExcludeFromCodeCoverage]
+        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
         public override string ToString()
         {
             return UriTemplate;

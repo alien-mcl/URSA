@@ -1,10 +1,8 @@
 ﻿using System;
-using System.Diagnostics.CodeAnalysis;
 
 namespace URSA.Web.Mapping
 {
     /// <summary>Describes the partial uri associated with the method.</summary>
-    [ExcludeFromCodeCoverage]
     [AttributeUsage(AttributeTargets.Assembly | AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Interface | AttributeTargets.Method)]
     public class RouteAttribute : MappingAttribute
     {
