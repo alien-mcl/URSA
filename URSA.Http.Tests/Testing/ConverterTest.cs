@@ -28,6 +28,14 @@ namespace URSA.Web.Http.Testing
 
         protected virtual string MultipleEntitiesBody { get { return String.Join("\r\n", MultipleEntities.Select(entity => String.Format(CultureInfo.InvariantCulture, "{0}", entity))); } }
 
+        protected virtual bool SupportsSingleInstances { get { return true; } }
+
+        protected virtual bool SupportsMultipleInstances { get { return true; } }
+
+        protected virtual bool SupportsSerialization { get { return true; } }
+
+        protected virtual bool SupportsDeserialization { get { return true; } }
+
         protected abstract TI SingleEntity { get; }
 
         protected abstract TI[] MultipleEntities { get; }
@@ -35,11 +43,145 @@ namespace URSA.Web.Http.Testing
         protected T Converter { get; private set; }
 
         [TestMethod]
+        public virtual void it_should_not_acknowledge_the_converter_as_a_match_against_incompatible_type_when_serializing()
+        {
+            if ((!SupportsSerialization) || (!SupportsSingleInstances))
+            {
+                return;
+            }
+
+            var result = CanConvertFrom<object>("POST", OperationName, SingleEntityContentType, SingleEntityBody);
+
+            result.Should().Be(CompatibilityLevel.None);
+        }
+
+        [TestMethod]
+        public virtual void it_should_throw_when_instance_being_serialized_mismatches_the_converter_supported_type()
+        {
+            if ((!SupportsSerialization) || (!SupportsSingleInstances))
+            {
+                return;
+            }
+
+            Converter.Invoking(instance => ConvertFrom("POST", OperationName, SingleEntityContentType, (object)Encoding.UTF8)).ShouldThrow<InvalidOperationException>();
+        }
+
+        [TestMethod]
+        public virtual void it_should_test_serialization_compatibility()
+        {
+            if ((!SupportsSerialization) || (!SupportsSingleInstances))
+            {
+                return;
+            }
+
+            var result = CanConvertFrom("POST", OperationName, SingleEntityContentType, SingleEntity);
+
+            result.Should().NotBe(CompatibilityLevel.None);
+        }
+
+        [TestMethod]
+        public virtual void it_should_throw_when_no_given_type_is_provided_for_serialization_compatibility_test()
+        {
+            if (!SupportsSerialization)
+            {
+                return;
+            }
+
+            Converter.Invoking(converter => converter.CanConvertFrom(null, null)).ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("givenType");
+        }
+
+        [TestMethod]
+        public virtual void it_should_throw_when_no_response_is_provided_for_serialization_compatibility_test()
+        {
+            if (!SupportsSerialization)
+            {
+                return;
+            }
+
+            Converter.Invoking(converter => converter.CanConvertFrom(typeof(TI), null)).ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("response");
+        }
+
+        [TestMethod]
+        public virtual void it_should_throw_when_no_response_is_provided_for_serialization()
+        {
+            if (!SupportsSerialization)
+            {
+                return;
+            }
+
+            Converter.Invoking(converter => converter.ConvertFrom(SingleEntity, null)).ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("response");
+        }
+
+        [TestMethod]
+        public virtual void it_should_throw_when_no_given_type_is_provided_for_serialization()
+        {
+            if (!SupportsSerialization)
+            {
+                return;
+            }
+
+            Converter.Invoking(converter => converter.ConvertFrom(null, SingleEntity, null)).ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("givenType");
+        }
+
+        [TestMethod]
+        public virtual void it_should_serialize_an_entity_to_message()
+        {
+            if ((!SupportsSerialization) || (!SupportsSingleInstances))
+            {
+                return;
+            }
+
+            var content = ConvertFrom("POST", OperationName, SingleEntityContentType, SingleEntity);
+            AssertSingleEntityMessage(content);
+        }
+
+        [TestMethod]
+        public virtual void it_should_serialize_array_of_entities_to_message()
+        {
+            if ((!SupportsSerialization) || (!SupportsMultipleInstances))
+            {
+                return;
+            }
+
+            var content = ConvertFrom("POST", OperationName, MultipleEntitiesContentType, MultipleEntities);
+            AssertMultipleEntitiesMessage(content);
+        }
+
+        [TestMethod]
+        public virtual void it_should_do_nothing_if_the_instance_being_serialized_is_null()
+        {
+            if ((!SupportsSerialization) || (!SupportsSingleInstances))
+            {
+                return;
+            }
+
+            ConvertFrom("POST", OperationName, SingleEntityContentType, null).Should().BeNullOrEmpty();
+        }
+
+        [TestMethod]
         public virtual void it_should_test_deserialization_compatibility()
         {
+            if ((!SupportsDeserialization) || (!SupportsSingleInstances))
+            {
+                return;
+            }
+
             var result = CanConvertTo<TI>("POST", OperationName, SingleEntityContentType, SingleEntityBody);
 
             result.Should().NotBe(CompatibilityLevel.None);
+        }
+
+        [TestMethod]
+        public virtual void it_should_not_acknowledge_the_converter_as_a_match_against_incompatible_type_when_deserializing()
+        {
+            if ((!SupportsDeserialization) || (!SupportsSingleInstances))
+            {
+                return;
+            }
+
+            var result = CanConvertTo<object>("POST", OperationName, SingleEntityContentType, SingleEntityBody);
+
+            result.Should().Be(CompatibilityLevel.None);
         }
 
         [TestMethod]
@@ -69,6 +211,11 @@ namespace URSA.Web.Http.Testing
         [TestMethod]
         public virtual void it_should_deserialize_message_body_as_an_entity()
         {
+            if ((!SupportsDeserialization) || (!SupportsSingleInstances))
+            {
+                return;
+            }
+
             var result = ConvertBodyTo<TI>("POST", OperationName, SingleEntityContentType, SingleEntityBody);
             AssertSingleEntity(result);
         }
@@ -76,6 +223,11 @@ namespace URSA.Web.Http.Testing
         [TestMethod]
         public virtual void it_should_deserialize_message_as_an_entity()
         {
+            if ((!SupportsDeserialization) || (!SupportsSingleInstances))
+            {
+                return;
+            }
+
             var result = ConvertTo<TI>("POST", OperationName, SingleEntityContentType, SingleEntityBody);
             AssertSingleEntity(result);
         }
@@ -83,6 +235,11 @@ namespace URSA.Web.Http.Testing
         [TestMethod]
         public virtual void it_should_deserialize_message_body_as_an_array_of_entities()
         {
+            if ((!SupportsDeserialization) || (!SupportsMultipleInstances))
+            {
+                return;
+            }
+
             var result = ConvertBodyTo<TI[]>("POST", OperationName, MultipleEntitiesContentType, MultipleEntitiesBody);
             AssertMultipleEntities(result);
         }
@@ -90,54 +247,19 @@ namespace URSA.Web.Http.Testing
         [TestMethod]
         public virtual void it_should_deserialize_message_as_an_array_of_entities()
         {
+            if ((!SupportsDeserialization) || (!SupportsMultipleInstances))
+            {
+                return;
+            }
+
             var result = ConvertTo<TI[]>("POST", OperationName, MultipleEntitiesContentType, MultipleEntitiesBody);
             AssertMultipleEntities(result);
         }
 
         [TestMethod]
-        public virtual void it_should_test_serialization_compatibility()
+        public virtual void it_should_throw_when_no_given_type_is_provided_for_string_deserialization()
         {
-            var result = CanConvertFrom("POST", OperationName, SingleEntityContentType, SingleEntity);
-            
-            result.Should().NotBe(CompatibilityLevel.None);
-        }
-
-        [TestMethod]
-        public virtual void it_should_throw_when_no_given_type_is_provided_for_serialization_compatibility_test()
-        {
-            Converter.Invoking(converter => converter.CanConvertFrom(null, null)).ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("givenType");
-        }
-
-        [TestMethod]
-        public virtual void it_should_throw_when_no_response_is_provided_for_serialization_compatibility_test()
-        {
-            Converter.Invoking(converter => converter.CanConvertFrom(typeof(TI), null)).ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("response");
-        }
-
-        [TestMethod]
-        public virtual void it_should_throw_when_no_response_is_provided_for_serialization()
-        {
-            Converter.Invoking(converter => converter.ConvertFrom<TI>(SingleEntity, null)).ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("response");
-        }
-
-        [TestMethod]
-        public virtual void it_should_throw_when_no_given_type_is_provided_for_deserialization()
-        {
-            Converter.Invoking(converter => converter.ConvertFrom(null, SingleEntity, null)).ShouldThrow<ArgumentNullException>().And.ParamName.Should().Be("givenType");
-        }
-
-        [TestMethod]
-        public virtual void it_should_serialize_an_entity_to_message()
-        {
-            var content = ConvertFrom("POST", OperationName, SingleEntityContentType, SingleEntity);
-            AssertSingleEntityMessage(content);
-        }
-
-        [TestMethod]
-        public virtual void it_should_serialize_array_of_entities_to_message()
-        {
-            var content = ConvertFrom("POST", OperationName, MultipleEntitiesContentType, MultipleEntities);
-            AssertMultipleEntitiesMessage(content);
+            Converter.Invoking(instance => instance.ConvertTo(null, SingleEntityBody)).ShouldThrow<ArgumentNullException>().Which.ParamName.Should().Be("expectedType");
         }
 
         [TestInitialize]
@@ -189,6 +311,14 @@ namespace URSA.Web.Http.Testing
         {
             var response = MakeResponse(MakeRequest(method, handler, mediaType));
             Converter.ConvertFrom(body, response);
+            response.Body.Seek(0, SeekOrigin.Begin);
+            return new StreamReader(response.Body).ReadToEnd();
+        }
+
+        protected string ConvertFrom(string method, string handler, string mediaType, object body)
+        {
+            var response = MakeResponse(MakeRequest(method, handler, mediaType));
+            Converter.ConvertFrom(typeof(TI), body, response);
             response.Body.Seek(0, SeekOrigin.Begin);
             return new StreamReader(response.Body).ReadToEnd();
         }

@@ -11,13 +11,16 @@ namespace URSA.Web.Http
     {
         /// <inheritdoc />
         [ExcludeFromCodeCoverage]
+        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "Wrapper without testable logic.")]
         ICollection<string> IDictionary<string, string>.Values { get { return _headers.Values.Select(value => value.Value).ToList(); } }
 
         /// <inheritdoc />
         [ExcludeFromCodeCoverage]
+        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "Wrapper without testable logic.")]
         ICollection<string> IDictionary<string, string>.Keys { get { return _headers.Keys; } }
 
         /// <inheritdoc />
+        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "Wrapper without testable logic.")]
         string IDictionary<string, string>.this[string key]
         {
             get { return _headers[key].Value; }
@@ -26,6 +29,7 @@ namespace URSA.Web.Http
 
         /// <inheritdoc />
         [ExcludeFromCodeCoverage]
+        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "Wrapper without testable logic.")]
         void IDictionary<string, string>.Add(string name, string value)
         {
             Add(name, value);
@@ -33,6 +37,7 @@ namespace URSA.Web.Http
 
         /// <inheritdoc />
         [ExcludeFromCodeCoverage]
+        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "Wrapper without testable logic.")]
         bool IDictionary<string, string>.ContainsKey(string key)
         {
             return _headers.ContainsKey(key);
@@ -40,6 +45,7 @@ namespace URSA.Web.Http
 
         /// <inheritdoc />
         [ExcludeFromCodeCoverage]
+        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "Wrapper without testable logic.")]
         bool IDictionary<string, string>.TryGetValue(string key, out string value)
         {
             value = null;

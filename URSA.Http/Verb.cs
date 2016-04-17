@@ -38,6 +38,7 @@ namespace URSA.Web.Http
         /// <summary>Initializes a new instance of the <see cref="Verb"/> class.</summary>
         /// <param name="verb">The verb.</param>
         [ExcludeFromCodeCoverage]
+        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
         public Verb(string verb)
         {
             if (verb == null)
@@ -93,6 +94,7 @@ namespace URSA.Web.Http
 
         /// <inheritdoc />
         [ExcludeFromCodeCoverage]
+        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
         public override string ToString()
         {
             return _verb;
@@ -100,6 +102,7 @@ namespace URSA.Web.Http
 
         /// <inheritdoc />
         [ExcludeFromCodeCoverage]
+        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
         public override int GetHashCode()
         {
             return _verb.GetHashCode();

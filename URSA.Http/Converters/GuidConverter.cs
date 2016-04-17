@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 
 namespace URSA.Web.Http.Converters
@@ -7,6 +8,8 @@ namespace URSA.Web.Http.Converters
     public class GuidConverter : SpecializedLiteralConverter<Guid>
     {
         /// <inheritdoc />
+        [ExcludeFromCodeCoverage]
+        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
         protected override int MaxBodyLength { get { return 38; } }
 
         /// <inheritdoc />

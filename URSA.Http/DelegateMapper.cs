@@ -32,6 +32,7 @@ namespace URSA.Web.Http
         /// <param name="httpControllerDescriptionBuilders">HTTP controller description builders.</param>
         /// <param name="controllerActivator">Method creating instances of <see cref="IController" />s.</param>
         [ExcludeFromCodeCoverage]
+        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
         public DelegateMapper(IEnumerable<IHttpControllerDescriptionBuilder> httpControllerDescriptionBuilders, IControllerActivator controllerActivator)
         {
             if (httpControllerDescriptionBuilders == null)

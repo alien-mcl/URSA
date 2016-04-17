@@ -117,9 +117,9 @@ namespace Given_instance_of_the.converter_of
         }
 
         [TestMethod]
-        public override void it_should_throw_when_no_given_type_is_provided_for_deserialization()
+        public override void it_should_throw_when_no_given_type_is_provided_for_serialization()
         {
-            base.it_should_throw_when_no_given_type_is_provided_for_deserialization();
+            base.it_should_throw_when_no_given_type_is_provided_for_serialization();
         }
 
         [TestMethod]

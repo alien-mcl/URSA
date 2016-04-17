@@ -14,6 +14,7 @@ namespace URSA.Web.Http
         /// <param name="request">Corresponding request.</param>
         /// <param name="headers">Headers of the response.</param>
         [ExcludeFromCodeCoverage]
+        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
         protected ObjectResponseInfo(Encoding encoding, RequestInfo request, params Header[] headers) : base(encoding, request, headers)
         {
         }
@@ -23,6 +24,7 @@ namespace URSA.Web.Http
         /// <param name="request">Corresponding request.</param>
         /// <param name="headers">Headers of the response.</param>
         [ExcludeFromCodeCoverage]
+        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
         protected ObjectResponseInfo(Encoding encoding, RequestInfo request, HeaderCollection headers) : base(encoding, request, headers)
         {
         }
@@ -44,6 +46,7 @@ namespace URSA.Web.Http
         /// <param name="converterProvider">Converter provider instance.</param>
         /// <param name="headers">Headers of the response.</param>
         [ExcludeFromCodeCoverage]
+        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
         public ObjectResponseInfo(RequestInfo request, T value, IConverterProvider converterProvider, params Header[] headers)
             : this(Encoding.UTF8, request, value, converterProvider, headers)
         {
@@ -56,6 +59,7 @@ namespace URSA.Web.Http
         /// <param name="converterProvider">Converter provider instance.</param>
         /// <param name="headers">Headers of the response.</param>
         [ExcludeFromCodeCoverage]
+        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
         public ObjectResponseInfo(Encoding encoding, RequestInfo request, T value, IConverterProvider converterProvider, params Header[] headers)
             : base(encoding, request, headers)
         {
@@ -68,6 +72,7 @@ namespace URSA.Web.Http
         /// <param name="converterProvider">Converter provider instance.</param>
         /// <param name="headers">Headers of the response.</param>
         [ExcludeFromCodeCoverage]
+        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
         public ObjectResponseInfo(RequestInfo request, T value, IConverterProvider converterProvider, HeaderCollection headers)
             : this(Encoding.UTF8, request, value, converterProvider, headers)
         {
@@ -80,6 +85,7 @@ namespace URSA.Web.Http
         /// <param name="converterProvider">Converter provider instance.</param>
         /// <param name="headers">Headers of the response.</param>
         [ExcludeFromCodeCoverage]
+        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
         public ObjectResponseInfo(Encoding encoding, RequestInfo request, T value, IConverterProvider converterProvider, HeaderCollection headers)
             : base(encoding, request, headers)
         {
@@ -173,6 +179,7 @@ namespace URSA.Web.Http
 
         /// <inheritdoc />
         [ExcludeFromCodeCoverage]
+        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
         public sealed override void Dispose()
         {
             Dispose(true);

@@ -1,4 +1,5 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using URSA.Web.Description.Http;
@@ -13,6 +14,18 @@ namespace Given_instance_of_the.DefaultValueRelationSelector_class
     public class when_handlig_request
     {
         private DefaultValueRelationSelector _selector;
+
+        [TestMethod]
+        public void it_should_throw_when_no_input_parameter_was_provided()
+        {
+            _selector.Invoking(instance => instance.ProvideDefault(null, Verb.GET)).ShouldThrow<ArgumentNullException>().Which.ParamName.Should().Be("parameter");
+        }
+
+        [TestMethod]
+        public void it_should_throw_when_no_output_parameter_was_provided()
+        {
+            _selector.Invoking(instance => instance.ProvideDefault(null)).ShouldThrow<ArgumentNullException>().Which.ParamName.Should().Be("parameter");
+        }
 
         [TestMethod]
         public void it_should_provide_a_parameter_source_for_Guid()

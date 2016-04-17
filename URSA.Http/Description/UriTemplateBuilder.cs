@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -185,6 +186,8 @@ namespace URSA.Web.Description.Http
             }
 
             /// <inheritdoc />
+            [ExcludeFromCodeCoverage]
+            [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
             public override string ToString()
             {
                 if (Count == 0)

@@ -31,6 +31,36 @@ namespace Given_instance_of_the
         private RequestInfo _request;
 
         [TestMethod]
+        public void it_should_throw_when_no_method_is_passed_for_parsing()
+        {
+            ((RequestInfo)null).Invoking(_ => RequestInfo.Parse(null, null, null)).ShouldThrow<ArgumentNullException>().Which.ParamName.Should().Be("method");
+        }
+
+        [TestMethod]
+        public void it_should_throw_when_no_uri_is_passed_for_parsing()
+        {
+            ((RequestInfo)null).Invoking(_ => RequestInfo.Parse(Verb.GET, null, null)).ShouldThrow<ArgumentNullException>().Which.ParamName.Should().Be("uri");
+        }
+
+        [TestMethod]
+        public void it_should_throw_when_an_uri_passed_for_parsing_is_not_absolute()
+        {
+            ((RequestInfo)null).Invoking(_ => RequestInfo.Parse(Verb.GET, new Uri("/", UriKind.Relative), null)).ShouldThrow<ArgumentOutOfRangeException>().Which.ParamName.Should().Be("uri");
+        }
+
+        [TestMethod]
+        public void it_should_throw_when_no_message_is_passed_for_parsing()
+        {
+            ((RequestInfo)null).Invoking(_ => RequestInfo.Parse(Verb.GET, new Uri("http://temp.uri/"), null)).ShouldThrow<ArgumentNullException>().Which.ParamName.Should().Be("message");
+        }
+
+        [TestMethod]
+        public void it_should_throw_when_message_passed_for_parsing_is_empty()
+        {
+            ((RequestInfo)null).Invoking(_ => RequestInfo.Parse(Verb.GET, new Uri("http://temp.uri/"), String.Empty)).ShouldThrow<ArgumentOutOfRangeException>().Which.ParamName.Should().Be("message");
+        }
+
+        [TestMethod]
         public void it_should_parse_request()
         {
             _request.Should().NotBeNull();

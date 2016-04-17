@@ -20,6 +20,16 @@ namespace Given_instance_of_the.converter_of
 
         protected override string MultipleEntitiesContentType { get { return ContentType; } }
 
+        [TestMethod]
+        public override void it_should_not_acknowledge_the_converter_as_a_match_against_incompatible_type_when_deserializing()
+        {
+        }
+
+        [TestMethod]
+        public override void it_should_not_acknowledge_the_converter_as_a_match_against_incompatible_type_when_serializing()
+        {
+        }
+
         protected override string SerializeObject<TI>(TI obj)
         {
             var serializer = new DataContractSerializer(typeof(TI));

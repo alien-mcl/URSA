@@ -23,6 +23,7 @@ namespace URSA.Web.Http
         /// <param name="identity">Identity of this request.</param>
         /// <param name="headers">Headers of the request.</param>
         [ExcludeFromCodeCoverage]
+        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
         public RequestInfo(Verb method, Uri uri, Stream body, IClaimBasedIdentity identity, params Header[] headers) :
             this(method, uri, body, identity, new HeaderCollection(headers))
         {
@@ -35,6 +36,7 @@ namespace URSA.Web.Http
         /// <param name="identity">Identity of this request.</param>
         /// <param name="headers">Headers of the request.</param>
         [ExcludeFromCodeCoverage]
+        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
         public RequestInfo(Verb method, Uri uri, Stream body, IClaimBasedIdentity identity, HeaderCollection headers)
         {
             if (method == null)
@@ -77,6 +79,8 @@ namespace URSA.Web.Http
         public HeaderCollection Headers { get; private set; }
 
         /// <inheritdoc />
+        [ExcludeFromCodeCoverage]
+        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
         public IClaimBasedIdentity Identity
         {
             get
@@ -96,6 +100,8 @@ namespace URSA.Web.Http
         }
 
         /// <inheritdoc />
+        [ExcludeFromCodeCoverage]
+        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
         public bool OutputNeutral { get { return (Headers.Accept.IndexOf(AnyAny) != -1); } }
 
         /// <summary>Gets a value indicating whether this request is cross-origin resource sharing preflight request.</summary>
@@ -105,6 +111,8 @@ namespace URSA.Web.Http
         }
 
         /// <inheritdoc />
+        [ExcludeFromCodeCoverage]
+        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
         IDictionary<string, string> IRequestInfo.Headers { get { return Headers; } }
 
         /// <summary>Parses a given string as a <see cref="RequestInfo" />.</summary>
@@ -147,6 +155,7 @@ namespace URSA.Web.Http
 
         /// <inheritdoc />
         [ExcludeFromCodeCoverage]
+        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
         public void Dispose()
         {
             _stream.Dispose();

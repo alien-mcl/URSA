@@ -1,7 +1,10 @@
-﻿using FluentAssertions;
+﻿using System;
+using System.IO;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using System.Linq;
+using URSA.Security;
 using URSA.Web;
 using URSA.Web.Http;
 using URSA.Web.Tests;
@@ -11,6 +14,28 @@ namespace Given_instance_of_the.ResponseComposer_class
     [TestClass]
     public class when_dealing_with_normal_controller : ResponseComposerTest<TestController>
     {
+        [TestMethod]
+        public void it_should_throw_when_no_request_mapping_is_provided()
+        {
+            Composer.Invoking(instance => instance.ComposeResponse(null, null)).ShouldThrow<ArgumentNullException>().Which.ParamName.Should().Be("requestMapping");
+        }
+
+        [TestMethod]
+        public void it_should_merge_headers_if_the_output_is_already_a_response()
+        {
+            var expected = "http://temp.uri/";
+            var output = new StringResponseInfo(String.Empty, new RequestInfo(Verb.GET, new Uri("/", UriKind.Relative), new MemoryStream(), new BasicClaimBasedIdentity()));
+            var controller = new Mock<IController>(MockBehavior.Strict);
+            controller.SetupGet(instance => instance.Response).Returns(output);
+            var mapping = new Mock<IRequestMapping>(MockBehavior.Strict);
+            mapping.SetupGet(instance => instance.Target).Returns(controller.Object);
+            output.Headers.Location = expected;
+
+            var result = Composer.ComposeResponse(mapping.Object, output);
+
+            result.Headers["Location"].Value.Should().Be(expected);
+        }
+
         [TestMethod]
         public void it_should_serialize_result_to_body()
         {

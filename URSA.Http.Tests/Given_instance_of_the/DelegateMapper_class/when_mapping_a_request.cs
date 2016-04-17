@@ -20,7 +20,7 @@ namespace Given_instance_of_the.DelegateMapper_class
     [TestClass]
     public class when_mapping_a_request
     {
-        private DelegateMapper _mapper;
+        private IDelegateMapper _mapper;
 
         [TestMethod]
         public void it_should_map_Add_method_correctly()
@@ -53,6 +53,22 @@ namespace Given_instance_of_the.DelegateMapper_class
             mapping.Target.Should().NotBeNull();
             mapping.Target.Should().BeOfType<TestController>();
             mapping.Operation.UnderlyingMethod.Should().BeSameAs(typeof(TestController).GetMethod("Add"));
+        }
+
+        [TestMethod]
+        public void it_should_map_Options_request()
+        {
+            var mapping = _mapper.MapRequest(new RequestInfo(Verb.OPTIONS, new Uri("http://temp.uri/api/test/add?random=1&operandB=2&_=whatever&operandA=1"), new MemoryStream(), new BasicClaimBasedIdentity()));
+
+            mapping.Should().BeOfType<OptionsRequestMapping>();
+        }
+
+        [TestMethod]
+        public void it_should_not_map_anything_if_no_matching_controller_is_found()
+        {
+            var mapping = _mapper.MapRequest(new RequestInfo(Verb.PUT, new Uri("http://temp.uri/whatever"), new MemoryStream(), new BasicClaimBasedIdentity()));
+
+            mapping.Should().BeNull();
         }
 
         [TestInitialize]

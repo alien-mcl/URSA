@@ -16,6 +16,7 @@ namespace URSA.Web.Http
         /// <param name="value">Actual value.</param>
         /// <param name="parameters">Optional parameters.</param>
         [ExcludeFromCodeCoverage]
+        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
         public HeaderValue(string value, params HeaderParameter[] parameters)
         {
             if (value == null)
@@ -32,6 +33,7 @@ namespace URSA.Web.Http
         /// <param name="value">Actual value.</param>
         /// <param name="parameters">Optional parameters.</param>
         [ExcludeFromCodeCoverage]
+        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
         public HeaderValue(string value, HeaderParameterCollection parameters)
         {
             if (value == null)
@@ -101,6 +103,7 @@ namespace URSA.Web.Http
 
         /// <inheritdoc />
         [ExcludeFromCodeCoverage]
+        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
         public override int GetHashCode()
         {
             return Value.GetHashCode() ^ Parameters.GetHashCode();
@@ -125,6 +128,7 @@ namespace URSA.Web.Http
 
         /// <inheritdoc />
         [ExcludeFromCodeCoverage]
+        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
         public override string ToString()
         {
             StringBuilder result = new StringBuilder(256);
@@ -267,12 +271,13 @@ namespace URSA.Web.Http
         /// <param name="value">Actual value.</param>
         /// <param name="parameters">Optional parameters.</param>
         [ExcludeFromCodeCoverage]
+        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
         public HeaderValue(T value, params HeaderParameter[] parameters) : base((value != null ? value.ToString() : null), parameters)
         {
             _typeConverter = TypeDescriptor.GetConverter(typeof(T));
             if ((_typeConverter == null) || (!_typeConverter.CanConvertFrom(typeof(string))))
             {
-                throw new ArgumentOutOfRangeException("T");
+                throw new InvalidOperationException(String.Format("Cannot create a header value for values of type '{0}'. due to no valid type converter available.", typeof(T)));
             }
         }
 
@@ -280,12 +285,13 @@ namespace URSA.Web.Http
         /// <param name="value">Actual value.</param>
         /// <param name="parameters">Optional parameters.</param>
         [ExcludeFromCodeCoverage]
+        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
         public HeaderValue(T value, HeaderParameterCollection parameters) : base((value != null ? value.ToString() : null), parameters)
         {
             _typeConverter = TypeDescriptor.GetConverter(typeof(T));
             if ((_typeConverter == null) || (!_typeConverter.CanConvertFrom(typeof(string))))
             {
-                throw new ArgumentOutOfRangeException("T");
+                throw new InvalidOperationException(String.Format("Cannot create a header value for values of type '{0}'. due to no valid type converter available.", typeof(T)));
             }
         }
 

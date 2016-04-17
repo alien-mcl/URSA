@@ -6,6 +6,7 @@ namespace URSA.Configuration
 {
     /// <summary>Describes the base URSA configuration section.</summary>
     [ExcludeFromCodeCoverage]
+    [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "Wrapper without testable logic.")]
     public class HttpConfigurationSection : ConfigurationSection
     {
         internal const string ConfigurationSectionName = "http";

@@ -32,6 +32,7 @@ namespace URSA.Web.Http
         /// <summary>Initializes a new instance of the <see cref="Client"/> class.</summary>
         /// <param name="baseUri">The base URI.</param>
         [ExcludeFromCodeCoverage]
+        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
         public Client(Uri baseUri) : this(baseUri, DefaultAuthenticationScheme)
         {
         }
@@ -40,6 +41,7 @@ namespace URSA.Web.Http
         /// <param name="baseUri">The base URI.</param>
         /// <param name="authenticationScheme">Authentication scheme.</param>
         [ExcludeFromCodeCoverage]
+        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
         public Client(Uri baseUri, string authenticationScheme) : this()
         {
             if (baseUri == null)
@@ -104,9 +106,9 @@ namespace URSA.Web.Http
         /// <param name="contentType">Enumeration of possible content type media types.</param>
         /// <param name="uriArguments">The URI template arguments.</param>
         /// <param name="bodyArguments">The body arguments.</param>
-        protected void Call(Verb verb, string url, IEnumerable<string> accept, IEnumerable<string> contentType, IDictionary<string, object> uriArguments, params object[] bodyArguments)
+        protected internal void Call(Verb verb, string url, IEnumerable<string> accept, IEnumerable<string> contentType, IDictionary<string, object> uriArguments, params object[] bodyArguments)
         {
-            Call(verb, url, accept, contentType, uriArguments, bodyArguments);
+            Call(verb, url, accept, contentType, null, uriArguments, bodyArguments);
         }
 
         /// <summary>Calls the ReST service using specified HTTP verb.</summary>

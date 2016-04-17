@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using System.Security.Claims;
@@ -30,6 +31,8 @@ namespace URSA.Web.Http
         /// <param name="preRequestHandlers">Handlers executed before the request is processed.</param>
         /// <param name="postRequestHandlers">Handlers executed after the request is processed.</param>
         /// <param name="modelTransformers">Model transformers executed after the request is processed and just before the post handlers are invoked.</param>
+        [ExcludeFromCodeCoverage]
+        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
         public RequestHandler(
             IArgumentBinder<RequestInfo> argumentBinder,
             IDelegateMapper<RequestInfo> delegateMapper,
@@ -57,31 +60,10 @@ namespace URSA.Web.Http
             _argumentBinder = argumentBinder;
             _handlerMapper = delegateMapper;
             _preRequestHandlers = new List<IPreRequestHandler>();
-            _authenticationProviders = new List<IPreRequestHandler>();
-            foreach (var preRequestHandler in (preRequestHandlers ?? new IPreRequestHandler[0]))
-            {
-                (preRequestHandler is IAuthenticationProvider ? _authenticationProviders : _preRequestHandlers).Add(preRequestHandler);
-            }
-
             _postRequestHandlers = new List<IPostRequestHandler>();
-            foreach (var postRequestHandler in (postRequestHandlers ?? new IPostRequestHandler[0]))
-            {
-                if (postRequestHandler is IDefaultAuthenticationScheme)
-                {
-                    if (_defaultAuthenticationScheme != null)
-                    {
-                        throw new InvalidOperationException("Multiple default authentication schemes encountered.");
-                    }
-
-                    _defaultAuthenticationScheme = postRequestHandler;
-                }
-                else
-                {
-                    _postRequestHandlers.Add(postRequestHandler);
-                }
-            }
-
+            _authenticationProviders = new List<IPreRequestHandler>();
             _modelTransformers = modelTransformers ?? new IModelTransformer[0];
+            _defaultAuthenticationScheme = Initialize(preRequestHandlers, postRequestHandlers);
         }
 
         /// <inheritdoc />
@@ -213,6 +195,35 @@ namespace URSA.Web.Http
             foreach (IModelTransformer modelTransformer in _modelTransformers)
             {
                 result = await modelTransformer.Transform(requestMapping, requestInfo, result, arguments);
+            }
+
+            return result;
+        }
+
+        private IDefaultAuthenticationScheme Initialize(IEnumerable<IPreRequestHandler> preRequestHandlers, IEnumerable<IPostRequestHandler> postRequestHandlers)
+        {
+            IDefaultAuthenticationScheme result = null;
+            foreach (var preRequestHandler in (preRequestHandlers ?? new IPreRequestHandler[0]))
+            {
+                (preRequestHandler is IAuthenticationProvider ? _authenticationProviders : _preRequestHandlers).Add(preRequestHandler);
+            }
+
+            foreach (var postRequestHandler in (postRequestHandlers ?? new IPostRequestHandler[0]))
+            {
+                var defaultAuthenticationScheme = postRequestHandler as IDefaultAuthenticationScheme;
+                if (defaultAuthenticationScheme != null)
+                {
+                    if (result != null)
+                    {
+                        throw new InvalidOperationException("Multiple default authentication schemes encountered.");
+                    }
+
+                    result = defaultAuthenticationScheme;
+                }
+                else
+                {
+                    _postRequestHandlers.Add(postRequestHandler);
+                }
             }
 
             return result;

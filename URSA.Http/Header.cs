@@ -174,6 +174,8 @@ namespace URSA.Web.Http
         }
 
         /// <inheritdoc />
+        [ExcludeFromCodeCoverage]
+        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
         public override int GetHashCode()
         {
             return Name.GetHashCode() ^ Values.GetHashCode();
@@ -317,6 +319,8 @@ namespace URSA.Web.Http
     public class Header<T> : Header
     {
         private readonly ObservableCollection<HeaderValue<T>> _parsedValues;
+        private bool _changingParsed = false;
+        private bool _changingValues = false;
 
         /// <summary>Initializes a new instance of the <see cref="Header{T}" /> class.</summary>
         /// <param name="name">Name of the header.</param>
@@ -342,21 +346,34 @@ namespace URSA.Web.Http
 
         private void OnValuesCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
-            foreach (var item in e.NewItems)
+            if (_changingParsed)
             {
-                if (!(item is HeaderValue<T>))
+                return;
+            }
+
+            _changingValues = true;
+            if (e.NewItems != null)
+            {
+                foreach (var item in e.NewItems)
                 {
-                    throw new InvalidOperationException(String.Format("Cannot add item of type '{0}' to values of type '{1}'.", item.GetType(), typeof(T)));
+                    if (!(item is HeaderValue<T>))
+                    {
+                        throw new InvalidOperationException(String.Format("Cannot add item of type '{0}' to values of type '{1}'.", item.GetType(), typeof(T)));
+                    }
+
+                    _parsedValues.Add((HeaderValue<T>)item);
                 }
-
-                _parsedValues.Add((HeaderValue<T>)item);
             }
 
-            foreach (var item in e.OldItems)
+            if (e.OldItems != null)
             {
-                _parsedValues.Remove((HeaderValue<T>)item);
+                foreach (var item in e.OldItems)
+                {
+                    _parsedValues.Remove((HeaderValue<T>)item);
+                }
             }
 
+            _changingValues = false;
             if ((Values.Count == 0) && (typeof(T).IsValueType))
             {
                 throw new InvalidOperationException("Cannot remove last value of the value-type based header.");
@@ -365,15 +382,34 @@ namespace URSA.Web.Http
 
         private void OnParsedValuesCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
-            foreach (HeaderValue<T> item in e.NewItems)
+            if (_changingValues)
             {
-                ValuesCollection.Add(item);
+                return;
             }
 
-            foreach (HeaderValue<T> item in e.OldItems)
+            _changingParsed = true;
+            if (e.NewItems != null)
             {
-                ValuesCollection.Remove(item);
+                foreach (HeaderValue<T> item in e.NewItems)
+                {
+                    ValuesCollection.Add(item);
+                }
             }
+
+            if (e.OldItems != null)
+            {
+                foreach (HeaderValue<T> item in e.OldItems)
+                {
+                    ValuesCollection.Remove(item);
+                }
+            }
+
+            if ((Values.Count == 0) && (typeof(T).IsValueType))
+            {
+                throw new InvalidOperationException("Cannot remove last value of the value-type based header.");
+            }
+
+            _changingParsed = false;
         }
     }
 }

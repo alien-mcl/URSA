@@ -100,9 +100,10 @@ namespace Given_instance_of_the
         }
 
         [TestMethod]
-        public void it_should_parse_the_header_with_text_parameter_correctly()
+        public void it_should_try_and_parse_the_header_with_text_parameter_correctly()
         {
-            var header = Header.Parse("Pragma: no-cache; reason=\"This is some\\n custom text.\"");
+            Header header;
+            Header.TryParse("Pragma: no-cache; reason=\"This is some\\n custom \\\" \\, text.\"", out header).Should().BeTrue();
 
             header.Should().NotBeNull();
             header.Name.Should().Be("Pragma");
@@ -111,7 +112,88 @@ namespace Given_instance_of_the
             header.Values.First().Value.Should().Be("no-cache");
             header.Values.First().Parameters.Should().HaveCount(1);
             header.Values.First().Parameters.First().Name.Should().Be("reason");
-            header.Values.First().Parameters["reason"].Value.Should().Be("This is some\n custom text.");
+            header.Values.First().Parameters["reason"].Value.Should().Be("This is some\n custom \\\" \\, text.");
+        }
+
+        [TestMethod]
+        public void it_should_throw_when_no_header_to_be_parsed_is_provided()
+        {
+            ((Header)null).Invoking(_ => Header.Parse(null)).ShouldThrow<ArgumentNullException>().Which.ParamName.Should().Be("header");
+        }
+
+        [TestMethod]
+        public void it_should_throw_when_header_to_be_parsed_provided_is_empty()
+        {
+            ((Header)null).Invoking(_ => Header.Parse(String.Empty)).ShouldThrow<ArgumentOutOfRangeException>().Which.ParamName.Should().Be("header");
+        }
+
+        [TestMethod]
+        public void it_should_throw_when_header_to_be_parsed_provided_has_no_name()
+        {
+            ((Header)null).Invoking(_ => Header.Parse("test")).ShouldThrow<ArgumentOutOfRangeException>().Which.ParamName.Should().Be("header");
+        }
+
+        [TestMethod]
+        public void it_should_throw_when_invalid_Content_type_header_is_parsed()
+        {
+            ((Header)null).Invoking(_ => new Header("Content-Length")).ShouldThrow<InvalidOperationException>();
+        }
+
+        [TestMethod]
+        public void it_should_consider_two_same_headers_as_equal()
+        {
+            new Header("test").Equals(new Header("test")).Should().BeTrue();
+        }
+
+        [TestMethod]
+        public void it_should_consider_same_instance_as_equal()
+        {
+            var instance = new Header("test");
+            instance.Equals(instance).Should().BeTrue();
+        }
+
+        [TestMethod]
+        public void it_should_not_consider_two_objects_of_different_type_as_equal()
+        {
+            new Header("test").Equals("test").Should().BeFalse();
+        }
+
+        [TestMethod]
+        public void it_should_maintain_parsed_header_values_correctly()
+        {
+            var header = new Header<int>("Content-Length", 0);
+
+            header.Values.Add(new HeaderValue<int>(10));
+            header.Values.Remove(header.Values.First(item => item.Value == 0));
+
+            header.Values.Should().HaveCount(1).And.Subject.First().Value.Should().Be(10);
+        }
+
+        [TestMethod]
+        public void it_should_maintain_serialized_header_values_correctly()
+        {
+            var header = (Header)new Header<int>("Content-Length", 0);
+
+            header.Values.Add(new HeaderValue<int>(10));
+            header.Values.Remove(header.Values.First(item => item.Value == "0"));
+
+            ((Header<int>)header).Values.Should().HaveCount(1).And.Subject.First().Value.Should().Be(10);
+        }
+
+        [TestMethod]
+        public void it_should_throw_when_last_parsed_value_is_removed()
+        {
+            var header = new Header<int>("Content-Length", 0);
+
+            header.Values.Invoking(values => values.Remove(header.Values.First(item => item.Value == 0))).ShouldThrow<InvalidOperationException>();
+        }
+
+        [TestMethod]
+        public void it_should_throw_when_last_value_is_removed()
+        {
+            var header = (Header)new Header<int>("Content-Length", 0);
+
+            header.Values.Invoking(values => values.Remove(header.Values.First(item => item.Value == "0"))).ShouldThrow<InvalidOperationException>();
         }
     }
 }

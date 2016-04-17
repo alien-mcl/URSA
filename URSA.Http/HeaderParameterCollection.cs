@@ -13,10 +13,12 @@ namespace URSA.Web.Http
 
         /// <inheritdoc />
         [ExcludeFromCodeCoverage]
+        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
         public int Count { get { return _parameters.Count; } }
 
         /// <inheritdoc />
         [ExcludeFromCodeCoverage]
+        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
         bool ICollection<HeaderParameter>.IsReadOnly { get { return _parameters.IsReadOnly; } }
 
         /// <summary>Gets or sets the parameter by it's name.</summary>
@@ -129,6 +131,7 @@ namespace URSA.Web.Http
 
         /// <summary>Clears the parameters collection.</summary>
         [ExcludeFromCodeCoverage]
+        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
         public void Clear()
         {
             _parameters.Clear();
@@ -143,6 +146,7 @@ namespace URSA.Web.Http
 
         /// <inheritdoc />
         [ExcludeFromCodeCoverage]
+        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
         bool ICollection<HeaderParameter>.Contains(HeaderParameter item)
         {
             HeaderParameter result;
@@ -151,6 +155,7 @@ namespace URSA.Web.Http
 
         /// <inheritdoc />
         [ExcludeFromCodeCoverage]
+        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
         void ICollection<HeaderParameter>.CopyTo(HeaderParameter[] array, int arrayIndex)
         {
             _parameters.Values.ToArray().CopyTo(array, arrayIndex);
@@ -158,6 +163,7 @@ namespace URSA.Web.Http
 
         /// <inheritdoc />
         [ExcludeFromCodeCoverage]
+        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
         {
             return _parameters.Values.GetEnumerator();
@@ -165,6 +171,7 @@ namespace URSA.Web.Http
 
         /// <inheritdoc />
         [ExcludeFromCodeCoverage]
+        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
         public override string ToString()
         {
             return String.Join(";", _parameters.Values);

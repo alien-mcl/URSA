@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
@@ -30,6 +31,8 @@ namespace URSA.Web.Http.Converters
         }
 
         /// <inheritdoc />
+        [ExcludeFromCodeCoverage]
+        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
         public IEnumerable<string> SupportedMediaTypes { get { return MediaTypes; } }
 
         /// <inheritdoc />
@@ -112,24 +115,32 @@ namespace URSA.Web.Http.Converters
         }
 
         /// <inheritdoc />
+        [ExcludeFromCodeCoverage]
+        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
         public CompatibilityLevel CanConvertFrom<T>(IResponseInfo response)
         {
             return CanConvertFrom(typeof(T), response);
         }
 
         /// <inheritdoc />
+        [ExcludeFromCodeCoverage]
+        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
         public CompatibilityLevel CanConvertFrom(Type givenType, IResponseInfo response)
         {
             return CompatibilityLevel.None;
         }
 
         /// <inheritdoc />
+        [ExcludeFromCodeCoverage]
+        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
         public void ConvertFrom<T>(T instance, IResponseInfo response)
         {
             throw new NotImplementedException();
         }
 
         /// <inheritdoc />
+        [ExcludeFromCodeCoverage]
+        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
         public void ConvertFrom(Type givenType, object instance, IResponseInfo response)
         {
             throw new NotImplementedException();

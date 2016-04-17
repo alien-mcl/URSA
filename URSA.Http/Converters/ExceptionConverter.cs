@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using URSA.Web.Converters;
 
@@ -12,39 +13,53 @@ namespace URSA.Web.Http.Converters
         private static readonly string[] MediaTypes = { ApplicationProblemJson };
 
         /// <inheritdoc />
+        [ExcludeFromCodeCoverage]
+        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
         public IEnumerable<string> SupportedMediaTypes { get { return MediaTypes; } }
 
         /// <inheritdoc />
+        [ExcludeFromCodeCoverage]
+        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
         public CompatibilityLevel CanConvertTo<T>(IRequestInfo request)
         {
             return CompatibilityLevel.None;
         }
 
         /// <inheritdoc />
+        [ExcludeFromCodeCoverage]
+        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
         public CompatibilityLevel CanConvertTo(Type expectedType, IRequestInfo request)
         {
             return CompatibilityLevel.None;
         }
 
         /// <inheritdoc />
+        [ExcludeFromCodeCoverage]
+        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
         public T ConvertTo<T>(IRequestInfo request)
         {
             return default(T);
         }
 
         /// <inheritdoc />
+        [ExcludeFromCodeCoverage]
+        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
         public object ConvertTo(Type expectedType, IRequestInfo request)
         {
             return null;
         }
 
         /// <inheritdoc />
+        [ExcludeFromCodeCoverage]
+        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
         public T ConvertTo<T>(string body)
         {
             return default(T);
         }
 
         /// <inheritdoc />
+        [ExcludeFromCodeCoverage]
+        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
         public object ConvertTo(Type expectedType, string body)
         {
             return null;

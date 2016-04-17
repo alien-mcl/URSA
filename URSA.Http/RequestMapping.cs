@@ -12,6 +12,7 @@ namespace URSA.Web.Http
         /// <param name="operation">Operation to be invoked.</param>
         /// <param name="methodRoute">Method route.</param>
         [ExcludeFromCodeCoverage]
+        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
         public RequestMapping(IController target, OperationInfo<Verb> operation, Uri methodRoute)
         {
             if (target == null)
@@ -43,6 +44,7 @@ namespace URSA.Web.Http
 
         /// <inheritdoc />
         [ExcludeFromCodeCoverage]
+        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
         public object Invoke(params object[] arguments)
         {
             return Operation.UnderlyingMethod.Invoke(Target, arguments);

@@ -11,7 +11,6 @@ using URSA.Web.Description.Http;
 using URSA.Web.Http;
 using URSA.Web.Http.Tests.Testing;
 using URSA.Web.Mapping;
-using URSA.Web.Tests;
 
 namespace Given_instance_of_the.ResponseComposer_class
 {

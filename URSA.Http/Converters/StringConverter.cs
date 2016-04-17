@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -19,6 +20,8 @@ namespace URSA.Web.Http.Converters
         private static readonly string[] MediaTypes = { TextPlain };
 
         /// <inheritdoc />
+        [ExcludeFromCodeCoverage]
+        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
         public IEnumerable<string> SupportedMediaTypes { get { return MediaTypes; } }
 
         /// <inheritdoc />

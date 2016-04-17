@@ -17,6 +17,7 @@ namespace URSA.Web.Http
         /// <summary>Initializes a new instance of the <see cref="HeaderParameter" /> class.</summary>
         /// <param name="name">Name of the parameter.</param>
         [ExcludeFromCodeCoverage]
+        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
         public HeaderParameter(string name) : this(name, null)
         {
         }
@@ -25,6 +26,7 @@ namespace URSA.Web.Http
         /// <param name="name">Name of the parameter.</param>
         /// <param name="value">Value of the parameter.</param>
         [ExcludeFromCodeCoverage]
+        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
         public HeaderParameter(string name, object value)
         {
             if (name == null)
@@ -90,7 +92,7 @@ namespace URSA.Web.Http
             }
 
             string rest = (parts.Length > 1 ? parameter.Substring(parts[0].Length + 1).Trim() : null);
-            if ((rest != null) & (rest.Length == 0))
+            if ((rest != null) && (rest.Length == 0))
             {
                 throw new InvalidOperationException("Missing value of the parameter");
             }
@@ -111,6 +113,8 @@ namespace URSA.Web.Http
         }
 
         /// <inheritdoc />
+        [ExcludeFromCodeCoverage]
+        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
         public override int GetHashCode()
         {
             return Name.GetHashCode();
@@ -142,7 +146,7 @@ namespace URSA.Web.Http
             }
             else if ((rest.Length > 2) && (rest[0] == '<') && (rest[rest.Length - 1] == '>'))
             {
-                result.Value = new Uri(rest.Trim('"').Unescape());
+                result.Value = new Uri(rest.Trim('<', '>').Unescape());
             }
             else
             {

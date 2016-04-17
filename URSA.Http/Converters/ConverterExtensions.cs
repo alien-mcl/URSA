@@ -1,12 +1,10 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using URSA.Web.Converters;
-using URSA.Web.Description.Http;
 
 namespace URSA.Web.Http.Converters
 {
@@ -21,14 +19,14 @@ namespace URSA.Web.Http.Converters
         /// <returns>Instance of the <paramref name="type" />.</returns>
         public static object ConvertTo(this IConverterProvider converterProvider, string value, Type type, IRequestInfo request = null)
         {
-            if (value == null)
-            {
-                return (type.IsValueType ? Activator.CreateInstance(type) : null);
-            }
-
             if (type == null)
             {
                 throw new ArgumentNullException("type");
+            }
+
+            if (value == null)
+            {
+                return (type.IsValueType ? Activator.CreateInstance(type) : null);
             }
 
             bool success;
@@ -149,7 +147,7 @@ namespace URSA.Web.Http.Converters
         {
             success = false;
             var converter = TypeDescriptor.GetConverter(value.GetType());
-            if ((converter == null) || (!converter.CanConvertTo(typeof(string))))
+            if ((converter == null) || (!converter.CanConvertTo(typeof(string))) || (converter.GetType() == typeof(TypeConverter)))
             {
                 return null;
             }

@@ -5,6 +5,7 @@ namespace URSA.Web.Http.Configuration
 {
     /// <summary>Provides a basic HTTP configuration.</summary>
     [ExcludeFromCodeCoverage]
+    [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
     public class StaticHttpServerConfiguration : IHttpServerConfiguration
     {
         /// <summary>Initializes a new instance of the <see cref="StaticHttpServerConfiguration"/> class.</summary>

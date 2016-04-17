@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Runtime.Serialization;
@@ -21,6 +22,8 @@ namespace URSA.Web.Http.Converters
         private static readonly string[] MediaTypes = { ApplicationXml, TextXml };
 
         /// <inheritdoc />
+        [ExcludeFromCodeCoverage]
+        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
         public IEnumerable<string> SupportedMediaTypes { get { return MediaTypes; } }
 
         /// <inheritdoc />

@@ -17,6 +17,8 @@ namespace URSA.Web.Http.Converters
         public const string TextUriList = "text/uri-list";
 
         /// <inheritdoc />
+        [ExcludeFromCodeCoverage]
+        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
         protected override int MaxBodyLength { get { return 4096; } }
 
         /// <inheritdoc />

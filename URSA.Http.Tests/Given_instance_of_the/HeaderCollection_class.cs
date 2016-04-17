@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Reflection;
 using URSA.Web.Http;
 
 namespace Given_instance_of_the
@@ -29,7 +30,7 @@ namespace Given_instance_of_the
         {
             HeaderCollection headers = new HeaderCollection();
             headers.Add(new Header("Header1", new List<HeaderValue>(new[] { new HeaderValue("Value1", new HeaderParameter("Parameter1", "ParameterValue1")) })));
-            headers.Add(new Header("Header1", "Value2"));
+            headers.Add("Header1", "Value2");
 
             headers.Count.Should().Be(1);
             headers["Header1"].Values.Count.Should().Be(2);
@@ -70,12 +71,14 @@ namespace Given_instance_of_the
         }
 
         [TestMethod]
-        public void it_should_parse_headers_correctly()
+        public void it_should_try_and_parse_headers_correctly()
         {
-            var headers = HeaderCollection.Parse(
+            HeaderCollection headers;
+            HeaderCollection.TryParse(
                 "Accept: text/plain; q=0.5, text/html,\r\n text/x-dvi; q=\"test\", text/x-c\r\n" +
                 "Pragma: no-cache; reason=\"This is some\\n custom text.\"\r\n" +
-                "Accept-Language: pl");
+                "Accept-Language: pl",
+                out headers).Should().BeTrue();
 
             headers.Should().HaveCount(3);
             var accept = headers["Accept"];
@@ -114,6 +117,64 @@ namespace Given_instance_of_the
             acceptLanguage.Values.Should().HaveCount(1);
 
             acceptLanguage.Values.First().Value.Should().Be("pl");
+        }
+
+        [TestMethod]
+        public void it_should_throw_when_no_headers_to_be_parsed_are_passed()
+        {
+            ((HeaderCollection)null).Invoking(_ => HeaderCollection.Parse(null)).ShouldThrow<ArgumentNullException>().Which.ParamName.Should().Be("headers");
+        }
+
+        [TestMethod]
+        public void it_should_throw_when_headers_to_be_parsed_are_empty()
+        {
+            ((HeaderCollection)null).Invoking(_ => HeaderCollection.Parse(String.Empty)).ShouldThrow<ArgumentOutOfRangeException>().Which.ParamName.Should().Be("headers");
+        }
+
+        [TestMethod]
+        public void it_should_throw_when_no_header_is_being_added()
+        {
+            new HeaderCollection().Invoking(instance => instance.Add(null)).ShouldThrow<ArgumentNullException>().Which.ParamName.Should().Be("header");
+        }
+
+        [TestMethod]
+        public void it_should_throw_when_no_header_is_being_set()
+        {
+            new HeaderCollection().Invoking(instance => instance.Set(null)).ShouldThrow<ArgumentNullException>().Which.ParamName.Should().Be("header");
+        }
+
+        [TestMethod]
+        public void it_should_do_nothing_when_no_headers_is_being_merged()
+        {
+            var headers = new HeaderCollection();
+
+            headers.Merge(null);
+
+            headers.Should().HaveCount(0);
+        }
+
+        [TestMethod]
+        public void it_should_merge_headers()
+        {
+            var headers1 = new HeaderCollection(new Header("test1"));
+            var headers2 = new HeaderCollection(new Header("test2"));
+
+            headers1.Merge(headers2);
+
+            headers1.Should().ContainKey("test2");
+        }
+
+        [TestMethod]
+        public void it_should_set_and_get_named_headers_correctly()
+        {
+            var collection = new HeaderCollection();
+            foreach (var namedHeader in collection.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance)
+                .Where(property => (property.CanRead) && (property.CanWrite) && (property.Name != "Item")))
+            {
+                var value = (namedHeader.PropertyType == typeof(string) ? (object)"test" : 1);
+                namedHeader.SetValue(collection, value);
+                namedHeader.GetValue(collection).Should().Be(value);
+            }
         }
     }
 }

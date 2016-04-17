@@ -23,6 +23,9 @@ namespace Given_instance_of_the.converter_of
     {
         private const string EntityBody = "<http://temp.uri/vocab#price> eq 0";
         private static readonly Expression<Func<IProduct, bool>> Entity = t => t.Price == 0.0;
+        private static readonly string PropertyUri = "javascript:Person.Key";
+
+        private Mock<IUriParser> _uriParser;
 
         protected override Expression<Func<IProduct, bool>> SingleEntity { get { return Entity; } }
 
@@ -30,49 +33,18 @@ namespace Given_instance_of_the.converter_of
 
         protected override Expression<Func<IProduct, bool>>[] MultipleEntities { get { return null; } }
 
-        [TestMethod]
-        public override void it_should_deserialize_message_body_as_an_array_of_entities()
-        {
-        }
+        protected override bool SupportsMultipleInstances { get { return false; } }
+
+        protected override bool SupportsSerialization { get { return false; } }
 
         [TestMethod]
-        public override void it_should_deserialize_message_as_an_array_of_entities()
+        public virtual void it_should_deserialize_query_as_an_to_an_expression_tree()
         {
-        }
+            Expression<Func<Person, bool>> expected = t => t.Key == 0;
 
-        [TestMethod]
-        public override void it_should_serialize_an_entity_to_message()
-        {
-        }
+            var result = ConvertTo<Expression<Func<Person, bool>>>("POST", OperationName, SingleEntityContentType, "<" + PropertyUri + "> eq 0");
 
-        [TestMethod]
-        public override void it_should_serialize_array_of_entities_to_message()
-        {
-        }
-
-        [TestMethod]
-        public override void it_should_throw_when_no_given_type_is_provided_for_deserialization()
-        {
-        }
-
-        [TestMethod]
-        public override void it_should_throw_when_no_response_is_provided_for_serialization()
-        {
-        }
-
-        [TestMethod]
-        public override void it_should_throw_when_no_response_is_provided_for_serialization_compatibility_test()
-        {
-        }
-
-        [TestMethod]
-        public override void it_should_throw_when_no_given_type_is_provided_for_serialization_compatibility_test()
-        {
-        }
-
-        [TestMethod]
-        public override void it_should_test_serialization_compatibility()
-        {
+            result.ShouldBeEquivalentTo(expected);
         }
 
         protected override void AssertSingleEntity(Expression<Func<IProduct, bool>> result)
@@ -84,8 +56,7 @@ namespace Given_instance_of_the.converter_of
         {
             Func<PropertyInfo, Uri, bool> attributeMatch = (property, uri) =>
                 (from attribute in property.GetCustomAttributes<PropertyAttribute>(true)
-                let propertyMapping = attribute as PropertyAttribute
-                where AbsoluteUriComparer.Default.Equals(propertyMapping.Uri, uri)
+                where AbsoluteUriComparer.Default.Equals(attribute.Uri, uri)
                 select attribute).Any();
             Func<Uri, string> propertyMatch = uri => typeof(IProduct).GetProperties().First(property => attributeMatch(property, uri)).Name;
             var mappingsRepository = new Mock<IMappingsRepository>(MockBehavior.Strict);
@@ -98,7 +69,11 @@ namespace Given_instance_of_the.converter_of
                     });
             var entityContextFactory = new Mock<IEntityContextFactory>(MockBehavior.Strict);
             entityContextFactory.SetupGet(instance => instance.Mappings).Returns(mappingsRepository.Object);
-            return new ExpressionTreeConverter(new IUriParser[0], entityContextFactory.Object);
+            string @namespace;
+            _uriParser = new Mock<IUriParser>(MockBehavior.Strict);
+            _uriParser.Setup(instance => instance.IsApplicable(It.Is<Uri>(uri => uri.ToString() == PropertyUri))).Returns(UriParserCompatibility.ExactMatch);
+            _uriParser.Setup(instance => instance.Parse(It.Is<Uri>(uri => uri.ToString() == PropertyUri), out @namespace)).Returns("Key");
+            return new ExpressionTreeConverter(new[] { _uriParser.Object }, entityContextFactory.Object);
         }
     }
 }

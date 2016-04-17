@@ -15,6 +15,7 @@ namespace URSA.Web.Http
         /// <param name="responseStatusCode">Designated HTTP response status code.</param>
         /// <param name="allowed">Allowed HTTP requests.</param>
         [ExcludeFromCodeCoverage]
+        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
         public OptionsRequestMapping(OperationInfo<Verb> operation, Uri methodRoute, HttpStatusCode responseStatusCode, params string[] allowed)
         {
             if (operation == null)
@@ -44,6 +45,8 @@ namespace URSA.Web.Http
         public Uri MethodRoute { get; private set; }
 
         /// <inheritdoc />
+        [ExcludeFromCodeCoverage]
+        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
         OperationInfo IRequestMapping.Operation { get { return Operation; } }
 
         /// <summary>Gets the operation to be invoked.</summary>
@@ -51,6 +54,7 @@ namespace URSA.Web.Http
 
         /// <inheritdoc />
         [ExcludeFromCodeCoverage]
+        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
         public object Invoke(params object[] arguments)
         {
             return Operation.UnderlyingMethod.Invoke(Target, arguments);

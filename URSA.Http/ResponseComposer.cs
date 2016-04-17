@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Net;
 using System.Reflection;
@@ -26,6 +27,8 @@ namespace URSA.Web.Http
         /// <summary>Initializes a new instance of the <see cref="ResponseComposer"/> class.</summary>
         /// <param name="converterProvider">The converter provider.</param>
         /// <param name="httpControllerDescriptionBuilders">Controller description builders.</param>
+        [ExcludeFromCodeCoverage]
+        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
         public ResponseComposer(IConverterProvider converterProvider, IEnumerable<IHttpControllerDescriptionBuilder> httpControllerDescriptionBuilders)
         {
             if (converterProvider == null)

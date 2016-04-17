@@ -4,8 +4,11 @@ using System;
 using System.Collections.Generic;
 using System.Dynamic;
 using System.IO;
+using System.Linq;
 using System.Net;
+using System.Text;
 using FluentAssertions;
+using FluentAssertions.Common;
 using URSA.ComponentModel;
 using URSA.Configuration;
 using URSA.Web;
@@ -19,10 +22,12 @@ namespace Given_instance_of_the
     [TestClass]
     public class Client_class
     {
+        private const string AuthenticationScheme = "Basic";
         private const string RelativeUri = "/test/person/{id}";
         private static readonly Uri CallUri = new Uri("http://temp.uri/");
-        private static readonly dynamic Arguments = new ExpandoObject();
         private static readonly Person Person = new Person() { Key = 1, FirstName = "test", LastName = "test" };
+
+        private dynamic _arguments;
         private Mock<IComponentProvider> _container;
         private Mock<HttpWebResponse> _webResponse;
         private Mock<HttpWebRequest> _webRequest;
@@ -30,14 +35,23 @@ namespace Given_instance_of_the
         private Mock<IConverterProvider> _converterProvider;
         private Mock<IConverter> _converter;
         private Mock<IResultBinder<RequestInfo>> _resultBinder;
+        private WebHeaderCollection _headers;
+        private MemoryStream _requestStream;
         private Client _client;
+
+        private enum With
+        {
+            StronglyTypedResult,
+            NoResult,
+            MultipartBody
+        }
 
         [TestMethod]
         public void it_should_build_a_request_url()
         {
-            Arguments.id = 1;
+            _arguments.id = 1;
 
-            Uri result = _client.BuildUri(RelativeUri, Arguments);
+            Uri result = _client.BuildUri(RelativeUri, _arguments);
 
             result.Should().Be(new Uri(CallUri.AbsoluteUri + RelativeUri.Substring(1).Replace("{id}", "1")));
         }
@@ -49,6 +63,24 @@ namespace Given_instance_of_the
 
             _webRequestProvider.Verify(instance => instance.SupportedProtocols, Times.Once);
             _webRequestProvider.Verify(instance => instance.CreateRequest(It.IsAny<Uri>(), It.IsAny<IDictionary<string, string>>()), Times.Once);
+        }
+
+        [TestMethod]
+        public void it_should_use_credentials_available_in_cache()
+        {
+            var expectedUserName = "userName";
+            var expectedPassword = "password";
+            CredentialCache.DefaultNetworkCredentials.UserName = expectedUserName;
+            CredentialCache.DefaultNetworkCredentials.Password = expectedPassword;
+            var uri = new Uri(RelativeUri, UriKind.Relative).Combine(CallUri);
+
+            Call();
+
+            _webRequest.VerifySet(
+                instance => instance.Credentials = It.Is<ICredentials>(
+                    credentials => (credentials.GetCredential(uri, AuthenticationScheme).UserName == expectedUserName) &&
+                        (credentials.GetCredential(uri, AuthenticationScheme).Password == expectedPassword)),
+                Times.Once);
         }
 
         [TestMethod]
@@ -76,21 +108,63 @@ namespace Given_instance_of_the
             result.Should().Be(Person);
         }
 
+        [TestMethod]
+        public void it_should_return_untyped_result()
+        {
+            Call(With.NoResult);
+
+            _webRequest.Verify(instance => instance.GetResponse(), Times.Once);
+        }
+
+        [TestMethod]
+        public void it_should_parse_Content_Range_headers()
+        {
+            Call();
+
+            ((int)_arguments.totalEntities).Should().Be(1);
+        }
+
+        [TestMethod]
+        public void it_should_throw_when_Content_Range_header_is_incorrectly_formatted()
+        {
+            _headers["Content-Range"] = "test";
+
+            ((Client)null).Invoking(_ => Call()).ShouldThrow<FormatException>();
+        }
+
+        [TestMethod]
+        public void it_should_deserialize_multipart_body_correctly()
+        {
+            Call(With.MultipartBody);
+
+            _requestStream.Seek(0, SeekOrigin.Begin);
+            Encoding.UTF8.GetString(_requestStream.ToArray()).Should().Contain("--");
+        }
+
         [TestInitialize]
         public void Setup()
         {
-            var headers = new WebHeaderCollection { { "Content-Type", "application/json" } };
+            _arguments = new ExpandoObject();
+            _headers = new WebHeaderCollection { { "Content-Type", "application/json" }, { "Content-Length", "0" }, { "Content-Range", " 0-0/1" } };
             _webResponse = new Mock<HttpWebResponse>();
             _webResponse.Setup(instance => instance.GetResponseStream()).Returns(new MemoryStream());
-            _webResponse.SetupGet(instance => instance.Headers).Returns(headers);
+            _webResponse.SetupGet(instance => instance.Headers).Returns(_headers);
+            var webHeaders = new WebHeaderCollection();
             _webRequest = new Mock<HttpWebRequest>();
-            _webRequest.Setup(instance => instance.GetRequestStream()).Returns(new MemoryStream());
+            _webRequest.Setup(instance => instance.GetRequestStream()).Returns(new UnclosableStream(_requestStream = new MemoryStream()));
             _webRequest.Setup(instance => instance.GetResponse()).Returns(_webResponse.Object);
+            _webRequest.SetupSet(instance => instance.Credentials = It.IsAny<ICredentials>());
+            _webRequest.SetupGet(instance => instance.Headers).Returns(webHeaders);
             _webRequestProvider = new Mock<IWebRequestProvider>(MockBehavior.Strict);
             _webRequestProvider.SetupGet(instance => instance.SupportedProtocols).Returns(new[] { "http" });
             _webRequestProvider.Setup(instance => instance.CreateRequest(It.IsAny<Uri>(), It.IsAny<IDictionary<string, string>>())).Returns(_webRequest.Object);
             _converter = new Mock<IConverter>(MockBehavior.Strict);
-            _converter.Setup(instance => instance.ConvertFrom(Person, It.IsAny<IResponseInfo>()));
+            _converter.Setup(instance => instance.ConvertFrom(Person, It.IsAny<IResponseInfo>())).Callback<Person, IResponseInfo>((instance, response) =>
+                {
+                    response.Headers["Content-Length"] = "0";
+                    response.Headers["Content-Range"] = "0-0/1";
+                    response.Headers["Content-Type"] = "application/json";
+                });
             _converter.Setup(instance => instance.ConvertTo(typeof(Person), It.IsAny<IRequestInfo>())).Returns(Person);
             _converterProvider = new Mock<IConverterProvider>(MockBehavior.Strict);
             _converterProvider.SetupGet(instance => instance.SupportedMediaTypes).Returns(new[] { "application/json" });
@@ -102,21 +176,38 @@ namespace Given_instance_of_the
             _container.Setup(instance => instance.Resolve<IConverterProvider>(null)).Returns(_converterProvider.Object);
             _container.Setup(instance => instance.ResolveAll<IWebRequestProvider>(null)).Returns(new[] { _webRequestProvider.Object });
             _container.Setup(instance => instance.Resolve<IResultBinder<RequestInfo>>(null)).Returns(_resultBinder.Object);
-            _client = new Client(CallUri);
+            _client = new Client(CallUri, AuthenticationScheme);
         }
 
         [TestCleanup]
         public void Teardown()
         {
+            _arguments = null;
             _webRequestProvider = null;
+            _webRequest = null;
+            _webResponse = null;
+            _converter = null;
+            _converterProvider = null;
+            _headers = null;
             _container = null;
             _client = null;
         }
 
-        private Person Call()
+        private Person Call(With options = With.StronglyTypedResult)
         {
-            Arguments.id = 1;
-            return _client.Call<Person>(Verb.PUT, RelativeUri, new[] { "application/json" }, new[] { "application/json" }, Arguments, Person);
+            _arguments.id = 1;
+            if (options == With.NoResult)
+            {
+                _client.Call(Verb.PUT, RelativeUri, new[] { "application/json" }, new[] { "application/json" }, _arguments, Person);
+                return null;
+            }
+
+            if (options == With.MultipartBody)
+            {
+                return _client.Call<Person>(Verb.PUT, RelativeUri, new[] { "application/json" }, new[] { "application/json" }, _arguments, Person, Person);
+            }
+
+            return _client.Call<Person>(Verb.PUT, RelativeUri, new[] { "application/json" }, new[] { "application/json" }, _arguments, Person);
         }
     }
 }
