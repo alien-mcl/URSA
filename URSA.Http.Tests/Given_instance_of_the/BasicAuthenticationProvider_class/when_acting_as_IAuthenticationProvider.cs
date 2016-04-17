@@ -61,6 +61,66 @@ namespace Given_instance_of_the.BasicAuthenticationProvider_class
             request.Identity.IsAuthenticated.Should().BeFalse();
         }
 
+        [TestMethod]
+        public async Task it_should_not_authenticate_user_when_the_Base64_token_is_broken()
+        {
+            var request = this.CreateRequest(new Header("Authorization", "Basic test"));
+
+            await _authenticationProvider.Process(request);
+
+            request.Identity.IsAuthenticated.Should().BeFalse();
+        }
+
+        [TestMethod]
+        public async Task it_should_not_authenticate_user_when_credentials_contains_more_than_user_name_and_password()
+        {
+            var request = this.CreateRequest(new Header("Authorization", "Basic " + Convert.ToBase64String(Encoding.UTF8.GetBytes("test:password:whatever"))));
+
+            await _authenticationProvider.Process(request);
+
+            request.Identity.IsAuthenticated.Should().BeFalse();
+        }
+
+        [TestMethod]
+        public async Task it_should_not_authenticate_user_when_user_name__is_empty()
+        {
+            var request = this.CreateRequest(new Header("Authorization", "Basic " + Convert.ToBase64String(Encoding.UTF8.GetBytes(":password"))));
+
+            await _authenticationProvider.Process(request);
+
+            request.Identity.IsAuthenticated.Should().BeFalse();
+        }
+
+        [TestMethod]
+        public async Task it_should_not_authenticate_user_when_password__is_empty()
+        {
+            var request = this.CreateRequest(new Header("Authorization", "Basic " + Convert.ToBase64String(Encoding.UTF8.GetBytes("test:"))));
+
+            await _authenticationProvider.Process(request);
+
+            request.Identity.IsAuthenticated.Should().BeFalse();
+        }
+
+        [TestMethod]
+        public async Task it_should_not_authenticate_user_when_no_authorization_header_is_present()
+        {
+            var request = this.CreateRequest();
+
+            await _authenticationProvider.Process(request);
+
+            request.Identity.IsAuthenticated.Should().BeFalse();
+        }
+
+        [TestMethod]
+        public async Task it_should_not_authenticate_user_when_the_authorization_header_is_of_a_different_scheme()
+        {
+            var request = this.CreateRequest(new Header("Authorization", "Bearer test"));
+
+            await _authenticationProvider.Process(request);
+
+            request.Identity.IsAuthenticated.Should().BeFalse();
+        }
+
         [TestInitialize]
         public void Setup()
         {

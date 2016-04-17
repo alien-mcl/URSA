@@ -122,6 +122,7 @@ namespace URSA.Web.Http.Reflection
         }
 
         [ExcludeFromCodeCoverage]
+        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
         private static string BuildControllerName(this Type type)
         {
             return Regex.Replace(type.Name, "Controller", String.Empty, RegexOptions.IgnoreCase).ToLower();

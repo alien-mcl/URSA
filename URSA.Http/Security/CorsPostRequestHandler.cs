@@ -26,6 +26,7 @@ namespace URSA.Web.Http.Security
         private readonly string _exposedHeaders;
 
         [ExcludeFromCodeCoverage]
+        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
         static CorsPostRequestHandler()
         {
             RequestResponseHeaders = new ConcurrentDictionary<string, string>();
@@ -38,6 +39,7 @@ namespace URSA.Web.Http.Security
 
         /// <summary>Initializes a new instance of the <see cref="CorsPostRequestHandler"/> class.</summary>
         [ExcludeFromCodeCoverage]
+        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
         public CorsPostRequestHandler() : this(WithAny, WithAny, WithAny)
         {
         }
@@ -45,6 +47,7 @@ namespace URSA.Web.Http.Security
         /// <summary>Initializes a new instance of the <see cref="CorsPostRequestHandler"/> class.</summary>
         /// <param name="allowedOrigins">Allowed origins.</param>
         [ExcludeFromCodeCoverage]
+        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
         public CorsPostRequestHandler(IEnumerable<string> allowedOrigins) : this(allowedOrigins, WithAny, WithAny)
         {
         }
@@ -53,6 +56,7 @@ namespace URSA.Web.Http.Security
         /// <param name="allowedOrigins">Allowed origins.</param>
         /// <param name="allowedHeaders">Allowed headers.</param>
         [ExcludeFromCodeCoverage]
+        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
         public CorsPostRequestHandler(IEnumerable<string> allowedOrigins, IEnumerable<string> allowedHeaders) : this(allowedOrigins, allowedHeaders, WithAny)
         {
         }
@@ -62,6 +66,7 @@ namespace URSA.Web.Http.Security
         /// <param name="allowedHeaders">Allowed headers.</param>
         /// <param name="exposedHeaders">Exposed headers.</param>
         [ExcludeFromCodeCoverage]
+        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
         public CorsPostRequestHandler(IEnumerable<string> allowedOrigins, IEnumerable<string> allowedHeaders, IEnumerable<string> exposedHeaders)
         {
             if (allowedOrigins == null)

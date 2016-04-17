@@ -8,6 +8,7 @@ namespace URSA.Web.Http.Mapping
 {
     /// <summary>Describes an argument binding context.</summary>
     [ExcludeFromCodeCoverage]
+    [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "Internal infrastructure carrying data - not a subject for testing.")]
     public abstract class ArgumentBindingContext
     {
         internal ArgumentBindingContext(RequestInfo request, RequestMapping requestMapping, ParameterInfo parameter, int index, IDictionary<RequestInfo, RequestInfo[]> multipartBodies)
@@ -56,6 +57,7 @@ namespace URSA.Web.Http.Mapping
     /// <typeparam name="T">Type of the parameter source.</typeparam>
     [SuppressMessage("StyleCop.CSharp.MaintainabilityRules", "SA1402:FileMayOnlyContainASingleClass", Justification = "Suppression is OK - generic and non-generic class.")]
     [ExcludeFromCodeCoverage]
+    [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "Internal infrastructure carrying data - not a subject for testing.")]
     public class ArgumentBindingContext<T> : ArgumentBindingContext where T : ParameterSourceAttribute
     {
         internal ArgumentBindingContext(RequestInfo request, RequestMapping requestMapping, ParameterInfo parameter, int index, T parameterSource, IDictionary<RequestInfo, RequestInfo[]> multipartBodies) :

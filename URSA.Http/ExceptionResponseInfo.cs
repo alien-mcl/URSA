@@ -8,6 +8,7 @@ namespace URSA.Web.Http
 {
     /// <summary>Describes an exception response.</summary>
     [ExcludeFromCodeCoverage]
+    [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
     public class ExceptionResponseInfo : ObjectResponseInfo<Exception>
     {
         private static readonly IConverterProvider ConverterProvider;

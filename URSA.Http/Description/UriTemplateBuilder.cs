@@ -101,6 +101,8 @@ namespace URSA.Web.Description.Http
             internal bool HasDefaultValue { get; private set; }
 
             /// <inheritdoc />
+            [ExcludeFromCodeCoverage]
+            [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
             public override string ToString()
             {
                 return Part;

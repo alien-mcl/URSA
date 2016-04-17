@@ -55,6 +55,24 @@ namespace Given_instance_of_the
             result[0].Should().Be(expected);
         }
 
+        [TestMethod]
+        public void it_should_throw_when_no_converter_provider_is_passed()
+        {
+            ((ResultBinder)null).Invoking(_ => new ResultBinder(null)).ShouldThrow<ArgumentNullException>().Which.ParamName.Should().Be("converterProvider");
+        }
+
+        [TestMethod]
+        public void it_should_throw_when_no_primary_result_type_is_given()
+        {
+            ((ResultBinder)_resultBinder).Invoking(instance => instance.BindResults(null, null)).ShouldThrow<ArgumentNullException>().Which.ParamName.Should().Be("primaryResultType");
+        }
+
+        [TestMethod]
+        public void it_should_throw_when_no_request_is_given()
+        {
+            ((ResultBinder)_resultBinder).Invoking(instance => instance.BindResults(typeof(int), null)).ShouldThrow<ArgumentNullException>().Which.ParamName.Should().Be("requestInfo");
+        }
+
         [TestInitialize]
         public void Setup()
         {

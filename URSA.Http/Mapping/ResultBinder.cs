@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Text.RegularExpressions;
-using System.Web;
 using URSA.Web.Converters;
 
 namespace URSA.Web.Http.Mapping
@@ -16,6 +14,8 @@ namespace URSA.Web.Http.Mapping
 
         /// <summary>Initializes a new instance of the <see cref="ResultBinder"/> class.</summary>
         /// <param name="converterProvider">The converter provider.</param>
+        [ExcludeFromCodeCoverage]
+        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
         public ResultBinder(IConverterProvider converterProvider)
         {
             if (converterProvider == null)
@@ -28,6 +28,7 @@ namespace URSA.Web.Http.Mapping
 
         /// <inheritdoc />
         [ExcludeFromCodeCoverage]
+        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
         object[] IResultBinder.BindResults<T>(IRequestInfo request)
         {
             if (!(request is RequestInfo))
@@ -40,6 +41,7 @@ namespace URSA.Web.Http.Mapping
 
         /// <inheritdoc />
         [ExcludeFromCodeCoverage]
+        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
         object[] IResultBinder.BindResults(Type primaryResultType, IRequestInfo request)
         {
             if (!(request is RequestInfo))

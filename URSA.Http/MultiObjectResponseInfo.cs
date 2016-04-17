@@ -19,6 +19,7 @@ namespace URSA.Web.Http
         /// <param name="converterProvider">Converter provider instance.</param>
         /// <param name="headers">Headers of the response.</param>
         [ExcludeFromCodeCoverage]
+        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
         public MultiObjectResponseInfo(RequestInfo request, IEnumerable<object> values, IConverterProvider converterProvider, params Header[] headers) :
             this(Encoding.UTF8, request, values, converterProvider, headers)
         {
@@ -31,6 +32,7 @@ namespace URSA.Web.Http
         /// <param name="converterProvider">Converter provider instance.</param>
         /// <param name="headers">Headers of the response.</param>
         [ExcludeFromCodeCoverage]
+        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
         public MultiObjectResponseInfo(Encoding encoding, RequestInfo request, IEnumerable<object> values, IConverterProvider converterProvider, params Header[] headers) :
             base(encoding, request, headers)
         {
@@ -43,6 +45,7 @@ namespace URSA.Web.Http
         /// <param name="converterProvider">Converter provider instance.</param>
         /// <param name="headers">Headers of the response.</param>
         [ExcludeFromCodeCoverage]
+        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
         public MultiObjectResponseInfo(RequestInfo request, IEnumerable<object> values, IConverterProvider converterProvider, HeaderCollection headers) :
             this(Encoding.UTF8, request, values, converterProvider, headers)
         {
@@ -55,6 +58,7 @@ namespace URSA.Web.Http
         /// <param name="converterProvider">Converter provider instance.</param>
         /// <param name="headers">Headers of the response.</param>
         [ExcludeFromCodeCoverage]
+        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
         public MultiObjectResponseInfo(Encoding encoding, RequestInfo request, IEnumerable<object> values, IConverterProvider converterProvider, HeaderCollection headers) :
             base(encoding, request, headers)
         {
@@ -68,11 +72,12 @@ namespace URSA.Web.Http
         public IEnumerable<object> Values { get { return ObjectResponses.Select(item => ((ObjectResponseInfo)item).Object); } } 
 
         /// <inheritdoc />
-        public override sealed Stream Body { get; protected set; }
+        public sealed override Stream Body { get; protected set; }
 
         /// <inheritdoc />
         [ExcludeFromCodeCoverage]
-        public override sealed void Dispose()
+        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
+        public sealed override void Dispose()
         {
             Dispose(true);
             GC.SuppressFinalize(this);
@@ -81,6 +86,7 @@ namespace URSA.Web.Http
         /// <summary>Releases unmanaged and - optionally - managed resources.</summary>
         /// <param name="disposing"><c>true</c> to release both managed and unmanaged resources; <c>false</c> to release only unmanaged resources.</param>
         [ExcludeFromCodeCoverage]
+        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
         protected virtual void Dispose(bool disposing)
         {
             if (!disposing)

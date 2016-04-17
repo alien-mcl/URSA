@@ -23,6 +23,7 @@ namespace URSA.Web.Description.Http
         /// <summary>Initializes a new instance of the <see cref="ControllerDescriptionBuilder{T}" /> class.</summary>
         /// <param name="defaultValueRelationSelector">Default parameter source selector.</param>
         [ExcludeFromCodeCoverage]
+        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
         public ControllerDescriptionBuilder(IDefaultValueRelationSelector defaultValueRelationSelector)
         {
             if (defaultValueRelationSelector == null)

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using URSA.Web.Description;
@@ -15,6 +16,8 @@ namespace URSA.Web.Http.Mapping
 
         /// <summary>Initializes a new instance of the <see cref="ArgumentBinder" /> class.</summary>
         /// <param name="parameterSourceArgumentBinders">Parameter source argument binders.</param>
+        [ExcludeFromCodeCoverage]
+        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
         public ArgumentBinder(IEnumerable<IParameterSourceArgumentBinder> parameterSourceArgumentBinders)
         {
             if (parameterSourceArgumentBinders == null)
@@ -97,14 +100,14 @@ namespace URSA.Web.Http.Mapping
             }
 
             var arguments = new object[]
-            {
-                request,
-                (RequestMapping)requestMapping,
-                parameter.Parameter,
-                index,
-                parameter.Source,
-                multipartBodies
-            };
+                {
+                    request,
+                    (RequestMapping)requestMapping,
+                    parameter.Parameter,
+                    index,
+                    parameter.Source,
+                    multipartBodies
+                };
             ArgumentBindingContext context = (ArgumentBindingContext)typeof(ArgumentBindingContext<>)
                 .MakeGenericType(parameter.Source.GetType())
                 .GetConstructors(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)

@@ -33,7 +33,7 @@ namespace URSA.Web.Http.Description
                 sourceOperation.Arguments.ToArray());
         }
 
-        private void Allow()
+        internal void Allow()
         {
             ResponseInfo response = (ResponseInfo)Response;
             response.Status = _responseStatusCode;

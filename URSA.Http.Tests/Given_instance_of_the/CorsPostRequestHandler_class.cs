@@ -1,6 +1,8 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 using URSA.Web;
 using URSA.Web.Http;
 using URSA.Web.Http.Security;
@@ -54,6 +56,19 @@ namespace Given_instance_of_the
             await _postRequestHandler.Process(response);
 
             response.Headers.AccessControlExposeHeaders.Should().Contain("Content-Range");
+        }
+
+        [TestMethod]
+        public void it_should_throw_when_no_response_info_is_provided()
+        {
+            _postRequestHandler.Awaiting(instance => instance.Process(null)).ShouldThrow<ArgumentNullException>().Which.ParamName.Should().Be("responseInfo");
+        }
+
+        [TestMethod]
+        public void it_should_throw_when_the_response_info_provided_is_of_incorrect_type()
+        {
+            _postRequestHandler.Awaiting(instance => instance.Process(new Mock<IResponseInfo>(MockBehavior.Strict).Object))
+                .ShouldThrow<ArgumentOutOfRangeException>().Which.ParamName.Should().Be("responseInfo");
         }
 
         [TestInitialize]

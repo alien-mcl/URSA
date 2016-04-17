@@ -20,6 +20,7 @@ namespace URSA.Web.Http.Mapping
         /// <summary>Initializes a new instance of the <see cref="FromUriArgumentBinder" /> class.</summary>
         /// <param name="converterProvider">Converters provider</param>
         [ExcludeFromCodeCoverage]
+        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
         internal FromUriArgumentBinder(IConverterProvider converterProvider)
         {
             if (converterProvider == null)

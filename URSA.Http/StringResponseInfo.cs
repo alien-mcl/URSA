@@ -14,6 +14,7 @@ namespace URSA.Web.Http
         /// <param name="content">String content.</param>
         /// <param name="request">Request details.</param>
         [ExcludeFromCodeCoverage]
+        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
         public StringResponseInfo(string content, RequestInfo request) : this(Encoding.UTF8, content, request)
         {
         }
@@ -23,11 +24,12 @@ namespace URSA.Web.Http
         /// <param name="content">String content.</param>
         /// <param name="request">Request details.</param>
         [ExcludeFromCodeCoverage]
+        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
         public StringResponseInfo(Encoding encoding, string content, RequestInfo request) : base(encoding, request)
         {
             if (content != null)
             {
-                _body = new MemoryStream(Encoding.GetBytes(Content = content ?? String.Empty));
+                _body = new MemoryStream(Encoding.GetBytes(Content = content));
             }
             else
             {
@@ -47,6 +49,7 @@ namespace URSA.Web.Http
 
         /// <inheritdoc />
         [ExcludeFromCodeCoverage]
+        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
         public sealed override void Dispose()
         {
             Dispose(true);
@@ -56,6 +59,7 @@ namespace URSA.Web.Http
         /// <summary>Releases unmanaged and - optionally - managed resources.</summary>
         /// <param name="disposing"><c>true</c> to release both managed and unmanaged resources; <c>false</c> to release only unmanaged resources.</param>
         [ExcludeFromCodeCoverage]
+        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
         protected virtual void Dispose(bool disposing)
         {
             if (!disposing)

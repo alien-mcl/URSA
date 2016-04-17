@@ -25,6 +25,7 @@ namespace URSA.Web.Http.Security
         /// <summary>Initializes a new instance of the <see cref="BasicAuthenticationProvider"/> class.</summary>
         /// <param name="identityProvider">The authentication provider.</param>
         [ExcludeFromCodeCoverage]
+        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
         public BasicAuthenticationProvider(IIdentityProvider identityProvider)
         {
             if (identityProvider == null)
@@ -37,6 +38,7 @@ namespace URSA.Web.Http.Security
 
         /// <inheritdoc />
         [ExcludeFromCodeCoverage]
+        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
         public string Scheme { get { return AuthenticationScheme; } }
 
         /// <inheritdoc />

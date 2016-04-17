@@ -77,6 +77,7 @@
     <Reference Include="System.Configuration" />
     <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Threading.Tasks" />
+    <Reference Include="System.Web" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Xml.Serialization" />
@@ -100,9 +101,9 @@
     <Compile Include="Given_instance_of_the\ArgumentBinder_class.cs" />
     <Compile Include="Given_instance_of_the\BasicAuthenticationProvider_class\when_acting_as_IDefaultAuthenticationScheme.cs" />
     <None Include="When_sending_a_request\ArgumentBinder_class.cs" />
-    <Compile Include="Given_instance_of_the\binder\FromQueryStringArgumentBinder_class.cs" />
-    <Compile Include="Given_instance_of_the\binder\FromBodyArgumentBinder_class.cs" />
     <Compile Include="Given_instance_of_the\binder\FromUriArgumentBinder_class.cs" />
+    <Compile Include="Given_instance_of_the\binder\FromBodyArgumentBinder_class.cs" />
+    <Compile Include="Given_instance_of_the\binder\FromQueryStringArgumentBinder_class.cs" />
     <Compile Include="Given_instance_of_the\ControllerDescriptionBuilder_class\when_having_a_CRUD_controller.cs" />
     <Compile Include="Given_instance_of_the\ControllerDescriptionBuilder_class\when_having_standard_controller.cs" />
     <Compile Include="Given_instance_of_the\ControllerDescriptionBuilder_class\when_having_dependent_route_controller.cs" />
@@ -112,8 +113,10 @@
     <Compile Include="Given_instance_of_the\converter_of\DoubleConverter_class.cs" />
     <Compile Include="Given_instance_of_the\converter_of\ExpressionTreeConverter_class.cs" />
     <Compile Include="Given_instance_of_the\DefaultValueRelationSelector_class\when_handlig_response.cs" />
+    <Compile Include="Given_instance_of_the\Exception_extension.cs" />
     <Compile Include="Given_instance_of_the\HeaderParameter_class.cs" />
     <Compile Include="Given_instance_of_the\HeaderValue_class\when_integer_specialized_instance_is_given.cs" />
+    <Compile Include="Given_instance_of_the\OptionsController_class.cs" />
     <Compile Include="Given_instance_of_the\RequestHandler_class.cs" />
     <Compile Include="Given_instance_of_the\RequestInfo_class.cs" />
     <Compile Include="Given_instance_of_the\MultiObjectResponseInfo_class.cs" />

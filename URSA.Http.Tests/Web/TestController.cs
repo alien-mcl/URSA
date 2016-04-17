@@ -108,6 +108,10 @@ namespace URSA.Web.Tests
             return 3;
         }
 
+        public void Collection(string[] input)
+        {
+        }
+
         [AllowClaim(ClaimTypes.Name, "allowed_operation_name")]
         [DenyClaim(ClaimTypes.Name, "denied_operation_name")]
         public void Secured()

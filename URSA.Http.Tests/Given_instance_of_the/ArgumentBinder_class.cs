@@ -150,6 +150,31 @@ namespace Given_instance_of_the
             ((byte[])arguments[1]).Should().BeEquivalentTo(data);
         }
 
+        [TestMethod]
+        public void it_should_throw_when_no_request_is_provided()
+        {
+            _binder.Invoking(instance => instance.BindArguments((IRequestInfo)null, null)).ShouldThrow<ArgumentNullException>().Which.ParamName.Should().Be("request");
+        }
+
+        [TestMethod]
+        public void it_should_throw_when_the_request_provided_is_of_not_a_correct_type()
+        {
+            _binder.Invoking(instance => instance.BindArguments(new Mock<IRequestInfo>(MockBehavior.Strict).Object, null)).ShouldThrow<InvalidOperationException>();
+        }
+
+        [TestMethod]
+        public void it_should_throw_when_no_request_info_is_provided()
+        {
+            _binder.Invoking(instance => instance.BindArguments(null, null)).ShouldThrow<ArgumentNullException>().Which.ParamName.Should().Be("request");
+        }
+
+        [TestMethod]
+        public void it_should_throw_when_no_request_mapping_is_provided()
+        {
+            var request = new RequestInfo(Verb.GET, new Uri("/", UriKind.Relative), new MemoryStream(), new BasicClaimBasedIdentity());
+            _binder.Invoking(instance => instance.BindArguments(request, null)).ShouldThrow<ArgumentNullException>().Which.ParamName.Should().Be("requestMapping");
+        }
+
         [TestInitialize]
         public void Setup()
         {

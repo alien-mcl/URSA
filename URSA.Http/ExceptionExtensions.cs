@@ -10,7 +10,6 @@ using URSA.Web.Http;
 namespace System
 {
     /// <summary>Provides useful exception extension methods.</summary>
-    [ExcludeFromCodeCoverage]
     public static class ExceptionExtensions
     {
         private static readonly IDictionary<Type, HttpStatusCode> ExceptionMap;
@@ -44,7 +43,7 @@ namespace System
                 return (ProtocolException)exception;
             }
 
-            HttpStatusCode httpStatusCode = (exception is HttpException ? (HttpStatusCode)((HttpException)exception).WebEventCode : exception.ToHttpStatusCode());
+            HttpStatusCode httpStatusCode = (exception is HttpException ? (HttpStatusCode)((HttpException)exception).GetHttpCode() : exception.ToHttpStatusCode());
             try
             {
                 throw new ProtocolException(httpStatusCode, exception);
@@ -53,14 +52,6 @@ namespace System
             {
                 return result;
             }
-        }
-
-        /// <summary>Returns an HTTP status code for a given <typeparamref name="TException" /> type.</summary>
-        /// <typeparam name="TException">The type of the exception.</typeparam>
-        /// <returns><see cref="HttpStatusCode" /> for a given <typeparamref name="TException" /> type.</returns>
-        public static HttpStatusCode GetHttpStatusCodeFor<TException>() where TException : Exception
-        {
-            return typeof(TException).ToHttpStatusCode();
         }
 
         /// <summary>Returns an HTTP status code for a given <paramref name="exception" />.</summary>

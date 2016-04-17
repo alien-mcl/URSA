@@ -2,6 +2,7 @@
 using Moq;
 using System;
 using System.Diagnostics.CodeAnalysis;
+using FluentAssertions;
 using URSA.Web;
 using URSA.Web.Http.Mapping;
 using URSA.Web.Http.Testing;
@@ -38,6 +39,12 @@ namespace Given_instance_of_the.binder
             Binder.GetArgumentValue((ArgumentBindingContext)GetContext(Body, "POST", "multipart/mixed", Boundary));
 
             Converter.Verify(instance => instance.ConvertTo(It.IsAny<Type>(), It.IsAny<IRequestInfo>()), Times.Once);
+        }
+
+        [TestMethod]
+        public void it_should_throw_when_no_binding_context_is_given()
+        {
+            Binder.Invoking(instance => instance.GetArgumentValue(null)).ShouldThrow<ArgumentNullException>().Which.ParamName.Should().Be("context");
         }
     }
 }

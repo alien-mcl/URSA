@@ -17,6 +17,7 @@ namespace URSA.Web.Http.Mapping
         /// <summary>Initializes a new instance of the <see cref="FromBodyArgumentBinder" /> class.</summary>
         /// <param name="converterProvider">Converters provider</param>
         [ExcludeFromCodeCoverage]
+        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
         internal FromBodyArgumentBinder(IConverterProvider converterProvider)
         {
             if (converterProvider == null)
@@ -62,7 +63,7 @@ namespace URSA.Web.Http.Mapping
         {
             var contentType = context.Request.Headers[Header.ContentType].Values.First(value => value.Value.StartsWith("multipart/"));
             var boundary = contentType.Parameters[HeaderParameter.Boundary];
-            if ((boundary == null) || (!(boundary.Value is string)) || (String.IsNullOrEmpty((string)boundary.Value)))
+            if ((boundary == null) || (String.IsNullOrEmpty(boundary.Value as string)))
             {
                 throw new InvalidOperationException("Cannot process multipart body without a boundary marker.");
             }
