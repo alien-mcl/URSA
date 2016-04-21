@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
@@ -30,6 +32,54 @@ namespace URSA.Web.Http.Reflection
             { "Remove", Verb.DELETE },
             { "Teardown", Verb.DELETE }
         };
+
+        internal static bool SetPropertyValue(this object instance, PropertyInfo property, object value)
+        {
+            if (value == null)
+            {
+                return false;
+            }
+
+            if (!property.PropertyType.FindItemType().ConvertValue(ref value))
+            {
+                return false;
+            }
+
+            if (System.Reflection.TypeExtensions.IsEnumerable(property.PropertyType))
+            {
+                return instance.SetPropertyValues(property, value);
+            }
+
+            property.SetValue(instance, value);
+            return true;
+        }
+
+        internal static bool SetPropertyValues(this object instance, PropertyInfo property, object value)
+        {
+            var container = (IEnumerable)property.GetValue(instance);
+            var itemType = property.PropertyType.FindItemType();
+            if (property.PropertyType.IsArray)
+            {
+                return property.SetPropertyArrayValue(instance, container, value);
+            }
+
+            if ((container != null) && (container.GetType().GetImplementationOfAny(typeof(ICollection<>), typeof(ICollection)) != null))
+            {
+                container.GetType().GetMethod("Add", BindingFlags.Instance | BindingFlags.Public).Invoke(container, new[] { value });
+                return true;
+            }
+
+            if (!property.CanWrite)
+            {
+                return false;
+            }
+
+            var list = (IList)typeof(List<>).MakeGenericType(itemType).GetConstructor(new Type[0]).Invoke(null);
+            property.SetValue(instance, list);
+            container.ForEach(item => list.Add(item));
+            list.Add(value);
+            return true;
+        }
 
         internal static RouteAttribute GetControllerRoute(this Type type)
         {
@@ -173,6 +223,56 @@ namespace URSA.Web.Http.Reflection
         private static void CreateParameterTemplateRegex(this ParameterInfo parameter, FromUriAttribute fromUri, out string parameterTemplateRegex)
         {
             parameterTemplateRegex = UriTemplateBuilder.VariableTemplateRegex.Replace(fromUri.UriTemplate.ToString(), "[^/?]+");
+        }
+
+        private static bool SetPropertyArrayValue(this PropertyInfo property, object instance, IEnumerable container, object value)
+        {
+            var itemType = property.PropertyType.FindItemType();
+            var collection = (ICollection)container;
+            if ((container == null) && (!property.CanWrite))
+            {
+                return false;
+            }
+
+            var array = Array.CreateInstance(itemType, (collection != null ? collection.Count + 1 : 1));
+            property.SetValue(instance, array);
+            if (collection != null)
+            {
+                collection.CopyTo(array, 0);
+            }
+
+            new[] { value }.CopyTo(array, array.Length - 1);
+            return true;
+        }
+
+        private static bool ConvertValue(this Type type, ref object value)
+        {
+            if (type.IsInstanceOfType(value))
+            {
+                return true;
+            }
+
+            if (value is string)
+            {
+                if (((string)value).Length == 0)
+                {
+                    return false;
+                }
+
+                var typeConverter = TypeDescriptor.GetConverter(type);
+                value = typeConverter.ConvertFromInvariantString((string)value);
+                return true;
+            }
+
+            try
+            {
+                value = Convert.ChangeType(value, type);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
         }
     }
 }

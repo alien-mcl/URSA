@@ -7,7 +7,7 @@ namespace URSA.Web.Http.Testing
 {
     public abstract class ComplexTypeConverterTest<T> : ConverterTest<T, Person> where T : class, IConverter
     {
-        private static readonly Person Entity = new Person() { Key = 1, FirstName = "Tester", LastName = "Test", Roles = new[] { "Role" } };
+        private static readonly Person Entity = new Person() { Key = 1, FirstName = "Tester", LastName = "Test", Roles = new[] { "Role 1", "Role 2" } };
         private static readonly Person[] Entities =
         {
             new Person() { Key = 2, FirstName = "Tester", LastName = "Test 1", Roles = new[] { "Role 1" } },

@@ -38,18 +38,8 @@ namespace URSA.Web.Http.Testing
         [TestInitialize]
         public void Setup()
         {
-            Converter = new Mock<IConverter>(MockBehavior.Strict);
-            Converter.Setup(instance => instance.CanConvertTo(It.IsAny<Type>(), It.IsAny<IRequestInfo>()))
-                .Returns<Type, IRequestInfo>((type, request) => CompatibilityLevel.ExactMatch);
-            Converter.Setup(instance => instance.ConvertTo(It.IsAny<Type>(), It.IsAny<IRequestInfo>()))
-                .Returns<Type, IRequestInfo>((type, body) => default(D).ToString());
-            Converter.Setup(instance => instance.ConvertTo(It.IsAny<Type>(), It.IsAny<string>()))
-                .Returns<Type, string>((type, body) => default(D).ToString());
-            ConverterProvider = new Mock<IConverterProvider>(MockBehavior.Strict);
-            ConverterProvider.Setup(instance => instance.FindBestInputConverter(It.IsAny<Type>(), It.IsAny<IRequestInfo>(), false))
-                .Returns<Type, IRequestInfo, bool>((type, request, ignoreProtocol) => Converter.Object);
-            ConverterProvider.Setup(instance => instance.FindBestInputConverter(It.IsAny<Type>(), It.IsAny<IRequestInfo>(), true))
-                .Returns<Type, IRequestInfo, bool>((type, request, ignoreProtocol) => Converter.Object);
+            SetupConverter(Converter = new Mock<IConverter>(MockBehavior.Strict));
+            SetupConverterProvider(ConverterProvider = new Mock<IConverterProvider>(MockBehavior.Strict));
             Binder = CreateBinderInstance(ConverterProvider.Object);
         }
 
@@ -61,19 +51,38 @@ namespace URSA.Web.Http.Testing
             Binder = null;
         }
 
-        protected ArgumentBindingContext<I> GetContext(string body = null, string verb = "GET", string multipartType = null, string multipartBoundary = null)
+        protected virtual void SetupConverter(Mock<IConverter> converter)
         {
-            return GetContext((body != null ? Encoding.UTF8.GetBytes(body) : null), verb, multipartType, multipartBoundary);
+            converter.Setup(instance => instance.CanConvertTo(It.IsAny<Type>(), It.IsAny<IRequestInfo>()))
+                .Returns<Type, IRequestInfo>((type, request) => CompatibilityLevel.ExactMatch);
+            converter.Setup(instance => instance.ConvertTo(It.IsAny<Type>(), It.IsAny<IRequestInfo>()))
+                .Returns<Type, IRequestInfo>((type, body) => default(D).ToString());
+            converter.Setup(instance => instance.ConvertTo(It.IsAny<Type>(), It.IsAny<string>()))
+                .Returns<Type, string>((type, body) => default(D).ToString());
         }
 
-        protected ArgumentBindingContext<I> GetContext(byte[] body, string verb = "GET", string multipartType = null, string multipartBoundary = null)
+        protected virtual void SetupConverterProvider(Mock<IConverterProvider> converterProvider)
+        {
+            converterProvider.Setup(instance => instance.FindBestInputConverter(It.IsAny<Type>(), It.IsAny<IRequestInfo>(), false))
+                .Returns<Type, IRequestInfo, bool>((type, request, ignoreProtocol) => Converter.Object);
+            converterProvider.Setup(instance => instance.FindBestInputConverter(It.IsAny<Type>(), It.IsAny<IRequestInfo>(), true))
+                .Returns<Type, IRequestInfo, bool>((type, request, ignoreProtocol) => Converter.Object);
+        }
+
+        protected ArgumentBindingContext<I> GetContext(string body = null, string verb = "GET", string contentType = null, string multipartBoundary = null)
+        {
+            return GetContext((body != null ? Encoding.UTF8.GetBytes(body) : null), verb, contentType, multipartBoundary);
+        }
+
+        protected ArgumentBindingContext<I> GetContext(byte[] body, string verb = "GET", string contentType = null, string multipartBoundary = null)
         {
             var httpVerb = Verb.Parse(verb);
             var method = typeof(TestController).GetMethod(MethodName);
             var headers = new HeaderCollection();
-            if ((body != null) && (body.Length > 0) && (!String.IsNullOrEmpty(multipartBoundary)))
+            if ((body != null) && (body.Length > 0))
             {
-                headers.ContentType = (multipartType != null ? multipartType + "; boundary=\"" : "multipart/mixed; boundary=\"") + multipartBoundary + "\"";
+                headers.ContentType = (String.IsNullOrEmpty(multipartBoundary) ? (!String.IsNullOrEmpty(contentType) ? contentType : "text/plan") :
+                    (!String.IsNullOrEmpty(contentType) ? contentType : "multipart/mixed") + "; boundary=\"" + multipartBoundary + "\"");
             }
 
             var operation = new OperationInfo<Verb>(

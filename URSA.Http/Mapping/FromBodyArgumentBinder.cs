@@ -4,7 +4,9 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
+using System.Web;
 using URSA.Web.Converters;
+using URSA.Web.Http.Converters;
 using URSA.Web.Mapping;
 
 namespace URSA.Web.Http.Mapping
@@ -43,9 +45,20 @@ namespace URSA.Web.Http.Mapping
             }
 
             var contentType = context.Request.Headers[Header.ContentType];
-            if ((contentType != null) && (contentType.Value.StartsWith("multipart/")))
+            if (contentType != null)
             {
-                return GetArgumentValueFromMultipartBody(context);
+                if (contentType.Value.StartsWith("multipart/"))
+                {
+                    return GetArgumentValueFromMultipartBody(context);
+                }
+
+                IConverter xWwwUrlEncodedConverter;
+                if ((contentType.Value == XWwwUrlEncodedConverter.ApplicationXWwwUrlEncoded) &&
+                    (((xWwwUrlEncodedConverter = _converterProvider.FindBestInputConverter(context.Parameter.ParameterType, context.Request)) == null) ||
+                    ((xWwwUrlEncodedConverter.CanConvertTo(context.Parameter.ParameterType, context.Request) & CompatibilityLevel.TypeMatch) == CompatibilityLevel.None)))
+                {
+                    return GetArgumentValueFromUrlEncodedString(context);
+                }
             }
 
             var converter = _converterProvider.FindBestInputConverter(context.Parameter.ParameterType, context.Request);
@@ -57,6 +70,31 @@ namespace URSA.Web.Http.Mapping
             object result = converter.ConvertTo(context.Parameter.ParameterType, context.Request);
             context.Request.Body.Seek(0, SeekOrigin.Begin);
             return result;
+        }
+
+        private object GetArgumentValueFromUrlEncodedString(ArgumentBindingContext<FromBodyAttribute> context)
+        {
+            string data;
+            using (var reader = new StreamReader(context.Request.Body))
+            {
+                data = reader.ReadToEnd();
+            }
+
+            context.Request.Body.Seek(0, SeekOrigin.Begin);
+            if (data.Length <= 2)
+            {
+                return null;
+            }
+
+            data = "&" + data;
+            string parameterName = GetParameterName(context);
+            string template = String.Format("&{0}=(?<Value>[^&]+)", Regex.Escape(parameterName));
+            MatchCollection matches = Regex.Matches(data, template);
+            return (matches.Count == 0 ? null :
+                _converterProvider.ConvertToCollection(
+                    matches.Cast<Match>().Select(match => HttpUtility.UrlDecode(match.Groups["Value"].Value)),
+                    context.Parameter.ParameterType,
+                    context.Request));
         }
 
         private object GetArgumentValueFromMultipartBody(ArgumentBindingContext<FromBodyAttribute> context)
@@ -109,14 +147,15 @@ namespace URSA.Web.Http.Mapping
         private object GetArgumentValueFromMultipartFormDataBody(ArgumentBindingContext<FromBodyAttribute> context)
         {
             RequestInfo[] parts = context.MultipartBodies[context.Request];
+            string parameterName = GetParameterName(context);
             var part = (from item in parts
                         let contentDisposition = item.Headers[Header.ContentDisposition]
                         where contentDisposition != null
                         from value in contentDisposition.Values
                         where value.Value == "form-data"
                         from param in value.Parameters
-                        where (param.Name == "name") && (param.Value is string) && 
-                            (String.Compare((string)param.Value, context.ParameterSource.Name, true) == 0)
+                        where (param.Name == "name") && (param.Value is string) &&
+                            (String.Compare((string)param.Value, parameterName, true) == 0)
                         select item).FirstOrDefault();
             if (part == null)
             {
@@ -144,6 +183,15 @@ namespace URSA.Web.Http.Mapping
             }
 
             return result;
+        }
+
+        private string GetParameterName(ArgumentBindingContext<FromBodyAttribute> context)
+        {
+            return (!String.IsNullOrEmpty(context.ParameterSource.Name) ?
+                context.ParameterSource.Name :
+                context.RequestMapping.Operation.UnderlyingMethod.GetParameters()
+                    .Where(argument => argument == context.Parameter)
+                    .Select(argument => argument.Name).First());
         }
     }
 }

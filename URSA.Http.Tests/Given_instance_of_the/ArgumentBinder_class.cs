@@ -29,6 +29,19 @@ namespace Given_instance_of_the
         private ArgumentBinder _binder;
 
         [TestMethod]
+        public void it_should_bind_arguments_for_correctly_with_fallback_defaults()
+        {
+            _fromQueryStringBinder.Setup(instance => instance.GetArgumentValue(It.IsAny<ArgumentBindingContext>()))
+                .Returns<ArgumentBindingContext>(context => null);
+            var method = ControllerType.GetMethod("Add");
+            var arguments = BindArguments("/api/test/add?operandA=1&operandB=2", method, Verb.GET, true);
+
+            arguments.Length.Should().Be(method.GetParameters().Length);
+            arguments[0].Should().Be(0);
+            arguments[1].Should().Be(0);
+        }
+
+        [TestMethod]
         public void it_should_bind_arguments_for_Add_method_correctly()
         {
             _fromQueryStringBinder.Setup(instance => instance.GetArgumentValue(It.IsAny<ArgumentBindingContext>()))
@@ -195,7 +208,7 @@ namespace Given_instance_of_the
             _fromQueryStringBinder = null;
         }
 
-        private object[] BindArguments(string callUri, MethodInfo method, Verb verb)
+        private object[] BindArguments(string callUri, MethodInfo method, Verb verb, bool indirectly = false)
         {
             var methodUri = Regex.Replace(callUri, "\\?.+", String.Empty);
             var queryStringParameters = Regex.Matches(callUri, "[?&]([^=]+)=[^&]+").Cast<System.Text.RegularExpressions.Match>();
@@ -209,9 +222,14 @@ namespace Given_instance_of_the
                 new Regex("^" + methodUri + queryStringRegex + "$"),
                 verb,
                 arguments.ToArray());
-            return _binder.BindArguments(
-                new RequestInfo(Verb.GET, new Uri("http://temp.uri" + callUri), new MemoryStream(), new BasicClaimBasedIdentity()),
-                new RequestMapping(GetControllerInstance(), operation, new Uri(methodUri, UriKind.Relative)));
+            var request = new RequestInfo(Verb.GET, new Uri("http://temp.uri" + callUri), new MemoryStream(), new BasicClaimBasedIdentity());
+            var mapping = new RequestMapping(GetControllerInstance(), operation, new Uri(methodUri, UriKind.Relative));
+            if (indirectly)
+            {
+                return _binder.BindArguments((IRequestInfo)request, (IRequestMapping)mapping);
+            }
+
+            return _binder.BindArguments(request, mapping);
         }
 
         private object Convert(Type type, IRequestInfo request)

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections;
-using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Text.RegularExpressions;
@@ -56,23 +55,8 @@ namespace URSA.Web.Http.Mapping
             return (match.Success ? _converterProvider.ConvertTo(match.Groups["Value"].Value, context.Parameter.ParameterType, context.Request) : null);
         }
 
-        private static Uri MakeUri(ParameterInfo parameter, Uri baseUri, OperationInfo<Verb> operation)
+        internal static Uri MakeUri(ParameterInfo parameter, Uri baseUri, OperationInfo<Verb> operation)
         {
-            if (parameter == null)
-            {
-                throw new ArgumentNullException("parameter");
-            }
-
-            if (baseUri == null)
-            {
-                throw new ArgumentNullException("baseUri");
-            }
-
-            if (operation == null)
-            {
-                throw new ArgumentNullException("operation");
-            }
-
             Uri result = baseUri;
             foreach (var argument in operation.Arguments)
             {

@@ -1,6 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
+﻿using System.Diagnostics.CodeAnalysis;
+using URSA.Web.Http.Tests.Data;
 using URSA.Web.Mapping;
 
 namespace URSA.Web.Tests
@@ -15,6 +14,10 @@ namespace URSA.Web.Tests
         public string Some()
         {
             return null;
+        }
+
+        public void DoSomething(Person person)
+        {
         }
     }
 }

@@ -8,11 +8,11 @@ using URSA.Web.Http.Mapping;
 using URSA.Web.Http.Testing;
 using URSA.Web.Mapping;
 
-namespace Given_instance_of_the.binder
+namespace Given_instance_of_the.binder.FromBodyArgumentBinder_class
 {
     [ExcludeFromCodeCoverage]
     [TestClass]
-    public class FromBodyArgumentBinder_class : ArgumentBinderTest<FromBodyArgumentBinder, FromBodyAttribute, int>
+    public class when_binding_to_multipart_mixed_body : ArgumentBinderTest<FromBodyArgumentBinder, FromBodyAttribute, int>
     {
         private const string Boundary = "test";
         private const string Body =
@@ -39,12 +39,6 @@ namespace Given_instance_of_the.binder
             Binder.GetArgumentValue((ArgumentBindingContext)GetContext(Body, "POST", "multipart/mixed", Boundary));
 
             Converter.Verify(instance => instance.ConvertTo(It.IsAny<Type>(), It.IsAny<IRequestInfo>()), Times.Once);
-        }
-
-        [TestMethod]
-        public void it_should_throw_when_no_binding_context_is_given()
-        {
-            Binder.Invoking(instance => instance.GetArgumentValue(null)).ShouldThrow<ArgumentNullException>().Which.ParamName.Should().Be("context");
         }
     }
 }

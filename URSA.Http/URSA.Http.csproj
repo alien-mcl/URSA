@@ -87,6 +87,7 @@
     <Compile Include="Converters\ConverterExtensions.cs" />
     <Compile Include="Converters\ExpressionTreeConverter.cs" />
     <Compile Include="Converters\GuidConverter.cs" />
+    <Compile Include="Converters\XWwwUrlEncodedConverter.cs" />
     <Compile Include="Description\ControllerDescriptionBuilder.cs" />
     <Compile Include="Converters\BooleanConverter.cs" />
     <Compile Include="Converters\DateTimeConverter.cs" />

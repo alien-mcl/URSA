@@ -6,8 +6,9 @@ using System.Linq;
 namespace URSA.Web.Http.Mapping
 {
     /// <summary>Instructs the pipeline to output the result as the given media type.</summary>
-    [ExcludeFromCodeCoverage]
     [AttributeUsage(AttributeTargets.ReturnValue)]
+    [ExcludeFromCodeCoverage]
+    [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
     public class AsMediaTypeAttribute : Attribute
     {
         /// <summary>Initializes a new instance of the <see cref="AsMediaTypeAttribute" /> class.</summary>

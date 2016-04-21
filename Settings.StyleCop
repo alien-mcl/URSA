@@ -70,7 +70,11 @@
           </RuleSettings>
         </Rule>
       </Rules>
-      <AnalyzerSettings />
+      <AnalyzerSettings>
+        <CollectionProperty Name="Hungarian">
+          <Value>x</Value>
+        </CollectionProperty>
+      </AnalyzerSettings>
     </Analyzer>
     <Analyzer AnalyzerId="StyleCop.CSharp.ReadabilityRules">
       <Rules>

@@ -45,7 +45,7 @@ namespace URSA.Web.Http.Mapping
                 throw new ArgumentNullException("context");
             }
 
-            if (context.Request.Uri.Query.Length < 2)
+            if (context.Request.Uri.Query.Length <= 2)
             {
                 return null;
             }
@@ -54,9 +54,9 @@ namespace URSA.Web.Http.Mapping
             string template;
             var variableMatch = UriTemplateBuilder.VariableTemplateRegex.Match(context.ParameterSource.UriTemplate);
             template = (!variableMatch.Success ? context.ParameterSource.UriTemplate.Replace(FromQueryStringAttribute.Key, "&" + parameterName + "=") :
-                String.Format("{0}=(?<Value>[^&]+)", (variableMatch.Groups["ExpansionType"].Success ? Regex.Escape(variableMatch.Groups["ParameterName"].Value) : parameterName)));
+                String.Format("&{0}=(?<Value>[^&]+)", (variableMatch.Groups["ExpansionType"].Success ? Regex.Escape(variableMatch.Groups["ParameterName"].Value) : parameterName)));
 
-            MatchCollection matches = Regex.Matches(context.Request.Uri.Query.Substring(1), template);
+            MatchCollection matches = Regex.Matches("&" + context.Request.Uri.Query.Substring(1), template);
             return (matches.Count == 0 ? null : 
                 _converterProvider.ConvertToCollection(
                     matches.Cast<Match>().Select(match => HttpUtility.UrlDecode(match.Groups["Value"].Value)),
