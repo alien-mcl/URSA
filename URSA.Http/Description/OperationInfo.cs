@@ -9,6 +9,7 @@ namespace URSA.Web.Description.Http
 {
     /// <summary>Describes an HTTP controller operation.</summary>
     [ExcludeFromCodeCoverage]
+    [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
     [DebuggerDisplay("{Verb} {TemplateRegex}", Name = "{TemplateRegex}")]
     public class OperationInfo : URSA.Web.Description.OperationInfo
     {

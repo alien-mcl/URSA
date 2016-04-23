@@ -5,6 +5,7 @@ namespace URSA.Web.Http.Mapping
 {
     /// <summary>Instructs the pipeline to map the method to a GET HTTP verb.</summary>
     [ExcludeFromCodeCoverage]
+    [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
     [AttributeUsage(AttributeTargets.Method)]
     public class OnGetAttribute : OnVerbAttribute
     {

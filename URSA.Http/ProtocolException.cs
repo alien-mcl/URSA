@@ -7,6 +7,7 @@ namespace URSA.Web.Http
 {
     /// <summary>Represents an HTTP exception.</summary>
     [ExcludeFromCodeCoverage]
+    [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
     [Serializable]
     public class ProtocolException : Exception
     {

@@ -101,7 +101,10 @@ namespace VDS.RDF.Writing
             JArray list = new JArray();
             if (nodes != null)
             {
-                nodes.ForEach(node => list.Add(MakeObject(node)));
+                foreach (var node in nodes)
+                {
+                    list.Add(MakeObject(node));
+                }
             }
 
             return new JObject { { "@list", list } };
@@ -155,8 +158,13 @@ namespace VDS.RDF.Writing
         {
             IDictionary<INode, List<INode>> lists = GetLists(graph);
             IDictionary<string, JObject> subjects = new Dictionary<string, JObject>();
-            foreach (Triple triple in graph.Triples.Where((t) => !IsListNode(t.Subject, graph)))
+            foreach (Triple triple in graph.Triples)
             {
+                if (!IsListNode(triple.Subject, graph))
+                {
+                    continue;
+                }
+
                 string subject = triple.Subject.ToString();
                 string predicate = triple.Predicate.ToString();
                 if (predicate == "http://www.w3.org/1999/02/22-rdf-syntax-ns#type")

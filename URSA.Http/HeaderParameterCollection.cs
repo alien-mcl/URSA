@@ -131,7 +131,7 @@ namespace URSA.Web.Http
 
         /// <summary>Clears the parameters collection.</summary>
         [ExcludeFromCodeCoverage]
-        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
+        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "Wrapper without testable logic.")]
         public void Clear()
         {
             _parameters.Clear();
@@ -139,6 +139,7 @@ namespace URSA.Web.Http
 
         /// <inheritdoc />
         [ExcludeFromCodeCoverage]
+        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "Wrapper without testable logic.")]
         IEnumerator<HeaderParameter> IEnumerable<HeaderParameter>.GetEnumerator()
         {
             return _parameters.Values.GetEnumerator();
@@ -146,7 +147,7 @@ namespace URSA.Web.Http
 
         /// <inheritdoc />
         [ExcludeFromCodeCoverage]
-        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
+        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "Wrapper without testable logic.")]
         bool ICollection<HeaderParameter>.Contains(HeaderParameter item)
         {
             HeaderParameter result;
@@ -155,7 +156,7 @@ namespace URSA.Web.Http
 
         /// <inheritdoc />
         [ExcludeFromCodeCoverage]
-        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
+        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "Wrapper without testable logic.")]
         void ICollection<HeaderParameter>.CopyTo(HeaderParameter[] array, int arrayIndex)
         {
             _parameters.Values.ToArray().CopyTo(array, arrayIndex);
@@ -163,7 +164,7 @@ namespace URSA.Web.Http
 
         /// <inheritdoc />
         [ExcludeFromCodeCoverage]
-        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
+        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "Wrapper without testable logic.")]
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
         {
             return _parameters.Values.GetEnumerator();
@@ -171,7 +172,7 @@ namespace URSA.Web.Http
 
         /// <inheritdoc />
         [ExcludeFromCodeCoverage]
-        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
+        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "Wrapper without testable logic.")]
         public override string ToString()
         {
             return String.Join(";", _parameters.Values);
