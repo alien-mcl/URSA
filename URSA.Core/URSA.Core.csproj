@@ -45,6 +45,7 @@
     <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
     <Reference Include="System.IdentityModel" />
+    <Reference Include="System.Text.Encoding" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -71,6 +72,8 @@
     <Compile Include="Security\ResourceSecurityInfo.cs" />
     <Compile Include="Security\SecurableResourceInfoExtensions.cs" />
     <Compile Include="Security\SecuritySpecificationInfo.cs" />
+    <Compile Include="Url.cs" />
+    <Compile Include="UrlParser.cs" />
     <Compile Include="Web\IModelTransformer.cs" />
     <Compile Include="Web\IPostRequestHandler.cs" />
     <Compile Include="Web\IPreRequestHandler.cs" />

@@ -50,6 +50,8 @@ namespace URSA.CastleWindsor
         /// <inheritdoc />
         public void Install(IWindsorContainer container, IConfigurationStore store)
         {
+            UrlParser.Register<HttpUrlParser>();
+            UrlParser.Register<FtpUrlParser>();
             WindsorComponentProvider componentProvider = container.Resolve<WindsorComponentProvider>();
             var configuration = (HttpConfigurationSection)ConfigurationManager.GetSection(HttpConfigurationSection.ConfigurationSection);
             Type sourceSelectorType = ((configuration != null) && (configuration.DefaultValueRelationSelectorType != null) ?

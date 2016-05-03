@@ -82,6 +82,7 @@
     <Compile Include="Given_instance_of\ResourceSecurityInfo_class.cs" />
     <Compile Include="Given_instance_of\SecurableResourceInfo_class.cs" />
     <Compile Include="Given_instance_of\SecuritySpecificationInfo_class.cs" />
+    <Compile Include="Given_instance_of\Url_class.cs" />
     <Compile Include="Given_instance_of\UrsaConfigurationSection_class.cs" />
     <Compile Include="Given_instance_of\OperationInfo_class.cs" />
     <Compile Include="Given_instance_of\FromQueryStringAttribute_class.cs" />

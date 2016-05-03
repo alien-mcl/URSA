@@ -125,6 +125,12 @@
     <Compile Include="HeaderParameter.cs" />
     <Compile Include="HeaderParameterCollection.cs" />
     <Compile Include="HeaderValue.cs" />
+    <Compile Include="FtpUrl.cs" />
+    <Compile Include="HttpUrl.cs" />
+    <Compile Include="FtpUrlParser.cs" />
+    <Compile Include="IpUrlParser.cs" />
+    <Compile Include="IpUrl.cs" />
+    <Compile Include="HttpUrlParser.cs" />
     <Compile Include="IHttpControllerDescriptionBuilder.cs" />
     <Compile Include="IResponseComposer.cs" />
     <Compile Include="IWebRequestProvider.cs" />
@@ -145,6 +151,7 @@
     <Compile Include="Mapping\OnPostAttribute.cs" />
     <Compile Include="Mapping\OnVerbAttribute.cs" />
     <Compile Include="Mapping\ResultBinder.cs" />
+    <Compile Include="ParametersCollection.cs" />
     <Compile Include="Reflection\MemberInfoExtensions.cs" />
     <Compile Include="ResponseComposer.cs" />
     <Compile Include="Security\BasicAuthenticationProvider.cs" />

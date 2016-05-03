@@ -97,9 +97,13 @@
   <ItemGroup>
     <Compile Include="Data\IProduct.cs" />
     <Compile Include="Data\Person.cs" />
+    <Compile Include="FluentAssertions\FtpUrlAssertions.cs" />
+    <Compile Include="FluentAssertions\HttpUrlAssertions.cs" />
     <Compile Include="FluentAssertions\CustomAssertions.cs" />
     <Compile Include="Given_instance_of_the\ArgumentBinder_class.cs" />
     <Compile Include="Given_instance_of_the\BasicAuthenticationProvider_class\when_acting_as_IDefaultAuthenticationScheme.cs" />
+    <Compile Include="When_working_with_URLs\FtpUrl_class.cs" />
+    <Compile Include="When_working_with_URLs\HttpUrl_class.cs" />
     <None Include="When_sending_a_request\ArgumentBinder_class.cs" />
     <Compile Include="Given_instance_of_the\binder\FromBodyArgumentBinder_class\when_binding_to_multipart_form_data_body.cs" />
     <Compile Include="Given_instance_of_the\binder\FromBodyArgumentBinder_class\when_binding_to_X_WWW_Url_Encoded_body.cs" />
@@ -120,6 +124,7 @@
     <Compile Include="Given_instance_of_the\HeaderParameter_class.cs" />
     <Compile Include="Given_instance_of_the\HeaderValue_class\when_integer_specialized_instance_is_given.cs" />
     <Compile Include="Given_instance_of_the\OptionsController_class.cs" />
+    <Compile Include="Given_instance_of_the\ParametersCollection_class.cs" />
     <Compile Include="Given_instance_of_the\RequestHandler_class.cs" />
     <Compile Include="Given_instance_of_the\RequestInfo_class.cs" />
     <Compile Include="Given_instance_of_the\MultiObjectResponseInfo_class.cs" />
@@ -136,6 +141,8 @@
     <Compile Include="Given_instance_of_the\ResultBinder_class.cs" />
     <Compile Include="Given_instance_of_the\BasicAuthenticationProvider_class\when_acting_as_IAuthenticationProvider.cs" />
     <Compile Include="Given_instance_of_the\CorsPostRequestHandler_class.cs" />
+    <Compile Include="Given_instance_of_the\UrlParser_class\when_parsing_an_FTP_url.cs" />
+    <Compile Include="Given_instance_of_the\UrlParser_class\when_parsing_an_HTTP_url.cs" />
     <Compile Include="Given_instance_of_the\Verb_class.cs" />
     <Compile Include="Given_instance_of_the\WebRequestProvider_class.cs" />
     <Compile Include="Testing\ArgumentBinderTest.cs" />
@@ -157,6 +164,7 @@
     <Compile Include="Testing\ConverterTest.cs" />
     <Compile Include="Testing\MethodInfoExtensions.cs" />
     <Compile Include="Testing\RequestExtensions.cs" />
+    <Compile Include="Testing\UrlScenario.cs" />
     <Compile Include="Web\AnotherTestController.cs" />
     <Compile Include="Web\CrudController.cs" />
     <Compile Include="Web\TestController.cs" />
@@ -182,6 +190,7 @@
   <ItemGroup>
     <Content Include="FodyWeavers.xml" />
   </ItemGroup>
+  <ItemGroup />
   <Choose>
     <When Condition="'$(VisualStudioVersion)' == '10.0' And '$(IsCodedUITest)' == 'True'">
       <ItemGroup>
