@@ -16,6 +16,7 @@ using RomanticWeb.Mapping;
 using RomanticWeb.Mapping.Model;
 using RomanticWeb.Model;
 using RomanticWeb.NamedGraphs;
+using URSA;
 using URSA.Security;
 using URSA.Web.Description;
 using URSA.Web.Description.Http;
@@ -190,7 +191,7 @@ namespace Given_instance_of_the
                 ParameterSourceAttribute source = null;
                 if (parameter.ParameterType == typeof(Guid))
                 {
-                    source = FromUriAttribute.For(parameter);
+                    source = FromUrlAttribute.For(parameter);
                     uriTemplate += (parameterTemplate = "/" + parameter.Name + "/{?value}");
                 }
                 else if (parameter.ParameterType.IsValueType)
@@ -211,7 +212,7 @@ namespace Given_instance_of_the
                 uriTemplate += "?" + queryString.Substring(1);
             }
 
-            return new OperationInfo<Verb>(method, new Uri("/", UriKind.Relative), uriTemplate, new Regex(".*"), verb, arguments.ToArray()).WithSecurityDetailsFrom(method);
+            return new OperationInfo<Verb>(method, (HttpUrl)UrlParser.Parse("/"), uriTemplate, new Regex(".*"), verb, arguments.ToArray()).WithSecurityDetailsFrom(method);
         }
 
         private static Mock<INamedGraphSelectorFactory> SetupNamedGraphSelectorFactory(Uri baseUri)
@@ -256,15 +257,15 @@ namespace Given_instance_of_the
                 .Except(typeof(TestController).GetProperties(BindingFlags.Public | BindingFlags.Instance).SelectMany(property => new MethodInfo[] { property.GetGetMethod(), property.GetSetMethod() }))
                 .Select(method => CreateOperation(method, verbs[method.Name]));
 
-            ControllerInfo<TestController> controllerInfo = new ControllerInfo<TestController>(null, new Uri("/", UriKind.Relative), operations.ToArray());
+            ControllerInfo<TestController> controllerInfo = new ControllerInfo<TestController>(null, (HttpUrl)UrlParser.Parse("/"), operations.ToArray());
             Mock<IHttpControllerDescriptionBuilder<TestController>> descriptionBuilder = new Mock<IHttpControllerDescriptionBuilder<TestController>>(MockBehavior.Strict);
             descriptionBuilder.As<IHttpControllerDescriptionBuilder>().Setup(instance => instance.BuildDescriptor()).Returns(controllerInfo);
             descriptionBuilder.As<IHttpControllerDescriptionBuilder>().Setup(instance => instance.GetMethodVerb(It.IsAny<MethodInfo>())).Returns<MethodInfo>(method => verbs[method.Name]);
             foreach (var operation in operations)
             {
                 IEnumerable<ArgumentInfo> parameterMapping = operation.Arguments;
-                descriptionBuilder.As<IHttpControllerDescriptionBuilder>().Setup(instance => instance.GetOperationUriTemplate(operation.UnderlyingMethod, out parameterMapping))
-                    .Returns<MethodInfo, IEnumerable<ArgumentInfo>>((method, parameters) => operation.UriTemplate);
+                descriptionBuilder.As<IHttpControllerDescriptionBuilder>().Setup(instance => instance.GetOperationUrlTemplate(operation.UnderlyingMethod, out parameterMapping))
+                    .Returns<MethodInfo, IEnumerable<ArgumentInfo>>((method, parameters) => operation.UrlTemplate);
             }
 
             return descriptionBuilder.Object;

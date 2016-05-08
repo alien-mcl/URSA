@@ -34,7 +34,7 @@ namespace URSA.Web.Http.Tests.Testing
         /// <returns>Operation descriptor.</returns>
         public static OperationInfo<T> ToOperationInfo<T>(this MethodInfo method, string baseUri, T verb, out string callUri, params object[] values)
         {
-            var methodUri = method.GetCustomAttributes<RouteAttribute>().Select(attribute => attribute.Uri.ToString()).FirstOrDefault() ?? method.Name.ToLower();
+            var methodUri = method.GetCustomAttributes<RouteAttribute>().Select(attribute => attribute.Url.ToString()).FirstOrDefault() ?? method.Name.ToLower();
             if ((methodUri == "list") || (methodUri == "get") || (methodUri == "create") || (methodUri == "post") || 
                 (methodUri == "update") || (methodUri == "put") || (methodUri == "delete"))
             {
@@ -50,7 +50,7 @@ namespace URSA.Web.Http.Tests.Testing
                 {
                     string uriTemplate = null;
                     var target = parameter.GetParameterTarget();
-                    if (target is FromUriAttribute)
+                    if (target is FromUrlAttribute)
                     {
                         var temp = String.Format("/{{{0}}}", parameter.Name);
                         uriTemplate = (methodUri += temp);
@@ -79,7 +79,7 @@ namespace URSA.Web.Http.Tests.Testing
             var queryStringParameters = Regex.Matches(callUri, "[?&]([^=]+)=[^&]+").Cast<Match>();
             var queryStringRegex = (queryStringParameters.Any() ? "[?&](" + String.Join("|", queryStringParameters.Select(item => item.Groups[1].Value)) + ")=[^&]+" : String.Empty);
             var methodRegex = new Regex("^" + Regex.Replace(actualCallUri, "/{[^}]+}", "/[^\\/]+") + queryStringRegex + "$");
-            return new OperationInfo<T>(method, new Uri(methodUri, UriKind.RelativeOrAbsolute), targetUriTemplate, methodRegex, verb, (ValueInfo[])arguments);
+            return new OperationInfo<T>(method, (HttpUrl)UrlParser.Parse("/" + methodUri), targetUriTemplate, methodRegex, verb, (ValueInfo[])arguments);
         }
 
         private static ParameterSourceAttribute GetParameterTarget(this ParameterInfo parameter)
@@ -94,7 +94,7 @@ namespace URSA.Web.Http.Tests.Testing
                 ((IsIdentity(parameter.ParameterType)) &&
                 (PopularIdentifierPropertyNames.Contains(parameter.Name, StringComparer.OrdinalIgnoreCase))))
             {
-                return FromUriAttribute.For(parameter);
+                return FromUrlAttribute.For(parameter);
             }
 
             if ((!parameter.ParameterType.IsValueType) && (typeof(string) != parameter.ParameterType) &&

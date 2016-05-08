@@ -4,6 +4,7 @@ using System.Reflection;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using URSA;
 using URSA.Web.Description;
 using URSA.Web.Description.Http;
 using URSA.Web.Http;
@@ -16,7 +17,7 @@ namespace Given_instance_of_the
     [TestClass]
     public class EntryPointControllerDescriptionBuilder_class
     {
-        private static readonly Uri EntryPoint = new Uri("/test", UriKind.Relative);
+        private static readonly HttpUrl EntryPoint = (HttpUrl)UrlParser.Parse("/test");
         private EntryPointControllerDescriptionBuilder _builder;
 
         [TestMethod]

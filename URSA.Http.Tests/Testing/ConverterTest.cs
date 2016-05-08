@@ -16,7 +16,7 @@ namespace URSA.Web.Http.Testing
     {
         protected const string OperationName = "PostStrings";
 
-        protected static readonly Uri BaseUri = new Uri("http://temp.org/api/test/");
+        protected static readonly HttpUrl BaseUrl = (HttpUrl)UrlParser.Parse("http://temp.org/api/test/");
 
         private const string ContentType = "text/plain";
 
@@ -349,7 +349,7 @@ namespace URSA.Web.Http.Testing
             headers.Accept = mediaType;
             return new RequestInfo(
                 Verb.Parse(method),
-                new Uri(BaseUri, handler + "/"),
+                (HttpUrl)BaseUrl.AddSegment(handler),
                 (body != null ? new MemoryStream(Encoding.UTF8.GetBytes(body)) : new MemoryStream()),
                 new BasicClaimBasedIdentity(),
                 headers);

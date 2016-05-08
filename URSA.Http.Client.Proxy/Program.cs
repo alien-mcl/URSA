@@ -41,7 +41,7 @@ namespace URSA.Web.Http.Client.Proxy
 
         private static void Process(string uri, string targetDirectory)
         {
-            Uri url;
+            HttpUrl url;
             if (uri == null)
             {
                 throw new ArgumentNullException("uri");
@@ -62,8 +62,8 @@ namespace URSA.Web.Http.Client.Proxy
                 throw new ArgumentOutOfRangeException("targetDirectory");
             }
 
-            url = new Uri(uri);
-            if (!url.Scheme.StartsWith("http"))
+            url = UrlParser.Parse(uri) as HttpUrl;
+            if (url == null)
             {
                 throw new ArgumentOutOfRangeException("uri");
             }
@@ -77,12 +77,12 @@ namespace URSA.Web.Http.Client.Proxy
             CreateProxy(targetDirectory, url);
         }
 
-        private static IApiDocumentation GetApiDocumentation(Uri url)
+        private static IApiDocumentation GetApiDocumentation(HttpUrl url)
         {
             string contentType;
             var responseStream = new UnclosableStream(GetResponse(Method, url, out contentType));
             var container = UrsaConfigurationSection.InitializeComponentProvider();
-            container.Register<IHttpServerConfiguration>(new StaticHttpServerConfiguration(url));
+            container.Register<IHttpServerConfiguration>(new StaticHttpServerConfiguration((Uri)url));
             var headers = new HeaderCollection();
             if (!String.IsNullOrEmpty(contentType))
             {
@@ -90,7 +90,7 @@ namespace URSA.Web.Http.Client.Proxy
                 ((IDictionary<string, string>)headers)[Header.ContentType] = contentType;
             }
 
-            var apiDocumentationId = new Uri(url + "#");
+            var apiDocumentationId = url.WithFragment(String.Empty);
             var httpRequest = new RequestInfo(Verb.Parse(Method), apiDocumentationId, responseStream, new BasicClaimBasedIdentity(), headers);
             var converterProvider = container.Resolve<IConverterProvider>();
             var converter = converterProvider.FindBestInputConverter<IApiDocumentation>(httpRequest);
@@ -100,12 +100,12 @@ namespace URSA.Web.Http.Client.Proxy
             }
 
             converter.ConvertTo<IApiDocumentation>(httpRequest);
-            return _container.Resolve<IEntityContext>().Load<IApiDocumentation>(apiDocumentationId);
+            return _container.Resolve<IEntityContext>().Load<IApiDocumentation>((Uri)apiDocumentationId);
         }
 
-        private static Stream GetResponse(string method, Uri url, out string contentType)
+        private static Stream GetResponse(string method, HttpUrl url, out string contentType)
         {
-            var request = WebRequest.CreateHttp(url);
+            var request = WebRequest.CreateHttp((Uri)url);
             request.Method = method;
             request.UserAgent = "URSA Proxy Generator";
             request.Accept = String.Join(", ", EntityConverter.MediaTypes);
@@ -114,12 +114,12 @@ namespace URSA.Web.Http.Client.Proxy
             return response.GetResponseStream();
         }
 
-        private static void CreateProxy(string targetDirectory, Uri url)
+        private static void CreateProxy(string targetDirectory, HttpUrl url)
         {
             var namedGraphSelector = _container.Resolve<INamedGraphSelector>() as ILocallyControlledNamedGraphSelector;
             if (namedGraphSelector != null)
             {
-                namedGraphSelector.NamedGraph = url;
+                namedGraphSelector.NamedGraph = (Uri)url;
             }
 
             var apiDocumentation = GetApiDocumentation(url);

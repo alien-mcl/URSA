@@ -3,20 +3,21 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using URSA.Web.Http;
 
 namespace URSA.Web.Description
 {
     /// <summary>Describes a controller.</summary>
     [ExcludeFromCodeCoverage]
     [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
-    [DebuggerDisplay("{Uri}", Name = "{Uri}")]
+    [DebuggerDisplay("{Url}", Name = "{Url}")]
     public abstract class ControllerInfo : SecurableResourceInfo
     {
         /// <summary>Initializes a new instance of the <see cref="ControllerInfo" /> class.</summary>
         /// <param name="entryPoint">An entry point.</param>
-        /// <param name="uri">Base uri of the controller including the <paramref name="entryPoint" /> prefix if any.</param>
+        /// <param name="url">Base URL of the controller including the <paramref name="entryPoint" /> prefix if any.</param>
         /// <param name="operations">Operation details.</param>
-        protected ControllerInfo(EntryPointInfo entryPoint, Uri uri, params OperationInfo[] operations) : base(uri)
+        protected ControllerInfo(EntryPointInfo entryPoint, Url url, params OperationInfo[] operations) : base(url)
         {
             EntryPoint = entryPoint;
             foreach (var operation in Operations = (operations ?? new OperationInfo[0]))
@@ -30,7 +31,7 @@ namespace URSA.Web.Description
         /// <summary>Gets the operation descriptors.</summary>
         public IEnumerable<OperationInfo> Operations { get; private set; }
 
-        /// <summary>Gets the entry point Uri prefix.</summary>
+        /// <summary>Gets the entry point URL prefix.</summary>
         public EntryPointInfo EntryPoint { get; private set; }
 
         /// <summary>Gets the optional arguments to be used when creating a controller instance.</summary>
@@ -52,9 +53,9 @@ namespace URSA.Web.Description
     {
         /// <summary>Initializes a new instance of the <see cref="ControllerInfo{T}" /> class.</summary>
         /// <param name="entryPoint">An entry point.</param>
-        /// <param name="uri">Base uri of the controller including the <paramref name="entryPoint" /> prefix if any.</param>
+        /// <param name="url">Base URL of the controller including the <paramref name="entryPoint" /> prefix if any.</param>
         /// <param name="operations">Operation details.</param>
-        public ControllerInfo(EntryPointInfo entryPoint, Uri uri, params OperationInfo[] operations) : base(entryPoint, uri, operations)
+        public ControllerInfo(EntryPointInfo entryPoint, Url url, params OperationInfo[] operations) : base(entryPoint, url, operations)
         {
         }
 

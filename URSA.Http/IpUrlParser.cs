@@ -72,12 +72,12 @@ namespace URSA.Web.Http
         /// <inheritdoc />
         public override Url Parse(string url, int schemeSpecificPartIndex)
         {
-            if (url.Length - schemeSpecificPartIndex < 4)
+            if ((schemeSpecificPartIndex >= 0) && (url.Length - schemeSpecificPartIndex < 4))
             {
                 throw new ArgumentOutOfRangeException("url", "Passed url is malformed.");
             }
 
-            int index = schemeSpecificPartIndex + 3;
+            int index = (schemeSpecificPartIndex >= 0 ? schemeSpecificPartIndex + 3 : 0);
             Scheme = (schemeSpecificPartIndex > 0 ? url.Substring(0, schemeSpecificPartIndex) : String.Empty);
             Expected expectedToken = (Scheme.Length > 0 ? Expected.UserName | Expected.Host : Expected.Path);
             int lastDelimiter = index;
@@ -148,7 +148,11 @@ namespace URSA.Web.Http
                         return false;
                     }
 
-                    FinalizeHostOrPort(actualUrl, index, lastDelimiter, ref expectedToken);
+                    if (Scheme.Length > 0)
+                    {
+                        FinalizeHostOrPort(actualUrl, index, lastDelimiter, ref expectedToken);
+                    }
+
                     ParsePath(actualUrl, index);
                     index = actualUrl.Length;
                     return true;

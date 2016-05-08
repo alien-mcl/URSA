@@ -3,6 +3,8 @@ using System.Diagnostics.CodeAnalysis;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using URSA;
+using URSA.Web.Http;
 using URSA.Web.Http.Description;
 using URSA.Web.Http.Description.Entities;
 using URSA.Web.Http.Description.NamedGraphs;
@@ -17,7 +19,7 @@ namespace Given_instance_of_the
         public void it_should_provide_file_name_from_Url_fragment()
         {
             var expected = "name";
-            var controller = CreateControllerInstance(new Uri("/test#" + expected, UriKind.Relative));
+            var controller = CreateControllerInstance((HttpUrl)UrlParser.Parse("/test#" + expected));
 
             controller.FileName.Should().Be(expected);
         }
@@ -27,12 +29,12 @@ namespace Given_instance_of_the
         {
             var expected = "name";
 
-            var controller = CreateControllerInstance(new Uri("/test/" + expected, UriKind.Relative));
+            var controller = CreateControllerInstance((HttpUrl)UrlParser.Parse("/test/" + expected));
 
             controller.FileName.Should().Be(expected);
         }
 
-        private EntryPointDescriptionController CreateControllerInstance(Uri entryPoint)
+        private EntryPointDescriptionController CreateControllerInstance(HttpUrl entryPoint)
         {
             var builder = new Mock<IApiEntryPointDescriptionBuilder>(MockBehavior.Strict);
             builder.SetupSet(instance => instance.EntryPoint = entryPoint);

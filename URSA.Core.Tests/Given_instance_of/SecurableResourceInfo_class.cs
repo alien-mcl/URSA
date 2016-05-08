@@ -4,9 +4,12 @@ using System.Security.Claims;
 using System.Text.RegularExpressions;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using URSA;
 using URSA.Security;
+using URSA.Testing;
 using URSA.Tests.Web;
 using URSA.Web.Description;
+using URSA.Web.Http;
 
 namespace Given_instance_of
 {
@@ -40,12 +43,13 @@ namespace Given_instance_of
         [TestInitialize]
         public void Setup()
         {
+            UrlParser.Register<RelativeUrlParser>();
             var controllerType = typeof(TestController);
-            var operationUri = "/api/test/operation";
+            var operationUrl = "/api/test/operation";
             var methodInfo = controllerType.GetMethod("Operation");
-            var entryPoint = new EntryPointInfo(new Uri("/api", UriKind.Relative)).WithSecurityDetailsFrom(controllerType.Assembly);
-            _operationInfo = new FakeOperationInfo(methodInfo, new Uri(operationUri, UriKind.Relative), null, new Regex(operationUri)).WithSecurityDetailsFrom(methodInfo);
-            new FakeControllerInfo(entryPoint, new Uri("/api/test", UriKind.Relative), _operationInfo).WithSecurityDetailsFrom(controllerType);
+            var entryPoint = new EntryPointInfo(UrlParser.Parse("/api")).WithSecurityDetailsFrom(controllerType.Assembly);
+            _operationInfo = new FakeOperationInfo(methodInfo, UrlParser.Parse(operationUrl), null, new Regex(operationUrl)).WithSecurityDetailsFrom(methodInfo);
+            new FakeControllerInfo(entryPoint, UrlParser.Parse("/api/test"), _operationInfo).WithSecurityDetailsFrom(controllerType);
         }
 
         [TestCleanup]
@@ -56,8 +60,8 @@ namespace Given_instance_of
 
         private class FakeControllerInfo : ControllerInfo
         {
-            internal FakeControllerInfo(EntryPointInfo entryPoint, Uri uri, params OperationInfo[] operations)
-                : base(entryPoint, uri, operations)
+            internal FakeControllerInfo(EntryPointInfo entryPoint, Url url, params OperationInfo[] operations)
+                : base(entryPoint, url, operations)
             {
             }
 
@@ -66,8 +70,8 @@ namespace Given_instance_of
 
         private class FakeOperationInfo : OperationInfo
         {
-            internal FakeOperationInfo(MethodInfo underlyingMethod, Uri uri, string uriTemplate, Regex regexTemplate, params ValueInfo[] values) :
-                base(underlyingMethod, uri, uriTemplate, regexTemplate, values)
+            internal FakeOperationInfo(MethodInfo underlyingMethod, Url url, string urlTemplate, Regex regexTemplate, params ValueInfo[] values) :
+                base(underlyingMethod, url, urlTemplate, regexTemplate, values)
             {
             }
         }

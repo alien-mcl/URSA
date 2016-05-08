@@ -53,7 +53,7 @@ namespace URSA.Web.Description.Http
         }
 
         /// <inheritdoc />
-        public string GetOperationUriTemplate(MethodInfo methodInfo, out IEnumerable<ArgumentInfo> argumentMapping)
+        public string GetOperationUrlTemplate(MethodInfo methodInfo, out IEnumerable<ArgumentInfo> argumentMapping)
         {
             if (methodInfo == null)
             {
@@ -73,7 +73,7 @@ namespace URSA.Web.Description.Http
             }
 
             argumentMapping = method.Arguments;
-            return method.UriTemplate;
+            return method.UrlTemplate;
         }
 
         /// <inheritdoc />
@@ -107,8 +107,8 @@ namespace URSA.Web.Description.Http
             EntryPointInfo entryPoint = null;
             if (globalRoutePrefix != null)
             {
-                prefix = new RouteAttribute(prefix.Uri.Combine(globalRoutePrefix.Uri).ToString());
-                entryPoint = new EntryPointInfo(globalRoutePrefix.Uri).WithSecurityDetailsFrom(assembly);
+                prefix = new RouteAttribute(((HttpUrl)prefix.Url).InsertSegments(0, ((HttpUrl)globalRoutePrefix.Url).Segments).ToString());
+                entryPoint = new EntryPointInfo(globalRoutePrefix.Url).WithSecurityDetailsFrom(assembly);
             }
 
             IList<OperationInfo> operations = new List<OperationInfo>();
@@ -121,7 +121,7 @@ namespace URSA.Web.Description.Http
                 operations.AddRange(BuildMethodDescriptor(method, prefix));
             }
 
-            return new ControllerInfo<T>(entryPoint, prefix.Uri, operations.ToArray()).WithSecurityDetailsFrom(typeof(T));
+            return new ControllerInfo<T>(entryPoint, prefix.Url, operations.ToArray()).WithSecurityDetailsFrom(typeof(T));
         }
 
         private IEnumerable<OperationInfo> BuildMethodDescriptor(MethodInfo method, RouteAttribute prefix)
@@ -137,16 +137,16 @@ namespace URSA.Web.Description.Http
             }
 
             UriTemplateBuilder templateRegex = new UriTemplateBuilder(entityType, true);
-            templateRegex.Add(prefix.Uri.ToString(), prefix, typeof(T));
-            templateRegex.Add(route.Uri.ToString(), route, method);
-            Uri uri = new Uri(templateRegex.ToString(), UriKind.RelativeOrAbsolute);
+            templateRegex.Add(prefix.Url.ToString(), prefix, typeof(T));
+            templateRegex.Add(route.Url.ToString(), route, method);
+            Url url = UrlParser.Parse(templateRegex.ToString());
             IList<OperationInfo> result = new List<OperationInfo>();
             foreach (var item in verbs)
             {
                 UriTemplateBuilder uriTemplate = templateRegex.Clone(false);
                 var parameters = BuildParameterDescriptors(method, item.Verb, templateRegex, ref uriTemplate);
                 var regex = new Regex("^" + templateRegex + "$", RegexOptions.IgnoreCase);
-                result.Add(new OperationInfo<Verb>(method, uri, uriTemplate, regex, item.Verb, parameters).WithSecurityDetailsFrom(method));
+                result.Add(new OperationInfo<Verb>(method, url, uriTemplate, regex, item.Verb, parameters).WithSecurityDetailsFrom(method));
             }
 
             return result;
@@ -169,15 +169,15 @@ namespace URSA.Web.Description.Http
                 }
 
                 bool isBodyParameter;
-                string parameterUriTemplate;
+                string parameterUrlTemplate;
                 string parameterTemplateRegex;
-                var source = CreateParameterTemplateRegex(method, parameter, verb, out parameterUriTemplate, out parameterTemplateRegex, out isBodyParameter);
+                var source = CreateParameterTemplateRegex(method, parameter, verb, out parameterUrlTemplate, out parameterTemplateRegex, out isBodyParameter);
                 if ((parameterTemplateRegex == null) && (!isBodyParameter))
                 {
                     continue;
                 }
 
-                string variableName = (isBodyParameter ? null : UriTemplateBuilder.VariableTemplateRegex.Match(parameterUriTemplate).Groups["ParameterName"].Value);
+                string variableName = (isBodyParameter ? null : UriTemplateBuilder.VariableTemplateRegex.Match(parameterUrlTemplate).Groups["ParameterName"].Value);
                 if (parameterTemplateRegex != null)
                 {
                     if (!(source is FromQueryStringAttribute))
@@ -185,32 +185,32 @@ namespace URSA.Web.Description.Http
                         templateRegex.Add(parameterTemplateRegex, source, parameter, parameter.HasDefaultValue);
                     }
 
-                    uriTemplate.Add(parameterUriTemplate, source, parameter, parameter.HasDefaultValue);
+                    uriTemplate.Add(parameterUrlTemplate, source, parameter, parameter.HasDefaultValue);
                 }
 
-                result.Add(new ArgumentInfo(parameter, source, (isBodyParameter ? null : (parameterTemplateRegex.StartsWith("([?&]") ? parameterUriTemplate : uriTemplate.ToString(false))), variableName));
+                result.Add(new ArgumentInfo(parameter, source, (isBodyParameter ? null : (parameterTemplateRegex.StartsWith("([?&]") ? parameterUrlTemplate : uriTemplate.ToString(false))), variableName));
             }
 
             return result.ToArray();
         }
 
-        private ParameterSourceAttribute CreateParameterTemplateRegex(MethodInfo method, ParameterInfo parameter, Verb verb, out string parameterUriTemplate, out string parameterTemplateRegex, out bool isBodyParameter)
+        private ParameterSourceAttribute CreateParameterTemplateRegex(MethodInfo method, ParameterInfo parameter, Verb verb, out string parameterUrlTemplate, out string parameterTemplateRegex, out bool isBodyParameter)
         {
-            parameterUriTemplate = null;
+            parameterUrlTemplate = null;
             isBodyParameter = false;
             var parameterSource = parameter.GetCustomAttribute<ParameterSourceAttribute>(true) ?? _defaultValueRelationSelector.ProvideDefault(parameter, verb);
-            var templatedParameterSource = parameterSource as IUriTemplateParameterSourceAttribute;
+            var templatedParameterSource = parameterSource as IUrlTemplateParameterSourceAttribute;
             if ((templatedParameterSource != null) && (templatedParameterSource.Template == templatedParameterSource.DefaultTemplate))
             {
-                templatedParameterSource = (parameterSource = templatedParameterSource.For(parameter)) as IUriTemplateParameterSourceAttribute;
+                templatedParameterSource = (parameterSource = templatedParameterSource.For(parameter)) as IUrlTemplateParameterSourceAttribute;
             }
 
             if (templatedParameterSource != null)
             {
-                if ((!(parameterUriTemplate = templatedParameterSource.Template).StartsWith("&")) && 
-                    (parameterSource is FromQueryStringAttribute) && (!parameterUriTemplate.StartsWith("{")))
+                if ((!(parameterUrlTemplate = templatedParameterSource.Template).StartsWith("&")) && 
+                    (parameterSource is FromQueryStringAttribute) && (!parameterUrlTemplate.StartsWith("{")))
                 {
-                    parameterUriTemplate = "&" + parameterUriTemplate;
+                    parameterUrlTemplate = "&" + parameterUrlTemplate;
                 }
             }
 

@@ -18,7 +18,7 @@ namespace Given_instance_of_the
             _parameters.AddValue("key", String.Empty);
             _parameters.AddValue("another", String.Empty);
 
-            _parameters.Should().HaveCount(2).And.Subject.First().Should().Be(new KeyValuePair<string, string>("key", String.Empty));
+            _parameters.Should().HaveCount(2).And.Subject.Any(param => param.Equals(new KeyValuePair<string, string>("key", String.Empty))).Should().BeTrue();
         }
 
         [TestMethod]

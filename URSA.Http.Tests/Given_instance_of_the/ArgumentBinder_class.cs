@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
+using URSA;
 using URSA.Security;
 using URSA.Web;
 using URSA.Web.Converters;
@@ -184,7 +185,7 @@ namespace Given_instance_of_the
         [TestMethod]
         public void it_should_throw_when_no_request_mapping_is_provided()
         {
-            var request = new RequestInfo(Verb.GET, new Uri("/", UriKind.Relative), new MemoryStream(), new BasicClaimBasedIdentity());
+            var request = new RequestInfo(Verb.GET, (HttpUrl)UrlParser.Parse("/"), new MemoryStream(), new BasicClaimBasedIdentity());
             _binder.Invoking(instance => instance.BindArguments(request, null)).ShouldThrow<ArgumentNullException>().Which.ParamName.Should().Be("requestMapping");
         }
 
@@ -217,13 +218,13 @@ namespace Given_instance_of_the
                 .Select(item => new ArgumentInfo(item, FromQueryStringAttribute.For(item), "&test={?test}", "test"));
             var operation = new OperationInfo<Verb>(
                 method,
-                new Uri(methodUri, UriKind.RelativeOrAbsolute),
+                (HttpUrl)UrlParser.Parse(methodUri),
                 callUri,
                 new Regex("^" + methodUri + queryStringRegex + "$"),
                 verb,
                 arguments.ToArray());
-            var request = new RequestInfo(Verb.GET, new Uri("http://temp.uri" + callUri), new MemoryStream(), new BasicClaimBasedIdentity());
-            var mapping = new RequestMapping(GetControllerInstance(), operation, new Uri(methodUri, UriKind.Relative));
+            var request = new RequestInfo(Verb.GET, (HttpUrl)UrlParser.Parse("http://temp.uri" + callUri), new MemoryStream(), new BasicClaimBasedIdentity());
+            var mapping = new RequestMapping(GetControllerInstance(), operation, (HttpUrl)UrlParser.Parse(methodUri));
             if (indirectly)
             {
                 return _binder.BindArguments((IRequestInfo)request, (IRequestMapping)mapping);

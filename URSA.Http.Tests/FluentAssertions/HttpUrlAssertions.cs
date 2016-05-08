@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using FluentAssertions.Common;
 using FluentAssertions.Execution;
 using FluentAssertions.Primitives;
 using URSA.Web.Http;
@@ -112,6 +113,19 @@ namespace FluentAssertions
                     .FailWith("Expected Url's <{2}> port to be {0}, but found {1}.", scenario.Port, Subject.Port, Subject.OriginalUrl);
             }
 
+            return new AndConstraint<HttpUrlAssertions>(this);
+        }
+
+        /// <summary>Checks whether the subject of the assertions equals to <paramref name="expected" /> URL.</summary>
+        /// <param name="other">The other URL.</param>
+        /// <param name="because">Justification string.</param>
+        /// <param name="reasonArgs">Justification arguments.</param>
+        /// <returns>Further <see cref="Url" /> assertions.</returns>
+        public AndConstraint<HttpUrlAssertions> Be(HttpUrl expected, string because = "", params object[] reasonArgs)
+        {
+            Execute.Assertion.BecauseOf(because, reasonArgs)
+                .ForCondition(Subject.IsSameOrEqualTo(expected))
+                .FailWith("Expected {context:object} to be {0}{reason}, but found {1}.", expected, Subject);
             return new AndConstraint<HttpUrlAssertions>(this);
         }
     }

@@ -78,7 +78,7 @@ namespace URSA.Web.Http.Description
 
             var namedGraphSelector = _namedGraphSelectorFactory.NamedGraphSelector;
             ILocallyControlledNamedGraphSelector locallyControlledNamedGraphSelector = namedGraphSelector as ILocallyControlledNamedGraphSelector;
-            result = (locallyControlledNamedGraphSelector == null ? TransformCollection(result, requestInfo.Uri, totalItems, skip, take) :
+            result = (locallyControlledNamedGraphSelector == null ? TransformCollection(result, requestInfo.Url, totalItems, skip, take) :
                 TransformColectionWithLock(locallyControlledNamedGraphSelector, result, requestInfo, totalItems, skip, take));
             return Task.FromResult(result);
         }
@@ -94,12 +94,12 @@ namespace URSA.Web.Http.Description
             lock (locallyControlledNamedGraphSelector)
             {
                 var requestId = Guid.NewGuid().ToString();
-                var graphUri = request.Uri.AddFragment(requestId);
-                var collectionId = new EntityId(request.Uri);
-                var viewId = new EntityId(request.Uri.AddFragment("view-" + requestId));
+                var graphUri = (Uri)request.Url.WithFragment(requestId);
+                var collectionId = new EntityId((Uri)request.Url);
+                var viewId = new EntityId((Uri)request.Url.WithFragment("view-" + requestId));
                 locallyControlledNamedGraphSelector.MapEntityGraphForRequest(request, collectionId, graphUri);
                 locallyControlledNamedGraphSelector.MapEntityGraphForRequest(request, viewId, graphUri);
-                result = TransformCollection(result, request.Uri, totalItems, skip, take);
+                result = TransformCollection(result, request.Url, totalItems, skip, take);
                 _entityContextProvider.EntityContext.Disposed += () =>
                     {
                         _entityContextProvider.TripleStore.Remove(graphUri);
@@ -111,10 +111,10 @@ namespace URSA.Web.Http.Description
             return result;
         }
 
-        private object TransformCollection(object result, Uri requestUri, int totalItems, int skip, int take)
+        private object TransformCollection(object result, HttpUrl requestUri, int totalItems, int skip, int take)
         {
             var entityContext = _entityContextProvider.EntityContext;
-            var collection = entityContext.Load<ICollection>(requestUri);
+            var collection = entityContext.Load<ICollection>((Uri)requestUri);
             collection.TotalItems = totalItems;
             collection.Members.Clear();
             foreach (IEntity entity in (IEnumerable)result)

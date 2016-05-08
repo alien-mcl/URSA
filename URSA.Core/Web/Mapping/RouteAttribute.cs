@@ -1,29 +1,30 @@
 ﻿using System;
+using URSA.Web.Http;
 
 namespace URSA.Web.Mapping
 {
-    /// <summary>Describes the partial uri associated with the method.</summary>
+    /// <summary>Describes the partial URL associated with the method.</summary>
     [AttributeUsage(AttributeTargets.Assembly | AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Interface | AttributeTargets.Method)]
     public class RouteAttribute : MappingAttribute
     {
         /// <summary>Initializes a new instance of the <see cref="RouteAttribute" /> class.</summary>
-        /// <param name="uri">Part of the uri associated with the method.</param>
-        public RouteAttribute(string uri)
+        /// <param name="url">Part of the URL associated with the method.</param>
+        public RouteAttribute(string url)
         {
-            if (uri == null)
+            if (url == null)
             {
-                throw new ArgumentNullException("uri");
+                throw new ArgumentNullException("url");
             }
 
-            if (uri.Length == 0)
+            if (url.Length == 0)
             {
-                throw new ArgumentOutOfRangeException("uri");
+                throw new ArgumentOutOfRangeException("url");
             }
 
-            Uri = new Uri((uri[0] == '/' ? String.Empty : "/") + uri, UriKind.Relative);
+            Url = UrlParser.Parse((url[0] == '/' ? String.Empty : "/") + url);
         }
 
-        /// <summary>Gets the part of the uri associated with the method.</summary>
-        public Uri Uri { get; private set; }
+        /// <summary>Gets the part of the URL associated with the method.</summary>
+        public Url Url { get; private set; }
     }
 }

@@ -7,6 +7,7 @@ using System.Text.RegularExpressions;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using URSA;
 using URSA.Security;
 using URSA.Web;
 using URSA.Web.Description;
@@ -29,23 +30,23 @@ namespace Given_instance_of_the.DelegateMapper_class
         [TestMethod]
         public void it_should_map_request()
         {
-            var result = _delegateMapper.MapRequest(new RequestInfo(Verb.GET, new Uri("http://temp.uri/api/test/add?operandA=1&operandB=2"), new MemoryStream(), new BasicClaimBasedIdentity()));
+            var result = _delegateMapper.MapRequest(new RequestInfo(Verb.GET, (HttpUrl)UrlParser.Parse("http://temp.uri/api/test/add?operandA=1&operandB=2"), new MemoryStream(), new BasicClaimBasedIdentity()));
 
             result.Should().NotBeNull();
             result.Target.Should().Be(_controller);
             result.Operation.Should().Be(_operation);
-            result.MethodRoute.Should().Be(_operation.Uri);
+            result.MethodRoute.Should().Be(_operation.Url);
         }
 
         [TestMethod]
         public void it_should_map_OPTIONS_request()
         {
-            var result = _delegateMapper.MapRequest(new RequestInfo(Verb.OPTIONS, new Uri("http://temp.uri/api/test/add?operandA=1&operandB=2"), new MemoryStream(), new BasicClaimBasedIdentity()));
+            var result = _delegateMapper.MapRequest(new RequestInfo(Verb.OPTIONS, (HttpUrl)UrlParser.Parse("http://temp.uri/api/test/add?operandA=1&operandB=2"), new MemoryStream(), new BasicClaimBasedIdentity()));
 
             result.Should().NotBeNull();
             result.Target.Should().BeOfType<OptionsController>();
             ((OperationInfo<Verb>)result.Operation).ProtocolSpecificCommand.Should().Be(Verb.OPTIONS);
-            result.MethodRoute.Should().Be(_operation.Uri);
+            result.MethodRoute.Should().Be(_operation.Url);
         }
 
         [TestInitialize]
@@ -55,12 +56,12 @@ namespace Given_instance_of_the.DelegateMapper_class
             _controller = new TestController();
             _operation = new OperationInfo<Verb>(
                 method,
-                new Uri("add", UriKind.Relative),
+                (HttpUrl)UrlParser.Parse("/add"),
                 "/api/test/add?{?operandA}&{?operandB}",
                 new Regex(".*"),
                 Verb.GET,
                 method.GetParameters().Select(parameter => (ValueInfo)new ArgumentInfo(parameter, FromQueryStringAttribute.For(parameter), "add?{?" + parameter.Name + "}", parameter.Name)).ToArray());
-            var controllerInfo = new ControllerInfo<TestController>(null, new Uri("api/test", UriKind.Relative), _operation);
+            var controllerInfo = new ControllerInfo<TestController>(null, (HttpUrl)UrlParser.Parse("api/test"), _operation);
             Mock<IHttpControllerDescriptionBuilder> controllerDescriptionBuilder = new Mock<IHttpControllerDescriptionBuilder>(MockBehavior.Strict);
             controllerDescriptionBuilder.Setup(instance => instance.BuildDescriptor()).Returns(controllerInfo);
             Mock<IControllerActivator> controllerActivator = new Mock<IControllerActivator>(MockBehavior.Strict);

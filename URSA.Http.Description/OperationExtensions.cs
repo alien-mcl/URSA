@@ -17,15 +17,15 @@ namespace URSA.Web.Http.Description
 
         internal static EntityId CreateId<T>(this OperationInfo<T> operation, Uri baseUri)
         {
-            Uri uri = operation.Uri.Combine(baseUri);
+            HttpUrl url = (HttpUrl)baseUri + (HttpUrl)operation.Url;
             if (!operation.Arguments.Any())
             {
-                return new EntityId(uri);
+                return new EntityId((Uri)url);
             }
 
             var fragment = String.Join("And", operation.Arguments.Select(argument => (argument.VariableName ?? argument.Parameter.Name).ToUpperCamelCase()));
-            uri = uri.AddFragment(String.Format("{0}{1}", operation.ProtocolSpecificCommand, fragment));
-            return new EntityId(uri);
+            url = url.WithFragment(String.Format("{0}{1}", operation.ProtocolSpecificCommand, fragment));
+            return new EntityId((Uri)url);
         }
 
         internal static IOperation AsOperation<T>(this OperationInfo<T> operation, IApiDocumentation apiDocumentation, EntityId id = null)

@@ -14,11 +14,11 @@ namespace Vocab
     [System.CodeDom.Compiler.GeneratedCode("URSA HTTP client proxy generation tool", "1.0")]
     public partial class ProductClient : Client
     {
-        public ProductClient(Uri baseUri, string authenticationScheme) : base(baseUri, authenticationScheme)
+        public ProductClient(HttpUrl baseUrl, string authenticationScheme) : base(baseUrl, authenticationScheme)
         {
         }
 
-        public ProductClient(Uri baseUri) : base(baseUri)
+        public ProductClient(HttpUrl baseUrl) : base(baseUrl)
         {
         }
 

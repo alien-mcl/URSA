@@ -30,15 +30,15 @@ namespace Given_instance_of_the.ControllerDescriptionBuilder_class
 
             details.Should().NotBeNull();
             details.ProtocolSpecificCommand.Should().Be(Verb.GET);
-            details.UriTemplate.Should().Be("/api/test/add{?operandA,operandB}");
+            details.UrlTemplate.Should().Be("/api/test/add{?operandA,operandB}");
             details.TemplateRegex.ToString().Should().Be("^/api/test/add$");
-            details.Uri.ToString().Should().Be("/api/test/add");
+            details.Url.ToString().Should().Be("/api/test/add");
             details.Arguments.Should().HaveCount(method.GetParameters().Length);
             details.Arguments.First().Parameter.Should().Be(method.GetParameters().First());
-            details.Arguments.First().UriTemplate.Should().Be("{?operandA}");
+            details.Arguments.First().UrlTemplate.Should().Be("{?operandA}");
             details.Arguments.First().VariableName.Should().Be("operandA");
             details.Arguments.Last().Parameter.Should().Be(method.GetParameters().Last());
-            details.Arguments.Last().UriTemplate.Should().Be("{?operandB}");
+            details.Arguments.Last().UrlTemplate.Should().Be("{?operandB}");
             details.Arguments.Last().VariableName.Should().Be("operandB");
         }
 
@@ -50,15 +50,15 @@ namespace Given_instance_of_the.ControllerDescriptionBuilder_class
 
             details.Should().NotBeNull();
             details.ProtocolSpecificCommand.Should().Be(Verb.GET);
-            details.UriTemplate.Should().Be("/api/test/sub/{operandA}?operandB={operandB}");
+            details.UrlTemplate.Should().Be("/api/test/sub/{operandA}?operandB={operandB}");
             details.TemplateRegex.ToString().Should().Be("^/api/test/sub/[^/?]+$");
-            details.Uri.ToString().Should().Be("/api/test/sub");
+            details.Url.ToString().Should().Be("/api/test/sub");
             details.Arguments.Should().HaveCount(method.GetParameters().Length);
             details.Arguments.First().Parameter.Should().Be(method.GetParameters().First());
-            details.Arguments.First().UriTemplate.Should().Be("/api/test/sub/{operandA}");
+            details.Arguments.First().UrlTemplate.Should().Be("/api/test/sub/{operandA}");
             details.Arguments.First().VariableName.Should().Be("operandA");
             details.Arguments.Last().Parameter.Should().Be(method.GetParameters().Last());
-            details.Arguments.Last().UriTemplate.Should().Be("&operandB={operandB}");
+            details.Arguments.Last().UrlTemplate.Should().Be("&operandB={operandB}");
             details.Arguments.Last().VariableName.Should().Be("operandB");
         }
 
@@ -70,15 +70,15 @@ namespace Given_instance_of_the.ControllerDescriptionBuilder_class
 
             details.Should().NotBeNull();
             details.ProtocolSpecificCommand.Should().Be(Verb.GET);
-            details.UriTemplate.Should().Be("/api/test/multiply/{operandB}?operandA={operandA}");
+            details.UrlTemplate.Should().Be("/api/test/multiply/{operandB}?operandA={operandA}");
             details.TemplateRegex.ToString().Should().Be("^/api/test/multiply/[^/?]+$");
-            details.Uri.ToString().Should().Be("/api/test/multiply");
+            details.Url.ToString().Should().Be("/api/test/multiply");
             details.Arguments.Should().HaveCount(method.GetParameters().Length);
             details.Arguments.First().Parameter.Should().Be(method.GetParameters().First());
-            details.Arguments.First().UriTemplate.Should().Be("&operandA={operandA}");
+            details.Arguments.First().UrlTemplate.Should().Be("&operandA={operandA}");
             details.Arguments.First().VariableName.Should().Be("operandA");
             details.Arguments.Last().Parameter.Should().Be(method.GetParameters().Last());
-            details.Arguments.Last().UriTemplate.Should().Be("/api/test/multiply/{operandB}");
+            details.Arguments.Last().UrlTemplate.Should().Be("/api/test/multiply/{operandB}");
             details.Arguments.Last().VariableName.Should().Be("operandB");
         }
 
@@ -90,15 +90,15 @@ namespace Given_instance_of_the.ControllerDescriptionBuilder_class
 
             details.Should().NotBeNull();
             details.ProtocolSpecificCommand.Should().Be(Verb.POST);
-            details.UriTemplate.Should().Be("/api/test/div/{operandA}");
+            details.UrlTemplate.Should().Be("/api/test/div/{operandA}");
             details.TemplateRegex.ToString().Should().Be("^/api/test/div/[^/?]+$");
-            details.Uri.ToString().Should().Be("/api/test/div");
+            details.Url.ToString().Should().Be("/api/test/div");
             details.Arguments.Should().HaveCount(method.GetParameters().Length);
             details.Arguments.First().Parameter.Should().Be(method.GetParameters().First());
-            details.Arguments.First().UriTemplate.Should().Be("/api/test/div/{operandA}");
+            details.Arguments.First().UrlTemplate.Should().Be("/api/test/div/{operandA}");
             details.Arguments.First().VariableName.Should().Be("operandA");
             details.Arguments.Last().Parameter.Should().Be(method.GetParameters().Last());
-            details.Arguments.Last().UriTemplate.Should().Be(null);
+            details.Arguments.Last().UrlTemplate.Should().Be(null);
             details.Arguments.Last().VariableName.Should().Be(null);
         }
 
@@ -110,13 +110,13 @@ namespace Given_instance_of_the.ControllerDescriptionBuilder_class
 
             details.Should().NotBeNull();
             details.ProtocolSpecificCommand.Should().Be(Verb.POST);
-            details.Uri.ToString().Should().Be("/api/test/modulo");
+            details.Url.ToString().Should().Be("/api/test/modulo");
             details.Arguments.Should().HaveCount(method.GetParameters().Length);
             details.Arguments.First().Parameter.Should().Be(method.GetParameters().First());
-            details.Arguments.First().UriTemplate.Should().Be(null);
+            details.Arguments.First().UrlTemplate.Should().Be(null);
             details.Arguments.First().VariableName.Should().Be(null);
             details.Arguments.Last().Parameter.Should().Be(method.GetParameters().Last());
-            details.Arguments.Last().UriTemplate.Should().Be(null);
+            details.Arguments.Last().UrlTemplate.Should().Be(null);
             details.Arguments.Last().VariableName.Should().Be(null);
         }
 
@@ -128,15 +128,15 @@ namespace Given_instance_of_the.ControllerDescriptionBuilder_class
 
             details.Should().NotBeNull();
             details.ProtocolSpecificCommand.Should().Be(Verb.GET);
-            details.UriTemplate.Should().Be("/api/test/power/{operandA}/{operandB}");
+            details.UrlTemplate.Should().Be("/api/test/power/{operandA}/{operandB}");
             details.TemplateRegex.ToString().Should().Be("^/api/test/power(/[^/?]+)?(/[^/?]+)?$");
-            details.Uri.ToString().Should().Be("/api/test/power");
+            details.Url.ToString().Should().Be("/api/test/power");
             details.Arguments.Should().HaveCount(method.GetParameters().Length);
             details.Arguments.First().Parameter.Should().Be(method.GetParameters().First());
-            details.Arguments.First().UriTemplate.Should().Be("/api/test/power/{operandA}");
+            details.Arguments.First().UrlTemplate.Should().Be("/api/test/power/{operandA}");
             details.Arguments.First().VariableName.Should().Be("operandA");
             details.Arguments.Last().Parameter.Should().Be(method.GetParameters().Last());
-            details.Arguments.Last().UriTemplate.Should().Be("/api/test/power/{operandA}/{operandB}");
+            details.Arguments.Last().UrlTemplate.Should().Be("/api/test/power/{operandA}/{operandB}");
             details.Arguments.Last().VariableName.Should().Be("operandB");
         }
 
@@ -148,11 +148,11 @@ namespace Given_instance_of_the.ControllerDescriptionBuilder_class
 
             details.Should().NotBeNull();
             details.ProtocolSpecificCommand.Should().Be(Verb.GET);
-            details.UriTemplate.Should().Be("/api/test/log{?operands*}");
-            details.Uri.ToString().Should().Be("/api/test/log");
+            details.UrlTemplate.Should().Be("/api/test/log{?operands*}");
+            details.Url.ToString().Should().Be("/api/test/log");
             details.Arguments.Should().HaveCount(method.GetParameters().Length);
             details.Arguments.First().Parameter.Should().Be(method.GetParameters().First());
-            details.Arguments.First().UriTemplate.Should().Be("{?operands*}");
+            details.Arguments.First().UrlTemplate.Should().Be("{?operands*}");
             details.Arguments.First().VariableName.Should().Be("operands");
         }
 
@@ -181,7 +181,7 @@ namespace Given_instance_of_the.ControllerDescriptionBuilder_class
         {
             var method = typeof(TestController).GetMethod("Log");
             IEnumerable<ArgumentInfo> mappings;
-            var result = _builder.GetOperationUriTemplate(method, out mappings);
+            var result = _builder.GetOperationUrlTemplate(method, out mappings);
 
             result.Should().Be("/api/test/log{?operands*}");
             mappings.Should().HaveCount(method.GetParameters().Length);
@@ -192,14 +192,14 @@ namespace Given_instance_of_the.ControllerDescriptionBuilder_class
         public void it_should_throw_when_obtaining_operation_Uri_for_null_method()
         {
             IEnumerable<ArgumentInfo> mappings;
-            _builder.Invoking(instance => instance.GetOperationUriTemplate(null, out mappings)).ShouldThrow<ArgumentNullException>();
+            _builder.Invoking(instance => instance.GetOperationUrlTemplate(null, out mappings)).ShouldThrow<ArgumentNullException>();
         }
 
         [TestMethod]
         public void it_should_throw_when_obtaining_operation_Uri_for_method_which_doesnt_belong_to_given_type()
         {
             IEnumerable<ArgumentInfo> mappings;
-            _builder.Invoking(instance => instance.GetOperationUriTemplate(typeof(object).GetMethod("ToString"), out mappings)).ShouldThrow<ArgumentOutOfRangeException>();
+            _builder.Invoking(instance => instance.GetOperationUrlTemplate(typeof(object).GetMethod("ToString"), out mappings)).ShouldThrow<ArgumentOutOfRangeException>();
         }
 
         [TestInitialize]

@@ -13,7 +13,7 @@ namespace URSA.Web.Http
         /// <param name="methodRoute">Method route.</param>
         [ExcludeFromCodeCoverage]
         [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
-        public RequestMapping(IController target, OperationInfo<Verb> operation, Uri methodRoute)
+        public RequestMapping(IController target, OperationInfo<Verb> operation, HttpUrl methodRoute)
         {
             if (target == null)
             {
@@ -34,7 +34,10 @@ namespace URSA.Web.Http
         public IController Target { get; private set; }
 
         /// <inheritdoc />
-        public Uri MethodRoute { get; private set; }
+        public HttpUrl MethodRoute { get; private set; }
+
+        /// <summary>Gets the mapped method route.</summary>
+        Url IRequestMapping.MethodRoute { get { return MethodRoute; } }
 
         /// <inheritdoc />
         OperationInfo IRequestMapping.Operation { get { return Operation; } }

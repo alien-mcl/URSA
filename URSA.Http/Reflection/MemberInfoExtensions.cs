@@ -214,15 +214,15 @@ namespace URSA.Web.Http.Reflection
 
         private static void CreateParameterTemplateRegex(this ParameterInfo parameter, FromQueryStringAttribute fromQueryString, out string parameterTemplateRegex)
         {
-            var parameterName = UriTemplateBuilder.VariableTemplateRegex.Match(fromQueryString.UriTemplate).Groups["ParameterName"].Value;
+            var parameterName = UriTemplateBuilder.VariableTemplateRegex.Match(fromQueryString.UrlTemplate).Groups["ParameterName"].Value;
             parameterTemplateRegex = (parameter.HasDefaultValue) || (!parameter.ParameterType.IsValueType) ?
                 String.Format("([?&]({0}=[^&]*)){{0,}}", parameterName) :
                 String.Format("([?&]({0}=[^&]*)){{1,}}", parameterName);
         }
 
-        private static void CreateParameterTemplateRegex(this ParameterInfo parameter, FromUriAttribute fromUri, out string parameterTemplateRegex)
+        private static void CreateParameterTemplateRegex(this ParameterInfo parameter, FromUrlAttribute fromUrl, out string parameterTemplateRegex)
         {
-            parameterTemplateRegex = UriTemplateBuilder.VariableTemplateRegex.Replace(fromUri.UriTemplate.ToString(), "[^/?]+");
+            parameterTemplateRegex = UriTemplateBuilder.VariableTemplateRegex.Replace(fromUrl.UrlTemplate.ToString(), "[^/?]+");
         }
 
         private static bool SetPropertyArrayValue(this PropertyInfo property, object instance, IEnumerable container, object value)

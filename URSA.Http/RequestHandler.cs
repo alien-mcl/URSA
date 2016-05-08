@@ -81,7 +81,7 @@ namespace URSA.Web.Http
                 var requestMapping = _handlerMapper.MapRequest(request);
                 if (requestMapping == null)
                 {
-                    throw new NoMatchingRouteFoundException(String.Format("No API resource handles requested url '{0}'.", request.Uri));
+                    throw new NoMatchingRouteFoundException(String.Format("No API resource handles requested url '{0}'.", request.Url));
                 }
 
                 await ProcessAuthenticationProviders(request);

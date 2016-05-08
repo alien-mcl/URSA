@@ -3,6 +3,7 @@ using System.Configuration;
 using System.Data.SqlClient;
 using System.Net;
 using URSA.Example.WebApplication.Data;
+using URSA.Web.Http;
 
 namespace URSA.Example
 {
@@ -12,7 +13,7 @@ namespace URSA.Example
         {
             CredentialCache.DefaultNetworkCredentials.UserName = ConfigurationManager.AppSettings["DefaultCredentials"].Split(':')[0];
             CredentialCache.DefaultNetworkCredentials.Password = ConfigurationManager.AppSettings["DefaultCredentials"].Split(':')[1];
-            var uri = new Uri(new SqlConnectionStringBuilder(ConfigurationManager.ConnectionStrings["ServerUri"].ConnectionString).DataSource);
+            var uri = (HttpUrl)UrlParser.Parse(new SqlConnectionStringBuilder(ConfigurationManager.ConnectionStrings["ServerUri"].ConnectionString).DataSource);
             var client = new PersonClient(uri, ConfigurationManager.AppSettings["DefaultAuthenticationScheme"]);
             var person = new Person() { Firstname = "Test", Lastname = "Testing", Roles = new[] { "Role" } };
             person.Key = client.Create(person);

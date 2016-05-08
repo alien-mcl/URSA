@@ -1,5 +1,5 @@
-﻿using System;
-using URSA.Web.Description;
+﻿using URSA.Web.Description;
+using URSA.Web.Http;
 
 namespace URSA.Web
 {
@@ -13,7 +13,7 @@ namespace URSA.Web
         OperationInfo Operation { get; }
 
         /// <summary>Gets the mapped method route.</summary>
-        Uri MethodRoute { get; }
+        Url MethodRoute { get; }
 
         /// <summary>Invokes the mapped method.</summary>
         /// <param name="arguments">Arguments for the invoked method.</param>

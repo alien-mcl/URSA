@@ -140,7 +140,7 @@
     <Compile Include="Mapping\DependentRouteAttribute.cs" />
     <Compile Include="Mapping\FromBodyArgumentBinder.cs" />
     <Compile Include="Mapping\FromQueryStringArgumentBinder.cs" />
-    <Compile Include="Mapping\FromUriArgumentBinder.cs" />
+    <Compile Include="Mapping\FromUrlArgumentBinder.cs" />
     <Compile Include="Mapping\IParameterSourceArgumentBinder.cs" />
     <Compile Include="Mapping\IResultBinder.cs" />
     <Compile Include="Mapping\OnHeadAttribute.cs" />

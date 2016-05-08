@@ -45,7 +45,7 @@ namespace URSA.Web.Http.Description
         public Type SpecializationType { get { return typeof(IApiDocumentation); } }
 
         /// <inheritdoc />
-        public Uri EntryPoint { get; set; }
+        public Url EntryPoint { get; set; }
 
         /// <inheritdoc />
         public void BuildDescription(IApiDocumentation apiDocumentation, IEnumerable<Uri> profiles)
@@ -72,7 +72,7 @@ namespace URSA.Web.Http.Description
                     continue;
                 }
 
-                if ((controllerDescription.EntryPoint == null) || (controllerDescription.EntryPoint.Uri.ToString() != EntryPoint.ToString()))
+                if ((controllerDescription.EntryPoint == null) || (controllerDescription.EntryPoint.Url.ToString() != EntryPoint.ToString()))
                 {
                     continue;
                 }
@@ -97,10 +97,10 @@ namespace URSA.Web.Http.Description
             var baseUri = apiDocumentation.Context.BaseUriSelector.SelectBaseUri(new EntityId(new Uri("/", UriKind.Relative)));
             foreach (OperationInfo<Verb> operation in entryPointControllerInfo.Operations)
             {
-                var url = operation.Uri;
-                if (operation.UriTemplate != null)
+                var url = (Uri)operation.Url;
+                if (operation.UrlTemplate != null)
                 {
-                    var template = new UriTemplate(baseUri + operation.UriTemplate.TrimStart('/'));
+                    var template = new UriTemplate(baseUri + operation.UrlTemplate.TrimStart('/'));
                     var variables = operation.UnderlyingMethod.GetParameters().ToDictionary(parameter => parameter.Name, parameter => (object)parameter.DefaultValue.ToString());
                     url = template.ResolveUri(variables);
                 }

@@ -4,6 +4,7 @@ using System;
 using System.IO;
 using System.Reflection;
 using System.Text;
+using URSA;
 using URSA.Security;
 using URSA.Web;
 using URSA.Web.Converters;
@@ -38,7 +39,7 @@ namespace Given_instance_of_the.ResponseComposer_class
             ConverterProvider.Setup(instance => instance.FindBestOutputConverter<Guid>(It.IsAny<IResponseInfo>())).Returns(Converter.Object);
             ConverterProvider.Setup(instance => instance.FindBestOutputConverter<object>(It.IsAny<IResponseInfo>())).Returns(Converter.Object);
             ControllerDescriptionBuilder = new Mock<IHttpControllerDescriptionBuilder<T>>(MockBehavior.Strict);
-            Controller = new T() { Response = new StringResponseInfo(Encoding.UTF8, null, new RequestInfo(Verb.GET, new Uri("http://temp.uri/api"), new MemoryStream(), new BasicClaimBasedIdentity())) };
+            Controller = new T() { Response = new StringResponseInfo(Encoding.UTF8, null, new RequestInfo(Verb.GET, (HttpUrl)UrlParser.Parse("http://temp.uri/api"), new MemoryStream(), new BasicClaimBasedIdentity())) };
             Composer = new ResponseComposer(ConverterProvider.Object, new[] { ControllerDescriptionBuilder.Object });
         }
 
@@ -57,9 +58,9 @@ namespace Given_instance_of_the.ResponseComposer_class
         protected RequestMapping CreateRequestMapping(string methodName, Verb httpMethod, params object[] arguments)
         {
             var method = Controller.GetType().GetMethod(methodName);
-            string baseUri = Controller.GetType().GetCustomAttribute<RouteAttribute>().Uri.ToString();
+            string baseUri = Controller.GetType().GetCustomAttribute<RouteAttribute>().Url.ToString();
             string callUri;
-            return new RequestMapping(Controller, method.ToOperationInfo(baseUri, httpMethod, out callUri, arguments), new Uri(callUri.TrimStart('/'), UriKind.Relative));
+            return new RequestMapping(Controller, method.ToOperationInfo(baseUri, httpMethod, out callUri, arguments), (HttpUrl)UrlParser.Parse(callUri.TrimStart('/')));
         }
     }
 }

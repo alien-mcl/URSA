@@ -2,13 +2,14 @@
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Linq;
 using System.Text;
 
 namespace URSA.Web.Http
 {
     /// <summary>Provides an easy access to key-value query string parameters.</summary>
-    public class ParametersCollection : IEnumerable<KeyValuePair<string, string>>
+    public class ParametersCollection : IEnumerable<KeyValuePair<string, string>>, ICloneable
     {
         private static readonly string[] NoValues = new string[0];
 
@@ -20,11 +21,14 @@ namespace URSA.Web.Http
         {
             _separator = separator;
             _valueIndicator = valueIndicator;
-            _container = new ConcurrentDictionary<string, ISet<string>>();
+            _container = new ConcurrentDictionary<string, ISet<string>>(StringComparer.OrdinalIgnoreCase);
         }
 
         /// <summary>Gets the number of keys.</summary>
         public int Count { get { return _container.Count; } }
+
+        /// <summary>Gets the keys.</summary>
+        public IEnumerable<string> Keys { get { return _container.Keys; } }
 
         /// <summary>Gets or sets a value for a given <paramref name="key" />.</summary>
         /// <remarks>If the <paramref name="key" /> is null or empty and the value being set is not, the value will be used as a key, and an empty string will be set.</remarks>
@@ -60,6 +64,28 @@ namespace URSA.Web.Http
             }
         }
 
+        /// <summary>Converts a parsed query string of type <see cref="NameValueCollection" /> into <see cref="ParametersCollection" />.</summary>
+        /// <param name="queryString">The query string.</param>
+        /// <returns>Collection of key-value parameters.</returns>
+        public static explicit operator ParametersCollection(NameValueCollection queryString)
+        {
+            if (queryString == null)
+            {
+                return null;
+            }
+
+            var result = new ParametersCollection("&", "=");
+            foreach (string key in queryString)
+            {
+                foreach (string value in queryString.GetValues(key))
+                {
+                    result.AddValue(key, value);
+                }
+            }
+
+            return result;
+        }
+
         /// <summary>Gets the values for a given <paramref name="key" />.</summary>
         /// <param name="key">The key.</param>
         /// <returns>Enumeration of strings being values for a given <paramref name="key" />.</returns>
@@ -79,7 +105,7 @@ namespace URSA.Web.Http
         {
             return new ParametersCollectionEnumerator(_container);
         }
-
+        
         /// <inheritdoc />
         public override string ToString()
         {
@@ -102,6 +128,37 @@ namespace URSA.Web.Http
             }
 
             return ToStringInternal(allowedChars);
+        }
+
+        /// <summary>Clears the parameters collection.</summary>
+        public void Clear()
+        {
+            _container.Clear();
+        }
+
+        /// <summary>Clones this parameters collection.</summary>
+        /// <returns>Copy of the parameters collection.</returns>
+        public ParametersCollection Clone()
+        {
+            var result = new ParametersCollection(_separator, _valueIndicator);
+            foreach (var entry in _container)
+            {
+                var values = new HashSet<string>();
+                foreach (var value in entry.Value)
+                {
+                    values.Add(value);
+                }
+
+                result._container[entry.Key] = values;
+            }
+
+            return result;
+        }
+
+        /// <inheritdoc />
+        object ICloneable.Clone()
+        {
+            return Clone();
         }
 
         /// <inheritdoc />

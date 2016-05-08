@@ -2,9 +2,10 @@
 using System.Collections.Generic;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using URSA;
 using URSA.Web.Http;
 
-namespace URSA.Core.Tests.Given_instance_of
+namespace Given_instance_of
 {
     [TestClass]
     public class Url_class

@@ -5,6 +5,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.Remoting.Messaging;
 using System.Text;
+using URSA.Configuration;
 using URSA.Web.Http;
 
 namespace URSA
@@ -59,6 +60,15 @@ namespace URSA
         
         private static readonly IDictionary<string, Type> UrlParsers = new ConcurrentDictionary<string, Type>();
 
+        static UrlParser()
+        {
+            foreach (var entry in UrlParserConfigurationSection.Default.Parsers)
+            {
+                object[] arguments = new object[] { (entry.Value.Any() ? entry.Value.Cast<object>().ToArray() : new string[0]) };
+                typeof(UrlParser).GetMethod("Register").MakeGenericMethod(entry.Key).Invoke(null, arguments);
+            }
+        }
+
         /// <summary>Gets the supported schemes.</summary>
         public abstract IEnumerable<string> SupportedSchemes { get; }
 
@@ -101,7 +111,12 @@ namespace URSA
             IEnumerable<string> schemesToRegister = schemes;
             if ((schemes == null) || (schemes.Length == 0))
             {
-                schemesToRegister = Activator.CreateInstance<T>().SupportedSchemes;
+                var parser = Activator.CreateInstance<T>();
+                if ((!(schemesToRegister = parser.SupportedSchemes).Any()) && (parser.AllowsRelativeAddresses))
+                {
+                    UrlParsers[String.Empty] = typeof(T);
+                    return;
+                }
             }
 
             foreach (var scheme in schemesToRegister)

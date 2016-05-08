@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Web;
 
 namespace URSA.Web.Http
 {
@@ -77,7 +78,7 @@ namespace URSA.Web.Http
                     (_query != null ? String.Format("?{0}", _query) : String.Empty),
                     (_fragment != null ? String.Format("#{0}", _fragment) : String.Empty));
                 _asString = String.Format(
-                    "{0}{1}{2}",
+                    "/{0}{1}{2}",
                     (_segments.Length > 0 ? String.Join("/", _segments.Select(segment => UrlParser.ToSafeString(segment, HttpUrlParser.PathAllowedChars))) : String.Empty),
                     (_query != null ? String.Format("?{0}", _query.ToString(HttpUrlParser.PathAllowedChars)) : String.Empty),
                     (_fragment != null ? String.Format("#{0}", UrlParser.ToSafeString(_fragment, HttpUrlParser.PathAllowedChars)) : String.Empty));
@@ -95,6 +96,15 @@ namespace URSA.Web.Http
         /// <inheritdoc />
         public override string Path { get { return _path; } }
 
+        /// <summary>Gets a relative version of this URL.</summary>
+        public HttpUrl AsRelative
+        {
+            get
+            {
+                return (!_isAbsolute ? this : new HttpUrl(false, ToRelativeString(Path, _query, _fragment), Scheme, Host, Port, Path, _query, _fragment, _segments));
+            }
+        }
+
         /// <inheritdoc />
         public override ParametersCollection Parameters { get { return _query; } }
 
@@ -105,13 +115,153 @@ namespace URSA.Web.Http
         public bool HasQuery { get { return _query != null; } }
 
         /// <inheritdoc />
-        public string Fragment { get { return _fragment ?? String.Empty; } }
+        public string Fragment { get { return _fragment; } }
 
         /// <summary>Gets a value indicating whether this instance has fragment.</summary>
         public bool HasFragment { get { return _fragment != null; } }
 
         /// <inheritdoc />
         public override IEnumerable<string> Segments { get { return _segments; } }
+
+        /// <summary>Adds two URLs.</summary>
+        /// <remarks>One of the operands should be a relative URL.</remarks>
+        /// <param name="leftOperand">The left operand.</param>
+        /// <param name="rightOperand">The right operand.</param>
+        /// <returns>New url being a combination of the two operands.</returns>
+        public static HttpUrl operator +(HttpUrl leftOperand, HttpUrl rightOperand)
+        {
+            if ((Equals(leftOperand, null)) && (Equals(rightOperand, null)))
+            {
+                return null;
+            }
+
+            if ((!leftOperand.IsAbsolute) && (!rightOperand.IsAbsolute))
+            {
+                throw new InvalidOperationException("Cannot concatenate two relative URLs.");
+            }
+
+            if ((leftOperand.HasFragment) && (rightOperand.HasFragment))
+            {
+                throw new InvalidOperationException("Both URLs cannot have a fragment.");
+            }
+
+            HttpUrl baseUrl;
+            HttpUrl relativeUrl;
+            if (leftOperand.IsAbsolute)
+            {
+                baseUrl = leftOperand;
+                relativeUrl = rightOperand;
+            }
+            else
+            {
+                baseUrl = rightOperand;
+                relativeUrl = leftOperand;
+            }
+
+            var segments = new List<string>(baseUrl._segments);
+            segments.AddRange(relativeUrl._segments);
+            string fragment = baseUrl.Fragment ?? relativeUrl.Fragment;
+            var query = baseUrl._query ?? relativeUrl._query;
+            if ((baseUrl._query != null) && (relativeUrl._query != null))
+            {
+                relativeUrl._query.ForEach(parameter => query.AddValue(parameter.Key, parameter.Value));
+            }
+
+            string path = String.Join("/", segments);
+            string url = ToAbsoluteString(baseUrl.Scheme, baseUrl.Host, baseUrl.Port, path, query, fragment);
+            return new HttpUrl(baseUrl._isAbsolute, url, baseUrl.Scheme, baseUrl.Host, baseUrl.Port, "/" + path, query, fragment, segments.ToArray());
+        }
+
+        /// <summary>Adds a base url and a relative url string.</summary>
+        /// <param name="leftOperand">The left operand.</param>
+        /// <param name="rightOperand">The right operand.</param>
+        /// <returns>New url being a combination of the two operands.</returns>
+        public static HttpUrl operator +(HttpUrl leftOperand, string rightOperand)
+        {
+            if ((Equals(leftOperand, null)) && (Equals(rightOperand, null)))
+            {
+                return null;
+            }
+
+            if (!leftOperand.IsAbsolute)
+            {
+                throw new InvalidOperationException("Url must be an absolute one.");
+            }
+
+            if (String.IsNullOrEmpty(rightOperand))
+            {
+                return leftOperand;
+            }
+
+            if (!rightOperand.StartsWith("/"))
+            {
+                rightOperand = "/" + rightOperand;
+            }
+
+            Url url = UrlParser.Parse(rightOperand);
+            HttpUrl relativeUrl = url as HttpUrl;
+            if (relativeUrl == null)
+            {
+                throw new InvalidOperationException(String.Format("Cannot add URLs of type '{0}' and '{1}'.", leftOperand.GetType(), relativeUrl.GetType()));
+            }
+
+            return leftOperand + relativeUrl;
+        }
+
+        /// <summary>Converts a given <paramref name="uri" /> into an HTTP URL.</summary>
+        /// <param name="uri">The Uri to be converted.</param>
+        /// <returns>HTTP URL or <b>null</b> if the passed <paramref name="uri" /> was also null.</returns>
+        public static explicit operator HttpUrl(Uri uri)
+        {
+            if (Equals(uri, null))
+            {
+                return null;
+            }
+
+            ParametersCollection query = null;
+            if (uri.IsAbsoluteUri)
+            {
+                if (!HttpUrlParser.Schemes.Contains(uri.Scheme))
+                {
+                    throw new InvalidOperationException(String.Format("Cannot convert Uri of scheme '{0}' to HTTP URL.", uri.Scheme));
+                }
+
+                query = (uri.Query.Length > 0 ? (ParametersCollection)HttpUtility.ParseQueryString(uri.Query) : null);
+                return new HttpUrl(true, uri.ToString(), uri.Scheme, uri.Host, (ushort)uri.Port, uri.AbsolutePath, query, (uri.Fragment.Length > 0 ? uri.Fragment : null));
+            }
+
+            string url = uri.ToString();
+            string path = url;
+            string queryString = null;
+            string fragment = null;
+            int indexOf;
+            if ((indexOf = url.IndexOf('?')) != -1)
+            {
+                path = url.Substring(0, indexOf);
+                if ((indexOf = (queryString = url.Substring(indexOf)).IndexOf('#')) != -1)
+                {
+                    fragment = queryString.Substring(indexOf);
+                    queryString = queryString.Substring(0, indexOf);
+                }
+            }
+            else if ((indexOf = url.IndexOf('#')) != -1)
+            {
+                path = url.Substring(0, indexOf);
+                fragment = url.Substring(indexOf);
+            }
+
+            if (fragment == "#")
+            {
+                fragment = String.Empty;
+            }
+
+            if (queryString != null)
+            {
+                query = (ParametersCollection)HttpUtility.ParseQueryString(queryString);
+            }
+
+            return new HttpUrl(false, url, null, null, 0, path, query, fragment);
+        }
 
         /// <inheritdoc />
         public override string ToString()
@@ -164,7 +314,7 @@ namespace URSA.Web.Http
         }
 
         /// <inheritdoc />
-        protected override IpUrl CreateInstance(IEnumerable<string> segments)
+        protected override IpUrl CreateInstance(IEnumerable<string> segments, bool? requiresParameters = false)
         {
             StringBuilder path = new StringBuilder(Path.Length * 2);
             IList<string> newSegments = new List<string>(_segments.Length + 1);
@@ -174,29 +324,37 @@ namespace URSA.Web.Http
                 newSegments.Add(segment);
             }
 
-            string url;
-            if (_isAbsolute)
+            string url = (_isAbsolute ? ToAbsoluteString(Scheme, Host, Port, path.ToString(), _query, _fragment) : ToRelativeString(path.ToString(), _query, _fragment));
+            var query = (!requiresParameters.HasValue ? null :
+                (requiresParameters.Value ? (Query != null ? Query.Clone() : new ParametersCollection("&", "=")) : Query));
+            return new HttpUrl(_isAbsolute, url, Scheme, Host, Port, path.ToString(), query, Fragment, segments.ToArray());
+        }
+
+        private static string ToAbsoluteString(string scheme, string host, ushort port, string path, ParametersCollection query = null, string fragment = null)
+        {
+            string portString = (((scheme == HttpUrlParser.Https) && (port == HttpUrlParser.HttpsPort)) || (port == HttpUrlParser.HttpPort) ? String.Empty : ":" + port);
+            return String.Format(
+                "{0}://{1}{2}/{3}{4}{5}",
+                scheme,
+                host,
+                portString,
+                path,
+                (query != null ? String.Format("?{0}", query.ToString(HttpUrlParser.PathAllowedChars)) : String.Empty),
+                (fragment != null ? String.Format("#{0}", UrlParser.ToSafeString(fragment, HttpUrlParser.PathAllowedChars)) : String.Empty));
+        }
+
+        private static string ToRelativeString(string path, ParametersCollection query = null, string fragment = null)
+        {
+            if (path.Length == 0)
             {
-                string portString = ((Scheme == HttpUrlParser.Https) && (Port == HttpUrlParser.HttpsPort)) || (Port == HttpUrlParser.HttpPort) ? String.Empty : ":" + Port;
-                url = String.Format(
-                    "{0}://{1}{2}/{3}{4}{5}",
-                    Scheme,
-                    Host,
-                    portString,
-                    path,
-                    (_query != null ? String.Format("?{0}", _query.ToString(HttpUrlParser.PathAllowedChars)) : String.Empty),
-                    (_fragment != null ? String.Format("#{0}", UrlParser.ToSafeString(_fragment, HttpUrlParser.PathAllowedChars)) : String.Empty));
-            }
-            else
-            {
-                url = String.Format(
-                    "{0}{1}{2}",
-                    path,
-                    (_query != null ? String.Format("?{0}", _query.ToString(HttpUrlParser.PathAllowedChars)) : String.Empty),
-                    (_fragment != null ? String.Format("#{0}", UrlParser.ToSafeString(_fragment, HttpUrlParser.PathAllowedChars)) : String.Empty));
+                path = "/";
             }
 
-            return new HttpUrl(_isAbsolute, url, Scheme, Host, Port, path.ToString(), Query, Fragment, segments.ToArray());
+            return String.Format(
+                "{0}{1}{2}",
+                path,
+                (query != null ? String.Format("?{0}", query.ToString(HttpUrlParser.PathAllowedChars)) : String.Empty),
+                (fragment != null ? String.Format("#{0}", UrlParser.ToSafeString(fragment, HttpUrlParser.PathAllowedChars)) : String.Empty));
         }
     }
 }

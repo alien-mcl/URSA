@@ -32,7 +32,7 @@ namespace Given_instance_of_the.DefaultValueRelationSelector_class
         {
             var result = _selector.ProvideDefault(typeof(TestController).GetMethod("GetByGuid").GetParameters()[0], Verb.GET);
 
-            result.Should().BeOfType<FromUriAttribute>();
+            result.Should().BeOfType<FromUrlAttribute>();
         }
 
         [TestMethod]
@@ -48,7 +48,7 @@ namespace Given_instance_of_the.DefaultValueRelationSelector_class
         {
             var result = _selector.ProvideDefault(typeof(TestController).GetMethod("GetBySomeId").GetParameters()[0], Verb.GET);
 
-            result.Should().BeOfType<FromUriAttribute>();
+            result.Should().BeOfType<FromUrlAttribute>();
         }
 
         [TestMethod]

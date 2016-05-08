@@ -8,6 +8,7 @@ using RomanticWeb;
 using RomanticWeb.Entities;
 using RomanticWeb.Mapping;
 using RomanticWeb.Mapping.Model;
+using URSA;
 using URSA.Web.Description;
 using URSA.Web.Description.Http;
 using URSA.Web.Http;
@@ -22,7 +23,7 @@ namespace Given_instance_of_the
     [TestClass]
     public class ApiEntryPointDescriptionBuilder_class
     {
-        private static readonly EntryPointInfo EntryPoint = new EntryPointInfo(new Uri("/api", UriKind.Relative));
+        private static readonly EntryPointInfo EntryPoint = new EntryPointInfo(UrlParser.Parse("/api"));
         private Mock<IApiDescriptionBuilder> _irrelevantApiDescriptionBuilder;
         private Mock<IApiDescriptionBuilder<TestController>> _apiDescriptionBuilder;
         private Mock<IApiDescriptionBuilderFactory> _apiDescriptionBuilderFactory;
@@ -59,7 +60,7 @@ namespace Given_instance_of_the
         [TestInitialize]
         public void Setup()
         {
-            Uri requestUri = new Uri("/test", UriKind.Relative);
+            HttpUrl requestUrl = (HttpUrl)UrlParser.Parse("/test");
             var classMapping = new Mock<IClassMapping>(MockBehavior.Strict);
             classMapping.SetupGet(instance => instance.Uri).Returns(EntityConverter.Hydra.AddFragment("ApiDocumentation"));
             var mapping = new Mock<IEntityMapping>(MockBehavior.Strict);
@@ -84,12 +85,12 @@ namespace Given_instance_of_the
             string callUri;
             var controllerDescription = new ControllerInfo<TestController>(
                 EntryPoint,
-                requestUri.Combine(EntryPoint),
-                typeof(TestController).GetMethod("Add").ToOperationInfo(EntryPoint.ToString() + requestUri, Verb.GET, out callUri));
+                requestUrl.InsertSegments(0, ((HttpUrl)EntryPoint.Url).Segments),
+                typeof(TestController).GetMethod("Add").ToOperationInfo(requestUrl.InsertSegments(0, ((HttpUrl)EntryPoint.Url).Segments).ToString(), Verb.GET, out callUri));
             _irrelevantControllerDescriptionBuilder = new Mock<IHttpControllerDescriptionBuilder>(MockBehavior.Strict);
             _controllerDescriptionBuilder = new Mock<IHttpControllerDescriptionBuilder<TestController>>(MockBehavior.Strict);
             _controllerDescriptionBuilder.As<IHttpControllerDescriptionBuilder>().Setup(instance => instance.BuildDescriptor()).Returns(controllerDescription);
-            var entryPointControllerDescription = new ControllerInfo<EntryPointDescriptionController>(null, new Uri("/test", UriKind.Relative));
+            var entryPointControllerDescription = new ControllerInfo<EntryPointDescriptionController>(null, UrlParser.Parse("/test"));
             _entryPointControllerDescriptionBuilder = new Mock<IHttpControllerDescriptionBuilder<EntryPointDescriptionController>>(MockBehavior.Strict);
             _entryPointControllerDescriptionBuilder.As<IHttpControllerDescriptionBuilder>().Setup(instance => instance.BuildDescriptor()).Returns(entryPointControllerDescription);
             _descriptionBuilder = new ApiEntryPointDescriptionBuilder(

@@ -281,7 +281,7 @@ namespace URSA.Web.Http.Description
         private IIriTemplate BuildTemplate(DescriptionContext context, OperationInfo<Verb> operation, IOperation operationDocumentation)
         {
             IEnumerable<ArgumentInfo> parameterMapping;
-            var uriTemplate = _descriptionBuilder.GetOperationUriTemplate(operation.UnderlyingMethod, out parameterMapping);
+            var uriTemplate = _descriptionBuilder.GetOperationUrlTemplate(operation.UnderlyingMethod, out parameterMapping);
             if (String.IsNullOrEmpty(uriTemplate))
             {
                 return null;

@@ -78,7 +78,7 @@ namespace URSA.Web.Http.Security
         private static Task Challenge(ResponseInfo response)
         {
             var challengeScheme = (response.Request.Headers.XRequestedWith != XMLHttpRequest ? Header.WWWAuthenticate : XWWWAuthenticate);
-            response.Headers.Add(new Header(challengeScheme, String.Format("{0} realm=\"{1}\"", AuthenticationScheme, response.Request.Uri.Host)));
+            response.Headers.Add(new Header(challengeScheme, String.Format("{0} realm=\"{1}\"", AuthenticationScheme, response.Request.Url.Host)));
             var accessControlExposeHeaders = response.Headers.AccessControlExposeHeaders ?? String.Empty;
             if (!String.IsNullOrEmpty(response.Request.Headers.Origin))
             {

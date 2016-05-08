@@ -24,13 +24,13 @@ namespace URSA.Web.Tests
         }
 
         [Route("sub")]
-        public int Substract([FromUri] int operandA, [FromQueryString] int operandB)
+        public int Substract([FromUrl] int operandA, [FromQueryString] int operandB)
         {
             return operandA - operandB;
         }
 
         [return: ToHeader("Pragma")]
-        public int Multiply([FromQueryString] int operandA, [FromUri] int operandB)
+        public int Multiply([FromQueryString] int operandA, [FromUrl] int operandB)
         {
             return operandA * operandB;
         }
@@ -38,7 +38,7 @@ namespace URSA.Web.Tests
         [Route("div")]
         [OnPost]
         [return: AsMediaType("text/plain")]
-        public int Divide([FromUri] int operandA, [FromBody] int operandB)
+        public int Divide([FromUrl] int operandA, [FromBody] int operandB)
         {
             return operandA / operandB;
         }
@@ -49,7 +49,7 @@ namespace URSA.Web.Tests
             return operandA % operandB;
         }
 
-        public double Power([FromUri] double operandA = 0.0, [FromUri] double operandB = 0.0)
+        public double Power([FromUrl] double operandA = 0.0, [FromUrl] double operandB = 0.0)
         {
             return Math.Pow(operandA, operandB);
         }

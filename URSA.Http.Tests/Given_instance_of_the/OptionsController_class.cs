@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using URSA;
 using URSA.Security;
 using URSA.Web.Http;
 using URSA.Web.Http.Description;
@@ -30,7 +31,7 @@ namespace Given_instance_of_the
         public void it_should_allow_methods()
         {
             var controller = new OptionsController(HttpStatusCode.MethodNotAllowed, "GET");
-            controller.Response = new StringResponseInfo(String.Empty, new RequestInfo(Verb.POST, new Uri("/", UriKind.Relative), new MemoryStream(), new BasicClaimBasedIdentity()));
+            controller.Response = new StringResponseInfo(String.Empty, new RequestInfo(Verb.POST, (HttpUrl)UrlParser.Parse("/"), new MemoryStream(), new BasicClaimBasedIdentity()));
 
             controller.Allow();
 
@@ -41,7 +42,7 @@ namespace Given_instance_of_the
         public void it_should_allow_methods_in_CORS_request()
         {
             var controller = new OptionsController(HttpStatusCode.MethodNotAllowed, "GET");
-            var request = new RequestInfo(Verb.OPTIONS, new Uri("/", UriKind.Relative), new MemoryStream(), new BasicClaimBasedIdentity(), new Header("Origin", "temp.uri"), new Header("Access-Control-Request-Method", "GET"));
+            var request = new RequestInfo(Verb.OPTIONS, (HttpUrl)UrlParser.Parse("/"), new MemoryStream(), new BasicClaimBasedIdentity(), new Header("Origin", "temp.uri"), new Header("Access-Control-Request-Method", "GET"));
             controller.Response = new StringResponseInfo(String.Empty, request);
 
             controller.Allow();

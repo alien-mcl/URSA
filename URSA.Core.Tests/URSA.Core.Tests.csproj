@@ -78,7 +78,7 @@
     <Compile Include="Given_instance_of\DefaultConverterProvider_class\when_receiving_a_request.cs" />
     <Compile Include="Given_instance_of\DefaultControllerActivator_class.cs" />
     <Compile Include="Given_instance_of\RouteAttribute_class.cs" />
-    <Compile Include="Given_instance_of\FromUriAttribute_class.cs" />
+    <Compile Include="Given_instance_of\FromUrlAttribute_class.cs" />
     <Compile Include="Given_instance_of\ResourceSecurityInfo_class.cs" />
     <Compile Include="Given_instance_of\SecurableResourceInfo_class.cs" />
     <Compile Include="Given_instance_of\SecuritySpecificationInfo_class.cs" />
@@ -88,6 +88,8 @@
     <Compile Include="Given_instance_of\FromQueryStringAttribute_class.cs" />
     <Compile Include="Given_instance_of\ValueInfo_class.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Testing\RelativeUrl.cs" />
+    <Compile Include="Testing\RelativeUrlParser.cs" />
     <Compile Include="Web\TestController.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -14,11 +14,11 @@ namespace URSA.Example.WebApplication.Data
     [System.CodeDom.Compiler.GeneratedCode("URSA HTTP client proxy generation tool", "1.0")]
     public partial class PersonClient : Client
     {
-        public PersonClient(Uri baseUri, string authenticationScheme) : base(baseUri, authenticationScheme)
+        public PersonClient(HttpUrl baseUrl, string authenticationScheme) : base(baseUrl, authenticationScheme)
         {
         }
 
-        public PersonClient(Uri baseUri) : base(baseUri)
+        public PersonClient(HttpUrl baseUrl) : base(baseUrl)
         {
         }
 

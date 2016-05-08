@@ -6,6 +6,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using URSA;
 using URSA.Web;
 using URSA.Web.Description;
 using URSA.Web.Http;
@@ -70,7 +71,7 @@ namespace Given_instance_of_the.ResponseComposer_class
             string callUri;
             var controllerDescription = new ControllerInfo<CrudController>(
                 null,
-                new Uri("api/test", UriKind.Relative),
+                (HttpUrl)UrlParser.Parse("api/test"),
                 Controller.GetType().GetMethod("Get").ToOperationInfo("api/test", Verb.GET, out callUri, person.Key),
                 Controller.GetType().GetMethod("Create").ToOperationInfo("api/test", Verb.POST, out callUri, person));
             ControllerDescriptionBuilder.As<IControllerDescriptionBuilder>().Setup(instance => instance.BuildDescriptor()).Returns(controllerDescription);

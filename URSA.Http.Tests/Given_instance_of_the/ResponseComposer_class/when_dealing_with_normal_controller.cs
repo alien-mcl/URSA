@@ -4,6 +4,7 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using System.Linq;
+using URSA;
 using URSA.Security;
 using URSA.Web;
 using URSA.Web.Http;
@@ -24,7 +25,7 @@ namespace Given_instance_of_the.ResponseComposer_class
         public void it_should_merge_headers_if_the_output_is_already_a_response()
         {
             var expected = "http://temp.uri/";
-            var output = new StringResponseInfo(String.Empty, new RequestInfo(Verb.GET, new Uri("/", UriKind.Relative), new MemoryStream(), new BasicClaimBasedIdentity()));
+            var output = new StringResponseInfo(String.Empty, new RequestInfo(Verb.GET, (HttpUrl)UrlParser.Parse("/"), new MemoryStream(), new BasicClaimBasedIdentity()));
             var controller = new Mock<IController>(MockBehavior.Strict);
             controller.SetupGet(instance => instance.Response).Returns(output);
             var mapping = new Mock<IRequestMapping>(MockBehavior.Strict);

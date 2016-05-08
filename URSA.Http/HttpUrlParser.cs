@@ -14,7 +14,7 @@ namespace URSA.Web.Http
         internal const string Https = "https";
         internal static readonly char[] PathReserved = { ';', '/', '?' };
         internal static readonly char[] PathAllowedChars = UChar.Concat(Reserved.Except(PathReserved)).ToArray();
-        private static readonly string[] Schemes = { Http, Https };
+        internal static readonly string[] Schemes = { Http, Https };
 
         private readonly ICollection<string> _segments = new List<string>();
         private ParametersCollection _query;

@@ -30,23 +30,23 @@ namespace URSA.Web.Http
         private readonly string _authenticationScheme;
 
         /// <summary>Initializes a new instance of the <see cref="Client"/> class.</summary>
-        /// <param name="baseUri">The base URI.</param>
+        /// <param name="baseUrl">The base URI.</param>
         [ExcludeFromCodeCoverage]
         [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
-        public Client(Uri baseUri) : this(baseUri, DefaultAuthenticationScheme)
+        public Client(HttpUrl baseUrl) : this(baseUrl, DefaultAuthenticationScheme)
         {
         }
 
         /// <summary>Initializes a new instance of the <see cref="Client"/> class.</summary>
-        /// <param name="baseUri">The base URI.</param>
+        /// <param name="baseUrl">The base URI.</param>
         /// <param name="authenticationScheme">Authentication scheme.</param>
         [ExcludeFromCodeCoverage]
         [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
-        public Client(Uri baseUri, string authenticationScheme) : this()
+        public Client(HttpUrl baseUrl, string authenticationScheme) : this()
         {
-            if (baseUri == null)
+            if (baseUrl == null)
             {
-                throw new ArgumentNullException("baseUri");
+                throw new ArgumentNullException("baseUrl");
             }
 
             if ((authenticationScheme == null) || (authenticationScheme.Length == 0))
@@ -54,7 +54,7 @@ namespace URSA.Web.Http
                 authenticationScheme = DefaultAuthenticationScheme;
             }
 
-            BaseUri = baseUri;
+            BaseUrl = baseUrl;
             _authenticationScheme = authenticationScheme;
         }
 
@@ -74,14 +74,13 @@ namespace URSA.Web.Http
             _resultBinder = container.Resolve<IResultBinder<RequestInfo>>();
         }
 
-        private Uri BaseUri { get; set; }
+        private HttpUrl BaseUrl { get; set; }
 
-        internal Uri BuildUri(string url, IDictionary<string, object> uriArguments)
+        internal HttpUrl BuildUrl(string url, IDictionary<string, object> uriArguments)
         {
-            var template = new UriTemplate(BaseUri + url.TrimStart('/'));
+            var template = new UriTemplate((BaseUrl + url.TrimStart('/')).ToString());
             var result = template.ResolveUri(uriArguments.ToDictionary(entry => entry.Key, entry => (object)(entry.Value != null ? entry.Value.ToString() : null)));
-            result = new Uri(Regex.Replace(result.ToString(), "%([0-9]+)", match => Convert.ToChar(UInt32.Parse(match.Groups[1].Value, NumberStyles.HexNumber)).ToString()));
-            return result;
+            return (HttpUrl)UrlParser.Parse(Regex.Replace(result.ToString(), "%([0-9]+)", match => Convert.ToChar(UInt32.Parse(match.Groups[1].Value, NumberStyles.HexNumber)).ToString()));
         }
 
         /// <summary>Calls the ReST service using specified HTTP verb.</summary>
@@ -122,15 +121,15 @@ namespace URSA.Web.Http
         /// <returns>Result of the call.</returns>
         protected object Call(Verb verb, string url, IEnumerable<string> accept, IEnumerable<string> contentType, Type responseType, IDictionary<string, object> uriArguments, params object[] bodyArguments)
         {
-            var uri = BuildUri(url, uriArguments);
+            var callUrl = BuildUrl(url, uriArguments);
             var validAccept = (!accept.Any() ? _converterProvider.SupportedMediaTypes :
                 _converterProvider.SupportedMediaTypes.Join(accept, outer => outer, inner => inner, (outer, inner) => inner));
             var accepted = (validAccept.Any() ? validAccept : new[] { "*/*" });
-            WebRequest request = _webRequestProvider.CreateRequest(uri, new Dictionary<string, string>() { { Header.Accept, String.Join(", ", accepted) } });
+            WebRequest request = _webRequestProvider.CreateRequest((Uri)callUrl, new Dictionary<string, string>() { { Header.Accept, String.Join(", ", accepted) } });
             if ((!String.IsNullOrEmpty(CredentialCache.DefaultNetworkCredentials.UserName)) && (!String.IsNullOrEmpty(CredentialCache.DefaultNetworkCredentials.Password)))
             {
                 var credentials = new CredentialCache();
-                credentials.Add(uri, _authenticationScheme, new NetworkCredential(CredentialCache.DefaultNetworkCredentials.UserName, CredentialCache.DefaultNetworkCredentials.Password));
+                credentials.Add(new Uri(String.Format("{0}://{1}/", callUrl.Scheme, callUrl.Host)), _authenticationScheme, new NetworkCredential(CredentialCache.DefaultNetworkCredentials.UserName, CredentialCache.DefaultNetworkCredentials.Password));
                 request.Credentials = credentials;
                 request.PreAuthenticate = true;
             }
@@ -138,7 +137,7 @@ namespace URSA.Web.Http
             request.Method = verb.ToString();
             if ((bodyArguments != null) && (bodyArguments.Length > 0))
             {
-                FillRequestBody(verb, uri, request, contentType, accepted, bodyArguments);
+                FillRequestBody(verb, callUrl, request, contentType, accepted, bodyArguments);
             }
 
             var response = (HttpWebResponse)request.GetResponse();
@@ -148,14 +147,14 @@ namespace URSA.Web.Http
                 return null;
             }
 
-            RequestInfo fakeRequest = new RequestInfo(verb, uri, response.GetResponseStream(), new BasicClaimBasedIdentity(), HeaderCollection.Parse(response.Headers.ToString()));
+            RequestInfo fakeRequest = new RequestInfo(verb, callUrl, response.GetResponseStream(), new BasicClaimBasedIdentity(), HeaderCollection.Parse(response.Headers.ToString()));
             var result = _resultBinder.BindResults(responseType, fakeRequest);
             return result.FirstOrDefault(responseType.IsInstanceOfType);
         }
 
-        private void FillRequestBody(Verb verb, Uri uri, WebRequest request, IEnumerable<string> contentType, IEnumerable<string> accepted, params object[] bodyArguments)
+        private void FillRequestBody(Verb verb, HttpUrl url, WebRequest request, IEnumerable<string> contentType, IEnumerable<string> accepted, params object[] bodyArguments)
         {
-            RequestInfo fakeRequest = new RequestInfo(verb, uri, new MemoryStream(), new BasicClaimBasedIdentity(), new Header(Header.Accept, accepted.ToArray()));
+            RequestInfo fakeRequest = new RequestInfo(verb, url, new MemoryStream(), new BasicClaimBasedIdentity(), new Header(Header.Accept, accepted.ToArray()));
             ResponseInfo fakeResponse = CreateFakeResponseInfo(fakeRequest, contentType, bodyArguments);
             using (var target = request.GetRequestStream())
             using (var source = fakeResponse.Body)

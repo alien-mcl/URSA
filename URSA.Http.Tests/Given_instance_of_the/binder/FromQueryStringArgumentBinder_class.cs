@@ -3,7 +3,9 @@ using Moq;
 using System;
 using System.Diagnostics.CodeAnalysis;
 using FluentAssertions;
+using URSA;
 using URSA.Web;
+using URSA.Web.Http;
 using URSA.Web.Http.Mapping;
 using URSA.Web.Http.Testing;
 using URSA.Web.Mapping;
@@ -14,11 +16,11 @@ namespace Given_instance_of_the.binder
     [TestClass]
     public class FromQueryStringArgumentBinder_class : ArgumentBinderTest<FromQueryStringArgumentBinder, FromQueryStringAttribute, int>
     {
-        private Uri _requestUri = new Uri("http://temp.org/api/test/add?operandA=1&operandB=1");
+        private HttpUrl _requestUrl = (HttpUrl)UrlParser.Parse("http://temp.org/api/test/add?operandA=1&operandB=1");
 
-        protected override Uri RequestUri { get { return _requestUri; } }
+        protected override HttpUrl RequestUrl { get { return _requestUrl; } }
 
-        protected override Uri MethodUri { get { return new Uri("http://temp.org/api/test/add"); } }
+        protected override HttpUrl MethodUrl { get { return (HttpUrl)UrlParser.Parse("http://temp.org/api/test/add"); } }
 
         protected override string MethodName { get { return "Add"; } }
 
@@ -47,7 +49,7 @@ namespace Given_instance_of_the.binder
         [TestMethod]
         public void it_should_return_null_if_the_query_string_is_to_short_to_contain_any_valid_value()
         {
-            _requestUri = new Uri("http://temp.org/api/test/add?_");
+            _requestUrl = (HttpUrl)UrlParser.Parse("http://temp.org/api/test/add?_");
             var context = (ArgumentBindingContext)GetContext();
 
             var result = Binder.GetArgumentValue(context);

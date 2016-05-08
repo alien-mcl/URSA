@@ -123,12 +123,12 @@ namespace URSA.Web
         private static IDictionary<string, Route> RegisterApi<T>(IComponentProvider container, ControllerInfo<T> description) where T : IController
         {
             var handler = new UrsaHandler<T>(container.Resolve<IRequestHandler<RequestInfo, ResponseInfo>>());
-            string globalRoutePrefix = (description.EntryPoint != null ? description.EntryPoint.Uri.ToString().Substring(1) + "/" : String.Empty);
+            string globalRoutePrefix = (description.EntryPoint != null ? description.EntryPoint.Url.ToString().Substring(1) + "/" : String.Empty);
             IDictionary<string, Route> routes = new Dictionary<string, Route>();
             routes[typeof(T).FullName + "DocumentationStylesheet"] = new Route(globalRoutePrefix + EntityConverter.DocumentationStylesheet, handler);
             routes[typeof(T).FullName + "PropertyIcon"] = new Route(globalRoutePrefix + EntityConverter.PropertyIcon, handler);
             routes[typeof(T).FullName + "MethodIcon"] = new Route(globalRoutePrefix + EntityConverter.MethodIcon, handler);
-            routes[typeof(T).FullName] = new Route(description.Uri.ToString().Substring(1), handler);
+            routes[typeof(T).FullName] = new Route(description.Url.ToString().Substring(1), handler);
             if (!String.IsNullOrEmpty(globalRoutePrefix))
             {
                 routes[globalRoutePrefix] = new Route(globalRoutePrefix, handler);
@@ -136,7 +136,7 @@ namespace URSA.Web
 
             foreach (var operation in description.Operations)
             {
-                string routeTemplate = (operation.UriTemplate ?? operation.Uri.ToString()).Substring(1).Replace("{?", "{");
+                string routeTemplate = (operation.UrlTemplate ?? operation.Url.ToString()).Substring(1).Replace("{?", "{");
                 int indexOf = routeTemplate.IndexOf('?');
                 if (indexOf != -1)
                 {

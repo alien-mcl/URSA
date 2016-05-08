@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using URSA.Web.Description;
 using URSA.Web.Description.Http;
 using URSA.Web.Mapping;
@@ -9,12 +8,12 @@ namespace URSA.Web.Http.Description
     /// <summary>Provides a description of the <see cref="EntryPointDescriptionController" />.</summary>
     public class EntryPointControllerDescriptionBuilder : ControllerDescriptionBuilder<EntryPointDescriptionController>
     {
-        private readonly Uri _entryPoint;
+        private readonly Url _entryPoint;
 
         /// <summary>Initializes a new instance of the <see cref="EntryPointControllerDescriptionBuilder"/> class.</summary>
         /// <param name="entryPoint">The entry point to be described.</param>
         /// <param name="defaultValueRelationSelector">The default value relation selector.</param>
-        public EntryPointControllerDescriptionBuilder(Uri entryPoint, IDefaultValueRelationSelector defaultValueRelationSelector) : base(defaultValueRelationSelector)
+        public EntryPointControllerDescriptionBuilder(Url entryPoint, IDefaultValueRelationSelector defaultValueRelationSelector) : base(defaultValueRelationSelector)
         {
             if (entryPoint == null)
             {

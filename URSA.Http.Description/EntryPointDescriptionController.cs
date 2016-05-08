@@ -12,13 +12,13 @@ namespace URSA.Web.Http.Description
         private readonly IApiEntryPointDescriptionBuilder _apiDescriptionBuilder;
 
         /// <summary>Initializes a new instance of the <see cref="EntryPointDescriptionController"/> class.</summary>
-        /// <param name="entryPoint">Entry point Uri.</param>
+        /// <param name="entryPoint">Entry point URL.</param>
         /// <param name="entityContextProvider">Entity context provider.</param>
         /// <param name="apiDescriptionBuilder">API description builder.</param>
         /// <param name="namedGraphSelectorFactory">Named graph selector factory.</param>
         [ExcludeFromCodeCoverage]
         public EntryPointDescriptionController(
-            Uri entryPoint,
+            Url entryPoint,
             IEntityContextProvider entityContextProvider,
             IApiEntryPointDescriptionBuilder apiDescriptionBuilder,
             INamedGraphSelectorFactory namedGraphSelectorFactory) :
@@ -34,7 +34,7 @@ namespace URSA.Web.Http.Description
 
         /// <summary>Gets the entry point.</summary>
         [ExcludeFromCodeCoverage]
-        public Uri EntryPoint { get { return _apiDescriptionBuilder.EntryPoint; } }
+        public Url EntryPoint { get { return _apiDescriptionBuilder.EntryPoint; } }
 
         /// <inheritdoc />
         protected internal override string FileName

@@ -136,7 +136,7 @@ namespace URSA.Web.Http.Description
             ILocallyControlledNamedGraphSelector locallyControlledNamedGraphSelector = namedGraphSelector as ILocallyControlledNamedGraphSelector;
             return locallyControlledNamedGraphSelector != null ?
                 GetApiEntryPointDescriptionWithLock(fileExtension, locallyControlledNamedGraphSelector) :
-                BuildApiDocumentation(fileExtension, Response.Request.Uri.AddFragment(String.Empty));
+                BuildApiDocumentation(fileExtension, (Uri)((HttpUrl)Response.Request.Url).WithFragment(String.Empty));
         }
 
         private IApiDocumentation GetApiEntryPointDescriptionWithLock(string fileExtension, ILocallyControlledNamedGraphSelector locallyControlledNamedGraphSelector)
@@ -144,7 +144,22 @@ namespace URSA.Web.Http.Description
             IApiDocumentation result;
             lock (locallyControlledNamedGraphSelector)
             {
-                Uri graphUri = new Uri(Response.Request.Uri.GetLeftPart(UriPartial.Path) + "#");
+                Uri graphUri;
+                HttpUrl url = Response.Request.Url as HttpUrl;
+                if (url != null)
+                {
+                    if (url.HasParameters)
+                    {
+                        url = (HttpUrl)url.WithoutParameters();
+                    }
+
+                    graphUri = (Uri)url.WithFragment(String.Empty);
+                }
+                else
+                {
+                    graphUri = (Uri)Response.Request.Url;
+                }
+
                 result = BuildApiDocumentation(fileExtension, locallyControlledNamedGraphSelector.NamedGraph = graphUri);
                 _entityContextProvider.EntityContext.Disposed += () => _entityContextProvider.TripleStore.Remove(graphUri);
                 locallyControlledNamedGraphSelector.NamedGraph = null;

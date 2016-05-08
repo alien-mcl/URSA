@@ -26,8 +26,8 @@ namespace URSA.Web.Http.Description
         {
             return new OperationInfo<Verb>(
                 typeof(OptionsController).GetMethod("Allow", BindingFlags.Instance | BindingFlags.NonPublic),
-                sourceOperation.Uri,
-                sourceOperation.UriTemplate,
+                sourceOperation.Url,
+                sourceOperation.UrlTemplate,
                 sourceOperation.TemplateRegex,
                 Verb.OPTIONS,
                 sourceOperation.Arguments.ToArray());

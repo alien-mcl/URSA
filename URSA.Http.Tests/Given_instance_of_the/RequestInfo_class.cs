@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using URSA;
 using URSA.Web.Http;
 
 namespace Given_instance_of_the
@@ -26,7 +27,7 @@ namespace Given_instance_of_the
             String.Join("\r\n", Headers.Select(header => String.Format("{0}: {1}", header.Key, header.Value))),
             Body);
 
-        private static readonly Uri Uri = new Uri("http://temp.uri/");
+        private static readonly HttpUrl Url = (HttpUrl)UrlParser.Parse("http://temp.uri/");
 
         private RequestInfo _request;
 
@@ -37,27 +38,27 @@ namespace Given_instance_of_the
         }
 
         [TestMethod]
-        public void it_should_throw_when_no_uri_is_passed_for_parsing()
+        public void it_should_throw_when_no_url_is_passed_for_parsing()
         {
-            ((RequestInfo)null).Invoking(_ => RequestInfo.Parse(Verb.GET, null, null)).ShouldThrow<ArgumentNullException>().Which.ParamName.Should().Be("uri");
+            ((RequestInfo)null).Invoking(_ => RequestInfo.Parse(Verb.GET, null, null)).ShouldThrow<ArgumentNullException>().Which.ParamName.Should().Be("url");
         }
 
         [TestMethod]
-        public void it_should_throw_when_an_uri_passed_for_parsing_is_not_absolute()
+        public void it_should_throw_when_an_url_passed_for_parsing_is_not_absolute()
         {
-            ((RequestInfo)null).Invoking(_ => RequestInfo.Parse(Verb.GET, new Uri("/", UriKind.Relative), null)).ShouldThrow<ArgumentOutOfRangeException>().Which.ParamName.Should().Be("uri");
+            ((RequestInfo)null).Invoking(_ => RequestInfo.Parse(Verb.GET, (HttpUrl)UrlParser.Parse("/"), null)).ShouldThrow<ArgumentOutOfRangeException>().Which.ParamName.Should().Be("url");
         }
 
         [TestMethod]
         public void it_should_throw_when_no_message_is_passed_for_parsing()
         {
-            ((RequestInfo)null).Invoking(_ => RequestInfo.Parse(Verb.GET, new Uri("http://temp.uri/"), null)).ShouldThrow<ArgumentNullException>().Which.ParamName.Should().Be("message");
+            ((RequestInfo)null).Invoking(_ => RequestInfo.Parse(Verb.GET, (HttpUrl)UrlParser.Parse("http://temp.uri/"), null)).ShouldThrow<ArgumentNullException>().Which.ParamName.Should().Be("message");
         }
 
         [TestMethod]
         public void it_should_throw_when_message_passed_for_parsing_is_empty()
         {
-            ((RequestInfo)null).Invoking(_ => RequestInfo.Parse(Verb.GET, new Uri("http://temp.uri/"), String.Empty)).ShouldThrow<ArgumentOutOfRangeException>().Which.ParamName.Should().Be("message");
+            ((RequestInfo)null).Invoking(_ => RequestInfo.Parse(Verb.GET, (HttpUrl)UrlParser.Parse("http://temp.uri/"), String.Empty)).ShouldThrow<ArgumentOutOfRangeException>().Which.ParamName.Should().Be("message");
         }
 
         [TestMethod]
@@ -90,7 +91,7 @@ namespace Given_instance_of_the
         [TestInitialize]
         public void Setup()
         {
-            _request = RequestInfo.Parse(Verb.GET, Uri, Message);
+            _request = RequestInfo.Parse(Verb.GET, Url, Message);
         }
 
         [TestCleanup]

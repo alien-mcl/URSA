@@ -10,11 +10,11 @@ namespace URSA.Web.Description
         /// <returns>Controller description info.</returns>
         ControllerInfo BuildDescriptor();
 
-        /// <summary>Gets the operation Uri template.</summary>
+        /// <summary>Gets the operation URL template.</summary>
         /// <param name="methodInfo">Method for which to obtain the template.</param>
         /// <param name="argumentMapping">Resulting argument mappings.</param>
-        /// <returns>Uri template for methods with parameters; otherwise <b>null</b>.</returns>
-        string GetOperationUriTemplate(MethodInfo methodInfo, out IEnumerable<ArgumentInfo> argumentMapping);
+        /// <returns>URL template for methods with parameters; otherwise <b>null</b>.</returns>
+        string GetOperationUrlTemplate(MethodInfo methodInfo, out IEnumerable<ArgumentInfo> argumentMapping);
     }
 
     /// <summary>Builds description for given controller.</summary>

@@ -45,23 +45,21 @@ namespace URSA.Web.Http.Mapping
                 throw new ArgumentNullException("context");
             }
 
-            if (context.Request.Uri.Query.Length <= 2)
+            if ((!context.Request.Url.HasQuery) || (context.Request.Url.Query.Count == 0))
             {
                 return null;
             }
 
-            string parameterName = Regex.Escape(context.Parameter.Name);
-            string template;
-            var variableMatch = UriTemplateBuilder.VariableTemplateRegex.Match(context.ParameterSource.UriTemplate);
-            template = (!variableMatch.Success ? context.ParameterSource.UriTemplate.Replace(FromQueryStringAttribute.Key, "&" + parameterName + "=") :
-                String.Format("&{0}=(?<Value>[^&]+)", (variableMatch.Groups["ExpansionType"].Success ? Regex.Escape(variableMatch.Groups["ParameterName"].Value) : parameterName)));
+            string parameterName = context.Parameter.Name;
+            var variableMatch = UriTemplateBuilder.VariableTemplateRegex.Match(context.ParameterSource.UrlTemplate);
+            if ((!variableMatch.Success) || (!variableMatch.Groups["ExpansionType"].Success))
+            {
+                variableMatch = Regex.Match(context.ParameterSource.UrlTemplate, "[?&]*(<ParameterName>[^=]+)=");
+            }
 
-            MatchCollection matches = Regex.Matches("&" + context.Request.Uri.Query.Substring(1), template);
-            return (matches.Count == 0 ? null : 
-                _converterProvider.ConvertToCollection(
-                    matches.Cast<Match>().Select(match => HttpUtility.UrlDecode(match.Groups["Value"].Value)),
-                    context.Parameter.ParameterType,
-                    context.Request));
+            parameterName = (variableMatch.Success ? variableMatch.Groups["ParameterName"].Value : parameterName);
+            var values = context.Request.Url.Query.GetValues(parameterName);
+            return (!values.Any() ? null : _converterProvider.ConvertToCollection(values, context.Parameter.ParameterType, context.Request));
         }
     }
 }

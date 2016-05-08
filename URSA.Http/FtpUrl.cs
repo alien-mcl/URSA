@@ -87,7 +87,7 @@ namespace URSA.Web.Http
         }
 
         /// <inheritdoc />
-        protected override IpUrl CreateInstance(IEnumerable<string> segments)
+        protected override IpUrl CreateInstance(IEnumerable<string> segments, bool? requiresParameters = false)
         {
             StringBuilder path = new StringBuilder(Path.Length * 2);
             IList<string> newSegments = new List<string>(_segments.Length + 1);
@@ -97,9 +97,10 @@ namespace URSA.Web.Http
                 newSegments.Add(segment);
             }
 
-            string url;
             string portString = ((Scheme == HttpUrlParser.Https) && (Port == HttpUrlParser.HttpsPort)) || (Port == HttpUrlParser.HttpPort) ? String.Empty : ":" + Port;
-            url = String.Format(
+            var parameters = (!requiresParameters.HasValue ? null :
+                (requiresParameters.Value ? (Parameters != null ? Parameters.Clone() : new ParametersCollection(";", "=")) : Parameters));
+            string url = String.Format(
                 "{0}://{1}{2}{3}{4}/{5}{6}",
                 Scheme,
                 UserName,
@@ -107,7 +108,7 @@ namespace URSA.Web.Http
                 Host,
                 portString,
                 path,
-                (_parameters != null ? String.Format(";{0}", _parameters.ToString(HttpUrlParser.PathAllowedChars)) : String.Empty));
+                (parameters != null ? String.Format(";{0}", parameters.ToString(HttpUrlParser.PathAllowedChars)) : String.Empty));
             return new FtpUrl(url, Scheme, UserName, Password, Host, Port, path.ToString(), Parameters, segments.ToArray());
         }
     }

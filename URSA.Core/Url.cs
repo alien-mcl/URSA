@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Linq;
-using System.Text;
 
 namespace URSA.Web.Http
 {
@@ -36,7 +34,17 @@ namespace URSA.Web.Http
         /// <returns>The result of the conversion.</returns>
         public static explicit operator Uri(Url url)
         {
-            return (url == null ? null : new Uri(url.ToString()));
+            if (url == null)
+            {
+                return null;
+            }
+
+            if (url.Scheme.Length == 0)
+            {
+                return new Uri(url.ToString(), UriKind.Relative);
+            }
+
+            return new Uri(url.ToString());
         }
 
         /// <inheritdoc />

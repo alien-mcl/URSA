@@ -16,7 +16,7 @@ namespace URSA.Web.Http
         /// <param name="allowed">Allowed HTTP requests.</param>
         [ExcludeFromCodeCoverage]
         [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
-        public OptionsRequestMapping(OperationInfo<Verb> operation, Uri methodRoute, HttpStatusCode responseStatusCode, params string[] allowed)
+        public OptionsRequestMapping(OperationInfo<Verb> operation, HttpUrl methodRoute, HttpStatusCode responseStatusCode, params string[] allowed)
         {
             if (operation == null)
             {
@@ -42,7 +42,7 @@ namespace URSA.Web.Http
         public IController Target { get; private set; }
 
         /// <inheritdoc />
-        public Uri MethodRoute { get; private set; }
+        public Url MethodRoute { get; private set; }
 
         /// <inheritdoc />
         [ExcludeFromCodeCoverage]

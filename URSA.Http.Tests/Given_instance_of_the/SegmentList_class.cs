@@ -15,8 +15,8 @@ namespace Given_instance_of_the
             var segments = new UriTemplateBuilder.SegmentList(null, false);
             segments.Add("/api", null, typeof(CrudController));
             segments.Add("person", new RouteAttribute("/person"), typeof(CrudController).GetMethod("Update"));
-            segments.Add("id/{?id}", new FromUriAttribute("/id/{?value}"), typeof(CrudController).GetMethod("Update").GetParameters()[0]);
-            segments.Add("person/{?person}", new FromUriAttribute("/person/{?value}"), typeof(CrudController).GetMethod("Update").GetParameters()[1], true);
+            segments.Add("id/{?id}", new FromUrlAttribute("/id/{?value}"), typeof(CrudController).GetMethod("Update").GetParameters()[0]);
+            segments.Add("person/{?person}", new FromUrlAttribute("/person/{?value}"), typeof(CrudController).GetMethod("Update").GetParameters()[1], true);
 
             var result = segments.ToString();
 
@@ -29,8 +29,8 @@ namespace Given_instance_of_the
             var segments = new UriTemplateBuilder.SegmentList(null, true);
             segments.Add("api", null, typeof(CrudController));
             segments.Add("person", new RouteAttribute("/person"), typeof(CrudController).GetMethod("Update"));
-            segments.Add("id/[^/?]+", new FromUriAttribute("/id/{?value}"), typeof(CrudController).GetMethod("Update").GetParameters()[0]);
-            segments.Add("person/[^/?]+", new FromUriAttribute("/person/{?value}"), typeof(CrudController).GetMethod("Update").GetParameters()[1], true);
+            segments.Add("id/[^/?]+", new FromUrlAttribute("/id/{?value}"), typeof(CrudController).GetMethod("Update").GetParameters()[0]);
+            segments.Add("person/[^/?]+", new FromUrlAttribute("/person/{?value}"), typeof(CrudController).GetMethod("Update").GetParameters()[1], true);
 
             var result = segments.ToString();
 
