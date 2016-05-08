@@ -14,11 +14,11 @@ namespace Test
     [System.CodeDom.Compiler.GeneratedCode("URSA HTTP client proxy generation tool", "1.0")]
     public partial class TypeClient : Client
     {
-        public TypeClient(Uri baseUri, string authenticationScheme) : base(baseUri, authenticationScheme)
+        public TypeClient(HttpUrl baseUri, string authenticationScheme) : base(baseUri, authenticationScheme)
         {
         }
 
-        public TypeClient(Uri baseUri) : base(baseUri)
+        public TypeClient(HttpUrl baseUri) : base(baseUri)
         {
         }
 

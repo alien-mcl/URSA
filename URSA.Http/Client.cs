@@ -78,7 +78,7 @@ namespace URSA.Web.Http
 
         internal HttpUrl BuildUrl(string url, IDictionary<string, object> uriArguments)
         {
-            var template = new UriTemplate((BaseUrl + url.TrimStart('/')).ToString());
+            var template = new UriTemplate(BaseUrl.ToString() + url);
             var result = template.ResolveUri(uriArguments.ToDictionary(entry => entry.Key, entry => (object)(entry.Value != null ? entry.Value.ToString() : null)));
             return (HttpUrl)UrlParser.Parse(Regex.Replace(result.ToString(), "%([0-9]+)", match => Convert.ToChar(UInt32.Parse(match.Groups[1].Value, NumberStyles.HexNumber)).ToString()));
         }

@@ -52,7 +52,7 @@ namespace URSA.Web.Http
         protected string Host { get { return _host; } set { _host = value ?? String.Empty; } }
 
         /// <summary>Gets or sets the port.</summary>
-        protected ushort Port { get { return _port == 0 ? DefaultPort : _port; } set { _port = value == 0 ? DefaultPort : _port; } }
+        protected ushort Port { get { return _port == 0 ? DefaultPort : _port; } set { _port = value == 0 ? DefaultPort : value; } }
 
         /// <summary>Gets or sets the path.</summary>
         protected string Path { get { return _path ?? SegmentSeparator.ToString(); } set { _path = value ?? SegmentSeparator.ToString(); } }
@@ -205,13 +205,8 @@ namespace URSA.Web.Http
 
         private int FinalizeUserNameOrHost(StringBuilder actualUrl, int index, int lastDelimiter, ref Expected expectedToken)
         {
-            if ((expectedToken & Expected.UserName) == Expected.UserName)
+            if (((expectedToken & Expected.UserName) == Expected.UserName) && (SupportsLogin))
             {
-                if (!SupportsLogin)
-                {
-                    throw new ArgumentOutOfRangeException("url", "Passed url is malfored.");
-                }
-
                 UserName = actualUrl.ToString(lastDelimiter, index - lastDelimiter);
                 expectedToken = Expected.Password;
                 return index + 1;
@@ -238,7 +233,13 @@ namespace URSA.Web.Http
             }
             else if ((expectedToken & Expected.Port) == Expected.Port)
             {
-                Port = UInt16.Parse(actualUrl.ToString(lastDelimiter, index - lastDelimiter));
+                string port = actualUrl.ToString(lastDelimiter, index - lastDelimiter);
+                if (port.Length == 0)
+                {
+                    throw new ArgumentOutOfRangeException("url", "Passed url is malfored.");
+                }
+
+                Port = UInt16.Parse(port);
             }
             else
             {

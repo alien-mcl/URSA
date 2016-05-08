@@ -34,7 +34,7 @@ namespace Given_instance_of_the.converter_of
         private const string ContentType = "application/ld+json";
         private const string ClassId = "class";
         private const string Method = "GET";
-        private const string BodyPattern = "[{{ \"@id\":\"{0}{2}/\", \"@type\":\"{1}Operation\", \"{1}method\":\"GET\", \"{1}returns\":{{ \"@id\":\"{0}{3}\" }} }},{{ \"@id\":\"{0}{3}\", \"@type\":\"{1}Class\" }}]";
+        private const string BodyPattern = "[{{ \"@id\":\"{0}/{2}\", \"@type\":\"{1}Operation\", \"{1}method\":\"GET\", \"{1}returns\":{{ \"@id\":\"{0}/{3}\" }} }},{{ \"@id\":\"{0}/{3}\", \"@type\":\"{1}Class\" }}]";
         private static readonly string Body = String.Format(BodyPattern, BaseUrl, EntityConverter.Hydra, OperationName, ClassId);
         private Mock<IEntityContext> _context;
         private ITripleStore _tripleStore;
@@ -145,11 +145,7 @@ namespace Given_instance_of_the.converter_of
 
         protected override void AssertSingleEntityMessage(string result)
         {
-            var test = JToken.Parse(result);
-            var test2 = JsonLdProcessor.Expand(test);
-            var parsedResult = test2.ToString();
-            var expected = JsonLdProcessor.Expand(JToken.Parse(Body)).ToString();
-            parsedResult.Should().Be(expected);
+            JsonLdProcessor.Expand(JToken.Parse(result)).ToString().Should().Be(JsonLdProcessor.Expand(JToken.Parse(Body)).ToString());
         }
 
         protected override EntityConverter CreateInstance()
