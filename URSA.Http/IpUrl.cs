@@ -54,6 +54,9 @@ namespace URSA.Web.Http
         /// <inheritdoc />
         public virtual string Path { get { return "/"; } }
 
+        /// <summary>Gets the authority of this URL.</summary>
+        public abstract string Authority { get; }
+
         /// <inheritdoc />
         public abstract ParametersCollection Parameters { get; }
 

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using URSA.Web.Description;
 
@@ -28,6 +29,7 @@ namespace URSA.Web.Http
             Target = target;
             Operation = operation;
             MethodRoute = methodRoute;
+            ArgumentSources = new Dictionary<int, ArgumentValueSources>(operation.UnderlyingMethod.GetParameters().Length + (operation.UnderlyingMethod.ReturnType != typeof(void) ? 1 : 0));
         }
         
         /// <inheritdoc />
@@ -35,6 +37,9 @@ namespace URSA.Web.Http
 
         /// <inheritdoc />
         public HttpUrl MethodRoute { get; private set; }
+
+        /// <inheritdoc />
+        public IDictionary<int, ArgumentValueSources> ArgumentSources { get; private set; }
 
         /// <summary>Gets the mapped method route.</summary>
         Url IRequestMapping.MethodRoute { get { return MethodRoute; } }

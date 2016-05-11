@@ -63,7 +63,8 @@ namespace URSA.CastleWindsor
             container.Register(Component.For<ITripleStore>().Instance(_tripleStore.Value).Named("InMemoryTripleStore").LifestyleSingleton());
             container.Register(Component.For<INamedGraphSelectorFactory>().AsFactory(typedFactory).LifestyleSingleton());
             container.Register(Component.For<INamedGraphSelector>().ImplementedBy<LocallyControlledOwningResourceNamedGraphSelector>()
-                .Forward<ILocallyControlledNamedGraphSelector>().Named("InMemoryNamedGraphSelector").LifestyleSingleton());
+                .Forward<ILocallyControlledNamedGraphSelector>().Named("InMemoryNamedGraphSelector").LifestyleSingleton()
+                .PropertiesIgnore((model, property) => property == typeof(LocallyControlledOwningResourceNamedGraphSelector).GetProperty("CurrentRequest")));
             container.Register(Component.For<IEntityContextFactory>().Instance(_entityContextFactory.Value).Named("InMemoryEntityContextFactory").LifestyleSingleton());
             container.Register(Component.For<IEntityContext>().UsingFactoryMethod(CreateEntityContext).Named("InMemoryEntityContext").LifeStyle.HybridPerWebRequestPerThread());
             container.Register(Component.For<IEntityContextProvider>().AsFactory(typedFactory).LifestyleSingleton());

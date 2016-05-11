@@ -51,37 +51,15 @@ namespace URSA.Web.Http
             _fragment = fragment;
             _segments = segments ?? new string[0];
             _query = query;
+            string safePath = (_segments.Length == 0 ? String.Empty : String.Join("/", _segments.Select(segment => UrlParser.ToSafeString(segment, HttpUrlParser.PathAllowedChars))));
             if (isAbsolute)
             {
-                string portString = ((scheme == HttpUrlParser.Https) && (port == HttpUrlParser.HttpsPort)) || (port == HttpUrlParser.HttpPort) ? String.Empty : ":" + port;
-                _location = String.Format(
-                    "//{0}{1}{2}{3}{4}",
-                    host,
-                    portString,
-                    _path,
-                    (_query != null ? String.Format("?{0}", _query) : String.Empty),
-                    (_fragment != null ? String.Format("#{0}", _fragment) : String.Empty));
-                _asString = String.Format(
-                    "{0}://{1}{2}/{3}{4}{5}",
-                    scheme,
-                    host,
-                    portString,
-                    (_segments.Length > 0 ? String.Join("/", _segments.Select(segment => UrlParser.ToSafeString(segment, HttpUrlParser.PathAllowedChars))) : String.Empty),
-                    (_query != null ? String.Format("?{0}", _query.ToString(HttpUrlParser.PathAllowedChars)) : String.Empty),
-                    (_fragment != null ? String.Format("#{0}", UrlParser.ToSafeString(_fragment, HttpUrlParser.PathAllowedChars)) : String.Empty));
+                _location = ToAbsoluteString(scheme, host, port, _path.TrimStart('/'), _query, _fragment).Substring(scheme.Length + 1);
+                _asString = ToAbsoluteString(scheme, host, port, safePath, _query, _fragment);
             }
             else
             {
-                _location = String.Format(
-                    "{0}{1}{2}",
-                    _path,
-                    (_query != null ? String.Format("?{0}", _query) : String.Empty),
-                    (_fragment != null ? String.Format("#{0}", _fragment) : String.Empty));
-                _asString = String.Format(
-                    "/{0}{1}{2}",
-                    (_segments.Length > 0 ? String.Join("/", _segments.Select(segment => UrlParser.ToSafeString(segment, HttpUrlParser.PathAllowedChars))) : String.Empty),
-                    (_query != null ? String.Format("?{0}", _query.ToString(HttpUrlParser.PathAllowedChars)) : String.Empty),
-                    (_fragment != null ? String.Format("#{0}", UrlParser.ToSafeString(_fragment, HttpUrlParser.PathAllowedChars)) : String.Empty));
+                _location = _asString = ToRelativeString("/" + safePath, _query, _fragment);
             }
 
             _hashCode = _asString.GetHashCode();
@@ -95,6 +73,9 @@ namespace URSA.Web.Http
 
         /// <inheritdoc />
         public override string Path { get { return _path; } }
+
+        /// <inheritdoc />
+        public override string Authority { get { return ToAbsoluteString(Scheme, Host, Port); } }
 
         /// <summary>Gets a relative version of this URL.</summary>
         public HttpUrl AsRelative
@@ -292,7 +273,7 @@ namespace URSA.Web.Http
         {
             if (!HasFragment)
             {
-                return (fragment == null ? this : new HttpUrl(_isAbsolute, OriginalUrl, Scheme, Host, Port, Path, _query, fragment, _segments));
+                return (fragment == null ? this : new HttpUrl(_isAbsolute, OriginalUrl + "#" + fragment, Scheme, Host, Port, Path, _query, fragment, _segments));
             }
 
             if (fragment == null)
@@ -330,9 +311,14 @@ namespace URSA.Web.Http
             return new HttpUrl(_isAbsolute, url, Scheme, Host, Port, path.ToString(), query, Fragment, segments.ToArray());
         }
 
-        private static string ToAbsoluteString(string scheme, string host, ushort port, string path, ParametersCollection query = null, string fragment = null)
+        private static string ToAbsoluteString(string scheme, string host, ushort port, string path = null, ParametersCollection query = null, string fragment = null)
         {
             string portString = (((scheme == HttpUrlParser.Https) && (port == HttpUrlParser.HttpsPort)) || (port == HttpUrlParser.HttpPort) ? String.Empty : ":" + port);
+            if (path == null)
+            {
+                return String.Format("{0}://{1}{2}/", scheme, host, portString);
+            }
+
             return String.Format(
                 "{0}://{1}{2}/{3}{4}{5}",
                 scheme,

@@ -66,9 +66,16 @@ namespace Given_instance_of_the
         [TestInitialize]
         public void Setup()
         {
+            var argumentValueSources = new Dictionary<int, ArgumentValueSources>()
+                {
+                    { 0, ArgumentValueSources.Neutral },
+                    { 1, ArgumentValueSources.Bound },
+                    { 2, ArgumentValueSources.Bound } 
+                };
             _mapping = new Mock<IRequestMapping>(MockBehavior.Strict);
             _mapping.SetupGet(instance => instance.Operation).Returns(typeof(TestController).GetMethod("List").ToOperationInfo("/", Verb.GET));
             _mapping.SetupGet(instance => instance.Target).Returns(new TestController());
+            _mapping.SetupGet(instance => instance.ArgumentSources).Returns(argumentValueSources);
             _entityContext = new Mock<IEntityContext>(MockBehavior.Strict);
             var blankNodeIdGenerator = new Mock<IBlankNodeIdGenerator>(MockBehavior.Strict);
             blankNodeIdGenerator.Setup(instance => instance.Generate()).Returns("bnode001");

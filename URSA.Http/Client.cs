@@ -129,7 +129,7 @@ namespace URSA.Web.Http
             if ((!String.IsNullOrEmpty(CredentialCache.DefaultNetworkCredentials.UserName)) && (!String.IsNullOrEmpty(CredentialCache.DefaultNetworkCredentials.Password)))
             {
                 var credentials = new CredentialCache();
-                credentials.Add(new Uri(String.Format("{0}://{1}/", callUrl.Scheme, callUrl.Host)), _authenticationScheme, new NetworkCredential(CredentialCache.DefaultNetworkCredentials.UserName, CredentialCache.DefaultNetworkCredentials.Password));
+                credentials.Add(new Uri(callUrl.Authority), _authenticationScheme, new NetworkCredential(CredentialCache.DefaultNetworkCredentials.UserName, CredentialCache.DefaultNetworkCredentials.Password));
                 request.Credentials = credentials;
                 request.PreAuthenticate = true;
             }

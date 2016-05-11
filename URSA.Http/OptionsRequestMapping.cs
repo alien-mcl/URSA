@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using URSA.Web.Description;
@@ -36,6 +37,7 @@ namespace URSA.Web.Http
             Target = new OptionsController(responseStatusCode, allowed);
             Operation = operation;
             MethodRoute = methodRoute;
+            ArgumentSources = new Dictionary<int, ArgumentValueSources>(operation.UnderlyingMethod.GetParameters().Length + (operation.UnderlyingMethod.ReturnType != typeof(void) ? 1 : 0));
         }
         
         /// <inheritdoc />
@@ -43,6 +45,9 @@ namespace URSA.Web.Http
 
         /// <inheritdoc />
         public Url MethodRoute { get; private set; }
+
+        /// <inheritdoc />
+        public IDictionary<int, ArgumentValueSources> ArgumentSources { get; private set; }
 
         /// <inheritdoc />
         [ExcludeFromCodeCoverage]

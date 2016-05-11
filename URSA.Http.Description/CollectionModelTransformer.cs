@@ -56,6 +56,7 @@ namespace URSA.Web.Http.Description
             int totalItems = ((IEnumerable)result).Cast<object>().Count();
             int skip = 0;
             int take = 0;
+            bool canOutputHypermedia = false;
             KeyValuePair<Verb, MethodInfo> method;
             if ((requestMapping.Target.GetType().GetImplementationOfAny(typeof(IController<>), typeof(IAsyncController<>)) != null) &&
                 (!Equals(method = requestMapping.Target.GetType().DiscoverCrudMethods().FirstOrDefault(entry => entry.Value == underlyingMethod), default(KeyValuePair<Verb, MethodInfo>))))
@@ -70,10 +71,16 @@ namespace URSA.Web.Http.Description
                         {
                             skip = (int)arguments[1];
                             take = ((take = (int)arguments[2]) == 0 ? 0 : Math.Min(take, totalItems));
+                            canOutputHypermedia = (requestMapping.ArgumentSources[1] == ArgumentValueSources.Bound) && (requestMapping.ArgumentSources[2] == ArgumentValueSources.Bound);
                         }
 
                         break;
                 }
+            }
+
+            if (!canOutputHypermedia)
+            {
+                return Task.FromResult(result);
             }
 
             var namedGraphSelector = _namedGraphSelectorFactory.NamedGraphSelector;

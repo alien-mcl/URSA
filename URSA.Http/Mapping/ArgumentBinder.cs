@@ -57,7 +57,7 @@ namespace URSA.Web.Http.Mapping
                 throw new ArgumentNullException("requestMapping");
             }
 
-            ArrayList result = new ArrayList();
+            var result = new List<object>();
             IDictionary<RequestInfo, RequestInfo[]> multipartBodies = new Dictionary<RequestInfo, RequestInfo[]>();
             int index = 0;
             foreach (var parameter in requestMapping.Operation.UnderlyingMethod.GetParameters())
@@ -71,11 +71,17 @@ namespace URSA.Web.Http.Mapping
                     if ((value == null) && (argument.Parameter.DefaultValue != null))
                     {
                         value = argument.Parameter.DefaultValue;
+                        requestMapping.ArgumentSources[index] = ArgumentValueSources.Default;
+                    }
+                    else
+                    {
+                        requestMapping.ArgumentSources[index] = ArgumentValueSources.Bound;
                     }
                 }
                 else
                 {
                     value = (argument.Parameter.ParameterType.IsValueType ? Activator.CreateInstance(argument.Parameter.ParameterType) : null);
+                    requestMapping.ArgumentSources[index] = ArgumentValueSources.Default;
                 }
 
                 result.Add(value);

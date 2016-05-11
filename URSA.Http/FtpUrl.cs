@@ -31,24 +31,16 @@ namespace URSA.Web.Http
             _path = (!String.IsNullOrEmpty(path) ? path : "/");
             _segments = segments ?? new string[0];
             _parameters = parameters;
-            string portString = ((scheme == FtpUrlParser.Ssh) && (port == FtpUrlParser.SshPort)) || ((scheme == FtpUrlParser.Ftps) && (port == FtpUrlParser.FtpsPort)) || (port == FtpUrlParser.FtpPort) ? String.Empty : ":" + port;
-            _location = String.Format(
-                "//{0}{1}{2}{3}{4}{5}",
-                userName,
-                (!String.IsNullOrEmpty(password) ? String.Format(":{0}@", password) : (!String.IsNullOrEmpty(userName) ? "@" : String.Empty)),
-                host,
-                portString,
-                _path,
-                (_parameters != null ? String.Format(";{0}", _parameters) : String.Empty));
-            _asString = String.Format(
-                "{0}://{1}{2}{3}{4}/{5}{6}",
+            string safePath = (_segments.Length == 0 ? String.Empty : String.Join("/", _segments.Select(segment => UrlParser.ToSafeString(segment, FtpUrlParser.PathAllowedChars))));
+            _asString = ToAbsoluteString(
                 scheme,
                 UrlParser.ToSafeString(userName, UrlParser.LoginAllowed),
-                (!String.IsNullOrEmpty(password) ? String.Format(":{0}@", UrlParser.ToSafeString(password, UrlParser.LoginAllowed)) : (!String.IsNullOrEmpty(userName) ? "@" : String.Empty)),
+                UrlParser.ToSafeString(password, UrlParser.LoginAllowed),
                 host,
-                portString,
-                (_segments.Length > 0 ? String.Join("/", _segments.Select(segment => UrlParser.ToSafeString(segment, HttpUrlParser.PathAllowedChars))) : String.Empty),
-                (_parameters != null ? String.Format(";{0}", _parameters.ToString(HttpUrlParser.PathAllowedChars)) : String.Empty));
+                port,
+                safePath,
+                _parameters);
+            _location = _asString.Substring(scheme.Length + 1);
             _hashCode = _asString.GetHashCode();
         }
 
@@ -57,6 +49,9 @@ namespace URSA.Web.Http
 
         /// <inheritdoc />
         public override string Path { get { return _path; } }
+
+        /// <inheritdoc />
+        public override string Authority { get { return ToAbsoluteString(Scheme, UserName, Password, Host, Port); } }
 
         /// <inheritdoc />
         public override ParametersCollection Parameters { get { return _parameters; } }
@@ -93,23 +88,36 @@ namespace URSA.Web.Http
             IList<string> newSegments = new List<string>(_segments.Length + 1);
             foreach (string segment in segments)
             {
-                path.Append("/").Append(UrlParser.ToSafeString(segment, HttpUrlParser.PathAllowedChars));
+                path.Append("/").Append(UrlParser.ToSafeString(segment, FtpUrlParser.PathAllowedChars));
                 newSegments.Add(segment);
             }
 
-            string portString = ((Scheme == HttpUrlParser.Https) && (Port == HttpUrlParser.HttpsPort)) || (Port == HttpUrlParser.HttpPort) ? String.Empty : ":" + Port;
             var parameters = (!requiresParameters.HasValue ? null :
                 (requiresParameters.Value ? (Parameters != null ? Parameters.Clone() : new ParametersCollection(";", "=")) : Parameters));
-            string url = String.Format(
+            string url = ToAbsoluteString(Scheme, UserName, Password, Host, Port, path.ToString(), parameters);
+            return new FtpUrl(url, Scheme, UserName, Password, Host, Port, path.ToString(), Parameters, segments.ToArray());
+        }
+
+        private static string ToAbsoluteString(string scheme, string userName, string password, string host, uint port, string path = null, ParametersCollection parameters = null)
+        {
+            string portString = ((scheme == FtpUrlParser.Ssh) && (port == FtpUrlParser.SshPort)) || 
+                ((scheme == FtpUrlParser.Ftps) && (port == FtpUrlParser.FtpsPort)) || 
+                (port == FtpUrlParser.FtpPort) ? String.Empty : ":" + port;
+            string passwordString = (!String.IsNullOrEmpty(password) ? String.Format(":{0}@", password) : (!String.IsNullOrEmpty(userName) ? "@" : String.Empty));
+            if (path == null)
+            {
+                return String.Format("{0}://{1}{2}{3}{4}/", scheme, userName, passwordString, host, portString);
+            }
+
+            return String.Format(
                 "{0}://{1}{2}{3}{4}/{5}{6}",
-                Scheme,
-                UserName,
-                (!String.IsNullOrEmpty(Password) ? String.Format(":{0}@", Password) : (!String.IsNullOrEmpty(UserName) ? "@" : String.Empty)),
-                Host,
+                scheme,
+                userName,
+                (!String.IsNullOrEmpty(password) ? String.Format(":{0}@", password) : (!String.IsNullOrEmpty(userName) ? "@" : String.Empty)),
+                host,
                 portString,
                 path,
-                (parameters != null ? String.Format(";{0}", parameters.ToString(HttpUrlParser.PathAllowedChars)) : String.Empty));
-            return new FtpUrl(url, Scheme, UserName, Password, Host, Port, path.ToString(), Parameters, segments.ToArray());
+                (parameters != null ? String.Format(";{0}", parameters.ToString(FtpUrlParser.PathAllowedChars)) : String.Empty));
         }
     }
 }
