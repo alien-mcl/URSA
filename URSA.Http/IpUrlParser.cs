@@ -66,6 +66,9 @@ namespace URSA.Web.Http
         /// <summary>Gets the default port.</summary>
         protected abstract ushort DefaultPort { get; }
 
+        /// <summary>Gets the segments. </summary>
+        protected abstract IList<string> Segments { get; }
+
         /// <summary>Gets the segment separator.</summary>
         protected virtual char SegmentSeparator { get { return '/'; } }
 
@@ -135,6 +138,51 @@ namespace URSA.Web.Http
         /// <param name="actualUrl">AN Actual URL.</param>
         /// <param name="index">Current index.</param>
         protected abstract void ParsePath(StringBuilder actualUrl, int index);
+
+        /// <summary>Parses the segment with dot-segment normalization.</summary>
+        /// <param name="actualUrl">The actual URL.</param>
+        /// <param name="index">Current index.</param>
+        /// <param name="lastSegment">The last segment index.</param>
+        /// <returns>New index to be set.</returns>
+        protected int ParseSegment(StringBuilder actualUrl, int index, ref int lastSegment)
+        {
+            if (index - lastSegment - 1 > 0)
+            {
+                string segment = actualUrl.ToString(lastSegment + 1, index - lastSegment - 1);
+                switch (segment)
+                {
+                    case ".":
+                        actualUrl.Remove(lastSegment + 1, index - lastSegment);
+                        index -= 2;
+                        segment = null;
+                        break;
+                    case "..":
+                        actualUrl.Remove(lastSegment + 1, index - lastSegment);
+                        index -= 3;
+                        segment = null;
+                        if (Segments.Count > 0)
+                        {
+                            int segmentLength = Segments[Segments.Count - 1].Length + 1;
+                            actualUrl.Remove(lastSegment = index -= segmentLength, segmentLength);
+                            Segments.RemoveAt(Segments.Count - 1);
+                        }
+
+                        break;
+                }
+
+                if (segment != null)
+                {
+                    Segments.Add(segment);
+                    lastSegment = index;
+                }
+            }
+            else
+            {
+                lastSegment = index;
+            }
+
+            return index;
+        }
 
         private bool ParseInternal(StringBuilder actualUrl, ref int index, ref int lastDelimiter, ref Expected expectedToken)
         {

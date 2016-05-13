@@ -16,7 +16,7 @@ namespace URSA.Web.Http
         internal static readonly char[] PathAllowedChars = UChar.Concat(Reserved.Except(PathReserved)).ToArray();
         internal static readonly string[] Schemes = { Http, Https };
 
-        private readonly ICollection<string> _segments = new List<string>();
+        private readonly IList<string> _segments = new List<string>();
         private ParametersCollection _query;
         private string _fragment;
 
@@ -36,6 +36,9 @@ namespace URSA.Web.Http
         protected override bool SupportsLogin { get { return false; } }
 
         /// <inheritdoc />
+        protected override IList<string> Segments { get { return _segments; } }
+
+        /// <inheritdoc />
         protected override void ParsePath(StringBuilder actualUrl, int index)
         {
             int lastDelimiter = index;
@@ -46,31 +49,18 @@ namespace URSA.Web.Http
                 switch (actualUrl[index])
                 {
                     case '/':
-                        if (index - lastSegment - 1 > 0)
-                        {
-                            _segments.Add(actualUrl.ToString(lastSegment + 1, index - lastSegment - 1));
-                        }
-
-                        lastSegment = index;
+                        index = ParseSegment(actualUrl, index, ref lastSegment);
                         break;
                     case '%':
                         index = DecodeEscape(actualUrl, index);
                         break;
                     case '#':
-                        if (index - lastSegment - 1 > 0)
-                        {
-                            _segments.Add(actualUrl.ToString(lastSegment + 1, index - lastSegment - 1));
-                        }
-
+                        index = ParseSegment(actualUrl, index, ref lastSegment);
                         Path = actualUrl.ToString(lastDelimiter, index - lastDelimiter);
                         ParseFragment(actualUrl, index);
                         return;
                     case '?':
-                        if (index - lastSegment - 1 > 0)
-                        {
-                            _segments.Add(actualUrl.ToString(lastSegment + 1, index - lastSegment - 1));
-                        }
-
+                        index = ParseSegment(actualUrl, index, ref lastSegment);
                         Path = actualUrl.ToString(lastDelimiter, index - lastDelimiter);
                         _query = new ParametersCollection("&", "=");
                         ParseQuery(actualUrl, index);
@@ -78,11 +68,7 @@ namespace URSA.Web.Http
                 }
             }
 
-            if (lastSegment + 1 != index)
-            {
-                _segments.Add(actualUrl.ToString(lastSegment + 1, index - lastSegment - 1));
-            }
-
+            index = ParseSegment(actualUrl, index, ref lastSegment);
             Path = actualUrl.ToString(lastDelimiter, index - lastDelimiter);
         }
 
