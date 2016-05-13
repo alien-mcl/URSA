@@ -81,7 +81,7 @@ namespace URSA.Web.Http
                 }
 
                 var controllerInstance = _controllerActivator.CreateInstance(match.Key.GetType().GetGenericArguments()[0], match.Key.Arguments);
-                return new RequestMapping(controllerInstance, match.Value, match.Value.Uri);
+                return new RequestMapping(controllerInstance, match.Value, (HttpUrl)match.Value.Url);
             }
 
             if (allowedOptions.Count == 0)
@@ -92,27 +92,25 @@ namespace URSA.Web.Http
             var option = allowedOptions.First();
             return new OptionsRequestMapping(
                 OptionsController.CreateOperationInfo(option),
-                option.Uri,
+                (HttpUrl)option.Url,
                 (methodMismatch ? HttpStatusCode.MethodNotAllowed : HttpStatusCode.OK),
                 allowedOptions.Select(item => item.ProtocolSpecificCommand.ToString()).ToArray());
         }
 
         private IEnumerable<KeyValuePair<ControllerInfo, OperationInfo<Verb>>> GetPossibleOperations(RequestInfo request)
         {
-            string requestUri = request.Uri.ToRelativeUri().ToString();
-            int indexOf = requestUri.IndexOf('?');
-            string requestPath = (indexOf != -1 ? requestUri.Substring(0, indexOf) : requestUri);
-            var queryString = (indexOf != -1 ? HttpUtility.ParseQueryString(requestUri.Substring(indexOf)).Cast<string>().Select(key => key.ToLower()).ToArray() : new string[0]);
+            var relativeUrl = request.Url.AsRelative;
+            var queryString = (relativeUrl.HasQuery ? relativeUrl.Query.Keys : new string[0]);
             return from controller in _controllerDescriptors.Value
                    from operation in controller.Operations
-                   where operation.TemplateRegex.IsMatch(requestPath)
+                   where operation.TemplateRegex.IsMatch(relativeUrl.Path)
                    let httpOperation = (OperationInfo<Verb>)operation
                    let rank = GetMatchRank(controller, httpOperation, queryString, request.Method)
                    orderby rank descending
                    select new KeyValuePair<ControllerInfo, OperationInfo<Verb>>(controller, httpOperation);
         }
 
-        private double GetMatchRank(ControllerInfo controller, OperationInfo<Verb> operation, string[] queryString, Verb method)
+        private double GetMatchRank(ControllerInfo controller, OperationInfo<Verb> operation, IEnumerable<string> queryString, Verb method)
         {
             var requiredQueryStringArguments = new List<string>();
             var optionalQueryStringArguments = new List<string>();

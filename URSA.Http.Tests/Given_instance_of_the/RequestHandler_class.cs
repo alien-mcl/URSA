@@ -9,6 +9,7 @@ using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using URSA;
 using URSA.ComponentModel;
 using URSA.Configuration;
 using URSA.Security;
@@ -39,7 +40,7 @@ namespace Given_instance_of_the
         {
             var handler = SetupEnvironment(1, true);
 
-            handler.HandleRequest(new RequestInfo(Verb.GET, new Uri("http://temp.uri/api/test"), new MemoryStream(), new BasicClaimBasedIdentity()));
+            handler.HandleRequest(new RequestInfo(Verb.GET, (HttpUrl)UrlParser.Parse("http://temp.uri/api/test"), new MemoryStream(), new BasicClaimBasedIdentity()));
 
             _responseComposer.Verify(instance => instance.ComposeResponse(It.IsAny<IRequestMapping>(), It.IsAny<object>(), It.IsAny<object[]>()), Times.Once);
         }
@@ -49,7 +50,7 @@ namespace Given_instance_of_the
         {
             var handler = SetupEnvironment(1, true);
 
-            handler.HandleRequest(new RequestInfo(Verb.GET, new Uri("http://temp.uri/api/test"), new MemoryStream(), new BasicClaimBasedIdentity()));
+            handler.HandleRequest(new RequestInfo(Verb.GET, (HttpUrl)UrlParser.Parse("http://temp.uri/api/test"), new MemoryStream(), new BasicClaimBasedIdentity()));
 
             _argumentBinder.Verify(instance => instance.BindArguments(It.IsAny<RequestInfo>(), It.IsAny<IRequestMapping>()), Times.Once);
         }
@@ -59,7 +60,7 @@ namespace Given_instance_of_the
         {
             var handler = SetupEnvironment(1, true);
 
-            handler.HandleRequest(new RequestInfo(Verb.GET, new Uri("http://temp.uri/api/test"), new MemoryStream(), new BasicClaimBasedIdentity()));
+            handler.HandleRequest(new RequestInfo(Verb.GET, (HttpUrl)UrlParser.Parse("http://temp.uri/api/test"), new MemoryStream(), new BasicClaimBasedIdentity()));
 
             _delegateMapper.Verify(instance => instance.MapRequest(It.IsAny<RequestInfo>()), Times.Once);
         }
@@ -70,7 +71,7 @@ namespace Given_instance_of_the
             var expected = 1;
             var handler = SetupEnvironmentAsync(expected, true);
 
-            var result = handler.HandleRequest(new RequestInfo(Verb.GET, new Uri("http://temp.uri/api/test"), new MemoryStream(), new BasicClaimBasedIdentity()));
+            var result = handler.HandleRequest(new RequestInfo(Verb.GET, (HttpUrl)UrlParser.Parse("http://temp.uri/api/test"), new MemoryStream(), new BasicClaimBasedIdentity()));
 
             result.Should().BeOfType<ObjectResponseInfo<int>>();
             ((ObjectResponseInfo<int>)result).Value.Should().Be(expected);
@@ -81,7 +82,7 @@ namespace Given_instance_of_the
         {
             var handler = SetupEnvironment((object)null, true, "Secured");
 
-            var result = handler.HandleRequest(new RequestInfo(Verb.GET, new Uri("http://temp.uri/api/test"), new MemoryStream(), new BasicClaimBasedIdentity()));
+            var result = handler.HandleRequest(new RequestInfo(Verb.GET, (HttpUrl)UrlParser.Parse("http://temp.uri/api/test"), new MemoryStream(), new BasicClaimBasedIdentity()));
 
             result.Should().BeOfType<ExceptionResponseInfo>();
             ((ExceptionResponseInfo)result).Value.Should().BeOfType<AccessDeniedException>();
@@ -92,7 +93,7 @@ namespace Given_instance_of_the
         {
             var handler = SetupEnvironment((object)null, true, "Secured");
 
-            var result = handler.HandleRequest(new RequestInfo(Verb.GET, new Uri("http://temp.uri/api/test"), new MemoryStream(), new BasicClaimBasedIdentity("test")));
+            var result = handler.HandleRequest(new RequestInfo(Verb.GET, (HttpUrl)UrlParser.Parse("http://temp.uri/api/test"), new MemoryStream(), new BasicClaimBasedIdentity("test")));
 
             result.Should().BeOfType<ExceptionResponseInfo>();
             ((ExceptionResponseInfo)result).Value.Should().BeOfType<AccessDeniedException>();
@@ -105,7 +106,7 @@ namespace Given_instance_of_the
             defaultAuthenticationScheme.Setup(instance => instance.Process(It.IsAny<IResponseInfo>())).Returns(Task.FromResult(0));
             var handler = SetupEnvironment((object)null, true, "Authenticated", postRequestHandler: defaultAuthenticationScheme.Object);
 
-            var result = handler.HandleRequest(new RequestInfo(Verb.GET, new Uri("http://temp.uri/api/test"), new MemoryStream(), new BasicClaimBasedIdentity()));
+            var result = handler.HandleRequest(new RequestInfo(Verb.GET, (HttpUrl)UrlParser.Parse("http://temp.uri/api/test"), new MemoryStream(), new BasicClaimBasedIdentity()));
 
             result.Should().BeOfType<ExceptionResponseInfo>();
             ((ExceptionResponseInfo)result).Value.Should().BeOfType<UnauthenticatedAccessException>();
@@ -117,7 +118,7 @@ namespace Given_instance_of_the
         {
             var handler = SetupEnvironment((object)null, true, "Authenticated");
 
-            var result = handler.HandleRequest(new RequestInfo(Verb.GET, new Uri("http://temp.uri/api/test"), new MemoryStream(), new BasicClaimBasedIdentity("test")));
+            var result = handler.HandleRequest(new RequestInfo(Verb.GET, (HttpUrl)UrlParser.Parse("http://temp.uri/api/test"), new MemoryStream(), new BasicClaimBasedIdentity("test")));
 
             result.Should().NotBeOfType<ExceptionResponseInfo>();
         }
@@ -129,7 +130,7 @@ namespace Given_instance_of_the
             preRequestHandler.Setup(instance => instance.Process(It.IsAny<IRequestInfo>())).Returns(Task.FromResult(0));
             var handler = SetupEnvironment(1, true, preRequestHandler: preRequestHandler.Object);
 
-            handler.HandleRequest(new RequestInfo(Verb.GET, new Uri("http://temp.uri/api/test"), new MemoryStream(), new BasicClaimBasedIdentity()));
+            handler.HandleRequest(new RequestInfo(Verb.GET, (HttpUrl)UrlParser.Parse("http://temp.uri/api/test"), new MemoryStream(), new BasicClaimBasedIdentity()));
 
             preRequestHandler.Verify(instance => instance.Process(It.IsAny<IRequestInfo>()), Times.Once);
         }
@@ -142,7 +143,7 @@ namespace Given_instance_of_the
                 .Returns<IRequestInfo, object, object[]>((request, result, arguments) => Task.FromResult(result));
             var handler = SetupEnvironment(1, true, modelTransformer: modelTransformer.Object);
 
-            handler.HandleRequest(new RequestInfo(Verb.GET, new Uri("http://temp.uri/api/test"), new MemoryStream(), new BasicClaimBasedIdentity()));
+            handler.HandleRequest(new RequestInfo(Verb.GET, (HttpUrl)UrlParser.Parse("http://temp.uri/api/test"), new MemoryStream(), new BasicClaimBasedIdentity()));
 
             modelTransformer.Verify(instance => instance.Transform(It.IsAny<IRequestMapping>(), It.IsAny<IRequestInfo>(), It.IsAny<object>(), It.IsAny<object[]>()), Times.Once);
         }
@@ -154,7 +155,7 @@ namespace Given_instance_of_the
             postRequestHandler.Setup(instance => instance.Process(It.IsAny<IResponseInfo>())).Returns(Task.FromResult(0));
             var handler = SetupEnvironment(1, true, postRequestHandler: postRequestHandler.Object);
 
-            handler.HandleRequest(new RequestInfo(Verb.GET, new Uri("http://temp.uri/api/test"), new MemoryStream(), new BasicClaimBasedIdentity()));
+            handler.HandleRequest(new RequestInfo(Verb.GET, (HttpUrl)UrlParser.Parse("http://temp.uri/api/test"), new MemoryStream(), new BasicClaimBasedIdentity()));
 
             postRequestHandler.Verify(instance => instance.Process(It.IsAny<IResponseInfo>()), Times.Once);
         }
@@ -219,7 +220,7 @@ namespace Given_instance_of_the
             var arguments = method.GetParameters().Select(parameter => (ValueInfo)new ArgumentInfo(parameter, FromQueryStringAttribute.For(parameter), "test", "test"));
             return new OperationInfo<Verb>(
                 method,
-                new Uri("/", UriKind.Relative),
+                (HttpUrl)UrlParser.Parse("/"),
                 (arguments.Any() ? "test" : null),
                 new Regex(".*"),
                 Verb.GET,

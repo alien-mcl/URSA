@@ -211,7 +211,7 @@ namespace URSA.Web.Http
                              from method in controllerType.GetInterfaceMap(@interface).TargetMethods
                              join operation in controllerDescriptor.Operations on method equals operation.UnderlyingMethod
                              select operation).First();
-            result.Headers.Add(new Header(Header.Location, getMethod.UriTemplate.Replace("{" + getMethod.Arguments.First().VariableName + "}", value.ToString())));
+            result.Headers.Add(new Header(Header.Location, getMethod.UrlTemplate.Replace("{" + getMethod.Arguments.First().VariableName + "}", value.ToString())));
             result.Status = HttpStatusCode.Created;
             return result;
         }

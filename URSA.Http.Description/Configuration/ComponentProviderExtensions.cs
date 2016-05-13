@@ -34,7 +34,7 @@ namespace URSA.Web.Http.Configuration
                 var description = descriptionBuilder.BuildDescriptor();
                 if ((description.EntryPoint != null) && (!registeredEntryPoints.Contains(description.EntryPoint.ToString())))
                 {
-                    container.RegisterEntryPointControllerDescriptionBuilder(description.EntryPoint);
+                    container.RegisterEntryPointControllerDescriptionBuilder(description.EntryPoint.Url);
                     registeredEntryPoints.Add(description.EntryPoint.ToString());
                 }
 
@@ -69,7 +69,7 @@ namespace URSA.Web.Http.Configuration
             }
         }
 
-        private static void RegisterEntryPointControllerDescriptionBuilder(this IComponentProvider container, Uri entryPoint)
+        private static void RegisterEntryPointControllerDescriptionBuilder(this IComponentProvider container, Url entryPoint)
         {
             container.Register<IHttpControllerDescriptionBuilder, EntryPointControllerDescriptionBuilder>(
                 entryPoint.ToString().Substring(1),

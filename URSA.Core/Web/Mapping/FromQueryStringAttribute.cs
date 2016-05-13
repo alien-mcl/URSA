@@ -5,12 +5,12 @@ using System.Reflection;
 namespace URSA.Web.Mapping
 {
     /// <summary>Marks the parameter to be bound to the query string.</summary>
-    public sealed class FromQueryStringAttribute : ParameterSourceAttribute, IUriTemplateParameterSourceAttribute
+    public sealed class FromQueryStringAttribute : ParameterSourceAttribute, IUrlTemplateParameterSourceAttribute
     {
-        /// <summary>Defines a part of the uri responsible for mapping the actual value of the parameter in the uri.</summary>
+        /// <summary>Defines a part of the URL responsible for mapping the actual value of the parameter in the URL.</summary>
         public const string Value = "{value}";
 
-        /// <summary>Defines a part of the uri responsible for mapping name of the parameter.</summary>
+        /// <summary>Defines a part of the URL responsible for mapping name of the parameter.</summary>
         public const string Key = "&key=";
 
         /// <summary>Defines a default query string pattern.</summary>
@@ -23,41 +23,41 @@ namespace URSA.Web.Mapping
         [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
         public FromQueryStringAttribute()
         {
-            UriTemplate = Default;
+            UrlTemplate = Default;
         }
 
         /// <summary>Initializes a new instance of the <see cref="FromQueryStringAttribute" /> class.</summary>
-        /// <param name="uri">Template of the uri for this parameter mapping.</param>
-        public FromQueryStringAttribute(string uri)
+        /// <param name="url">Template of the URL for this parameter mapping.</param>
+        public FromQueryStringAttribute(string url)
         {
-            if (uri == null)
+            if (url == null)
             {
-                throw new ArgumentNullException("uri");
+                throw new ArgumentNullException("url");
             }
 
-            if (uri.Length == 0)
+            if (url.Length == 0)
             {
-                throw new ArgumentOutOfRangeException("uri");
+                throw new ArgumentOutOfRangeException("url");
             }
 
-            if ((UriTemplate = uri.Trim('&', '?')).IndexOf('{') == -1)
+            if ((UrlTemplate = url.Trim('&', '?')).IndexOf('{') == -1)
             {
-                throw new ArgumentOutOfRangeException("uri");
+                throw new ArgumentOutOfRangeException("url");
             }
         }
 
-        /// <summary>Gets the template of the uri for this parameter mapping.</summary>
-        public string UriTemplate { get; private set; }
+        /// <summary>Gets the template of the URL for this parameter mapping.</summary>
+        public string UrlTemplate { get; private set; }
 
         /// <inheritdoc />
         [ExcludeFromCodeCoverage]
         [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
-        string IUriTemplateParameterSourceAttribute.Template { get { return UriTemplate; } }
+        string IUrlTemplateParameterSourceAttribute.Template { get { return UrlTemplate; } }
 
         /// <inheritdoc />
         [ExcludeFromCodeCoverage]
         [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
-        string IUriTemplateParameterSourceAttribute.DefaultTemplate { get { return _default ?? Default; } }
+        string IUrlTemplateParameterSourceAttribute.DefaultTemplate { get { return _default ?? Default; } }
 
         /// <summary>Creates an instance of the <see cref="FromQueryStringAttribute" /> for given <paramref name="parameter "/>.</summary>
         /// <param name="parameter">Parameter for which the attribute needs to be created.</param>
@@ -80,7 +80,7 @@ namespace URSA.Web.Mapping
         /// <inheritdoc />
         [ExcludeFromCodeCoverage]
         [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
-        ParameterSourceAttribute IUriTemplateParameterSourceAttribute.For(ParameterInfo parameter)
+        ParameterSourceAttribute IUrlTemplateParameterSourceAttribute.For(ParameterInfo parameter)
         {
             return For(parameter);
         }
@@ -90,7 +90,7 @@ namespace URSA.Web.Mapping
         [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
         public override string ToString()
         {
-            return UriTemplate;
+            return UrlTemplate;
         }
     }
 }

@@ -4,20 +4,21 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Text.RegularExpressions;
+using URSA.Web.Http;
 
 namespace URSA.Web.Description
 {
     /// <summary>Describes an controller operation.</summary>
-    [DebuggerDisplay("{UriTemplate}", Name = "{Uri}")]
+    [DebuggerDisplay("{UrlTemplate}", Name = "{Url}")]
     public abstract class OperationInfo : SecurableResourceInfo
     {
         /// <summary>Initializes a new instance of the <see cref="OperationInfo" /> class.</summary>
         /// <param name="underlyingMethod">Actual underlying method.</param>
-        /// <param name="uri">Base relative uri of the method without arguments.</param>
-        /// <param name="uriTemplate">Relative uri template with all arguments included.</param>
+        /// <param name="url">Base relative URL of the method without arguments.</param>
+        /// <param name="urlTemplate">Relative URL template with all arguments included.</param>
         /// <param name="templateRegex">Regular expression template with all arguments included.</param>
         /// <param name="values">Values descriptions.</param>
-        protected OperationInfo(MethodInfo underlyingMethod, Uri uri, string uriTemplate, Regex templateRegex, params ValueInfo[] values) : base(uri)
+        protected OperationInfo(MethodInfo underlyingMethod, Url url, string urlTemplate, Regex templateRegex, params ValueInfo[] values) : base(url)
         {
             if (underlyingMethod == null)
             {
@@ -35,7 +36,7 @@ namespace URSA.Web.Description
             }
 
             UnderlyingMethod = underlyingMethod;
-            UriTemplate = uriTemplate;
+            UrlTemplate = urlTemplate;
             TemplateRegex = templateRegex;
             var arguments = new List<ArgumentInfo>();
             var results = new List<ResultInfo>();
@@ -58,10 +59,10 @@ namespace URSA.Web.Description
         /// <summary>Gets the actual underlying method.</summary>
         public MethodInfo UnderlyingMethod { get; private set; }
 
-        /// <summary>Gets the uri template with all arguments included.</summary>
-        public string UriTemplate { get; private set; }
+        /// <summary>Gets the URL template with all arguments included.</summary>
+        public string UrlTemplate { get; private set; }
 
-        /// <summary>Gets the uri regular expression template with all arguments included.</summary>
+        /// <summary>Gets the URL regular expression template with all arguments included.</summary>
         public Regex TemplateRegex { get; private set; }
 
         /// <summary>Gets the argument descriptions.</summary>
@@ -82,20 +83,20 @@ namespace URSA.Web.Description
     /// <summary>Describes an controller operation.</summary>
     /// <typeparam name="T">Type of the protocol specific command.</typeparam>
     [SuppressMessage("StyleCop.CSharp.MaintainabilityRules", "SA1402:FileMayOnlyContainASingleClass", Justification = "Generic and non-generic interfaces. Suppression is OK.")]
-    [DebuggerDisplay("{ProtocolSpecificCommand} {UriTemplate}", Name = "{Uri}")]
+    [DebuggerDisplay("{ProtocolSpecificCommand} {UrlTemplate}", Name = "{Url}")]
     public class OperationInfo<T> : OperationInfo
     {
         /// <summary>Initializes a new instance of the <see cref="OperationInfo{T}" /> class.</summary>
         /// <param name="underlyingMethod">Actual underlying method.</param>
-        /// <param name="uri">Base relative uri of the method without arguments.</param>
-        /// <param name="uriTemplate">Relative uri template with all arguments included.</param>
+        /// <param name="url">Base relative URL of the method without arguments.</param>
+        /// <param name="urlTemplate">Relative URL template with all arguments included.</param>
         /// <param name="templateRegex">Regular expression template with all arguments included.</param>
         /// <param name="protocolSpecificCommand">Protocol specific command.</param>
         /// <param name="values">Values descriptions.</param>
         [ExcludeFromCodeCoverage]
         [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
-        public OperationInfo(MethodInfo underlyingMethod, Uri uri, string uriTemplate, Regex templateRegex, T protocolSpecificCommand, params ValueInfo[] values)
-            : base(underlyingMethod, uri, uriTemplate, templateRegex, values)
+        public OperationInfo(MethodInfo underlyingMethod, Url url, string urlTemplate, Regex templateRegex, T protocolSpecificCommand, params ValueInfo[] values)
+            : base(underlyingMethod, url, urlTemplate, templateRegex, values)
         {
             if (protocolSpecificCommand == null)
             {
@@ -116,7 +117,7 @@ namespace URSA.Web.Description
         {
             return ((Equals(operandA, null)) && (Equals(operandB, null))) || ((!Equals(operandA, null)) && (!Equals(operandB, null)) &&
                 (operandA.UnderlyingMethod.Equals(operandB.UnderlyingMethod)) && (operandA.ProtocolSpecificCommand.Equals(operandB.ProtocolSpecificCommand)) &&
-                (operandA.Uri.ToString().Equals(operandB.Uri.ToString())));
+                (operandA.Url.Equals(operandB.Url)));
         }
 
         /// <summary>Implements the operator inequality operator.</summary>
@@ -128,7 +129,7 @@ namespace URSA.Web.Description
             return ((Equals(operandA, null)) && (!Equals(operandB, null))) ||
                 ((!Equals(operandA, null)) && (Equals(operandB, null))) || 
                 ((!Equals(operandA, null)) && ((!operandA.UnderlyingMethod.Equals(operandB.UnderlyingMethod)) || 
-                    (!operandA.ProtocolSpecificCommand.Equals(operandB.ProtocolSpecificCommand)) || (!operandA.Uri.ToString().Equals(operandB.Uri.ToString()))));
+                    (!operandA.ProtocolSpecificCommand.Equals(operandB.ProtocolSpecificCommand)) || (!operandA.Url.Equals(operandB.Url))));
         }
 
         /// <inheritdoc />
@@ -136,7 +137,7 @@ namespace URSA.Web.Description
         [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
         public override int GetHashCode()
         {
-            return UnderlyingMethod.GetHashCode() ^ Uri.ToString().GetHashCode();
+            return UnderlyingMethod.GetHashCode() ^ Url.GetHashCode();
         }
 
         /// <inheritdoc />
@@ -154,7 +155,7 @@ namespace URSA.Web.Description
 
             var operation = (OperationInfo<T>)obj;
             return (UnderlyingMethod.Equals(operation.UnderlyingMethod)) && (ProtocolSpecificCommand.Equals(operation.ProtocolSpecificCommand)) &&
-                (Uri.ToString().Equals(operation.Uri.ToString()));
+                (Url.Equals(operation.Url));
         }
     }
 }

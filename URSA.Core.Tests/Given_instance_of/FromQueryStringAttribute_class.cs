@@ -14,21 +14,21 @@ namespace Given_instance_of
         private static readonly ParameterInfo Parameter = typeof(TestController).GetMethod("Result").GetParameters().First();
 
         [TestMethod]
-        public void it_should_throw_when_no_uri_is_provided()
+        public void it_should_throw_when_no_url_is_provided()
         {
-            ((FromQueryStringAttribute)null).Invoking(_ => new FromQueryStringAttribute(null)).ShouldThrow<ArgumentNullException>().Which.ParamName.Should().Be("uri");
+            ((FromQueryStringAttribute)null).Invoking(_ => new FromQueryStringAttribute(null)).ShouldThrow<ArgumentNullException>().Which.ParamName.Should().Be("url");
         }
 
         [TestMethod]
-        public void it_should_throw_when_uri_provided_is_empty()
+        public void it_should_throw_when_url_provided_is_empty()
         {
-            ((FromQueryStringAttribute)null).Invoking(_ => new FromQueryStringAttribute(String.Empty)).ShouldThrow<ArgumentOutOfRangeException>().Which.ParamName.Should().Be("uri");
+            ((FromQueryStringAttribute)null).Invoking(_ => new FromQueryStringAttribute(String.Empty)).ShouldThrow<ArgumentOutOfRangeException>().Which.ParamName.Should().Be("url");
         }
 
         [TestMethod]
-        public void it_should_throw_when_uri_provided_is_has_no_variable()
+        public void it_should_throw_when_url_provided_is_has_no_variable()
         {
-            ((FromQueryStringAttribute)null).Invoking(_ => new FromQueryStringAttribute("/")).ShouldThrow<ArgumentOutOfRangeException>().Which.ParamName.Should().Be("uri");
+            ((FromQueryStringAttribute)null).Invoking(_ => new FromQueryStringAttribute("/")).ShouldThrow<ArgumentOutOfRangeException>().Which.ParamName.Should().Be("url");
         }
 
         [TestMethod]
@@ -42,7 +42,7 @@ namespace Given_instance_of
         {
             var result = FromQueryStringAttribute.For(Parameter);
 
-            result.Should().BeOfType<FromQueryStringAttribute>().Which.UriTemplate.Should().Be("{?input}");
+            result.Should().BeOfType<FromQueryStringAttribute>().Which.UrlTemplate.Should().Be("{?input}");
         }
     }
 }

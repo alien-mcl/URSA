@@ -11,16 +11,16 @@ using URSA.Web.Mapping;
 
 namespace URSA.Web.Http.Mapping
 {
-    /// <summary>Binds arguments from <see cref="FromUriAttribute" />.</summary>
-    public class FromUriArgumentBinder : IParameterSourceArgumentBinder<FromUriAttribute>
+    /// <summary>Binds arguments from <see cref="FromUrlAttribute" />.</summary>
+    public class FromUrlArgumentBinder : IParameterSourceArgumentBinder<FromUrlAttribute>
     {
         private readonly IConverterProvider _converterProvider;
 
-        /// <summary>Initializes a new instance of the <see cref="FromUriArgumentBinder" /> class.</summary>
+        /// <summary>Initializes a new instance of the <see cref="FromUrlArgumentBinder" /> class.</summary>
         /// <param name="converterProvider">Converters provider</param>
         [ExcludeFromCodeCoverage]
         [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
-        internal FromUriArgumentBinder(IConverterProvider converterProvider)
+        internal FromUrlArgumentBinder(IConverterProvider converterProvider)
         {
             if (converterProvider == null)
             {
@@ -33,11 +33,11 @@ namespace URSA.Web.Http.Mapping
         /// <inheritdoc />
         public object GetArgumentValue(ArgumentBindingContext context)
         {
-            return GetArgumentValue(context as ArgumentBindingContext<FromUriAttribute>);
+            return GetArgumentValue(context as ArgumentBindingContext<FromUrlAttribute>);
         }
 
         /// <inheritdoc />
-        public object GetArgumentValue(ArgumentBindingContext<FromUriAttribute> context)
+        public object GetArgumentValue(ArgumentBindingContext<FromUrlAttribute> context)
         {
             if (context == null)
             {
@@ -49,25 +49,25 @@ namespace URSA.Web.Http.Mapping
                 throw new InvalidOperationException(String.Format("Cannot bind types based on '{0}' to uri segments.", typeof(IEnumerable)));
             }
 
-            Uri uri = MakeUri(context.Parameter, context.RequestMapping.MethodRoute, context.RequestMapping.Operation);
-            string template = UriTemplateBuilder.VariableTemplateRegex.Replace(uri.ToString(), "(?<Value>[^/\\?]+)");
-            Match match = Regex.Match(context.Request.Uri.ToRelativeUri().ToString(), template);
+            string url = MakeUri(context.Parameter, context.RequestMapping.MethodRoute, context.RequestMapping.Operation);
+            string template = UriTemplateBuilder.VariableTemplateRegex.Replace(url, "(?<Value>[^/\\?]+)");
+            Match match = Regex.Match(context.Request.Url.AsRelative.ToString(), template);
             return (match.Success ? _converterProvider.ConvertTo(match.Groups["Value"].Value, context.Parameter.ParameterType, context.Request) : null);
         }
 
-        internal static Uri MakeUri(ParameterInfo parameter, Uri baseUri, OperationInfo<Verb> operation)
+        internal static string MakeUri(ParameterInfo parameter, HttpUrl baseUrl, OperationInfo<Verb> operation)
         {
-            Uri result = baseUri;
+            string result = baseUrl.ToString();
             foreach (var argument in operation.Arguments)
             {
                 var argumentSource = argument.Source;
-                if (!(argumentSource is FromUriAttribute))
+                if (!(argumentSource is FromUrlAttribute))
                 {
                     continue;
                 }
 
-                var uri = ((FromUriAttribute)argumentSource).UriTemplate.ToString().Replace(FromUriAttribute.Key, "/" + argument.Parameter.Name + "/");
-                result = new Uri(uri, UriKind.RelativeOrAbsolute).Combine(result);
+                var url = ((FromUrlAttribute)argumentSource).UrlTemplate.Replace(FromUrlAttribute.Key, "/" + argument.Parameter.Name + "/").TrimStart('/');
+                result += (result.EndsWith("/") ? String.Empty : "/") + url;
                 if (argument.Parameter == parameter)
                 {
                     break;

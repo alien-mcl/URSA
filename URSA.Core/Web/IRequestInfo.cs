@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using URSA.Security;
+using URSA.Web.Http;
 
 namespace URSA.Web
 {
@@ -17,8 +18,8 @@ namespace URSA.Web
         /// <summary>Gets the body of the request.</summary>
         Stream Body { get; }
 
-        /// <summary>Gets the uri of the request.</summary>
-        Uri Uri { get; }
+        /// <summary>Gets the URL of the request.</summary>
+        Url Url { get; }
 
         /// <summary>Gets or sets the identity of this request.</summary>
         /// <exception cref="ArgumentNullException">Thrown when setting a <b>null</b> value.</exception>

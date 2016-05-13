@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using URSA.Web.Description;
 
@@ -13,7 +14,7 @@ namespace URSA.Web.Http
         /// <param name="methodRoute">Method route.</param>
         [ExcludeFromCodeCoverage]
         [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
-        public RequestMapping(IController target, OperationInfo<Verb> operation, Uri methodRoute)
+        public RequestMapping(IController target, OperationInfo<Verb> operation, HttpUrl methodRoute)
         {
             if (target == null)
             {
@@ -28,13 +29,20 @@ namespace URSA.Web.Http
             Target = target;
             Operation = operation;
             MethodRoute = methodRoute;
+            ArgumentSources = new Dictionary<int, ArgumentValueSources>(operation.UnderlyingMethod.GetParameters().Length + (operation.UnderlyingMethod.ReturnType != typeof(void) ? 1 : 0));
         }
         
         /// <inheritdoc />
         public IController Target { get; private set; }
 
         /// <inheritdoc />
-        public Uri MethodRoute { get; private set; }
+        public HttpUrl MethodRoute { get; private set; }
+
+        /// <inheritdoc />
+        public IDictionary<int, ArgumentValueSources> ArgumentSources { get; private set; }
+
+        /// <summary>Gets the mapped method route.</summary>
+        Url IRequestMapping.MethodRoute { get { return MethodRoute; } }
 
         /// <inheritdoc />
         OperationInfo IRequestMapping.Operation { get { return Operation; } }

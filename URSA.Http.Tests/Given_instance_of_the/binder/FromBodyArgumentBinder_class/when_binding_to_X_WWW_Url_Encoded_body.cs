@@ -1,10 +1,12 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using System;
 using System.Diagnostics.CodeAnalysis;
 using FluentAssertions;
+using URSA;
 using URSA.Web;
 using URSA.Web.Converters;
+using URSA.Web.Http;
 using URSA.Web.Http.Mapping;
 using URSA.Web.Http.Testing;
 using URSA.Web.Mapping;
@@ -17,9 +19,9 @@ namespace Given_instance_of_the.binder.FromBodyArgumentBinder_class
     {
         private const string Body = "operandA=1&operandB=2";
 
-        protected override Uri RequestUri { get { return new Uri("http://temp.org/api/test/modulo"); } }
+        protected override HttpUrl RequestUrl { get { return (HttpUrl)UrlParser.Parse("http://temp.org/api/test/modulo"); } }
 
-        protected override Uri MethodUri { get { return new Uri("http://temp.org/api/test/modulo"); } }
+        protected override HttpUrl MethodUrl { get { return (HttpUrl)UrlParser.Parse("http://temp.org/api/test/modulo"); } }
 
         protected override string MethodName { get { return "PostModulo"; } }
 

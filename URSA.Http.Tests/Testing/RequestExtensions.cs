@@ -11,7 +11,7 @@ namespace URSA.Web.Http.Testing
 
         internal static RequestInfo CreateRequest(this object unitTest, params Header[] headers)
         {
-            return new RequestInfo(Verb.GET, new Uri("http://" + DefaultHost + "/", UriKind.Absolute), new MemoryStream(), new BasicClaimBasedIdentity(), headers);
+            return new RequestInfo(Verb.GET, (HttpUrl)UrlParser.Parse("http://" + DefaultHost + "/"), new MemoryStream(), new BasicClaimBasedIdentity(), headers);
         }
 
         internal static ResponseInfo CreateResponse(this object unitTest, params Header[] headers)

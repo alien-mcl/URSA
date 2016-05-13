@@ -39,7 +39,7 @@ namespace URSA.Web.Description.Http
             if ((typeof(Guid) == parameter.ParameterType) || (typeof(DateTime) == parameter.ParameterType) ||
                 ((parameter.ParameterType.IsIdentity()) && (PopularIdentifierPropertyNames.Contains(parameter.Name, StringComparer.OrdinalIgnoreCase))))
             {
-                return FromUriAttribute.For(parameter);
+                return FromUrlAttribute.For(parameter);
             }
             
             if ((!parameter.ParameterType.IsValueType) && (typeof(string) != parameter.ParameterType) &&

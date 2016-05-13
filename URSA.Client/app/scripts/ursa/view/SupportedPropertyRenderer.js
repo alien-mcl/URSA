@@ -190,7 +190,7 @@
         if (instance !== null) {
             var value = instance[propertyName] || null;
             if ((value !== null) && (instance[propertyName] instanceof Array)) {
-                value = ((scope.operation.isRdf) && (supportedProperty.range instanceof ursa.model.Class) && (supportedProperty.range.isList) ?
+                value = ((scope.operation.isRdf) && (supportedProperty.range.isList) ?
                     instance[propertyName][0]["@list"] : instance[propertyName]);
                 if (value.length === 0) {
                     value = null;
@@ -262,7 +262,7 @@
         var instance = scope[scope.targetInstance];
         var value = instance[propertyName] || null;
         if ((value !== null) && (instance[propertyName] instanceof Array)) {
-            value = ((scope.operation.isRdf) && (supportedProperty.range instanceof ursa.model.Class) && (supportedProperty.range.isList) ?
+            value = ((scope.operation.isRdf) && (supportedProperty.range.isList) ?
                 instance[propertyName][0]["@list"] : instance[propertyName]);
             if (value.length === 0) {
                 value = null;
@@ -278,7 +278,7 @@
     _SupportedPropertyRenderer.movePropertyItem = function(scope, supportedPropertyId, index, direction) {
         var supportedProperty = scope.supportedProperties.getById(supportedPropertyId);
         var propertyName = supportedProperty.propertyName(scope.operation);
-        var isRdfList = ((scope.operation.isRdf) && (supportedProperty.range instanceof ursa.model.Class) && (supportedProperty.range.isList));
+        var isRdfList = ((scope.operation.isRdf) && (supportedProperty.range.isList));
         var propertyItems = scope[scope.targetInstance][propertyName];
         var propertyItem = (propertyItems = (isRdfList ? propertyItems[0]["@list"] : propertyItems))[index];
         propertyItems[index] = propertyItems[index + direction];

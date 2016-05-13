@@ -29,9 +29,9 @@ namespace URSA.Web.Http.Testing
 
         protected T Binder { get; private set; }
 
-        protected abstract Uri RequestUri { get; }
+        protected abstract HttpUrl RequestUrl { get; }
 
-        protected abstract Uri MethodUri { get; }
+        protected abstract HttpUrl MethodUrl { get; }
 
         protected abstract string MethodName { get; }
 
@@ -87,8 +87,8 @@ namespace URSA.Web.Http.Testing
 
             var operation = new OperationInfo<Verb>(
                 method,
-                MethodUri.ToRelativeUri(),
-                MethodUri.ToString(),
+                MethodUrl.AsRelative,
+                MethodUrl.ToString(),
                 new Regex(".*"),
                 httpVerb,
                 method.GetParameters().Select(item => new ArgumentInfo(item, new I(), "test={?test}", "test")).ToArray());
@@ -97,8 +97,8 @@ namespace URSA.Web.Http.Testing
                 .First()
                 .Invoke(new object[]
                     {
-                        new RequestInfo(httpVerb, RequestUri, (body != null ? new MemoryStream(body) : new MemoryStream()), new BasicClaimBasedIdentity(), headers),
-                        new RequestMapping(new TestController(), operation, MethodUri),
+                        new RequestInfo(httpVerb, RequestUrl, (body != null ? new MemoryStream(body) : new MemoryStream()), new BasicClaimBasedIdentity(), headers),
+                        new RequestMapping(new TestController(), operation, MethodUrl),
                         method.GetParameters().FirstOrDefault(item => item.GetCustomAttribute<I>(true) != null) ?? method.GetParameters()[0],
                         0,
                         new I(),

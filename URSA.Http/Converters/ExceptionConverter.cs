@@ -117,7 +117,7 @@ namespace URSA.Web.Http.Converters
             var message = String.Format(
                 "{0:000} {1} \"{2}\"",
                 (uint)exception.HResult % 999,
-                exception.Source ?? responseInfo.Request.Uri.Host,
+                exception.Source ?? responseInfo.Request.Url.Host,
                 System.Web.HttpUtility.JavaScriptStringEncode(exception.Message));
             responseInfo.Headers.Add(new Header(Header.Warning, message));
             responseInfo.Status = exception.Status;

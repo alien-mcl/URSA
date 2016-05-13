@@ -50,6 +50,8 @@ namespace URSA.CastleWindsor
         /// <inheritdoc />
         public void Install(IWindsorContainer container, IConfigurationStore store)
         {
+            UrlParser.Register<HttpUrlParser>();
+            UrlParser.Register<FtpUrlParser>();
             WindsorComponentProvider componentProvider = container.Resolve<WindsorComponentProvider>();
             var configuration = (HttpConfigurationSection)ConfigurationManager.GetSection(HttpConfigurationSection.ConfigurationSection);
             Type sourceSelectorType = ((configuration != null) && (configuration.DefaultValueRelationSelectorType != null) ?
@@ -61,7 +63,8 @@ namespace URSA.CastleWindsor
             container.Register(Component.For<ITripleStore>().Instance(_tripleStore.Value).Named("InMemoryTripleStore").LifestyleSingleton());
             container.Register(Component.For<INamedGraphSelectorFactory>().AsFactory(typedFactory).LifestyleSingleton());
             container.Register(Component.For<INamedGraphSelector>().ImplementedBy<LocallyControlledOwningResourceNamedGraphSelector>()
-                .Forward<ILocallyControlledNamedGraphSelector>().Named("InMemoryNamedGraphSelector").LifestyleSingleton());
+                .Forward<ILocallyControlledNamedGraphSelector>().Named("InMemoryNamedGraphSelector").LifestyleSingleton()
+                .PropertiesIgnore((model, property) => property == typeof(LocallyControlledOwningResourceNamedGraphSelector).GetProperty("CurrentRequest")));
             container.Register(Component.For<IEntityContextFactory>().Instance(_entityContextFactory.Value).Named("InMemoryEntityContextFactory").LifestyleSingleton());
             container.Register(Component.For<IEntityContext>().UsingFactoryMethod(CreateEntityContext).Named("InMemoryEntityContext").LifeStyle.HybridPerWebRequestPerThread());
             container.Register(Component.For<IEntityContextProvider>().AsFactory(typedFactory).LifestyleSingleton());
@@ -70,7 +73,7 @@ namespace URSA.CastleWindsor
                 .ImplementedBy(typeof(DescriptionController<>), componentProvider.GenericImplementationMatchingStrategy).LifestyleTransient());
             container.Register(Component.For<EntryPointDescriptionController>().Forward<IController>().ImplementedBy<EntryPointDescriptionController>().LifestyleTransient());
             container.Register(Component.For<IParameterSourceArgumentBinder>().ImplementedBy<FromQueryStringArgumentBinder>().Activator<NonPublicComponentActivator>().LifestyleSingleton());
-            container.Register(Component.For<IParameterSourceArgumentBinder>().ImplementedBy<FromUriArgumentBinder>().Activator<NonPublicComponentActivator>().LifestyleSingleton());
+            container.Register(Component.For<IParameterSourceArgumentBinder>().ImplementedBy<FromUrlArgumentBinder>().Activator<NonPublicComponentActivator>().LifestyleSingleton());
             container.Register(Component.For<IParameterSourceArgumentBinder>().ImplementedBy<FromBodyArgumentBinder>().Activator<NonPublicComponentActivator>().LifestyleSingleton());
             container.Register(Component.For<IClassGenerator>().ImplementedBy<HydraClassGenerator>().LifestyleSingleton());
             container.Register(Component.For<IUriParser>().ImplementedBy<Web.Http.Description.CodeGen.GenericUriParser>().LifestyleSingleton());

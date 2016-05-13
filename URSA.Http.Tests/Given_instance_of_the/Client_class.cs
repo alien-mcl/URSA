@@ -9,6 +9,7 @@ using System.Net;
 using System.Text;
 using FluentAssertions;
 using FluentAssertions.Common;
+using URSA;
 using URSA.ComponentModel;
 using URSA.Configuration;
 using URSA.Web;
@@ -24,7 +25,7 @@ namespace Given_instance_of_the
     {
         private const string AuthenticationScheme = "Basic";
         private const string RelativeUri = "/test/person/{id}";
-        private static readonly Uri CallUri = new Uri("http://temp.uri/");
+        private static readonly HttpUrl CallUrl = (HttpUrl)UrlParser.Parse("http://temp.uri/");
         private static readonly Person Person = new Person() { Key = 1, FirstName = "test", LastName = "test" };
 
         private dynamic _arguments;
@@ -51,9 +52,9 @@ namespace Given_instance_of_the
         {
             _arguments.id = 1;
 
-            Uri result = _client.BuildUri(RelativeUri, _arguments);
+            HttpUrl result = _client.BuildUrl(RelativeUri, _arguments);
 
-            result.Should().Be(new Uri(CallUri.AbsoluteUri + RelativeUri.Substring(1).Replace("{id}", "1")));
+            result.Should().Be((HttpUrl)CallUrl.AddSegments(RelativeUri.Replace("{id}", "1").Split('/')));
         }
 
         [TestMethod]
@@ -72,14 +73,13 @@ namespace Given_instance_of_the
             var expectedPassword = "password";
             CredentialCache.DefaultNetworkCredentials.UserName = expectedUserName;
             CredentialCache.DefaultNetworkCredentials.Password = expectedPassword;
-            var uri = new Uri(RelativeUri, UriKind.Relative).Combine(CallUri);
+            var url = (HttpUrl)CallUrl.AddSegments(RelativeUri.Split('/'));
 
             Call();
 
             _webRequest.VerifySet(
                 instance => instance.Credentials = It.Is<ICredentials>(
-                    credentials => (credentials.GetCredential(uri, AuthenticationScheme).UserName == expectedUserName) &&
-                        (credentials.GetCredential(uri, AuthenticationScheme).Password == expectedPassword)),
+                    credentials => Test(credentials, url, expectedUserName, expectedPassword)),
                 Times.Once);
         }
 
@@ -176,7 +176,7 @@ namespace Given_instance_of_the
             _container.Setup(instance => instance.Resolve<IConverterProvider>(null)).Returns(_converterProvider.Object);
             _container.Setup(instance => instance.ResolveAll<IWebRequestProvider>(null)).Returns(new[] { _webRequestProvider.Object });
             _container.Setup(instance => instance.Resolve<IResultBinder<RequestInfo>>(null)).Returns(_resultBinder.Object);
-            _client = new Client(CallUri, AuthenticationScheme);
+            _client = new Client(CallUrl, AuthenticationScheme);
         }
 
         [TestCleanup]
@@ -208,6 +208,13 @@ namespace Given_instance_of_the
             }
 
             return _client.Call<Person>(Verb.PUT, RelativeUri, new[] { "application/json" }, new[] { "application/json" }, _arguments, Person);
+        }
+
+        private bool Test(ICredentials credentials, HttpUrl url, string expectedUserName, string expectedPassword)
+        {
+            Uri uri = new Uri(String.Format("{0}://{1}/", url.Scheme, url.Host));
+            return (credentials.GetCredential(uri, AuthenticationScheme).UserName == expectedUserName) &&
+                (credentials.GetCredential(uri, AuthenticationScheme).Password == expectedPassword);
         }
     }
 }

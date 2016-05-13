@@ -85,7 +85,7 @@ namespace URSA.Web.Handlers
             context.Request.Headers.ForEach(headerName => ((IDictionary<string, string>)headers)[(string)headerName] = context.Request.Headers[(string)headerName]);
             var requestInfo = new RequestInfo(
                 Verb.Parse(context.Request.HttpMethod),
-                new Uri(context.Request.Url.AbsoluteUri.TrimEnd('/')),
+                (HttpUrl)UrlParser.Parse(context.Request.Url.AbsoluteUri.TrimEnd('/')),
                 context.Request.InputStream,
                 new HttpContextPrincipal(context.User),
                 headers);

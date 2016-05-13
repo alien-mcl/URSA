@@ -21,23 +21,23 @@ namespace Given_instance_of
         [TestMethod]
         public void it_should_throw_when_no_template_is_provided_with_variable_name_passed()
         {
-            ((FakeValueInfo)null).Invoking(_ => new FakeValueInfo(Parameter, null, "test")).ShouldThrow<ArgumentNullException>().Which.ParamName.Should().Be("uriTemplate");
+            ((FakeValueInfo)null).Invoking(_ => new FakeValueInfo(Parameter, null, "test")).ShouldThrow<ArgumentNullException>().Which.ParamName.Should().Be("urlTemplate");
         }
 
         [TestMethod]
         public void it_should_throw_when_template_provided_is_empty_with_variable_name_passed()
         {
-            ((FakeValueInfo)null).Invoking(_ => new FakeValueInfo(Parameter, String.Empty, "test")).ShouldThrow<ArgumentOutOfRangeException>().Which.ParamName.Should().Be("uriTemplate");
+            ((FakeValueInfo)null).Invoking(_ => new FakeValueInfo(Parameter, String.Empty, "test")).ShouldThrow<ArgumentOutOfRangeException>().Which.ParamName.Should().Be("urlTemplate");
         }
 
         [TestMethod]
-        public void it_should_throw_when_no_variable_name_is_provided_with_tempate_uri_passed()
+        public void it_should_throw_when_no_variable_name_is_provided_with_tempate_url_passed()
         {
             ((FakeValueInfo)null).Invoking(_ => new FakeValueInfo(Parameter, "test", null)).ShouldThrow<ArgumentNullException>().Which.ParamName.Should().Be("variableName");
         }
 
         [TestMethod]
-        public void it_should_throw_when_variable_name_provided_is_empty_with_tempate_uri_passed()
+        public void it_should_throw_when_variable_name_provided_is_empty_with_tempate_url_passed()
         {
             ((FakeValueInfo)null).Invoking(_ => new FakeValueInfo(Parameter, "test", String.Empty)).ShouldThrow<ArgumentOutOfRangeException>().Which.ParamName.Should().Be("variableName");
         }
@@ -52,7 +52,7 @@ namespace Given_instance_of
 
         private class FakeValueInfo : ValueInfo
         {
-            public FakeValueInfo(ParameterInfo parameter, string uriTemplate, string variableName) : base(parameter, uriTemplate, variableName)
+            public FakeValueInfo(ParameterInfo parameter, string urlTemplate, string variableName) : base(parameter, urlTemplate, variableName)
             {
             }
         }

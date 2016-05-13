@@ -5,6 +5,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Text;
 using FluentAssertions;
+using URSA;
 using URSA.Security;
 using URSA.Web;
 using URSA.Web.Converters;
@@ -114,7 +115,7 @@ namespace Given_instance_of_the
                         writer.Flush();
                     }
                 });
-            _request = new RequestInfo(Verb.GET, new Uri("http://temp.org/"), new MemoryStream(), new BasicClaimBasedIdentity());
+            _request = new RequestInfo(Verb.GET, (HttpUrl)UrlParser.Parse("http://temp.org/"), new MemoryStream(), new BasicClaimBasedIdentity());
             _response = new ObjectResponseInfo<string>(_request, Body, _converterProvider.Object);
         }
 

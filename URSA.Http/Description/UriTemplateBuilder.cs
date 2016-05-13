@@ -166,7 +166,7 @@ namespace URSA.Web.Description.Http
                 int indexOf = -1;
                 Type implementation;
                 var identifierSegment = this
-                    .Where((item, index) => (item.Source is FromUriAttribute) && (item.Member is ParameterInfo) &&
+                    .Where((item, index) => (item.Source is FromUrlAttribute) && (item.Member is ParameterInfo) &&
                         ((implementation = ControlledEntityType.GetInterfaces().First(@interface => (@interface.IsGenericType) && (@interface.GetGenericTypeDefinition() == typeof(IControlledEntity<>)))) != null) &&
                         (((ParameterInfo)item.Member).ParameterType == implementation.GetProperty("Key").PropertyType) &&
                         ((indexOf = index) != -1))
@@ -197,7 +197,7 @@ namespace URSA.Web.Description.Http
                     return String.Empty;
                 }
 
-                return (IsRegexMode ? AsRegularExpresion() : AsUriTemplate());
+                return (IsRegexMode ? AsRegularExpresion() : AsUrlTemplate());
             }
 
             private string AsRegularExpresion()
@@ -207,7 +207,7 @@ namespace URSA.Web.Description.Http
                 foreach (var parameter in this)
                 {
                     optionalParameters += ((parameter.HasDefaultValue) || (!((ParameterInfo)parameter.Member).ParameterType.IsValueType) ? 1 : 0);
-                    var match = VariableTemplateRegex.Match(((FromQueryStringAttribute)parameter.Source).UriTemplate);
+                    var match = VariableTemplateRegex.Match(((FromQueryStringAttribute)parameter.Source).UrlTemplate);
                     var parameterName = match.Groups["ParameterName"].Value;
                     fixedParameters.Append(fixedParameters.Length == 0 ? "([?&](" : "|");
                     fixedParameters.Append(Regex.Escape(parameterName));
@@ -221,13 +221,13 @@ namespace URSA.Web.Description.Http
                 return fixedParameters.ToString();
             }
 
-            private string AsUriTemplate()
+            private string AsUrlTemplate()
             {
                 StringBuilder fixedParameters = new StringBuilder(128);
                 StringBuilder optionalParameters = new StringBuilder(128);
                 foreach (var parameter in this)
                 {
-                    var match = VariableTemplateRegex.Match(((FromQueryStringAttribute)parameter.Source).UriTemplate);
+                    var match = VariableTemplateRegex.Match(((FromQueryStringAttribute)parameter.Source).UrlTemplate);
                     var parameterName = match.Groups["ParameterName"].Value;
                     if ((parameter.HasDefaultValue) || (!((ParameterInfo)parameter.Member).ParameterType.IsValueType))
                     {

@@ -14,11 +14,11 @@ namespace Vocab
     [System.CodeDom.Compiler.GeneratedCode("URSA HTTP client proxy generation tool", "1.0")]
     public partial class ProductClient : Client
     {
-        public ProductClient(Uri baseUri, string authenticationScheme) : base(baseUri, authenticationScheme)
+        public ProductClient(HttpUrl baseUri, string authenticationScheme) : base(baseUri, authenticationScheme)
         {
         }
 
-        public ProductClient(Uri baseUri) : base(baseUri)
+        public ProductClient(HttpUrl baseUri) : base(baseUri)
         {
         }
 
@@ -26,16 +26,16 @@ namespace Vocab
         {
             System.Collections.Generic.IDictionary<string, object> uriArguments = new System.Collections.Generic.Dictionary<string, object>();
             var accept = new string[] {
-                "application/ld+json",
-                "application/owl+xml",
                 "application/rdf+xml",
-                "text/turtle" };
+                "text/turtle",
+                "application/ld+json",
+                "application/owl+xml" };
             var contentType = new string[] {
-                "application/ld+json",
-                "application/owl+xml",
                 "application/rdf+xml",
-                "text/turtle" };
-            var result = Call<System.Guid>(Verb.POST, "/api/product/#POSTProduct", accept, contentType, uriArguments, product);
+                "text/turtle",
+                "application/ld+json",
+                "application/owl+xml" };
+            var result = Call<System.Guid>(Verb.POST, "/api/product#POSTProduct", accept, contentType, uriArguments, product);
             return result;
         }
 
@@ -43,15 +43,15 @@ namespace Vocab
         {
             System.Collections.Generic.IDictionary<string, object> uriArguments = new System.Collections.Generic.Dictionary<string, object>();
             var accept = new string[] {
-                "application/owl+xml",
-                "application/rdf+xml",
                 "application/ld+json",
-                "text/turtle" };
+                "text/turtle",
+                "application/owl+xml",
+                "application/rdf+xml" };
             var contentType = new string[] {
-                "application/owl+xml",
-                "application/rdf+xml",
                 "application/ld+json",
-                "text/turtle" };
+                "text/turtle",
+                "application/owl+xml",
+                "application/rdf+xml" };
             uriArguments["%24filter"] = _filter;
             uriArguments["totalEntities"] = totalEntities = 0;
             uriArguments["%24skip"] = _skip;
@@ -65,15 +65,15 @@ namespace Vocab
         {
             System.Collections.Generic.IDictionary<string, object> uriArguments = new System.Collections.Generic.Dictionary<string, object>();
             var accept = new string[] {
-                "application/rdf+xml",
                 "application/ld+json",
-                "text/turtle",
-                "application/owl+xml" };
+                "application/owl+xml",
+                "application/rdf+xml",
+                "text/turtle" };
             var contentType = new string[] {
-                "application/rdf+xml",
                 "application/ld+json",
-                "text/turtle",
-                "application/owl+xml" };
+                "application/owl+xml",
+                "application/rdf+xml",
+                "text/turtle" };
             uriArguments["id"] = id;
             var result = Call<Vocab.Product>(Verb.GET, "/api/product/{id}", accept, contentType, uriArguments);
             return result;

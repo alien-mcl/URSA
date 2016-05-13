@@ -160,7 +160,7 @@ namespace VDS.RDF.Writing
             IDictionary<string, JObject> subjects = new Dictionary<string, JObject>();
             foreach (Triple triple in graph.Triples)
             {
-                if (!IsListNode(triple.Subject, graph))
+                if (IsListNode(triple.Subject, graph))
                 {
                     continue;
                 }

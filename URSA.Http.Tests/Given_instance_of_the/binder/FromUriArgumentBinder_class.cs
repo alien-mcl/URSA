@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using FluentAssertions;
+using URSA;
 using URSA.Security;
 using URSA.Web;
 using URSA.Web.Http;
@@ -18,11 +19,11 @@ namespace Given_instance_of_the.binder
 {
     [ExcludeFromCodeCoverage]
     [TestClass]
-    public class FromUriArgumentBinder_class : ArgumentBinderTest<FromUriArgumentBinder, FromUriAttribute, int>
+    public class FromUriArgumentBinder_class : ArgumentBinderTest<FromUrlArgumentBinder, FromUrlAttribute, int>
     {
-        protected override Uri RequestUri { get { return new Uri("http://temp.org/api/test/sub/1?operandB=1"); } }
+        protected override HttpUrl RequestUrl { get { return (HttpUrl)UrlParser.Parse("http://temp.org/api/test/sub/1?operandB=1"); } }
 
-        protected override Uri MethodUri { get { return new Uri("http://temp.org/api/test/sub"); } }
+        protected override HttpUrl MethodUrl { get { return (HttpUrl)UrlParser.Parse("http://temp.org/api/test/sub"); } }
 
         protected override string MethodName { get { return "Substract"; } }
 
@@ -46,12 +47,12 @@ namespace Given_instance_of_the.binder
         public void it_should_throw_when_parameter_type_is_an_enumeration()
         {
             var method = typeof(TestController).GetMethod("Collection");
-            var context = new ArgumentBindingContext<FromUriAttribute>(
-                new RequestInfo(Verb.GET, RequestUri, new MemoryStream(), new BasicClaimBasedIdentity()),
-                new RequestMapping(new TestController(), method.ToOperationInfo("/", Verb.GET), new Uri("/", UriKind.Relative)),
+            var context = new ArgumentBindingContext<FromUrlAttribute>(
+                new RequestInfo(Verb.GET, RequestUrl, new MemoryStream(), new BasicClaimBasedIdentity()),
+                new RequestMapping(new TestController(), method.ToOperationInfo("/", Verb.GET), (HttpUrl)UrlParser.Parse("/")),
                 method.GetParameters()[0],
                 1,
-                new FromUriAttribute(),
+                new FromUrlAttribute(),
                 new Dictionary<RequestInfo, RequestInfo[]>());
 
             Binder.Invoking(instance => instance.GetArgumentValue(context)).ShouldThrow<InvalidOperationException>();

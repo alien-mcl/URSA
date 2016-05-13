@@ -101,7 +101,7 @@ namespace URSA.Owin.Handlers
             context.Request.Headers.ForEach(header => headers[header.Key] = new Header(header.Key, header.Value));
             var requestInfo = new RequestInfo(
                 Verb.Parse(context.Request.Method),
-                new Uri(context.Request.Uri.AbsoluteUri.TrimEnd('/')),
+                (HttpUrl)UrlParser.Parse(context.Request.Uri.AbsoluteUri.TrimEnd('/')),
                 context.Request.Body,
                 new OwinPrincipal(context.Authentication.User),
                 headers);

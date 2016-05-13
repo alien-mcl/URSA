@@ -110,7 +110,7 @@ namespace URSA.Web.Http.Mapping
             {
                 context.MultipartBodies[context.Request] = ParseMultipartMessage(
                     context.Request.Method,
-                    context.Request.Uri,
+                    context.Request.Url,
                     new StreamReader(context.Request.Body).ReadToEnd(),
                     (string)boundary.Value);
                 context.Request.Body.Seek(0, SeekOrigin.Begin);
@@ -172,14 +172,14 @@ namespace URSA.Web.Http.Mapping
                 context.MultipartBodies));
         }
 
-        private RequestInfo[] ParseMultipartMessage(Verb method, Uri uri, string content, string boundary)
+        private RequestInfo[] ParseMultipartMessage(Verb method, HttpUrl url, string content, string boundary)
         {
             content = content.Substring(boundary.Length + 4).Replace("--" + boundary + "--", String.Empty);
             string[] parts = Regex.Split(content, "--" + boundary + "\r\n");
             RequestInfo[] result = new RequestInfo[parts.Length];
             for (var index = 0; index < parts.Length; index++)
             {
-                result[index] = RequestInfo.Parse(method, uri, parts[index]);
+                result[index] = RequestInfo.Parse(method, url, parts[index]);
             }
 
             return result;

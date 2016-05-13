@@ -188,7 +188,7 @@ namespace URSA.Web.Http.Converters
             var contentType = requestInfo.Headers[Header.ContentType];
             var mediaType = (contentType != null ? contentType.Values.Join(MediaTypes, outer => outer.Value, inner => inner, (outer, inner) => outer.Value).First() : TextTurtle);
             var reader = CreateReader(mediaType);
-            var entityId = request.Uri.GetLeftPart(UriPartial.Path).TrimEnd('/') + '/' + request.Uri.Query;
+            var entityId = (Uri)requestInfo.Url.WithFragment(null);
             var graphUri = _namedGraphSelectorFactory.NamedGraphSelector.SelectGraph(new EntityId(entityId), null, null);
             var graph = _entityContextProvider.TripleStore.FindOrCreate(graphUri);
             graph.Clear();
@@ -293,7 +293,7 @@ namespace URSA.Web.Http.Converters
             }
 
             //// TODO: Add support for graph based serializations.
-            var graph = CreateResultingGraph(instance, requestInfo.Uri);
+            var graph = CreateResultingGraph(instance, (Uri)requestInfo.Url);
             WriteResponseBody(graph, mediaType, response);
         }
 

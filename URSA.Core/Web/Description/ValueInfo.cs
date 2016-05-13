@@ -10,9 +10,9 @@ namespace URSA.Web.Description
     {
         /// <summary>Initializes a new instance of the <see cref="ValueInfo" /> class.</summary>
         /// <param name="parameter">Actual underlying parameter.</param>
-        /// <param name="uriTemplate">Relative uri template of this value.</param>
+        /// <param name="urlTemplate">Relative URL template of this value.</param>
         /// <param name="variableName">Variable name in the template for given value</param>
-        protected ValueInfo(ParameterInfo parameter, string uriTemplate, string variableName)
+        protected ValueInfo(ParameterInfo parameter, string urlTemplate, string variableName)
         {
             if (parameter == null)
             {
@@ -21,18 +21,18 @@ namespace URSA.Web.Description
 
             if (!String.IsNullOrEmpty(variableName))
             {
-                if (uriTemplate == null)
+                if (urlTemplate == null)
                 {
-                    throw new ArgumentNullException("uriTemplate");
+                    throw new ArgumentNullException("urlTemplate");
                 }
 
-                if (uriTemplate.Length == 0)
+                if (urlTemplate.Length == 0)
                 {
-                    throw new ArgumentOutOfRangeException("uriTemplate");
+                    throw new ArgumentOutOfRangeException("urlTemplate");
                 }
             }
 
-            if (!String.IsNullOrEmpty(uriTemplate))
+            if (!String.IsNullOrEmpty(urlTemplate))
             {
                 if (variableName == null)
                 {
@@ -46,15 +46,15 @@ namespace URSA.Web.Description
             }
 
             Parameter = parameter;
-            UriTemplate = uriTemplate;
+            UrlTemplate = urlTemplate;
             VariableName = variableName;
         }
 
         /// <summary>Gets the underlying parameter.</summary>
         public ParameterInfo Parameter { get; private set; }
 
-        /// <summary>Gets the relative uri template of this value.</summary>
-        public string UriTemplate { get; private set; }
+        /// <summary>Gets the relative URL template of this value.</summary>
+        public string UrlTemplate { get; private set; }
 
         /// <summary>Gets the variable name in the template for given value.</summary>
         public string VariableName { get; private set; }

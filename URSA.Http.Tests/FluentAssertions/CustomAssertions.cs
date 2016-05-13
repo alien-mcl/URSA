@@ -1,4 +1,5 @@
 ﻿using FluentAssertions.Primitives;
+using URSA.Web.Http;
 
 namespace FluentAssertions
 {
@@ -21,6 +22,22 @@ namespace FluentAssertions
             }
 
             return new AndConstraint<ObjectAssertions>(assertions);
+        }
+
+        /// <summary>Exposes the <see cref="System.Security.Policy.Url" /> assertions extension.</summary>
+        /// <param name="url">The subject URL.</param>
+        /// <returns>Assertions for a given <paramref name="url" />.</returns>
+        public static HttpUrlAssertions Should(this HttpUrl url)
+        {
+            return new HttpUrlAssertions(url);
+        }
+
+        /// <summary>Exposes the <see cref="System.Security.Policy.Url" /> assertions extension.</summary>
+        /// <param name="url">The subject URL.</param>
+        /// <returns>Assertions for a given <paramref name="url" />.</returns>
+        public static FtpUrlAssertions Should(this FtpUrl url)
+        {
+            return new FtpUrlAssertions(url);
         }
     }
 }

@@ -5,7 +5,6 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Newtonsoft.Json.Linq;
 using RomanticWeb;
-using RomanticWeb.ComponentModel;
 using RomanticWeb.Entities;
 using RomanticWeb.Vocabularies;
 using System;
@@ -35,8 +34,8 @@ namespace Given_instance_of_the.converter_of
         private const string ContentType = "application/ld+json";
         private const string ClassId = "class";
         private const string Method = "GET";
-        private const string BodyPattern = "[{{ \"@id\":\"{0}{2}/\", \"@type\":\"{1}Operation\", \"{1}method\":\"GET\", \"{1}returns\":{{ \"@id\":\"{0}{3}\" }} }},{{ \"@id\":\"{0}{3}\", \"@type\":\"{1}Class\" }}]";
-        private static readonly string Body = String.Format(BodyPattern, BaseUri, EntityConverter.Hydra, OperationName, ClassId);
+        private const string BodyPattern = "[{{ \"@id\":\"{0}/{2}\", \"@type\":\"{1}Operation\", \"{1}method\":\"GET\", \"{1}returns\":{{ \"@id\":\"{0}/{3}\" }} }},{{ \"@id\":\"{0}/{3}\", \"@type\":\"{1}Class\" }}]";
+        private static readonly string Body = String.Format(BodyPattern, BaseUrl, EntityConverter.Hydra, OperationName, ClassId);
         private Mock<IEntityContext> _context;
         private ITripleStore _tripleStore;
 
@@ -137,11 +136,11 @@ namespace Given_instance_of_the.converter_of
         protected override void AssertSingleEntity(IOperation result)
         {
             result.Should().NotBeNull();
-            result.Id.ToString().Should().Be(new Uri(BaseUri, OperationName + "/").ToString());
+            result.Id.ToString().Should().Be(((Uri)(BaseUrl + ("/" + OperationName))).ToString());
             result.Method.Should().HaveCount(1);
             result.Method.First().Should().Be(Method);
             result.Returns.Should().HaveCount(1);
-            result.Returns.First().Id.ToString().Should().Be(new Uri(BaseUri, ClassId).ToString());
+            result.Returns.First().Id.ToString().Should().Be(((Uri)(BaseUrl + ClassId)).ToString());
         }
 
         protected override void AssertSingleEntityMessage(string result)
@@ -160,7 +159,7 @@ namespace Given_instance_of_the.converter_of
             entityContextProvider.SetupGet(instance => instance.EntityContext).Returns(_context.Object);
             entityContextProvider.SetupGet(instance => instance.TripleStore).Returns(_tripleStore);
             var namedGraphSelector = new Mock<INamedGraphSelector>(MockBehavior.Strict);
-            namedGraphSelector.Setup(instance => instance.SelectGraph(It.IsAny<EntityId>(), It.IsAny<IEntityMapping>(), It.IsAny<IPropertyMapping>())).Returns(BaseUri);
+            namedGraphSelector.Setup(instance => instance.SelectGraph(It.IsAny<EntityId>(), It.IsAny<IEntityMapping>(), It.IsAny<IPropertyMapping>())).Returns((Uri)BaseUrl);
             var namedGraphSelectorFactory = new Mock<INamedGraphSelectorFactory>(MockBehavior.Strict);
             namedGraphSelectorFactory.SetupGet(instance => instance.NamedGraphSelector).Returns(namedGraphSelector.Object);
             return new EntityConverter(entityContextProvider.Object, namedGraphSelectorFactory.Object);
@@ -186,7 +185,7 @@ namespace Given_instance_of_the.converter_of
 
         private Mock<IOperation> CreateOperationMock()
         {
-            var quads = CreateOperationMock(new Uri(BaseUri, OperationName + "/"), new Uri(BaseUri, ClassId));
+            var quads = CreateOperationMock((Uri)(BaseUrl + ("/" + OperationName)), (Uri)(BaseUrl + ClassId));
             Mock<IEntityStore> store = new Mock<IEntityStore>();
             store.Setup(instance => instance.Quads).Returns(quads);
             Mock<IEntityContext> context = new Mock<IEntityContext>();
@@ -203,7 +202,7 @@ namespace Given_instance_of_the.converter_of
         private IList<EntityQuad> CreateOperationMock(Uri operationUri, Uri classUri)
         {
             IList<EntityQuad> quads = new List<EntityQuad>();
-            var graph = new Graph() { BaseUri = BaseUri };
+            var graph = new Graph() { BaseUri = (Uri)BaseUrl };
             _tripleStore.Add(graph);
             var triples = new[]
                 {

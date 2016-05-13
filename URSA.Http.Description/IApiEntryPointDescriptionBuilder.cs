@@ -6,6 +6,6 @@ namespace URSA.Web.Http.Description
     public interface IApiEntryPointDescriptionBuilder : IApiDescriptionBuilder
     {
         /// <summary>Gets or sets the entry point.</summary>
-        Uri EntryPoint { get; set; }
+        Url EntryPoint { get; set; }
     }
 }

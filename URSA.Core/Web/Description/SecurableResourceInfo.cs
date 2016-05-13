@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics.CodeAnalysis;
 using URSA.Security;
+using URSA.Web.Http;
 
 namespace URSA.Web.Description
 {
@@ -10,27 +11,22 @@ namespace URSA.Web.Description
         private ResourceSecurityInfo _unifiedResourceSecurityInfo;
 
         /// <summary>Initializes a new instance of the <see cref="SecurableResourceInfo"/> class.</summary>
-        /// <param name="uri">The URI of the resource.</param>
+        /// <param name="url">The URL of the resource.</param>
         [ExcludeFromCodeCoverage]
         [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
-        protected internal SecurableResourceInfo(Uri uri)
+        protected internal SecurableResourceInfo(Url url)
         {
-            if (uri == null)
+            if (url == null)
             {
-                throw new ArgumentNullException("uri");
+                throw new ArgumentNullException("url");
             }
 
-            if (uri.IsAbsoluteUri)
-            {
-                throw new ArgumentOutOfRangeException("uri");
-            }
-
-            Uri = uri;
+            Url = url;
             SecurityRequirements = new ResourceSecurityInfo();
         }
 
-        /// <summary>Gets the base uri of the method without arguments.</summary>
-        public Uri Uri { get; private set; }
+        /// <summary>Gets the base URL of the method without arguments.</summary>
+        public Url Url { get; private set; }
 
         /// <summary>Gets the security requirements.</summary>
         public ResourceSecurityInfo SecurityRequirements { get; private set; }

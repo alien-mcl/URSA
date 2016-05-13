@@ -1,9 +1,11 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using System;
 using System.Diagnostics.CodeAnalysis;
 using FluentAssertions;
+using URSA;
 using URSA.Web;
+using URSA.Web.Http;
 using URSA.Web.Http.Mapping;
 using URSA.Web.Http.Testing;
 using URSA.Web.Mapping;
@@ -19,9 +21,9 @@ namespace Given_instance_of_the.binder.FromBodyArgumentBinder_class
             "--" + Boundary + "\r\nContent-Disposition: form-data; name=\"operandA\"\r\nContent-Type: text/plain\r\nContent-Length:3\r\n\r\n1\r\n" +
             "--" + Boundary + "\r\nContent-Disposition: form-data; name=\"operandB\"\r\nContent-Type: text/plain\r\nContent-Length:3\r\n\r\n2\r\n--" + Boundary + "--";
 
-        protected override Uri RequestUri { get { return new Uri("http://temp.org/api/test/modulo"); } }
+        protected override HttpUrl RequestUrl { get { return (HttpUrl)UrlParser.Parse("http://temp.org/api/test/modulo"); } }
 
-        protected override Uri MethodUri { get { return new Uri("http://temp.org/api/test/modulo"); } }
+        protected override HttpUrl MethodUrl { get { return (HttpUrl)UrlParser.Parse("http://temp.org/api/test/modulo"); } }
 
         protected override string MethodName { get { return "PostModulo"; } }
 

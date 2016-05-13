@@ -7,8 +7,8 @@ namespace URSA.Web
     /// <summary>Provides a basic description of the handler class method mapping facility.</summary>
     public interface IDelegateMapper
     {
-        /// <summary>Maps a given requested uri to an actual method.</summary>
-        /// <param name="request">Requested uri.</param>
+        /// <summary>Maps a given requested URL to an actual method.</summary>
+        /// <param name="request">Requested URL.</param>
         /// <returns><see cref="IRequestMapping" /> pointing to the target handler or <b>null</b>.</returns>
         IRequestMapping MapRequest(IRequestInfo request);
     }
@@ -17,8 +17,8 @@ namespace URSA.Web
     /// <typeparam name="T">Type of requests to be mapped.</typeparam>
     public interface IDelegateMapper<T> : IDelegateMapper where T : IRequestInfo
     {
-        /// <summary>Maps a given requested uri to an actual method.</summary>
-        /// <param name="request">Requested uri.</param>
+        /// <summary>Maps a given requested URL to an actual method.</summary>
+        /// <param name="request">Requested URL.</param>
         /// <returns><see cref="IRequestMapping" /> pointing to the target handler or <b>null</b>.</returns>
         IRequestMapping MapRequest(T request);
     }

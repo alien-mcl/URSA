@@ -13,9 +13,9 @@ namespace URSA.Web.Description
         /// <summary>Initializes a new instance of the <see cref="ArgumentInfo" /> class.</summary>
         /// <param name="parameter">Actual underlying parameter.</param>
         /// <param name="source">Parameter source.</param>
-        /// <param name="uriTemplate">Relative uri template of this parameter.</param>
+        /// <param name="urlTemplate">Relative URL template of this parameter.</param>
         /// <param name="variableName">Variable name in the template for given argument</param>
-        public ArgumentInfo(ParameterInfo parameter, ParameterSourceAttribute source, string uriTemplate, string variableName) : base(parameter, uriTemplate, variableName)
+        public ArgumentInfo(ParameterInfo parameter, ParameterSourceAttribute source, string urlTemplate, string variableName) : base(parameter, urlTemplate, variableName)
         {
             if (source == null)
             {

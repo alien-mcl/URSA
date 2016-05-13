@@ -14,11 +14,11 @@ namespace URSA.Example.WebApplication.Data
     [System.CodeDom.Compiler.GeneratedCode("URSA HTTP client proxy generation tool", "1.0")]
     public partial class PersonClient : Client
     {
-        public PersonClient(Uri baseUri, string authenticationScheme) : base(baseUri, authenticationScheme)
+        public PersonClient(HttpUrl baseUri, string authenticationScheme) : base(baseUri, authenticationScheme)
         {
         }
 
-        public PersonClient(Uri baseUri) : base(baseUri)
+        public PersonClient(HttpUrl baseUri) : base(baseUri)
         {
         }
 
@@ -33,7 +33,7 @@ namespace URSA.Example.WebApplication.Data
                 "application/json",
                 "text/xml",
                 "application/xml" };
-            var result = Call<System.Guid>(Verb.POST, "/api/person/#POSTPerson", accept, contentType, uriArguments, person);
+            var result = Call<System.Guid>(Verb.POST, "/api/person#POSTPerson", accept, contentType, uriArguments, person);
             return result;
         }
 
@@ -42,9 +42,9 @@ namespace URSA.Example.WebApplication.Data
             System.Collections.Generic.IDictionary<string, object> uriArguments = new System.Collections.Generic.Dictionary<string, object>();
             var accept = new string[0];
             var contentType = new string[] {
+                "application/xml",
                 "application/json",
-                "text/xml",
-                "application/xml" };
+                "text/xml" };
             uriArguments["id"] = id;
             Call(Verb.PUT, "/api/person/{id}", accept, contentType, uriArguments, person);
         }
@@ -54,8 +54,8 @@ namespace URSA.Example.WebApplication.Data
             System.Collections.Generic.IDictionary<string, object> uriArguments = new System.Collections.Generic.Dictionary<string, object>();
             var accept = new string[0];
             var contentType = new string[] {
-                "application/json",
                 "application/xml",
+                "application/json",
                 "text/xml" };
             uriArguments["id"] = id;
             Call(Verb.DELETE, "/api/person/{id}", accept, contentType, uriArguments);
@@ -66,12 +66,12 @@ namespace URSA.Example.WebApplication.Data
             System.Collections.Generic.IDictionary<string, object> uriArguments = new System.Collections.Generic.Dictionary<string, object>();
             var accept = new string[] {
                 "application/xml",
-                "text/xml",
-                "application/json" };
+                "application/json",
+                "text/xml" };
             var contentType = new string[] {
                 "application/xml",
-                "text/xml",
-                "application/json" };
+                "application/json",
+                "text/xml" };
             uriArguments["id"] = id;
             var result = Call<URSA.Example.WebApplication.Data.Person>(Verb.GET, "/api/person/{id}", accept, contentType, uriArguments);
             return result;
@@ -90,8 +90,8 @@ namespace URSA.Example.WebApplication.Data
                 "text/xml" };
             uriArguments["totalEntities"] = totalEntities = 0;
             uriArguments["%24skip"] = _skip;
-            uriArguments["%24filter"] = _filter;
             uriArguments["%24top"] = _top;
+            uriArguments["%24filter"] = _filter;
             var result = Call<System.Collections.Generic.ICollection<Person>>(Verb.GET, "/api/person{?%24skip,%24top,%24filter}", accept, contentType, uriArguments);
             totalEntities = (int)uriArguments["totalEntities"];
             return result;

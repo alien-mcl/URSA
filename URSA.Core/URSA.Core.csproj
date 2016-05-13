@@ -45,6 +45,7 @@
     <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
     <Reference Include="System.IdentityModel" />
+    <Reference Include="System.Text.Encoding" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -52,6 +53,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Configuration\UrlParserConfigurationSection.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="..\.build\CommonAssemblyInfo.cs">
       <Link>Properties\CommonAssemblyInfo.cs</Link>
@@ -71,6 +73,8 @@
     <Compile Include="Security\ResourceSecurityInfo.cs" />
     <Compile Include="Security\SecurableResourceInfoExtensions.cs" />
     <Compile Include="Security\SecuritySpecificationInfo.cs" />
+    <Compile Include="Url.cs" />
+    <Compile Include="UrlParser.cs" />
     <Compile Include="Web\IModelTransformer.cs" />
     <Compile Include="Web\IPostRequestHandler.cs" />
     <Compile Include="Web\IPreRequestHandler.cs" />
@@ -103,13 +107,13 @@
     <Compile Include="Web\IRequestInfo.cs" />
     <Compile Include="Web\Mapping\FromQueryStringAttribute.cs" />
     <Compile Include="Web\Mapping\FromBodyAttribute.cs" />
-    <Compile Include="Web\Mapping\IUriTemplateParameterSourceAttribute.cs" />
+    <Compile Include="Web\Mapping\IUrlTemplateParameterSourceAttribute.cs" />
     <Compile Include="Web\Mapping\MappingAttribute.cs" />
     <Compile Include="Web\Mapping\ParameterSourceAttribute.cs" />
     <Compile Include="Web\Mapping\ResultTargetAttribute.cs" />
     <Compile Include="Web\Mapping\ToBodyAttribute.cs" />
     <Compile Include="Web\Mapping\ToHeaderAttribute.cs" />
-    <Compile Include="Web\Mapping\FromUriAttribute.cs" />
+    <Compile Include="Web\Mapping\FromUrlAttribute.cs" />
     <Compile Include="Web\Mapping\RouteAttribute.cs" />
     <Compile Include="Web\Description\OperationInfo.cs" />
     <Compile Include="Web\AlreadyExistsException.cs" />

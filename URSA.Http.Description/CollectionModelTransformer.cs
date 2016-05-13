@@ -56,6 +56,7 @@ namespace URSA.Web.Http.Description
             int totalItems = ((IEnumerable)result).Cast<object>().Count();
             int skip = 0;
             int take = 0;
+            bool canOutputHypermedia = false;
             KeyValuePair<Verb, MethodInfo> method;
             if ((requestMapping.Target.GetType().GetImplementationOfAny(typeof(IController<>), typeof(IAsyncController<>)) != null) &&
                 (!Equals(method = requestMapping.Target.GetType().DiscoverCrudMethods().FirstOrDefault(entry => entry.Value == underlyingMethod), default(KeyValuePair<Verb, MethodInfo>))))
@@ -70,15 +71,21 @@ namespace URSA.Web.Http.Description
                         {
                             skip = (int)arguments[1];
                             take = ((take = (int)arguments[2]) == 0 ? 0 : Math.Min(take, totalItems));
+                            canOutputHypermedia = (requestMapping.ArgumentSources[1] == ArgumentValueSources.Bound) && (requestMapping.ArgumentSources[2] == ArgumentValueSources.Bound);
                         }
 
                         break;
                 }
             }
 
+            if (!canOutputHypermedia)
+            {
+                return Task.FromResult(result);
+            }
+
             var namedGraphSelector = _namedGraphSelectorFactory.NamedGraphSelector;
             ILocallyControlledNamedGraphSelector locallyControlledNamedGraphSelector = namedGraphSelector as ILocallyControlledNamedGraphSelector;
-            result = (locallyControlledNamedGraphSelector == null ? TransformCollection(result, requestInfo.Uri, totalItems, skip, take) :
+            result = (locallyControlledNamedGraphSelector == null ? TransformCollection(result, requestInfo.Url, totalItems, skip, take) :
                 TransformColectionWithLock(locallyControlledNamedGraphSelector, result, requestInfo, totalItems, skip, take));
             return Task.FromResult(result);
         }
@@ -94,12 +101,12 @@ namespace URSA.Web.Http.Description
             lock (locallyControlledNamedGraphSelector)
             {
                 var requestId = Guid.NewGuid().ToString();
-                var graphUri = request.Uri.AddFragment(requestId);
-                var collectionId = new EntityId(request.Uri);
-                var viewId = new EntityId(request.Uri.AddFragment("view-" + requestId));
+                var graphUri = (Uri)request.Url.WithFragment(requestId);
+                var collectionId = new EntityId((Uri)request.Url);
+                var viewId = new EntityId((Uri)request.Url.WithFragment("view-" + requestId));
                 locallyControlledNamedGraphSelector.MapEntityGraphForRequest(request, collectionId, graphUri);
                 locallyControlledNamedGraphSelector.MapEntityGraphForRequest(request, viewId, graphUri);
-                result = TransformCollection(result, request.Uri, totalItems, skip, take);
+                result = TransformCollection(result, request.Url, totalItems, skip, take);
                 _entityContextProvider.EntityContext.Disposed += () =>
                     {
                         _entityContextProvider.TripleStore.Remove(graphUri);
@@ -111,10 +118,10 @@ namespace URSA.Web.Http.Description
             return result;
         }
 
-        private object TransformCollection(object result, Uri requestUri, int totalItems, int skip, int take)
+        private object TransformCollection(object result, HttpUrl requestUri, int totalItems, int skip, int take)
         {
             var entityContext = _entityContextProvider.EntityContext;
-            var collection = entityContext.Load<ICollection>(requestUri);
+            var collection = entityContext.Load<ICollection>((Uri)requestUri);
             collection.TotalItems = totalItems;
             collection.Members.Clear();
             foreach (IEntity entity in (IEnumerable)result)

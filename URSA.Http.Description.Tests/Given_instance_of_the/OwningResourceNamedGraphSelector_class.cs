@@ -4,6 +4,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using RomanticWeb.Entities;
 using RomanticWeb.NamedGraphs;
+using URSA;
 using URSA.Web.Description;
 using URSA.Web.Description.Http;
 using URSA.Web.Http;
@@ -16,14 +17,14 @@ namespace Given_instance_of_the
     [TestClass]
     public class OwningResourceNamedGraphSelector_class
     {
-        private static readonly Uri BaseUri = new Uri("http://temp.uri/");
-        private static readonly Uri EntryPoint = new Uri("/api/person", UriKind.Relative);
+        private static readonly HttpUrl BaseUri = (HttpUrl)UrlParser.Parse("http://temp.uri/");
+        private static readonly HttpUrl EntryPoint = (HttpUrl)UrlParser.Parse("/api/person");
         private INamedGraphSelector _selector;
 
         [TestMethod]
         public void it_should_match_uri()
         {
-            var entityId = new EntityId(EntryPoint.Combine(BaseUri) + "/" + Guid.Empty);
+            var entityId = new EntityId((Uri)(BaseUri + EntryPoint).AddSegment(Guid.Empty.ToString()));
 
             Uri result = _selector.SelectGraph(entityId, null, null);
 
@@ -33,7 +34,7 @@ namespace Given_instance_of_the
         [TestMethod]
         public void it_should_match_uri_with_query_string_parameters()
         {
-            var entityId = new EntityId(EntryPoint.Combine(BaseUri) + "/" + Guid.Empty + "?_random=10");
+            var entityId = new EntityId((Uri)(BaseUri + EntryPoint).AddSegment(Guid.Empty.ToString()).WithParameter("_random", "10"));
 
             Uri result = _selector.SelectGraph(entityId, null, null);
 

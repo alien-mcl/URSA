@@ -18,35 +18,35 @@ namespace URSA.Web.Http
 
         /// <summary>Initializes a new instance of the <see cref="RequestInfo"/> class.</summary>
         /// <param name="method">HTTP method verb of the request.</param>
-        /// <param name="uri">Address requested.</param>
+        /// <param name="url">Address requested.</param>
         /// <param name="body">Body of the request.</param>
         /// <param name="identity">Identity of this request.</param>
         /// <param name="headers">Headers of the request.</param>
         [ExcludeFromCodeCoverage]
         [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
-        public RequestInfo(Verb method, Uri uri, Stream body, IClaimBasedIdentity identity, params Header[] headers) :
-            this(method, uri, body, identity, new HeaderCollection(headers))
+        public RequestInfo(Verb method, HttpUrl url, Stream body, IClaimBasedIdentity identity, params Header[] headers) :
+            this(method, url, body, identity, new HeaderCollection(headers))
         {
         }
 
         /// <summary>Initializes a new instance of the <see cref="RequestInfo"/> class.</summary>
         /// <param name="method">HTTP method verb of the request.</param>
-        /// <param name="uri">Address requested.</param>
+        /// <param name="url">Address requested.</param>
         /// <param name="body">Body of the request.</param>
         /// <param name="identity">Identity of this request.</param>
         /// <param name="headers">Headers of the request.</param>
         [ExcludeFromCodeCoverage]
         [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
-        public RequestInfo(Verb method, Uri uri, Stream body, IClaimBasedIdentity identity, HeaderCollection headers)
+        public RequestInfo(Verb method, HttpUrl url, Stream body, IClaimBasedIdentity identity, HeaderCollection headers)
         {
             if (method == null)
             {
                 throw new ArgumentNullException("method");
             }
 
-            if (uri == null)
+            if (url == null)
             {
-                throw new ArgumentNullException("uri");
+                throw new ArgumentNullException("url");
             }
 
             if (body == null)
@@ -60,7 +60,7 @@ namespace URSA.Web.Http
             }
 
             Method = method;
-            Uri = uri;
+            Url = url;
             Body = new UnclosableStream(_stream = body);
             _identity = identity;
             Headers = headers ?? new HeaderCollection();
@@ -72,8 +72,11 @@ namespace URSA.Web.Http
         /// <inheritdoc />
         public Stream Body { get; private set; }
 
+        /// <summary>Gets the URL of the request.</summary>
+        public HttpUrl Url { get; private set; }
+
         /// <inheritdoc />
-        public Uri Uri { get; private set; }
+        Url IRequestInfo.Url { get { return Url; } }
 
         /// <summary>Gets the request headers.</summary>
         public HeaderCollection Headers { get; private set; }
@@ -117,24 +120,24 @@ namespace URSA.Web.Http
 
         /// <summary>Parses a given string as a <see cref="RequestInfo" />.</summary>
         /// <param name="method">Method of the request.</param>
-        /// <param name="uri">Uri of the request.</param>
+        /// <param name="url">URL of the request.</param>
         /// <param name="message">Request content.</param>
         /// <returns>Instance of the <see cref="RequestInfo" />.</returns>
-        public static RequestInfo Parse(Verb method, Uri uri, string message)
+        public static RequestInfo Parse(Verb method, HttpUrl url, string message)
         {
             if (method == null)
             {
                 throw new ArgumentNullException("method");
             }
 
-            if (uri == null)
+            if (url == null)
             {
-                throw new ArgumentNullException("uri");
+                throw new ArgumentNullException("url");
             }
 
-            if (!uri.IsAbsoluteUri)
+            if (!url.IsAbsolute)
             {
-                throw new ArgumentOutOfRangeException("uri");
+                throw new ArgumentOutOfRangeException("url");
             }
 
             if (message == null)
@@ -150,7 +153,7 @@ namespace URSA.Web.Http
             string[] parts = Regex.Split(message, "\r\n\r\n");
             Encoding encoding = Encoding.UTF8;
             HeaderCollection headers = HeaderCollection.Parse(parts[0]);
-            return new RequestInfo(method, uri, (parts.Length > 1 ? new MemoryStream(encoding.GetBytes(parts[1].Trim('\r', '\n'))) : new MemoryStream()), new BasicClaimBasedIdentity(), headers);
+            return new RequestInfo(method, url, (parts.Length > 1 ? new MemoryStream(encoding.GetBytes(parts[1].Trim('\r', '\n'))) : new MemoryStream()), new BasicClaimBasedIdentity(), headers);
         }
 
         /// <inheritdoc />
