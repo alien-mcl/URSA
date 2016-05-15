@@ -43,10 +43,10 @@ namespace URSA.Reflection
             return new Uri(String.Format("urn:{2}:{0}.{1}", declaringTypeOverride ?? property.DeclaringType, property.Name, HydraSymbol));
         }
 
-        internal static Type GetInterfaceImplementation(this Type implementour, Type implementation)
+        internal static Type GetInterfaceImplementation(this Type implementour, Type implementation, Func<Type, bool> withPredicate = null)
         {
-            return (implementour.GetInterfaces().FirstOrDefault(@interface => (@interface.IsGenericType) && (implementation == @interface.GetGenericTypeDefinition()))) ??
-                ((implementour.IsInterface) && (implementour.IsGenericType) && (implementation == implementour.GetGenericTypeDefinition()) ? implementour : null);
+            return (implementour.GetInterfaces().FirstOrDefault(@interface => @interface.IsGenericBaseOf(implementation, withPredicate))) ??
+                ((implementour.IsInterface) && (implementour.IsGenericBaseOf(implementation, withPredicate)) ? implementour : null);
         }
 
         internal static bool ImplementsGeneric(this PropertyInfo implementour, Type genericType, string propertyName)
@@ -82,6 +82,12 @@ namespace URSA.Reflection
                         (StringComparer.OrdinalIgnoreCase.Equals(parameter.Name, property.Name.ToLower())) &&
                         (!exceptNamedProperty.Contains(property.Name, StringComparer.OrdinalIgnoreCase))
                     select property).FirstOrDefault();
+        }
+
+        private static bool IsGenericBaseOf(this Type @interface, Type implementation, Func<Type, bool> withPredicate = null)
+        {
+            return (@interface.IsGenericType) && (@interface.GetGenericTypeDefinition() == implementation) &&
+                ((withPredicate == null) || (withPredicate(@interface)));
         }
     }
 }

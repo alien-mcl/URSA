@@ -16,16 +16,16 @@ namespace URSA.Web.Http.Description
         private readonly IDictionary<Type, Tuple<IClass, bool, bool>> _typeDefinitions;
 
         /// <summary>Initializes a new instance of the <see cref="DescriptionContext"/> class.</summary>
-        /// <param name="apiDocumentation">The API documentation.</param>
+        /// <param name="entryPointEntity">The entry point entity.</param>
         /// <param name="typeDescriptionBuilder">Type description builder.</param>
         /// <param name="type">The type.</param>
         /// <param name="typeDefinitions">The type definitions.</param>
         [ExcludeFromCodeCoverage]
-        private DescriptionContext(IApiDocumentation apiDocumentation, ITypeDescriptionBuilder typeDescriptionBuilder, Type type, IDictionary<Type, Tuple<IClass, bool, bool>> typeDefinitions)
+        private DescriptionContext(IEntity entryPointEntity, ITypeDescriptionBuilder typeDescriptionBuilder, Type type, IDictionary<Type, Tuple<IClass, bool, bool>> typeDefinitions)
         {
-            if (apiDocumentation == null)
+            if (entryPointEntity == null)
             {
-                throw new ArgumentNullException("apiDocumentation");
+                throw new ArgumentNullException("entryPointEntity");
             }
 
             if (typeDescriptionBuilder == null)
@@ -43,14 +43,14 @@ namespace URSA.Web.Http.Description
                 throw new ArgumentNullException("typeDefinitions");
             }
 
-            ApiDocumentation = apiDocumentation;
+            Entity = entryPointEntity;
             TypeDescriptionBuilder = typeDescriptionBuilder;
             Type = type;
             _typeDefinitions = typeDefinitions;
         }
 
-        /// <summary>Gets the API documentation.</summary>
-        public IApiDocumentation ApiDocumentation { get; private set; }
+        /// <summary>Gets the entry point entity.</summary>
+        public IEntity Entity { get; private set; }
 
         /// <summary>Gets the type description builder.</summary>
         public ITypeDescriptionBuilder TypeDescriptionBuilder { get; private set; }
@@ -64,16 +64,16 @@ namespace URSA.Web.Http.Description
         public IClass this[Type type] { get { return _typeDefinitions[type].Item1; } }
 
         /// <summary>Creates a copy of the context for different type.</summary>
-        /// <param name="apiDocumentation">The API documentation.</param>
+        /// <param name="entryPointEntity">The entry point entity.</param>
         /// <param name="type">The type.</param>
         /// <param name="typeDescriptionBuilder">Type description builder.</param>
         /// <returns>Instance of the <see cref="DescriptionContext" /> for given <paramref name="type" />.</returns>
         [ExcludeFromCodeCoverage]
-        public static DescriptionContext ForType(IApiDocumentation apiDocumentation, Type type, ITypeDescriptionBuilder typeDescriptionBuilder)
+        public static DescriptionContext ForType(IEntity entryPointEntity, Type type, ITypeDescriptionBuilder typeDescriptionBuilder)
         {
-            if (apiDocumentation == null)
+            if (entryPointEntity == null)
             {
-                throw new ArgumentNullException("apiDocumentation");
+                throw new ArgumentNullException("entryPointEntity");
             }
 
             if (typeDescriptionBuilder == null)
@@ -86,7 +86,7 @@ namespace URSA.Web.Http.Description
                 throw new ArgumentNullException("type");
             }
 
-            return new DescriptionContext(apiDocumentation, typeDescriptionBuilder, type, new Dictionary<Type, Tuple<IClass, bool, bool>>());
+            return new DescriptionContext(entryPointEntity, typeDescriptionBuilder, type, new Dictionary<Type, Tuple<IClass, bool, bool>>());
         }
 
         /// <summary>Creates a copy of the context for different type.</summary>
@@ -100,7 +100,7 @@ namespace URSA.Web.Http.Description
                 throw new ArgumentNullException("type");
             }
 
-            return (type == Type ? this : new DescriptionContext(ApiDocumentation, TypeDescriptionBuilder, type, _typeDefinitions));
+            return (type == Type ? this : new DescriptionContext(Entity, TypeDescriptionBuilder, type, _typeDefinitions));
         }
 
         /// <summary>Builds the type description.</summary>

@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
-using URSA.Web.Mapping;
 
 namespace URSA.Web
 {

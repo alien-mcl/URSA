@@ -4,6 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Resta.UriTemplates;
 using RomanticWeb.Entities;
+using URSA.Reflection;
 using URSA.Web.Description;
 using URSA.Web.Description.Http;
 using URSA.Web.Http.Description.Hydra;
@@ -51,28 +52,11 @@ namespace URSA.Web.Http.Description
         public void BuildDescription(IApiDocumentation apiDocumentation, IEnumerable<Uri> profiles)
         {
             ControllerInfo entryPointControllerInfo = null;
-            IHttpControllerDescriptionBuilder<EntryPointDescriptionController> entryPointControllerDescriptionBuilder = null;
             foreach (var controllerDescriptionBuilder in _controllerDescriptionBuilders)
             {
-                var controllerDescriptionBuilderType = controllerDescriptionBuilder.GetType();
-                Type targetImplementation = null;
-                controllerDescriptionBuilderType.GetInterfaces().FirstOrDefault(@interface => (@interface.IsGenericType) &&
-                    (@interface.GetGenericTypeDefinition() == typeof(IHttpControllerDescriptionBuilder<>)) &&
-                    (typeof(IController).IsAssignableFrom(targetImplementation = @interface.GetGenericArguments()[0])));
-                if ((targetImplementation == null) || ((targetImplementation.IsGenericType) && (targetImplementation.GetGenericTypeDefinition() == typeof(DescriptionController<>))))
-                {
-                    continue;
-                }
-
-                var controllerDescription = controllerDescriptionBuilder.BuildDescriptor();
-                if (controllerDescriptionBuilder is IHttpControllerDescriptionBuilder<EntryPointDescriptionController>)
-                {
-                    entryPointControllerDescriptionBuilder = (IHttpControllerDescriptionBuilder<EntryPointDescriptionController>)controllerDescriptionBuilder;
-                    entryPointControllerInfo = controllerDescription;
-                    continue;
-                }
-
-                if ((controllerDescription.EntryPoint == null) || (controllerDescription.EntryPoint.Url.ToString() != EntryPoint.ToString()))
+                Type targetImplementation;
+                var controllerInfo = GetTargetControllerInfo(controllerDescriptionBuilder, out targetImplementation, out entryPointControllerInfo);
+                if (controllerInfo == null)
                 {
                     continue;
                 }
@@ -83,14 +67,64 @@ namespace URSA.Web.Http.Description
 
             if (entryPointControllerInfo != null)
             {
-                BuildEntryPointDescription(apiDocumentation, entryPointControllerInfo, entryPointControllerDescriptionBuilder);
+                BuildEntryPointDescription(apiDocumentation, entryPointControllerInfo);
             }
         }
 
-        private void BuildEntryPointDescription(
-            IApiDocumentation apiDocumentation,
-            ControllerInfo entryPointControllerInfo,
-            IHttpControllerDescriptionBuilder<EntryPointDescriptionController> entryPointControllerDescriptionBuilder)
+        /// <inheritdoc />
+        public void BuildOperationDescription(IEntity entryPointEntity, OperationInfo<Verb> operationInfo, IEnumerable<Uri> profiles)
+        {
+            foreach (var controllerDescriptionBuilder in _controllerDescriptionBuilders)
+            {
+                Type targetImplementation;
+                var controllerInfo = GetTargetControllerInfo(controllerDescriptionBuilder, out targetImplementation);
+                if ((controllerInfo == null) || (!controllerInfo.Operations.Any(operation => operation.Equals(operationInfo))))
+                {
+                    continue;
+                }
+
+                var apiDescriptionBuilder = _apiDescriptionBuilderFactory.Create(targetImplementation);
+                apiDescriptionBuilder.BuildOperationDescription(entryPointEntity, operationInfo, profiles);
+            }
+        }
+
+        private ControllerInfo GetTargetControllerInfo(IHttpControllerDescriptionBuilder controllerDescriptionBuilder, out Type targetImplementation)
+        {
+            ControllerInfo entryPointControllerInfo;
+            return GetTargetControllerInfo(controllerDescriptionBuilder, out targetImplementation, out entryPointControllerInfo);
+        }
+
+        private ControllerInfo GetTargetControllerInfo(IHttpControllerDescriptionBuilder controllerDescriptionBuilder, out Type targetImplementation, out ControllerInfo entryPointControllerInfo)
+        {
+            entryPointControllerInfo = null;
+            targetImplementation = null;
+            Type possibleImplementation = null;
+            var controllerDescriptionBuilderType = controllerDescriptionBuilder.GetType();
+            controllerDescriptionBuilderType.GetInterfaceImplementation(
+                typeof(IHttpControllerDescriptionBuilder<>),
+                candidateInterface => typeof(IController).IsAssignableFrom(possibleImplementation = candidateInterface.GetGenericArguments()[0]));
+            if ((possibleImplementation == null) || ((possibleImplementation.IsGenericType) && (possibleImplementation.GetGenericTypeDefinition() == typeof(DescriptionController<>))))
+            {
+                return null;
+            }
+
+            targetImplementation = possibleImplementation;
+            var controllerDescription = controllerDescriptionBuilder.BuildDescriptor();
+            if (controllerDescriptionBuilder is IHttpControllerDescriptionBuilder<EntryPointDescriptionController>)
+            {
+                entryPointControllerInfo = controllerDescription;
+                return null;
+            }
+
+            if ((controllerDescription.EntryPoint == null) || (controllerDescription.EntryPoint.Url.ToString() != EntryPoint.ToString()))
+            {
+                return null;
+            }
+
+            return controllerDescription;
+        }
+
+        private void BuildEntryPointDescription(IApiDocumentation apiDocumentation, ControllerInfo entryPointControllerInfo)
         {
             var classUri = apiDocumentation.Context.Mappings.MappingFor(typeof(IApiDocumentation)).Classes.Select(item => item.Uri).FirstOrDefault();
             var apiDocumentationClass = apiDocumentation.Context.Create<IClass>(classUri);

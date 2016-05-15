@@ -94,8 +94,10 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Controllers\ArticleController.cs" />
     <Compile Include="Controllers\ProductController.cs" />
     <Compile Include="Controllers\PersonController.cs" />
+    <Compile Include="Data\IArticle.cs" />
     <Compile Include="Data\IProduct.cs" />
     <Compile Include="Data\Person.cs" />
     <Compile Include="Global.asax.cs">

@@ -82,35 +82,6 @@ namespace URSA.Web.Http.Description
         /// <summary>Gets the API description builder.</summary>
         protected IApiDescriptionBuilder ApiDescriptionBuilder { get { return _apiDescriptionBuilder; } }
 
-        private IEnumerable<Uri> RequestedMediaTypeProfiles
-        {
-            get
-            {
-                if (!(Response.Request is RequestInfo))
-                {
-                    return new Uri[0];
-                }
-
-                //// TODO: Introduce strongly typed header/parameter parsing routines.
-                RequestInfo request = (RequestInfo)Response.Request;
-                IEnumerable<Uri> result = null;
-                var accept = request.Headers[Header.Accept];
-                if (accept != null)
-                {
-                    result = from value in accept.Values from parameter in value.Parameters where parameter.Name == "profile" select (Uri)parameter.Value;
-                }
-
-                var link = request.Headers[Header.Link];
-                if (link == null)
-                {
-                    return result;
-                }
-
-                var linkProfile = from value in link.Values from parameter in value.Parameters where parameter.Name == "rel" select new Uri(value.Value);
-                return (result == null ? linkProfile : result.Union(linkProfile));
-            }
-        }
-
         /// <summary>Gets the API documentation.</summary>
         /// <param name="format">Optional output format.</param>
         /// <returns><see cref="IApiDocumentation" /> instance.</returns>
@@ -172,7 +143,7 @@ namespace URSA.Web.Http.Description
         {
             ((ResponseInfo)Response).Headers.ContentDisposition = String.Format("inline; filename=\"{0}.{1}\"", FileName, fileExtension);
             IApiDocumentation result = _entityContextProvider.EntityContext.Create<IApiDocumentation>(new EntityId(entityId));
-            _apiDescriptionBuilder.BuildDescription(result, RequestedMediaTypeProfiles);
+            _apiDescriptionBuilder.BuildDescription(result, this.GetRequestedMediaTypeProfiles());
             _entityContextProvider.EntityContext.Commit();
             return result;
         }

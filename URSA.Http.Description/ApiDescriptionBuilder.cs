@@ -82,9 +82,7 @@ namespace URSA.Web.Http.Description
         /// <inheritdoc />
         public abstract Type SpecializationType { get; }
 
-        /// <summary>Builds an API description.</summary>
-        /// <param name="apiDocumentation">API documentation.</param>
-        /// <param name="profiles">Requested media type profiles.</param>
+        /// <inheritdoc />
         public void BuildDescription(IApiDocumentation apiDocumentation, IEnumerable<Uri> profiles)
         {
             if (apiDocumentation == null)
@@ -98,9 +96,18 @@ namespace URSA.Web.Http.Description
             }
 
             var typeDescriptionBuilder = GetTypeDescriptionBuilder(profiles);
-            var context = DescriptionContext.ForType(apiDocumentation, SpecializationType, typeDescriptionBuilder);
-            IClass specializationType = context.BuildTypeDescription();
-            BuildDescription(context, specializationType);
+            var descriptionContext = DescriptionContext.ForType(apiDocumentation, SpecializationType, typeDescriptionBuilder);
+            IClass specializationType = descriptionContext.BuildTypeDescription();
+            BuildDescription(descriptionContext, specializationType);
+        }
+
+        /// <inheritdoc />
+        public void BuildOperationDescription(IEntity context, OperationInfo<Verb> operationInfo, IEnumerable<Uri> profiles)
+        {
+            var typeDescriptionBuilder = GetTypeDescriptionBuilder(profiles);
+            var descriptionContext = DescriptionContext.ForType(context, SpecializationType, typeDescriptionBuilder);
+            IClass specializationType = descriptionContext.BuildTypeDescription();
+            BuildOperationDescription(descriptionContext, operationInfo, specializationType);
         }
 
         internal IResource DetermineOperationOwner(OperationInfo<Verb> operation, DescriptionContext context, IClass specializationType)
@@ -114,7 +121,7 @@ namespace URSA.Web.Http.Description
             }
 
             var propertyId = context.TypeDescriptionBuilder.GetSupportedPropertyId(matchingProperty, context.Type);
-            return context.ApiDocumentation.Context.Load<ISupportedProperty>(propertyId);
+            return context.Entity.Context.Load<ISupportedProperty>(propertyId);
         }
 
         private static void BuildOperationMediaType(IOperation result, bool requiresRdf)
@@ -193,35 +200,44 @@ namespace URSA.Web.Http.Description
 
         private void BuildDescription(DescriptionContext context, IClass specializationType)
         {
-            Uri graphUri = _namedGraphSelectorFactory.NamedGraphSelector.SelectGraph(specializationType.Id, null, null);
-            context.ApiDocumentation.SupportedClasses.Add(specializationType);
+            if (context.Entity.Is(context.Entity.Context.Mappings.MappingFor<IApiDocumentation>().Classes.Select(@class => @class.Uri)))
+            {
+                context.Entity.AsEntity<IApiDocumentation>().SupportedClasses.Add(specializationType);
+            }
+
             var description = _descriptionBuilder.BuildDescriptor();
             foreach (OperationInfo<Verb> operation in description.Operations)
             {
-                IIriTemplate template;
-                var operationDefinition = BuildOperation(context, operation, out template);
-                IResource operationOwner = DetermineOperationOwner(operation, context, specializationType);
-                if (template != null)
-                {
-                    ITemplatedLink templatedLink = context.ApiDocumentation.Context.Create<ITemplatedLink>(template.Id.Uri.AbsoluteUri.Replace("#template", "#withTemplate"));
-                    templatedLink.SupportedOperations.Add(operationDefinition);
-                    context.ApiDocumentation.Context.Store.ReplacePredicateValues(
-                        operationOwner.Id,
-                        Node.ForUri(templatedLink.Id.Uri),
-                        () => new[] { Node.ForUri(template.Id.Uri) },
-                        graphUri,
-                        CultureInfo.InvariantCulture);
-                }
-                else
-                {
-                    (operationOwner is ISupportedOperationsOwner ? ((ISupportedOperationsOwner)operationOwner).SupportedOperations : operationOwner.Operations).Add(operationDefinition);
-                }
+                BuildOperationDescription(context, operation, specializationType);
+            }
+        }
+
+        private void BuildOperationDescription(DescriptionContext context, OperationInfo<Verb> operation, IClass specializationType)
+        {
+            Uri graphUri = _namedGraphSelectorFactory.NamedGraphSelector.SelectGraph(specializationType.Id, null, null);
+            IIriTemplate template;
+            var operationDefinition = BuildOperation(context, operation, out template);
+            IResource operationOwner = DetermineOperationOwner(operation, context, specializationType);
+            if (template != null)
+            {
+                ITemplatedLink templatedLink = context.Entity.Context.Create<ITemplatedLink>(template.Id.Uri.AbsoluteUri.Replace("#template", "#withTemplate"));
+                templatedLink.SupportedOperations.Add(operationDefinition);
+                context.Entity.Context.Store.ReplacePredicateValues(
+                    operationOwner.Id,
+                    Node.ForUri(templatedLink.Id.Uri),
+                    () => new[] { Node.ForUri(template.Id.Uri) },
+                    graphUri,
+                    CultureInfo.InvariantCulture);
+            }
+            else
+            {
+                (operationOwner is ISupportedOperationsOwner ? ((ISupportedOperationsOwner)operationOwner).SupportedOperations : operationOwner.Operations).Add(operationDefinition);
             }
         }
 
         private IOperation BuildOperation(DescriptionContext context, OperationInfo<Verb> operation, out IIriTemplate template)
         {
-            IOperation result = operation.AsOperation(context.ApiDocumentation);
+            IOperation result = operation.AsOperation(context.Entity);
             result.Label = operation.UnderlyingMethod.Name;
             result.Description = _xmlDocProvider.GetDescription(operation.UnderlyingMethod);
             result.Method.Add(operation.ProtocolSpecificCommand.ToString());
@@ -294,7 +310,7 @@ namespace URSA.Web.Http.Description
             {
                 if (template == null)
                 {
-                    template = context.ApiDocumentation.Context.Create<IIriTemplate>(templateUri);
+                    template = context.Entity.Context.Create<IIriTemplate>(templateUri);
                     template.Template = uriTemplate;
                 }
 
@@ -306,7 +322,7 @@ namespace URSA.Web.Http.Description
 
         private IIriTemplateMapping BuildTemplateMapping(DescriptionContext context, Uri templateUri, OperationInfo<Verb> operation, ArgumentInfo mapping)
         {
-            IIriTemplateMapping templateMapping = context.ApiDocumentation.Context.Create<IIriTemplateMapping>(templateUri.AddFragment(mapping.VariableName));
+            IIriTemplateMapping templateMapping = context.Entity.Context.Create<IIriTemplateMapping>(templateUri.AddFragment(mapping.VariableName));
             templateMapping.Variable = mapping.VariableName;
             templateMapping.Required = (mapping.Parameter.ParameterType.IsValueType) && (!mapping.Parameter.HasDefaultValue);
             templateMapping.Description = _xmlDocProvider.GetDescription(operation.UnderlyingMethod, mapping.Parameter);

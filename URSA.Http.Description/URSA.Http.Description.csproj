@@ -103,6 +103,7 @@
     <Compile Include="CollectionModelTransformer.cs" />
     <Compile Include="Configuration\ComponentProviderExtensions.cs" />
     <Compile Include="Configuration\DescriptionConfigurationSection.cs" />
+    <Compile Include="RequestHelper.cs" />
     <Compile Include="Converters\EntityConverter.cs" />
     <Compile Include="DescriptionContext.cs" />
     <Compile Include="DescriptionController.cs" />
@@ -119,6 +120,7 @@
     <Compile Include="Hydra\IDeleteResourceOperation.cs" />
     <Compile Include="Hydra\ICreateResourceOperation.cs" />
     <Compile Include="Hydra\LinkedOperation.cs" />
+    <Compile Include="HypermediaDrivenControllerExtensions.cs" />
     <Compile Include="IApiDescriptionBuilder.cs" />
     <Compile Include="IApiDescriptionBuilderFactory.cs" />
     <Compile Include="IApiEntryPointDescriptionBuilder.cs" />

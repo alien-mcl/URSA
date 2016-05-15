@@ -6,6 +6,7 @@ using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -13,6 +14,7 @@ using Moq;
 using RomanticWeb;
 using RomanticWeb.Entities;
 using RomanticWeb.Mapping;
+using RomanticWeb.Mapping.Attributes;
 using RomanticWeb.Mapping.Model;
 using RomanticWeb.Model;
 using RomanticWeb.NamedGraphs;
@@ -158,7 +160,13 @@ namespace Given_instance_of_the
         public void Setup()
         {
             Uri baseUri = new Uri("http://temp.org/");
-            _apiDocumentation = MockHelpers.MockEntity<IApiDocumentation>((_entityContext = SetupEntityContext(baseUri)).Object, new EntityId(new Uri(baseUri, "api")));
+            var mappingsRepository = new Mock<IMappingsRepository>();
+            mappingsRepository.SetupMapping<IApiDocumentation>(EntityConverter.Hydra);
+            mappingsRepository.SetupMapping<ITemplatedLink>(EntityConverter.Hydra);
+            _apiDocumentation = (_entityContext = SetupEntityContext(baseUri)).MockEntity<IApiDocumentation>(new EntityId(new Uri(baseUri, "api")));
+            _apiDocumentation.Setup(instance => instance.Context).Returns(_entityContext.Object);
+            _apiDocumentation.As<ITypedEntity>().SetupGet(instance => instance.Types).Returns(new[] { new EntityId(EntityConverter.Hydra + "ApiDocumentation") });
+            _entityContext.Setup(instance => instance.Mappings).Returns(mappingsRepository.Object);
             _xmlDocProvider = SetupXmlDocProvider();
             _typeDescriptionBuilder = SetupTypeDescriptionBuilder(_entityContext);
             _namedGraphSelectorFactory = SetupNamedGraphSelectorFactory(baseUri);

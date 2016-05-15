@@ -86,11 +86,11 @@ namespace URSA.Web.Http.Description
             var classUri = itemType.MakeUri();
             if (typeof(IEntity).IsAssignableFrom(itemType))
             {
-                classUri = context.ApiDocumentation.Context.Mappings.MappingFor(itemType).Classes.Select(item => item.Uri).FirstOrDefault() ?? classUri;
+                classUri = context.Entity.Context.Mappings.MappingFor(itemType).Classes.Select(item => item.Uri).FirstOrDefault() ?? classUri;
                 requiresRdf = true;
             }
 
-            IClass result = context.ApiDocumentation.Context.Create<IClass>(classUri);
+            IClass result = context.Entity.Context.Create<IClass>(classUri);
             result.Label = itemType.MakeTypeName(false, true);
             result.Description = _xmlDocProvider.GetDescription(itemType);
             if (typeof(EntityId).IsAssignableFrom(itemType))
@@ -129,14 +129,14 @@ namespace URSA.Web.Http.Description
                 throw new ArgumentNullException("class");
             }
 
-            IClass result = context.ApiDocumentation.Context.Create<IClass>(@class.CreateBlankId());
+            IClass result = context.Entity.Context.Create<IClass>(@class.CreateBlankId());
             result.SubClassOf.Add(@class);
             return result;
         }
 
         private static IClass BuildDatatypeDescription(DescriptionContext context, Uri uri)
         {
-            var definition = context.ApiDocumentation.Context.Create<IClass>(new EntityId(uri));
+            var definition = context.Entity.Context.Create<IClass>(new EntityId(uri));
             definition.Label = (uri.Fragment.Length > 1 ? uri.Fragment.Substring(1) : uri.Segments.Last());
             return definition;
         }
@@ -175,7 +175,7 @@ namespace URSA.Web.Http.Description
             }
 
             var memberType = (context.ContainsType(itemType) ? context[itemType] : BuildTypeDescription(context.ForType(itemType), out requiresRdf));
-            result.SubClassOf.Add(context.ApiDocumentation.Context.Create<IClass>(Rdf.List));
+            result.SubClassOf.Add(context.Entity.Context.Create<IClass>(Rdf.List));
             result.SubClassOf.Add(result.CreateRestriction(Rdf.first, memberType));
             result.SubClassOf.Add(result.CreateRestriction(Rdf.rest, result));
             return result;
@@ -189,14 +189,14 @@ namespace URSA.Web.Http.Description
 
         private IClass CreateCollectionDefinition(DescriptionContext context, out bool requiresRdf, out Type itemType, bool isGeneric = true)
         {
-            var result = CreateEnumerableDefinition(context, context.ApiDocumentation.Context.Mappings.MappingFor<ICollection>().Classes.First().Uri, out requiresRdf, out itemType, isGeneric);
+            var result = CreateEnumerableDefinition(context, context.Entity.Context.Mappings.MappingFor<ICollection>().Classes.First().Uri, out requiresRdf, out itemType, isGeneric);
             if (!isGeneric)
             {
                 return result;
             }
 
             var memberType = (context.ContainsType(itemType) ? context[itemType] : BuildTypeDescription(context.ForType(itemType), out requiresRdf));
-            result.SubClassOf.Add(result.CreateRestriction(context.ApiDocumentation.Context.Mappings.MappingFor<ICollection>().PropertyFor("Members").Uri, memberType));
+            result.SubClassOf.Add(result.CreateRestriction(context.Entity.Context.Mappings.MappingFor<ICollection>().PropertyFor("Members").Uri, memberType));
             return result;
         }
 
@@ -206,14 +206,14 @@ namespace URSA.Web.Http.Description
             requiresRdf = false;
             if (!isGeneric)
             {
-                return context.ApiDocumentation.Context.Create<IClass>(baseType);
+                return context.Entity.Context.Create<IClass>(baseType);
             }
 
             itemType = context.Type.GetItemType();
-            IClass result = context.ApiDocumentation.Context.Create<IClass>(context.Type.MakeUri());
+            IClass result = context.Entity.Context.Create<IClass>(context.Type.MakeUri());
             result.Label = context.Type.MakeTypeName(false, true);
             result.Description = _xmlDocProvider.GetDescription(context.Type);
-            result.SubClassOf.Add(context.ApiDocumentation.Context.Create<IClass>(baseType));
+            result.SubClassOf.Add(context.Entity.Context.Create<IClass>(baseType));
             requiresRdf |= context.RequiresRdf(itemType);
             context.Describe(result, requiresRdf);
             return result;
@@ -223,16 +223,16 @@ namespace URSA.Web.Http.Description
         {
             var propertyId = GetSupportedPropertyId(property, declaringType);
             var propertyUri = (!typeof(IEntity).IsAssignableFrom(context.Type) ? @class.Id.Uri.AddName(property.Name) :
-                context.ApiDocumentation.Context.Mappings.MappingFor(context.Type).PropertyFor(property.Name).Uri);
-            var result = context.ApiDocumentation.Context.Create<ISupportedProperty>(propertyId);
+                context.Entity.Context.Mappings.MappingFor(context.Type).PropertyFor(property.Name).Uri);
+            var result = context.Entity.Context.Create<ISupportedProperty>(propertyId);
             result.Readable = property.CanRead;
             result.Writeable = property.CanWrite;
             result.Required = (property.PropertyType.IsValueType) || (property.GetCustomAttribute<RequiredAttribute>() != null);
             var isKeyProperty = (property.GetCustomAttribute<KeyAttribute>() != null) ||
                 (property.ImplementsGeneric(typeof(IControlledEntity<>), "Key"));
             result.Property = (isKeyProperty ?
-                context.ApiDocumentation.Context.Create<IInverseFunctionalProperty>(propertyUri) :
-                context.ApiDocumentation.Context.Create<IProperty>(propertyUri));
+                context.Entity.Context.Create<IInverseFunctionalProperty>(propertyUri) :
+                context.Entity.Context.Create<IProperty>(propertyUri));
             result.Property.Label = property.Name;
             result.Property.Description = _xmlDocProvider.GetDescription(property);
             result.Property.Domain.Add(@class);

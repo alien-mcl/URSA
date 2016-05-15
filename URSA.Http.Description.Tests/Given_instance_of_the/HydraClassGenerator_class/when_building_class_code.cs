@@ -5,7 +5,6 @@ using Moq;
 using RomanticWeb;
 using RomanticWeb.Entities;
 using RomanticWeb.Mapping;
-using RomanticWeb.Mapping.Model;
 using RomanticWeb.Model;
 using RomanticWeb.Vocabularies;
 using System;
@@ -20,6 +19,7 @@ using URSA.Web.Http.Description;
 using URSA.Web.Http.Description.CodeGen;
 using URSA.Web.Http.Description.Hydra;
 using URSA.Web.Http.Description.Owl;
+using URSA.Web.Http.Description.Testing;
 using IClass = URSA.Web.Http.Description.Hydra.IClass;
 
 namespace Given_instance_of_the.HydraClassGenerator_class
@@ -110,9 +110,9 @@ namespace Given_instance_of_the.HydraClassGenerator_class
             _context = new Mock<IEntityContext>(MockBehavior.Strict);
             SetupStore();
             _mappingsRepository = new Mock<IMappingsRepository>(MockBehavior.Strict);
-            SetupMapping<IInverseFunctionalProperty>(new Uri(Owl.BaseUri));
-            SetupMapping<ICreateResourceOperation>(new Uri(EntityConverter.Hydra.AbsoluteUri + "CreateResourceOperation"));
-            SetupMapping<ICollection>(new Uri(EntityConverter.Hydra.AbsoluteUri + "Collection"));
+            _mappingsRepository.SetupMapping<IInverseFunctionalProperty>(new Uri(Owl.BaseUri));
+            _mappingsRepository.SetupMapping<ICreateResourceOperation>(new Uri(EntityConverter.Hydra.AbsoluteUri + "CreateResourceOperation"));
+            _mappingsRepository.SetupMapping<ICollection>(new Uri(EntityConverter.Hydra.AbsoluteUri + "Collection"));
             _context.SetupGet(instance => instance.Mappings).Returns(_mappingsRepository.Object);
         }
 
@@ -169,7 +169,7 @@ namespace Given_instance_of_the.HydraClassGenerator_class
 
         private void SetupTemplatedOperation()
         {
-            SetupMapping<ITemplatedLink>(EntityConverter.Hydra);
+            _mappingsRepository.SetupMapping<ITemplatedLink>(EntityConverter.Hydra);
             var baseUri = new Uri("http://temp.uri/type/GETId#");
 
             var getOperationUri = new Uri(baseUri.AbsoluteUri);
@@ -209,15 +209,6 @@ namespace Given_instance_of_the.HydraClassGenerator_class
             _context.Setup(instance => instance.Load<IIriTemplate>(iriTemplateId)).Returns(iriTemplate.Object);
             _context.Setup(instance => instance.Load<IEntity>(templatedLinkId)).Returns(templatedLink.Object);
             _context.Setup(instance => instance.Load<ITemplatedLink>(templatedLinkId)).Returns(templatedLink.Object);
-        }
-
-        private void SetupMapping<T>(Uri baseUri) where T : IEntity
-        {
-            var classMapping = new Mock<IClassMapping>(MockBehavior.Strict);
-            classMapping.SetupGet(instance => instance.Uri).Returns(new Uri(baseUri.AbsoluteUri + typeof(T).Name.Substring(1)));
-            var mapping = new Mock<IEntityMapping>(MockBehavior.Strict);
-            mapping.SetupGet(instance => instance.Classes).Returns(new[] { classMapping.Object });
-            _mappingsRepository.Setup(instance => instance.MappingFor<T>()).Returns(mapping.Object);
         }
     }
 }

@@ -15,6 +15,7 @@ using URSA.Web.Http;
 using URSA.Web.Http.Converters;
 using URSA.Web.Http.Description;
 using URSA.Web.Http.Description.Hydra;
+using URSA.Web.Http.Description.Testing;
 using URSA.Web.Http.Tests.Testing;
 using URSA.Web.Tests;
 
@@ -61,18 +62,14 @@ namespace Given_instance_of_the
         public void Setup()
         {
             HttpUrl requestUrl = (HttpUrl)UrlParser.Parse("/test");
-            var classMapping = new Mock<IClassMapping>(MockBehavior.Strict);
-            classMapping.SetupGet(instance => instance.Uri).Returns(EntityConverter.Hydra.AddFragment("ApiDocumentation"));
-            var mapping = new Mock<IEntityMapping>(MockBehavior.Strict);
-            mapping.SetupGet(instance => instance.Classes).Returns(new[] { classMapping.Object });
-            var mappings = new Mock<IMappingsRepository>(MockBehavior.Strict);
-            mappings.Setup(instance => instance.MappingFor(typeof(IApiDocumentation))).Returns(mapping.Object);
+            var mappingsRepository = new Mock<IMappingsRepository>(MockBehavior.Strict);
+            mappingsRepository.SetupMapping<IApiDocumentation>(EntityConverter.Hydra);
             var classEntity = new Mock<IClass>(MockBehavior.Strict);
             var baseUriSelector = new Mock<IBaseUriSelectionPolicy>(MockBehavior.Strict);
             baseUriSelector.Setup(instance => instance.SelectBaseUri(It.IsAny<EntityId>())).Returns(new Uri("http://temp.uri/"));
             var context = new Mock<IEntityContext>(MockBehavior.Strict);
             context.SetupGet(instance => instance.BaseUriSelector).Returns(baseUriSelector.Object);
-            context.SetupGet(instance => instance.Mappings).Returns(mappings.Object);
+            context.SetupGet(instance => instance.Mappings).Returns(mappingsRepository.Object);
             context.Setup(instance => instance.Create<IClass>(It.IsAny<EntityId>())).Returns(classEntity.Object);
             _apiDocumentation = new Mock<IApiDocumentation>(MockBehavior.Strict);
             _apiDocumentation.SetupGet(instance => instance.Context).Returns(context.Object);

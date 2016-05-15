@@ -167,7 +167,7 @@ namespace Given_instance_of_the.converter_of
 
         private Mock<IOperation> CreateOperationMock(ITripleStore tripleStore, EntityId id)
         {
-            var mock = MockHelpers.MockEntity<IOperation>(_context.Object, id);
+            var mock = _context.MockEntity<IOperation>(id);
             var method = (from triple in tripleStore.Triples
                           where (triple.Subject is IUriNode) && (((IUriNode)triple.Subject).Uri.ToString() == id.ToString()) &&
                             (triple.Predicate is IUriNode) && (((IUriNode)triple.Predicate).Uri.ToString() == EntityConverter.Hydra + "method") &&
@@ -178,7 +178,7 @@ namespace Given_instance_of_the.converter_of
                            where (triple.Subject is IUriNode) && (((IUriNode)triple.Subject).Uri.ToString() == id.ToString()) &&
                              (triple.Predicate is IUriNode) && (((IUriNode)triple.Predicate).Uri.ToString() == EntityConverter.Hydra + "returns") &&
                              (triple.Object is IUriNode)
-                           select MockHelpers.MockEntity<IClass>(_context.Object, new EntityId(((IUriNode)triple.Object).Uri))).First();
+                           select _context.MockEntity<IClass>(new EntityId(((IUriNode)triple.Object).Uri))).First();
             mock.SetupGet(instance => instance.Returns).Returns(new[] { returns.Object });
             return mock;
         }

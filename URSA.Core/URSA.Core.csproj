@@ -11,7 +11,7 @@
     <AssemblyName>URSA.Core</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <NuGetPackageImportStamp>44f4b4f0</NuGetPackageImportStamp>
+    <NuGetPackageImportStamp>859dbb06</NuGetPackageImportStamp>
     <SccProjectName>SAK</SccProjectName>
     <SccLocalPath>SAK</SccLocalPath>
     <SccAuxPath>SAK</SccAuxPath>
@@ -75,6 +75,8 @@
     <Compile Include="Security\SecuritySpecificationInfo.cs" />
     <Compile Include="Url.cs" />
     <Compile Include="UrlParser.cs" />
+    <Compile Include="Web\IHypermediaDrivenAsyncController.cs" />
+    <Compile Include="Web\IHypermediaDrivenController.cs" />
     <Compile Include="Web\IModelTransformer.cs" />
     <Compile Include="Web\IPostRequestHandler.cs" />
     <Compile Include="Web\IPreRequestHandler.cs" />
@@ -130,7 +132,9 @@
       <Name>URSA.Tools</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Content Include="FodyWeavers.xml" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>

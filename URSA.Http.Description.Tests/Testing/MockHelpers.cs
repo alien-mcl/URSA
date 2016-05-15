@@ -8,6 +8,8 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using RomanticWeb.Mapping;
+using RomanticWeb.Mapping.Model;
 
 namespace URSA.Web.Http.Description.Testing
 {
@@ -17,14 +19,14 @@ namespace URSA.Web.Http.Description.Testing
     {
         /// <summary>Creates an <see cref="IEntity" /> mock.</summary>
         /// <typeparam name="T">Type of the entity to mock.</typeparam>
-        /// <param name="context">Context to pass to the entity.</param>
+        /// <param name="context">Mock of an entity context to pass to the entity.</param>
         /// <param name="id">Identifier of the entity.</param>
         /// <returns>Mock of the type of the <typeparamref name="T" /> entity.</returns>
-        public static Mock<T> MockEntity<T>(IEntityContext context, EntityId id) where T : class, IEntity
+        public static Mock<T> MockEntity<T>(this Mock<IEntityContext> context, EntityId id) where T : class, IEntity
         {
             Mock<T> result = new Mock<T>() { DefaultValue = DefaultValue.Mock };
             result.SetupGet(instance => instance.Id).Returns(id);
-            result.SetupGet(instance => instance.Context).Returns(context);
+            result.SetupGet(instance => instance.Context).Returns(context.Object);
             var collections = from @interface in new Type[] { typeof(T) }.Concat(typeof(T).GetInterfaces())
                               from property in @interface.GetProperties(BindingFlags.Public | BindingFlags.Instance)
                               where (typeof(IEnumerable).IsAssignableFrom(property.PropertyType)) &&
@@ -55,6 +57,20 @@ namespace URSA.Web.Http.Description.Testing
             }
 
             return result;
+        }
+
+        /// <summary>Setups the class mapping.</summary>
+        /// <typeparam name="T">Type of the class to map.</typeparam>
+        /// <param name="mappingsRepository">The mock of a mappings repository.</param>
+        /// <param name="baseUri">The base URI.</param>
+        public static void SetupMapping<T>(this Mock<IMappingsRepository> mappingsRepository, Uri baseUri) where T : IEntity
+        {
+            var classMapping = new Mock<IClassMapping>(MockBehavior.Strict);
+            classMapping.SetupGet(instance => instance.Uri).Returns(new Uri(baseUri.AbsoluteUri + typeof(T).Name.Substring(1)));
+            var mapping = new Mock<IEntityMapping>(MockBehavior.Strict);
+            mapping.SetupGet(instance => instance.Classes).Returns(new[] { classMapping.Object });
+            mappingsRepository.Setup(instance => instance.MappingFor<T>()).Returns(mapping.Object);
+            mappingsRepository.Setup(instance => instance.MappingFor(typeof(T))).Returns(mapping.Object);
         }
     }
 }

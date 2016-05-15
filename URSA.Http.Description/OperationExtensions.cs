@@ -28,23 +28,23 @@ namespace URSA.Web.Http.Description
             return new EntityId((Uri)url);
         }
 
-        internal static IOperation AsOperation<T>(this OperationInfo<T> operation, IApiDocumentation apiDocumentation, EntityId id = null)
+        internal static IOperation AsOperation<T>(this OperationInfo<T> operation, IEntity entryPointEntity, EntityId id = null)
         {
-            var methodId = id ?? operation.CreateId(apiDocumentation.Context.BaseUriSelector.SelectBaseUri(new EntityId(new Uri("/", UriKind.Relative))));
+            var methodId = id ?? operation.CreateId(entryPointEntity.Context.BaseUriSelector.SelectBaseUri(new EntityId(new Uri("/", UriKind.Relative))));
             if (operation.IsWriteControllerOperation())
             {
                 switch (operation.UnderlyingMethod.Name)
                 {
                     case "Delete":
-                        return apiDocumentation.Context.Create<IDeleteResourceOperation>(methodId);
+                        return entryPointEntity.Context.Create<IDeleteResourceOperation>(methodId);
                     case "Update":
-                        return apiDocumentation.Context.Create<IReplaceResourceOperation>(methodId);
+                        return entryPointEntity.Context.Create<IReplaceResourceOperation>(methodId);
                     case "Create":
-                        return apiDocumentation.Context.Create<ICreateResourceOperation>(methodId);
+                        return entryPointEntity.Context.Create<ICreateResourceOperation>(methodId);
                 }
             }
 
-            return apiDocumentation.Context.Create<IOperation>(methodId);
+            return entryPointEntity.Context.Create<IOperation>(methodId);
         }
 
         private static bool IsWriteControllerOperation(Type @interface)
