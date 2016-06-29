@@ -7,6 +7,7 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using URSA.Security;
 using URSA.Web.Description;
+using URSA.Web.Http.Collections;
 using URSA.Web.Http.Security;
 using URSA.Web.Mapping;
 
@@ -21,7 +22,7 @@ namespace URSA.Web.Http
         private readonly ICollection<IPreRequestHandler> _authenticationProviders;
         private readonly ICollection<IPreRequestHandler> _preRequestHandlers;
         private readonly ICollection<IPostRequestHandler> _postRequestHandlers;
-        private readonly IEnumerable<IModelTransformer> _modelTransformers;
+        private readonly IEnumerable<IResponseModelTransformer> _modelTransformers;
         private readonly IPostRequestHandler _defaultAuthenticationScheme;
 
         /// <summary>Initializes a new instance of the <see cref="RequestHandler"/> class.</summary>
@@ -39,7 +40,7 @@ namespace URSA.Web.Http
             IResponseComposer responseComposer,
             IEnumerable<IPreRequestHandler> preRequestHandlers,
             IEnumerable<IPostRequestHandler> postRequestHandlers,
-            IEnumerable<IModelTransformer> modelTransformers)
+            IEnumerable<IResponseModelTransformer> modelTransformers)
         {
             if (argumentBinder == null)
             {
@@ -62,8 +63,9 @@ namespace URSA.Web.Http
             _preRequestHandlers = new List<IPreRequestHandler>();
             _postRequestHandlers = new List<IPostRequestHandler>();
             _authenticationProviders = new List<IPreRequestHandler>();
-            _modelTransformers = modelTransformers ?? new IModelTransformer[0];
-            _defaultAuthenticationScheme = Initialize(preRequestHandlers, postRequestHandlers);
+            _defaultAuthenticationScheme = InitializeRequestHandlers(preRequestHandlers, postRequestHandlers);
+            _modelTransformers = ((modelTransformers == null) || (!modelTransformers.Any()) ? (IEnumerable<IResponseModelTransformer>)new IResponseModelTransformer[0] : 
+                new DependencyTree<IResponseModelTransformer>(modelTransformers, typeof(IResponseModelTransformer<>)));
         }
 
         /// <inheritdoc />
@@ -192,7 +194,7 @@ namespace URSA.Web.Http
 
         private async Task<object> ProcessModelTransformers(IRequestMapping requestMapping, RequestInfo requestInfo, object result, object[] arguments)
         {
-            foreach (IModelTransformer modelTransformer in _modelTransformers)
+            foreach (IResponseModelTransformer modelTransformer in _modelTransformers)
             {
                 result = await modelTransformer.Transform(requestMapping, requestInfo, result, arguments);
             }
@@ -200,7 +202,7 @@ namespace URSA.Web.Http
             return result;
         }
 
-        private IDefaultAuthenticationScheme Initialize(IEnumerable<IPreRequestHandler> preRequestHandlers, IEnumerable<IPostRequestHandler> postRequestHandlers)
+        private IDefaultAuthenticationScheme InitializeRequestHandlers(IEnumerable<IPreRequestHandler> preRequestHandlers, IEnumerable<IPostRequestHandler> postRequestHandlers)
         {
             IDefaultAuthenticationScheme result = null;
             foreach (var preRequestHandler in (preRequestHandlers ?? new IPreRequestHandler[0]))

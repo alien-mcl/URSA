@@ -37,6 +37,7 @@ namespace URSA.Web.Description.Http
         private static ParameterSourceAttribute GetDefaultParameterSource(ParameterInfo parameter)
         {
             if ((typeof(Guid) == parameter.ParameterType) || (typeof(DateTime) == parameter.ParameterType) ||
+                (typeof(Guid).MakeByRefType() == parameter.ParameterType) || (typeof(DateTime).MakeByRefType() == parameter.ParameterType) ||
                 ((parameter.ParameterType.IsIdentity()) && (PopularIdentifierPropertyNames.Contains(parameter.Name, StringComparer.OrdinalIgnoreCase))))
             {
                 return FromUrlAttribute.For(parameter);
@@ -54,7 +55,8 @@ namespace URSA.Web.Description.Http
         private static ResultTargetAttribute GetDefaultResultTarget(ParameterInfo parameter)
         {
             var parameterType = parameter.ParameterType.UnwrapIfTask();
-            if ((typeof(Guid).MakeByRefType() == parameterType) || (typeof(DateTime).MakeByRefType() == parameterType) ||
+            if ((typeof(Guid) == parameter.ParameterType) || (typeof(DateTime) == parameter.ParameterType) ||
+                (typeof(Guid).MakeByRefType() == parameterType) || (typeof(DateTime).MakeByRefType() == parameterType) ||
                 ((parameterType.IsIdentity()) && (PopularIdentifierPropertyNames.Contains(parameter.Name, StringComparer.OrdinalIgnoreCase))))
             {
                 return new ToHeaderAttribute(Header.Location);

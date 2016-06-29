@@ -1,4 +1,5 @@
-﻿using RomanticWeb;
+﻿using System;
+using RomanticWeb;
 using VDS.RDF;
 
 namespace URSA.Web.Http.Description.Entities
@@ -11,5 +12,8 @@ namespace URSA.Web.Http.Description.Entities
 
         /// <summary>Gets the triple store.</summary>
         ITripleStore TripleStore { get; }
+
+        /// <summary>Gets the meta graph.</summary>
+        Uri MetaGraph { get; }
     }
 }

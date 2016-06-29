@@ -14,6 +14,7 @@ namespace FluentAssertions
         /// is needed. If the phrase does not start with the word <i>because</i>, it is prepended automatically.
         /// </param>
         /// <param name="reasonArgs">Zero or more objects to format using the placeholders in <see cref="because" />.</param>
+        /// <returns>Entry point for further assetions.</returns>
         public static AndConstraint<ObjectAssertions> NotBeOfType<T>(this ObjectAssertions assertions, string because = "", params object[] reasonArgs)
         {
             if (assertions.Subject != null)

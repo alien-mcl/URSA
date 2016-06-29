@@ -1,19 +1,18 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using ImpromptuInterface;
 using RomanticWeb;
-using RomanticWeb.Configuration;
 using RomanticWeb.DotNetRDF;
 using RomanticWeb.Entities;
-using RomanticWeb.Model;
-using RomanticWeb.Vocabularies;
-using URSA.Configuration;
-using URSA.Web.Http.Description.Hydra;
+using RomanticWeb.Mapping.Model;
 using URSA.Web.Http.Description.Owl;
 using URSA.Web.Http.Description.Rdfs;
+using URSA.Web.Http.Description.Reflection;
 using VDS.RDF;
-using IClass = URSA.Web.Http.Description.Hydra.IClass;
+using ICollection = URSA.Web.Http.Description.Hydra.ICollection;
 using IResource = URSA.Web.Http.Description.Hydra.IResource;
 
 namespace URSA.Web.Http.Description.Entities
@@ -21,12 +20,36 @@ namespace URSA.Web.Http.Description.Entities
     /// <summary>Provides useful <see cref="IEntity" /> extensions.</summary>
     public static class EntityExtensions
     {
-        /// <summary>Renames the specified entity with a new IRI.</summary>
+        internal static readonly MethodInfo AsEntityMethod = typeof(RomanticWeb.Entities.EntityExtensions).GetMethod("AsEntity");
+
+        /// <summary>Updates the specified <paramref name="target" /> entity with values from <paramref name="source" /> entity.</summary>
+        /// <remarks>This method won't update nested entities' properties if the source values are <b>null</b>.</remarks>
         /// <typeparam name="T">Type of the entity.</typeparam>
-        /// <param name="entity">The entity.</param>
-        /// <param name="newId">New entity identifier.</param>
-        /// <returns>Copy of the <paramref name="entity" /> with new identifier.</returns>
-        public static T Rename<T>(this T entity, EntityId newId) where T : class, IEntity
+        /// <param name="target">Target entity to be updated.</param>
+        /// <param name="source">Source entity to get values from.</param>
+        /// <returns>Updated <paramref name="target" /> entity.</returns>
+        public static T Update<T>(this T target, T source) where T : class, IEntity
+        {
+            if (target == null)
+            {
+                throw new ArgumentNullException("target");
+            }
+
+            if (source == null)
+            {
+                throw new ArgumentNullException("source");
+            }
+
+            return target.Update(source, 0);
+        }
+
+        /// <summary>Copies the specified entity to another context.</summary>
+        /// <typeparam name="T">Type of the entity.</typeparam>
+        /// <param name="entityContext">The target entity context to copy to.</param>
+        /// <param name="entity">The entity to be copied.</param>
+        /// <param name="newId">Optional new identifier.</param>
+        /// <returns>Copy of the given <paramref name="entity" /> within given <paramref name="entityContext" />.</returns>
+        public static T Copy<T>(this IEntityContext entityContext, T entity, EntityId newId = null) where T : class, IEntity
         {
             if (entity == null)
             {
@@ -35,118 +58,20 @@ namespace URSA.Web.Http.Description.Entities
 
             if (newId == null)
             {
-                throw new ArgumentNullException("newId");
+                newId = entity.Id;
             }
 
-            var entitySourceField = entity.Context.GetType().GetField("_entitySource", BindingFlags.Instance | BindingFlags.NonPublic);
-            if (entitySourceField == null)
+            if ((entity.Context == entityContext) && (newId == entity.Id))
             {
-                throw new InvalidOperationException("Unknown type of entity context encountered.");
+                return entity;
             }
 
-            var namedGraphSelector = ((IEntityContextFactory)entity.Context.GetType().GetField("_factory", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(entity.Context)).NamedGraphSelector;
-            var entitySource = (IEntitySource)entitySourceField.GetValue(entity.Context);
-            if (!(entitySource is TripleStoreAdapter))
-            {
-                throw new InvalidOperationException("Uknown entity source encountered.");
-            }
-
-            var store = (ITripleStore)entitySource.GetType().GetField("_store", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(entitySource);
-            if ((!(store is TripleStore)) && (!(store is ThreadSafeTripleStore)))
-            {
-                throw new InvalidOperationException("Uknown triple store encountered.");
-            }
-
-            if (store.Graphs.Any(graph => AbsoluteUriComparer.Default.Equals(graph.BaseUri, newId.Uri)))
-            {
-                throw new InvalidOperationException(String.Format("Entity with IRI of <{0}> already exists.", newId));
-            }
-
-            var metaGraph = store.Graphs[ConfigurationSectionHandler.Default.Factories[DescriptionConfigurationSection.Default.DefaultStoreFactoryName].MetaGraphUri];
-            var newGraph = (store is ThreadSafeTripleStore ? new ThreadSafeGraph() : new Graph());
-            var graphNode = metaGraph.CreateUriNode(newGraph.BaseUri = namedGraphSelector.SelectGraph(newId, null, null));
-            var sourceGraph = namedGraphSelector.SelectGraph(entity.Id, null, null);
-            var primaryTopicNode = metaGraph.CreateUriNode(Foaf.primaryTopic);
-            store.Add(newGraph);
-            foreach (var triple in store.Graphs[sourceGraph].Triples)
-            {
-                INode subject;
-                newGraph.Assert(
-                    subject = triple.Subject.Clone(newGraph, entity.Id.Uri, newId.Uri),
-                    triple.Predicate.CopyNode(newGraph),
-                    triple.Object.Clone(newGraph, entity.Id.Uri, newId.Uri));
-                if (subject is IUriNode)
-                {
-                    metaGraph.Assert(graphNode, primaryTopicNode, metaGraph.CreateUriNode(((IUriNode)subject).Uri));
-                }
-            }
-
-            store.Remove(sourceGraph);
-            return entity.Context.Load<T>(newId);
-        }
-
-        /// <summary>Clones a given blank node.</summary>
-        /// <remarks>This method expect <paramref name="source" /> to be a blank node. If it's not the case, original instance will be returned.</remarks>
-        /// <typeparam name="T">Type of the entity being cloned.</typeparam>
-        /// <param name="source">The source entity.</param>
-        /// <returns>New copy of the given <paramref name="source" />.</returns>
-        public static T Clone<T>(this T source) where T : class, IEntity
-        {
-            if (!(source.Id is BlankId))
-            {
-                return source;
-            }
-
-            var blankId = (BlankId)source.Id;
-            if (blankId.RootEntityId == null)
-            {
-                throw new InvalidOperationException("No root entity was found.");
-            }
-
-            var newBlankId = source.Context.Load<IEntity>(blankId.RootEntityId).CreateBlankId();
-            var result = source.Context.Create<T>(newBlankId);
-            var quads = from quad in source.Context.Store.Quads
-                        where (quad.Subject.IsBlank) && (quad.Subject.ToEntityId() == blankId)
-                        let subject = Node.ForBlank(newBlankId.Identifier, newBlankId.RootEntityId, newBlankId.Graph)
-                        select new EntityQuad(newBlankId, subject, quad.Predicate, quad.Object, quad.Graph);
-            result.Context.Store.AssertEntity(result.Id, quads);
-            return result;
-        }
-
-        internal static bool IsGenericRdfList(this IClass @class, out IResource itemRestriction)
-        {
-            bool result = false;
-            itemRestriction = null;
-            foreach (var superClass in @class.SubClassOf)
-            {
-                if (superClass.IsClass(Rdf.List))
-                {
-                    result = true;
-                }
-
-                IRestriction restriction;
-                if ((superClass.Is(RomanticWeb.Vocabularies.Owl.Restriction)) &&
-                    ((restriction = superClass.AsEntity<IRestriction>()).OnProperty != null) && (restriction.OnProperty.Id == Rdf.first) &&
-                    (restriction.AllValuesFrom != null) && (restriction.AllValuesFrom.Is(RomanticWeb.Vocabularies.Rdfs.Resource)))
-                {
-                    itemRestriction = restriction.AllValuesFrom.AsEntity<IResource>();
-                }
-            }
-
-            return result;
+            return entityContext.Copy(entity, new KeyValuePair<EntityId, EntityId>(entity.Id, newId), new HashSet<EntityId>());
         }
 
         internal static bool IsCollection(this Rdfs.IClass @class)
         {
             return @class.IsClass(@class.Context.Mappings.MappingFor<ICollection>().Classes.First().Uri);
-        }
-
-        internal static IEnumerable<Rdfs.IResource> GetUniqueIdentifierType(this IClass @class)
-        {
-            return (from supportedProperty in @class.SupportedProperties
-                    let property = supportedProperty.Property
-                    where property.Is(RomanticWeb.Vocabularies.Owl.InverseFunctionalProperty)
-                    select property.Range).FirstOrDefault() ?? new Rdfs.IResource[0];
         }
 
         internal static IRestriction CreateRestriction(this IResource resource, Uri onProperty, IEntity allValuesFrom)
@@ -183,15 +108,206 @@ namespace URSA.Web.Http.Description.Entities
             return result;
         }
 
-        private static INode Clone(this INode node, IGraph targetGraph, Uri currentId, Uri newId)
+        private static ITripleStore GetTripleStore(this IEntity entity)
         {
-            if (!(node is IUriNode))
+            var entitySourceField = entity.Context.GetType().GetField("_entitySource", BindingFlags.Instance | BindingFlags.NonPublic);
+            if (entitySourceField == null)
             {
-                return node.CopyNode(targetGraph);
+                throw new InvalidOperationException("Unknown type of entity context encountered.");
             }
 
-            IUriNode uriNode = (IUriNode)node;
-            return (AbsoluteUriComparer.Default.Equals(uriNode.Uri, currentId) ? targetGraph.CreateUriNode(newId) : uriNode.CopyNode(targetGraph));
+            var entitySource = (IEntitySource)entitySourceField.GetValue(entity.Context);
+            if (!(entitySource is TripleStoreAdapter))
+            {
+                throw new InvalidOperationException("Uknown entity source encountered.");
+            }
+
+            var store = (ITripleStore)entitySource.GetType().GetField("_store", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(entitySource);
+            if ((!(store is TripleStore)) && (!(store is ThreadSafeTripleStore)))
+            {
+                throw new InvalidOperationException("Uknown triple store encountered.");
+            }
+
+            return store;
+        }
+
+        private static T Copy<T>(this IEntityContext entityContext, T entity, KeyValuePair<EntityId, EntityId> id, ISet<EntityId> visited) where T : class, IEntity
+        {
+            if (visited.Contains(id.Value))
+            {
+                return entityContext.Load<T>(id.Value);
+            }
+
+            if (visited.Contains(id.Key))
+            {
+                return entityContext.Load<T>(id.Value);
+            }
+
+            visited.Add(id.Value);
+            var result = entityContext.Create<T>(id.Value);
+            var typedResult = result.AsEntity<ITypedEntity>();
+            foreach (var type in entity.GetTypes().Where(type => !AbsoluteUriComparer.Default.Equals(type.Uri, RomanticWeb.Vocabularies.Owl.Thing)))
+            {
+                typedResult.Types.Add(type);
+            }
+
+            foreach (var entityMapping in entityContext.Mappings)
+            {
+                if (!(entityMapping.EntityType.IsInterface) ||
+                    (!entityMapping.Classes.Join(typedResult.Types, outer => outer.Uri, inner => inner.Uri, (outer, inner) => outer, AbsoluteUriComparer.Default).Any()))
+                {
+                    continue;
+                }
+
+                var mappedResult = (IEntity)AsEntityMethod.MakeGenericMethod(entityMapping.EntityType).Invoke(null, new object[] { result });
+                foreach (var property in entityMapping.Properties)
+                {
+                    var value = (object)entity.GetType().GetProperty(property.Name).GetValue(entity);
+                    if (value == null)
+                    {
+                        continue;
+                    }
+
+                    if (System.Reflection.TypeExtensions.IsEnumerable(property.ReturnType))
+                    {
+                        value = entityContext.CopyCollection(mappedResult, property, value, id, visited);
+                    }
+
+                    if (value != null)
+                    {
+                        if ((property.ReturnType.IsValueType) && (!entity.Context.Store.GetEntityQuads(entity.Id)
+                            .Any(quad => (quad.Subject.ToEntityId().Equals(entity.Id)) &&
+                                (AbsoluteUriComparer.Default.Equals(quad.Predicate.ToEntityId().Uri, property.Uri)))))
+                        {
+                            continue;
+                        }
+
+                        var entityValue = value as IEntity;
+                        if (entityValue != null)
+                        {
+                            var newId = (entityValue.Id == id.Key ? id : new KeyValuePair<EntityId, EntityId>(id.Key, entityValue.Id));
+                            value = AsEntityMethod.MakeGenericMethod(property.ReturnType).Invoke(null, new object[] { entityContext.Copy(entityValue, newId, visited) });
+                        }
+
+                        mappedResult.GetType().GetProperty(property.Name).SetValue(mappedResult, value);
+                    }
+                }
+            }
+
+            return result;
+        }
+
+        private static T Update<T>(this T target, T source, int depth) where T : class, IEntity
+        {
+            if (target == null)
+            {
+                return null;
+            }
+
+            if ((source == null) && (depth > 0))
+            {
+                return target;
+            }
+
+            if (target == source)
+            {
+                return target;
+            }
+
+            foreach (var property in target.Context.Mappings.MappingFor<T>().Properties)
+            {
+                var value = (object)Impromptu.InvokeGet(source, property.Name);
+                if (value == null)
+                {
+                    if (depth == 0)
+                    {
+                        Impromptu.InvokeSet(target, property.Name, null);
+                    }
+
+                    continue;
+                }
+
+                if (System.Reflection.TypeExtensions.IsEnumerable(property.ReturnType))
+                {
+                    value = target.UpdateCollection(property, (IEnumerable)value, depth);
+                }
+                else if (value is IEntity)
+                {
+                    var current = (IEntity)Impromptu.InvokeGet(target, property.Name);
+                    value = (current != null ? current.Update((IEntity)value) :
+                        AsEntityMethod.MakeGenericMethod(property.ReturnType).Invoke(null, new[] { target.Context.Copy((IEntity)value) })); 
+                }
+
+                if (value != null)
+                {
+                    Impromptu.InvokeSet(target, property.Name, value);
+                }
+            }
+
+            return target;
+        }
+
+        private static object UpdateCollection<T>(this T target, IPropertyMapping property, IEnumerable source, int depth = 0) where T : class, IEntity
+        {
+            int indexOf = -1;
+            IEnumerable current = (IEnumerable)Impromptu.InvokeGet(target, property.Name);
+            var collection = (current != null ? new AbstractCollectionWrapper(current) : new AbstractCollectionWrapper(new List<object>()) { IsReplaced = true });
+            foreach (var item in source)
+            {
+                var existing = collection
+                    .Where((element, index) => (item is IEntity ? ((IEntity)item).Id == ((IEntity)element).Id : Equals(element, item)) && ((indexOf = index) != -1))
+                    .FirstOrDefault();
+                if (existing == null)
+                {
+                    collection.Add(item);
+                }
+                else if (item is IEntity)
+                {
+                    ((IEntity)existing).Update((IEntity)item, depth + 1);
+                }
+                else if (collection.IsList)
+                {
+                    collection[indexOf] = item;
+                }
+                else
+                {
+                    collection.Remove(existing);
+                    collection.Add(item);
+                }
+            }
+
+            var sourceCollection = new AbstractCollectionWrapper(source);
+            var toBeRemoved = (from object item in current 
+                               let existing = sourceCollection.Where((element, index) => (item is IEntity ? ((IEntity)item).Id == ((IEntity)element).Id : Equals(element, item)) && ((indexOf = index) != -1)).FirstOrDefault() 
+                               where existing == null 
+                               select item).ToList();
+            foreach (var item in toBeRemoved)
+            {
+                collection.Remove(item);
+            }
+
+            return (collection.IsReplaced ? collection.Collection : null);
+        }
+
+        private static object CopyCollection<T>(this IEntityContext entityContext, T result, IPropertyMapping property, object value, KeyValuePair<EntityId, EntityId> id, ISet<EntityId> visited) where T : class, IEntity
+        {
+            var itemType = property.ReturnType.FindItemType();
+            IEnumerable current = (IEnumerable)result.GetType().GetProperty(property.Name).GetValue(result);
+            var collection = (current != null ? new AbstractCollectionWrapper(current) : new AbstractCollectionWrapper(new List<object>()) { IsReplaced = true });
+            foreach (object item in (IEnumerable)value)
+            {
+                var itemToAdd = item;
+                var entityValue = itemToAdd as IEntity;
+                if (entityValue != null)
+                {
+                    var newId = (entityValue.Id == id.Key ? id : new KeyValuePair<EntityId, EntityId>(id.Key, entityValue.Id));
+                    itemToAdd = AsEntityMethod.MakeGenericMethod(itemType).Invoke(null, new object[] { entityContext.Copy(entityValue, newId, visited) });
+                }
+
+                collection.Add(itemToAdd);
+            }
+
+            return (collection.IsReplaced ? collection.Collection : null);
         }
     }
 }

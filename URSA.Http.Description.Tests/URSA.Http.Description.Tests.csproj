@@ -63,8 +63,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\HtmlAgilityPack.1.4.6\lib\Net45\HtmlAgilityPack.dll</HintPath>
     </Reference>
-    <Reference Include="JsonLD">
-      <HintPath>..\packages\json-ld.net.1.0.4\lib\net40-Client\JsonLD.dll</HintPath>
+    <Reference Include="json-ld.net, Version=1.0.5.0, Culture=neutral, PublicKeyToken=f17fb428089df9bc, processorArchitecture=MSIL">
+      <HintPath>..\packages\json-ld.net.1.0.5\lib\net40-client\json-ld.net.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="Moq, Version=4.2.1502.911, Culture=neutral, PublicKeyToken=69f491c39445e920, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -114,8 +115,11 @@
     <Compile Include="Collections\Generic\CollectionExtensions.cs" />
     <Compile Include="Data\IProduct.cs" />
     <Compile Include="Data\Person.cs" />
+    <Compile Include="FluentAssertions\CustomExtensions.cs" />
     <Compile Include="Given_instance_of_the\ApiDescriptionBuilder_class.cs" />
     <Compile Include="Given_instance_of_the\converter_of\EntityConverter_class.cs" />
+    <Compile Include="Given_instance_of_the\EntityExtensions_class\EntityExtensionsTest.cs" />
+    <Compile Include="Given_instance_of_the\EntityExtensions_class\when_updating_from_another_entity.cs" />
     <Compile Include="Given_instance_of_the\HydraClassGenerator_class\when_building_class_code.cs" />
     <Compile Include="Given_instance_of_the\OGuidUriParser_class.cs" />
     <Compile Include="Given_instance_of_the\HydraCompliantTypeDescriptionBuilder_class\HydraCompliantTypeDescriptionBuilderTest.cs" />
@@ -124,8 +128,8 @@
     <Compile Include="Given_instance_of_the\ApiEntryPointDescriptionBuilder_class.cs" />
     <Compile Include="Given_instance_of_the\EntryPointControllerDescriptionBuilder_class.cs" />
     <Compile Include="Given_instance_of_the\EntryPointDescriptionController_class.cs" />
-    <Compile Include="Given_instance_of_the\OwningResourceNamedGraphSelector_class.cs" />
-    <Compile Include="Given_instance_of_the\EntityExtensions_class.cs" />
+    <None Include="Given_instance_of_the\OwningResourceNamedGraphSelector_class.cs" />
+    <Compile Include="Given_instance_of_the\EntityExtensions_class\when_copying_between_entity_contexts.cs" />
     <Compile Include="Given_instance_of_the\CollectionModelTransformer_class.cs" />
     <Compile Include="Given_instance_of_the\XmlDocProvider_class.cs" />
     <Compile Include="Given_instance_of_the\XsdUriParser_class.cs" />

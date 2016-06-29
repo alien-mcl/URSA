@@ -27,7 +27,7 @@ namespace Test
             System.Collections.Generic.IDictionary<string, object> uriArguments = new System.Collections.Generic.Dictionary<string, object>();
             var accept = new string[0];
             var contentType = new string[0];
-            Call(Verb.GET, "/type/#GET", accept, contentType, uriArguments);
+            System.Threading.Tasks.Task.Run(async () => await Call(Verb.GET, "/type/#GET", accept, contentType, uriArguments)).Wait();
         }
 
         public void Get(System.Int32 id)
@@ -36,7 +36,7 @@ namespace Test
             var accept = new string[0];
             var contentType = new string[0];
             uriArguments["id"] = id;
-            Call(Verb.GET, "/type/id/{?id}", accept, contentType, uriArguments);
+            System.Threading.Tasks.Task.Run(async () => await Call(Verb.GET, "/type/id/{?id}", accept, contentType, uriArguments)).Wait();
         }
     }
 }

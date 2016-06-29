@@ -59,7 +59,8 @@ namespace VDS.RDF.Parsing
                 using (JsonReader jsonReader = new JsonTextReader(input))
                 {
                     jsonReader.DateParseHandling = DateParseHandling.None;
-                    JToken json = JsonLD.Core.JsonLdProcessor.Expand(JToken.Load(jsonReader));
+                    var token = JToken.Load(jsonReader);
+                    JToken json = JsonLD.Core.JsonLdProcessor.Expand(token);
                     foreach (JObject subjectJObject in json)
                     {
                         string subject = subjectJObject["@id"].ToString();

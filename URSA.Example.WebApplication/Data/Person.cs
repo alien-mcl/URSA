@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using RomanticWeb;
+using RomanticWeb.Entities;
 using URSA.Web;
 
 namespace URSA.Example.WebApplication.Data
@@ -38,6 +40,6 @@ namespace URSA.Example.WebApplication.Data
         public ICollection<Person> Friends { get { return _friends; } set { _friends = value ?? new List<Person>(); } }
 
         /// <summary>Gets or sets the superiors.</summary>
-        public IList<Person> Superiors { get { return _superiors; } set { _superiors = value ?? new List<Person>(); } } 
+        public IList<Person> Superiors { get { return _superiors; } set { _superiors = value ?? new List<Person>(); } }
     }
 }

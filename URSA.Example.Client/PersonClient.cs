@@ -22,62 +22,50 @@ namespace URSA.Example.WebApplication.Data
         {
         }
 
-        public System.Guid Create(URSA.Example.WebApplication.Data.Person person)
+        public System.Guid Create(URSA.Example.WebApplication.Data.IPerson person)
         {
             System.Collections.Generic.IDictionary<string, object> uriArguments = new System.Collections.Generic.Dictionary<string, object>();
             var accept = new string[] {
                 "application/json",
-                "text/xml",
-                "application/xml" };
+                "application/xml",
+                "text/xml" };
             var contentType = new string[] {
                 "application/json",
-                "text/xml",
-                "application/xml" };
-            var result = Call<System.Guid>(Verb.POST, "/api/person#POSTPerson", accept, contentType, uriArguments, person);
+                "application/xml",
+                "text/xml" };
+            var result = System.Threading.Tasks.Task.Run(async () => await Call<System.Guid>(Verb.POST, "/api/person#POSTPerson", accept, contentType, uriArguments, person)).Result;
             return result;
         }
 
-        public void Update(System.Guid id, URSA.Example.WebApplication.Data.Person person)
-        {
-            System.Collections.Generic.IDictionary<string, object> uriArguments = new System.Collections.Generic.Dictionary<string, object>();
-            var accept = new string[0];
-            var contentType = new string[] {
-                "application/xml",
-                "application/json",
-                "text/xml" };
-            uriArguments["id"] = id;
-            Call(Verb.PUT, "/api/person/{id}", accept, contentType, uriArguments, person);
-        }
-
-        public void Delete(System.Guid id)
-        {
-            System.Collections.Generic.IDictionary<string, object> uriArguments = new System.Collections.Generic.Dictionary<string, object>();
-            var accept = new string[0];
-            var contentType = new string[] {
-                "application/xml",
-                "application/json",
-                "text/xml" };
-            uriArguments["id"] = id;
-            Call(Verb.DELETE, "/api/person/{id}", accept, contentType, uriArguments);
-        }
-
-        public URSA.Example.WebApplication.Data.Person Get(System.Guid id)
+        public URSA.Example.WebApplication.Data.IPerson Get(System.Guid id)
         {
             System.Collections.Generic.IDictionary<string, object> uriArguments = new System.Collections.Generic.Dictionary<string, object>();
             var accept = new string[] {
-                "application/xml",
                 "application/json",
+                "application/xml",
                 "text/xml" };
             var contentType = new string[] {
-                "application/xml",
                 "application/json",
+                "application/xml",
                 "text/xml" };
             uriArguments["id"] = id;
-            var result = Call<URSA.Example.WebApplication.Data.Person>(Verb.GET, "/api/person/{id}", accept, contentType, uriArguments);
+            var result = System.Threading.Tasks.Task.Run(async () => await Call<URSA.Example.WebApplication.Data.IPerson>(Verb.GET, "/api/person/{id}", accept, contentType, uriArguments)).Result;
             return result;
         }
 
-        public System.Collections.Generic.ICollection<Person> List(out System.Int32 totalEntities, System.Int32 _skip, System.Int32 _top, System.String _filter)
+        public void Update(System.Guid id, URSA.Example.WebApplication.Data.IPerson person)
+        {
+            System.Collections.Generic.IDictionary<string, object> uriArguments = new System.Collections.Generic.Dictionary<string, object>();
+            var accept = new string[0];
+            var contentType = new string[] {
+                "application/json",
+                "application/xml",
+                "text/xml" };
+            uriArguments["id"] = id;
+            System.Threading.Tasks.Task.Run(async () => await Call(Verb.PUT, "/api/person/{id}", accept, contentType, uriArguments, person)).Wait();
+        }
+
+        public System.Collections.Generic.ICollection<URSA.Example.WebApplication.Data.IPerson> List(out System.Int32 totalEntities, System.Int32 _skip, System.Int32 _top, System.String _filter)
         {
             System.Collections.Generic.IDictionary<string, object> uriArguments = new System.Collections.Generic.Dictionary<string, object>();
             var accept = new string[] {
@@ -92,9 +80,21 @@ namespace URSA.Example.WebApplication.Data
             uriArguments["%24skip"] = _skip;
             uriArguments["%24top"] = _top;
             uriArguments["%24filter"] = _filter;
-            var result = Call<System.Collections.Generic.ICollection<Person>>(Verb.GET, "/api/person{?%24skip,%24top,%24filter}", accept, contentType, uriArguments);
+            var result = System.Threading.Tasks.Task.Run(async () => await Call<System.Collections.Generic.ICollection<URSA.Example.WebApplication.Data.IPerson>>(Verb.GET, "/api/person{?%24skip,%24top,%24filter}", accept, contentType, uriArguments)).Result;
             totalEntities = (int)uriArguments["totalEntities"];
             return result;
+        }
+
+        public void Delete(System.Guid id)
+        {
+            System.Collections.Generic.IDictionary<string, object> uriArguments = new System.Collections.Generic.Dictionary<string, object>();
+            var accept = new string[0];
+            var contentType = new string[] {
+                "application/json",
+                "application/xml",
+                "text/xml" };
+            uriArguments["id"] = id;
+            System.Threading.Tasks.Task.Run(async () => await Call(Verb.DELETE, "/api/person/{id}", accept, contentType, uriArguments)).Wait();
         }
     }
 }

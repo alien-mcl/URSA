@@ -68,8 +68,9 @@ namespace Given_instance_of_the.HydraClassGenerator_class
         public void Setup()
         {
             SetupUriParser();
-            SetupContex();
+            var apiDocumentation = SetupContex();
             SetupClass();
+            apiDocumentation.SetupGet(instance => instance.SupportedClasses).Returns(new[] { _class.Object });
             _generator = new HydraClassGenerator(new IUriParser[] { _uriParser.Object });
         }
 
@@ -105,7 +106,7 @@ namespace Given_instance_of_the.HydraClassGenerator_class
             _context.SetupGet(instance => instance.Store).Returns(_store.Object);
         }
 
-        private void SetupContex()
+        private Mock<IApiDocumentation> SetupContex()
         {
             _context = new Mock<IEntityContext>(MockBehavior.Strict);
             SetupStore();
@@ -113,7 +114,10 @@ namespace Given_instance_of_the.HydraClassGenerator_class
             _mappingsRepository.SetupMapping<IInverseFunctionalProperty>(new Uri(Owl.BaseUri));
             _mappingsRepository.SetupMapping<ICreateResourceOperation>(new Uri(EntityConverter.Hydra.AbsoluteUri + "CreateResourceOperation"));
             _mappingsRepository.SetupMapping<ICollection>(new Uri(EntityConverter.Hydra.AbsoluteUri + "Collection"));
+            var apiDocumentation = new Mock<IApiDocumentation>(MockBehavior.Strict);
             _context.SetupGet(instance => instance.Mappings).Returns(_mappingsRepository.Object);
+            _context.Setup(instance => instance.AsQueryable<IApiDocumentation>()).Returns(new[] { apiDocumentation.Object }.AsQueryable());
+            return apiDocumentation;
         }
 
         private void SetupClass()

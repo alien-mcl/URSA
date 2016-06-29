@@ -3,10 +3,8 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using URSA.Reflection;
-using URSA.Web.Description;
 using URSA.Web.Description.Http;
 using URSA.Web.Http.Description.Entities;
-using URSA.Web.Http.Description.NamedGraphs;
 using URSA.Web.Http.Mapping;
 using URSA.Web.Mapping;
 
@@ -23,15 +21,13 @@ namespace URSA.Web.Http.Description
         /// <param name="entityContextProvider">Entity context provider.</param>
         /// <param name="apiDescriptionBuilder">API description builder.</param>
         /// <param name="httpControllerDescriptionBuilders">HTTP Controller description builders.</param>
-        /// <param name="namedGraphSelectorFactory">Named graph selector factory.</param>
         [ExcludeFromCodeCoverage]
         public EntryPointDescriptionController(
             Url entryPoint,
             IEntityContextProvider entityContextProvider,
             IApiEntryPointDescriptionBuilder apiDescriptionBuilder,
-            IEnumerable<IHttpControllerDescriptionBuilder> httpControllerDescriptionBuilders,
-            INamedGraphSelectorFactory namedGraphSelectorFactory) :
-            base(entityContextProvider, apiDescriptionBuilder, namedGraphSelectorFactory)
+            IEnumerable<IHttpControllerDescriptionBuilder> httpControllerDescriptionBuilders) :
+            base(entityContextProvider, apiDescriptionBuilder)
         {
             if (entryPoint == null)
             {

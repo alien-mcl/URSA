@@ -61,6 +61,14 @@ namespace URSA.Web.Http
 
             Method = method;
             Url = url;
+            if (!body.CanSeek)
+            {
+                var seekableStream = new MemoryStream();
+                body.CopyTo(seekableStream);
+                seekableStream.Seek(0, SeekOrigin.Begin);
+                body = seekableStream;
+            }
+
             Body = new UnclosableStream(_stream = body);
             _identity = identity;
             Headers = headers ?? new HeaderCollection();

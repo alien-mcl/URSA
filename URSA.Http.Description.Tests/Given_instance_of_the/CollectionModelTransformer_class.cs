@@ -8,7 +8,6 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using RomanticWeb;
 using RomanticWeb.Entities;
-using RomanticWeb.NamedGraphs;
 using URSA;
 using URSA.Security;
 using URSA.Web;
@@ -16,7 +15,6 @@ using URSA.Web.Http;
 using URSA.Web.Http.Description;
 using URSA.Web.Http.Description.Entities;
 using URSA.Web.Http.Description.Hydra;
-using URSA.Web.Http.Description.NamedGraphs;
 using URSA.Web.Http.Description.Tests;
 using URSA.Web.Http.Description.Tests.Data;
 using URSA.Web.Http.Tests.Testing;
@@ -31,7 +29,7 @@ namespace Given_instance_of_the
 
         private Mock<IRequestMapping> _mapping;
         private Mock<IEntityContext> _entityContext;
-        private IModelTransformer _modelTransformer;
+        private IResponseModelTransformer _responseModelTransformer;
 
         [TestMethod]
         public async Task should_inject_hydra_Collection_details()
@@ -41,7 +39,7 @@ namespace Given_instance_of_the
             var collection = SetupCollection(result.Count);
             _entityContext.Setup(instance => instance.Load<ICollection>((Uri)RequestUrl)).Returns(collection.Object);
 
-            await _modelTransformer.Transform(_mapping.Object, Request, result, arguments);
+            await _responseModelTransformer.Transform(_mapping.Object, Request, result, arguments);
 
             _entityContext.Verify(instance => instance.Load<ICollection>((Uri)RequestUrl), Times.Once);
             collection.Object.Members.Should().HaveCount(result.Count);
@@ -57,7 +55,7 @@ namespace Given_instance_of_the
             _entityContext.Setup(instance => instance.Load<ICollection>((Uri)RequestUrl)).Returns(collection.Object);
             _entityContext.Setup(instance => instance.Load<IPartialCollectionView>(It.IsAny<EntityId>())).Returns(view.Object);
 
-            await _modelTransformer.Transform(_mapping.Object, Request, result, arguments);
+            await _responseModelTransformer.Transform(_mapping.Object, Request, result, arguments);
 
             _entityContext.Verify(instance => instance.Load<ICollection>((Uri)RequestUrl), Times.Once);
             collection.Object.Members.Should().HaveCount(result.Count);
@@ -83,18 +81,13 @@ namespace Given_instance_of_the
             _entityContext.Setup(instance => instance.Commit());
             var entityContextProvider = new Mock<IEntityContextProvider>(MockBehavior.Strict);
             entityContextProvider.SetupGet(instance => instance.EntityContext).Returns(_entityContext.Object);
-            var namedGraphSelector = new Mock<ILocallyControlledNamedGraphSelector>(MockBehavior.Strict);
-            namedGraphSelector.Setup(instance => instance.MapEntityGraphForRequest(It.IsAny<IRequestInfo>(), It.IsAny<EntityId>(), It.IsAny<Uri>()));
-            namedGraphSelector.Setup(instance => instance.UnmapEntityGraphForRequest(It.IsAny<IRequestInfo>(), It.IsAny<EntityId>()));
-            var namedGraphSelectorFactory = new Mock<INamedGraphSelectorFactory>(MockBehavior.Strict);
-            namedGraphSelectorFactory.Setup(instance => instance.NamedGraphSelector).Returns(namedGraphSelector.Object);
-            _modelTransformer = new CollectionModelTransformer(entityContextProvider.Object, namedGraphSelectorFactory.Object);
+            _responseModelTransformer = new CollectionResponseModelTransformer(entityContextProvider.Object/*, namedGraphSelectorFactory.Object*/);
         }
 
         [TestCleanup]
         public void Teardown()
         {
-            _modelTransformer = null;
+            _responseModelTransformer = null;
             _mapping = null;
             _entityContext = null;
         }

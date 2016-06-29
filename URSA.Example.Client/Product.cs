@@ -16,29 +16,29 @@ namespace Vocab
     [RomanticWeb.Mapping.Attributes.Class("http://temp.uri/vocab#Product")]
     public interface IProduct : RomanticWeb.Entities.IEntity
     {
-        [RomanticWeb.Mapping.Attributes.Collection("http://temp.uri/vocab#category")]
-        System.Collections.Generic.IList<String> Categories { get;}
-
-        [RomanticWeb.Mapping.Attributes.Property("http://temp.uri/vocab#price")]
-        System.Double Price { get; set; }
-
-        [RomanticWeb.Mapping.Attributes.Collection("http://temp.uri/vocab#feature")]
-        System.Collections.Generic.ICollection<String> Features { get;}
-
-        [RomanticWeb.Mapping.Attributes.Collection("http://temp.uri/vocab#replacement")]
-        System.Collections.Generic.IList<Product> Replacements { get;}
-
         [RomanticWeb.Mapping.Attributes.Property("http://temp.uri/vocab#key")]
         System.Guid Key { get; set; }
-
-        [RomanticWeb.Mapping.Attributes.Collection("http://temp.uri/vocab#similar")]
-        System.Collections.Generic.ICollection<Product> Similar { get;}
 
         [RomanticWeb.Mapping.Attributes.Property("http://temp.uri/vocab#name")]
         System.String Name { get; set; }
 
         [RomanticWeb.Mapping.Attributes.Property("http://temp.uri/vocab#partOf")]
-        Vocab.Product PartOf { get; set; }
+        Vocab.IProduct PartOf { get; set; }
+
+        [RomanticWeb.Mapping.Attributes.Property("http://temp.uri/vocab#price")]
+        System.Double Price { get; set; }
+
+        [RomanticWeb.Mapping.Attributes.Collection("http://temp.uri/vocab#replacement")]
+        System.Collections.Generic.IList<Vocab.IProduct> Replacements { get;}
+
+        [RomanticWeb.Mapping.Attributes.Collection("http://temp.uri/vocab#similar")]
+        System.Collections.Generic.ICollection<Vocab.IProduct> Similar { get;}
+
+        [RomanticWeb.Mapping.Attributes.Collection("http://temp.uri/vocab#category")]
+        System.Collections.Generic.IList<System.String> Categories { get;}
+
+        [RomanticWeb.Mapping.Attributes.Collection("http://temp.uri/vocab#feature")]
+        System.Collections.Generic.ICollection<System.String> Features { get;}
     }
 
     [System.CodeDom.Compiler.GeneratedCode("URSA HTTP client proxy generation tool", "1.0")]
@@ -50,28 +50,28 @@ namespace Vocab
 
         RomanticWeb.Entities.EntityId RomanticWeb.Entities.IEntity.Id { get { return _id; } }
 
-        private System.Collections.Generic.IList<String> _categories = new System.Collections.Generic.List<String>();
-
-        public System.Collections.Generic.IList<String> Categories { get { return _categories; } }
-
-        public System.Double Price { get; set; }
-
-        private System.Collections.Generic.ICollection<String> _features = new System.Collections.Generic.List<String>();
-
-        public System.Collections.Generic.ICollection<String> Features { get { return _features; } }
-
-        private System.Collections.Generic.IList<Product> _replacements = new System.Collections.Generic.List<Product>();
-
-        public System.Collections.Generic.IList<Product> Replacements { get { return _replacements; } }
-
         public System.Guid Key { get; set; }
-
-        private System.Collections.Generic.ICollection<Product> _similar = new System.Collections.Generic.List<Product>();
-
-        public System.Collections.Generic.ICollection<Product> Similar { get { return _similar; } }
 
         public System.String Name { get; set; }
 
-        public Vocab.Product PartOf { get; set; }
+        public Vocab.IProduct PartOf { get; set; }
+
+        public System.Double Price { get; set; }
+
+        private System.Collections.Generic.IList<Vocab.IProduct> _replacements = new System.Collections.Generic.List<Vocab.IProduct>();
+
+        public System.Collections.Generic.IList<Vocab.IProduct> Replacements { get { return _replacements; } }
+
+        private System.Collections.Generic.ICollection<Vocab.IProduct> _similar = new System.Collections.Generic.List<Vocab.IProduct>();
+
+        public System.Collections.Generic.ICollection<Vocab.IProduct> Similar { get { return _similar; } }
+
+        private System.Collections.Generic.IList<System.String> _categories = new System.Collections.Generic.List<System.String>();
+
+        public System.Collections.Generic.IList<System.String> Categories { get { return _categories; } }
+
+        private System.Collections.Generic.ICollection<System.String> _features = new System.Collections.Generic.List<System.String>();
+
+        public System.Collections.Generic.ICollection<System.String> Features { get { return _features; } }
     }
 }

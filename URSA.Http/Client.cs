@@ -9,11 +9,14 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using Resta.UriTemplates;
+using RomanticWeb.Entities;
 using URSA.ComponentModel;
 using URSA.Configuration;
 using URSA.Security;
 using URSA.Web.Converters;
+using URSA.Web.Http.Collections;
 using URSA.Web.Http.Mapping;
 
 namespace URSA.Web.Http
@@ -27,6 +30,7 @@ namespace URSA.Web.Http
         private readonly IWebRequestProvider _webRequestProvider;
         private readonly IConverterProvider _converterProvider;
         private readonly IResultBinder<RequestInfo> _resultBinder;
+        private readonly IEnumerable<IRequestModelTransformer> _requestModelTransformers;
         private readonly string _authenticationScheme;
 
         /// <summary>Initializes a new instance of the <see cref="Client"/> class.</summary>
@@ -70,11 +74,13 @@ namespace URSA.Web.Http
                 throw new InvalidOperationException("Cannot create an HTTP client without proper web request provider.");
             }
 
+            _requestModelTransformers = new DependencyTree<IRequestModelTransformer>(container.ResolveAll<IRequestModelTransformer>(), typeof(IRequestModelTransformer<>));
             _converterProvider = container.Resolve<IConverterProvider>();
             _resultBinder = container.Resolve<IResultBinder<RequestInfo>>();
         }
 
-        private HttpUrl BaseUrl { get; set; }
+        /// <summary>Gets the base URL.</summary>
+        public HttpUrl BaseUrl { get; private set; }
 
         internal HttpUrl BuildUrl(string url, IDictionary<string, object> uriArguments)
         {
@@ -92,9 +98,9 @@ namespace URSA.Web.Http
         /// <param name="uriArguments">The URI template arguments.</param>
         /// <param name="bodyArguments">The body arguments.</param>
         /// <returns>Result of the call.</returns>
-        protected internal T Call<T>(Verb verb, string url, IEnumerable<string> mediaTypes, IEnumerable<string> contentType, IDictionary<string, object> uriArguments, params object[] bodyArguments)
+        protected internal async Task<T> Call<T>(Verb verb, string url, IEnumerable<string> mediaTypes, IEnumerable<string> contentType, IDictionary<string, object> uriArguments, params object[] bodyArguments)
         {
-            var result = Call(verb, url, mediaTypes, contentType, typeof(T), uriArguments, bodyArguments);
+            var result = await Call(verb, url, mediaTypes, contentType, typeof(T), uriArguments, bodyArguments);
             return (result == null ? default(T) : (result is T ? (T)result : (T)Convert.ChangeType(result, typeof(T))));
         }
 
@@ -105,9 +111,10 @@ namespace URSA.Web.Http
         /// <param name="contentType">Enumeration of possible content type media types.</param>
         /// <param name="uriArguments">The URI template arguments.</param>
         /// <param name="bodyArguments">The body arguments.</param>
-        protected internal void Call(Verb verb, string url, IEnumerable<string> accept, IEnumerable<string> contentType, IDictionary<string, object> uriArguments, params object[] bodyArguments)
+        /// <returns>Task of this call.</returns>
+        protected internal async Task Call(Verb verb, string url, IEnumerable<string> accept, IEnumerable<string> contentType, IDictionary<string, object> uriArguments, params object[] bodyArguments)
         {
-            Call(verb, url, accept, contentType, null, uriArguments, bodyArguments);
+            await Call(verb, url, accept, contentType, null, uriArguments, bodyArguments);
         }
 
         /// <summary>Calls the ReST service using specified HTTP verb.</summary>
@@ -119,7 +126,7 @@ namespace URSA.Web.Http
         /// <param name="uriArguments">The URI template arguments.</param>
         /// <param name="bodyArguments">The body arguments.</param>
         /// <returns>Result of the call.</returns>
-        protected object Call(Verb verb, string url, IEnumerable<string> accept, IEnumerable<string> contentType, Type responseType, IDictionary<string, object> uriArguments, params object[] bodyArguments)
+        protected async Task<object> Call(Verb verb, string url, IEnumerable<string> accept, IEnumerable<string> contentType, Type responseType, IDictionary<string, object> uriArguments, params object[] bodyArguments)
         {
             var callUrl = BuildUrl(url, uriArguments);
             var validAccept = (!accept.Any() ? _converterProvider.SupportedMediaTypes :
@@ -137,7 +144,7 @@ namespace URSA.Web.Http
             request.Method = verb.ToString();
             if ((bodyArguments != null) && (bodyArguments.Length > 0))
             {
-                FillRequestBody(verb, callUrl, request, contentType, accepted, bodyArguments);
+                await FillRequestBody(verb, callUrl, request, contentType, accepted, bodyArguments);
             }
 
             var response = (HttpWebResponse)request.GetResponse();
@@ -152,9 +159,14 @@ namespace URSA.Web.Http
             return result.FirstOrDefault(responseType.IsInstanceOfType);
         }
 
-        private void FillRequestBody(Verb verb, HttpUrl url, WebRequest request, IEnumerable<string> contentType, IEnumerable<string> accepted, params object[] bodyArguments)
+        private async Task FillRequestBody(Verb verb, HttpUrl url, WebRequest request, IEnumerable<string> contentType, IEnumerable<string> accepted, params object[] bodyArguments)
         {
             RequestInfo fakeRequest = new RequestInfo(verb, url, new MemoryStream(), new BasicClaimBasedIdentity(), new Header(Header.Accept, accepted.ToArray()));
+            foreach (var modelTransformer in _requestModelTransformers)
+            {
+                bodyArguments = await modelTransformer.Transform(bodyArguments);
+            }
+
             ResponseInfo fakeResponse = CreateFakeResponseInfo(fakeRequest, contentType, bodyArguments);
             using (var target = request.GetRequestStream())
             using (var source = fakeResponse.Body)

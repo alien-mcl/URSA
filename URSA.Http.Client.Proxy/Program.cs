@@ -116,11 +116,11 @@ namespace URSA.Web.Http.Client.Proxy
 
         private static void CreateProxy(string targetDirectory, HttpUrl url)
         {
-            var namedGraphSelector = _container.Resolve<INamedGraphSelector>() as ILocallyControlledNamedGraphSelector;
-            if (namedGraphSelector != null)
-            {
-                namedGraphSelector.NamedGraph = (Uri)url;
-            }
+            ////var namedGraphSelector = _container.Resolve<INamedGraphSelector>() as ILocallyControlledNamedGraphSelector;
+            ////if (namedGraphSelector != null)
+            ////{
+            ////    namedGraphSelector.NamedGraph = (Uri)url;
+            ////}
 
             var apiDocumentation = GetApiDocumentation(url);
             if (apiDocumentation == null)
@@ -143,10 +143,10 @@ namespace URSA.Web.Http.Client.Proxy
                 File.WriteAllText(Path.Combine(targetDirectory, @class.Key), @class.Value);
             }
 
-            if (namedGraphSelector != null)
-            {
-                namedGraphSelector.NamedGraph = null;
-            }
+            ////if (namedGraphSelector != null)
+            ////{
+            ////    namedGraphSelector.NamedGraph = null;
+            ////}
         }
     }
 }

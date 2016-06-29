@@ -70,10 +70,10 @@ namespace URSA.Web.Mapping
             }
 
             var format = ((!parameter.HasDefaultValue) && (parameter.ParameterType.IsValueType) ? "&{0}={{{0}}}" :
-                "{{?{0}" + (parameter.ParameterType.IsEnumerable() ? "*}}" : "}}"));
+                "{{?{0}" + (System.Reflection.TypeExtensions.IsEnumerable(parameter.ParameterType) ? "*}}" : "}}"));
             var result = new FromQueryStringAttribute(String.Format(format, parameter.Name));
             result._default = ((!parameter.HasDefaultValue) && (parameter.ParameterType.IsValueType) ? "&key={value}" :
-                "{?key" + (parameter.ParameterType.IsEnumerable() ? "*}" : "}"));
+                "{?key" + (System.Reflection.TypeExtensions.IsEnumerable(parameter.ParameterType) ? "*}" : "}"));
             return result;
         }
 

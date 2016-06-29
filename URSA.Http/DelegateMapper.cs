@@ -14,15 +14,15 @@ namespace URSA.Web.Http
     /// <summary>Provides a default implementation of the <see cref="IDelegateMapper{RequestInfo}"/> interface.</summary>
     public class DelegateMapper : IDelegateMapper<RequestInfo>
     {
-        private static readonly IDictionary<Verb, double> VerbRanks = new Dictionary<Verb, double>()
+        private static readonly IDictionary<Verb, int> VerbRanks = new Dictionary<Verb, int>()
             {
-                { Verb.GET, 1.0 },
-                { Verb.PUT, 0.9 },
-                { Verb.DELETE, 0.8 },
-                { Verb.POST, 0.7 },
-                { Verb.HEAD, 0.6 },
-                { Verb.OPTIONS, 0.5 },
-                { Verb.Empty, 0.4 }
+                { Verb.GET, 100 },
+                { Verb.PUT, 90 },
+                { Verb.DELETE, 80 },
+                { Verb.POST, 70 },
+                { Verb.HEAD, 60 },
+                { Verb.OPTIONS, 50 },
+                { Verb.Empty, 40 }
             };
 
         private readonly Lazy<IEnumerable<ControllerInfo>> _controllerDescriptors;
@@ -106,11 +106,11 @@ namespace URSA.Web.Http
                    where operation.TemplateRegex.IsMatch(relativeUrl.Path)
                    let httpOperation = (OperationInfo<Verb>)operation
                    let rank = GetMatchRank(controller, httpOperation, queryString, request.Method)
-                   orderby rank descending
+                   orderby rank.MatchingMethod descending, rank.Specialization descending, rank.MatchingRequiredParameters descending, rank.MatchingOptionalParameters descending 
                    select new KeyValuePair<ControllerInfo, OperationInfo<Verb>>(controller, httpOperation);
         }
 
-        private double GetMatchRank(ControllerInfo controller, OperationInfo<Verb> operation, IEnumerable<string> queryString, Verb method)
+        private Rank GetMatchRank(ControllerInfo controller, OperationInfo<Verb> operation, IEnumerable<string> queryString, Verb method)
         {
             var requiredQueryStringArguments = new List<string>();
             var optionalQueryStringArguments = new List<string>();
@@ -125,11 +125,30 @@ namespace URSA.Web.Http
                 }
             }
 
-            var result = (controller.ControllerType.IsGenericType ? 0 : 1) +
-                (operation.ProtocolSpecificCommand == method ? (VerbRanks.ContainsKey(method) ? VerbRanks[method] : VerbRanks[Verb.Empty]) : 0);
-            result += Math.Max(0, matchingRequiredParameters.Count - requiredQueryStringArguments.Count) +
-                (Math.Max(0, matchingOptionalParameters.Count - optionalQueryStringArguments.Count) * 10);
-            return result;
+            return new Rank(
+                (operation.ProtocolSpecificCommand == method ? (VerbRanks.ContainsKey(method) ? VerbRanks[method] : VerbRanks[Verb.Empty]) : 0),
+                (controller.ControllerType.IsGenericType ? 0 : 1),
+                (requiredQueryStringArguments.Count != 0 ? matchingRequiredParameters.Count / requiredQueryStringArguments.Count : 0),
+                (optionalQueryStringArguments.Count != 0 ? matchingOptionalParameters.Count / optionalQueryStringArguments.Count : 0));
+        }
+
+        private struct Rank
+        {
+            internal int MatchingRequiredParameters;
+
+            internal int MatchingOptionalParameters;
+
+            internal int Specialization;
+
+            internal int MatchingMethod;
+
+            internal Rank(int matchingMethod, int specialization, int matchingRequiredParameters, int matchingOptionalParameters)
+            {
+                MatchingMethod = matchingMethod;
+                Specialization = specialization;
+                MatchingRequiredParameters = matchingRequiredParameters;
+                MatchingOptionalParameters = matchingOptionalParameters;
+            }
         }
     }
 }

@@ -46,8 +46,13 @@
     <Reference Include="HtmlAgilityPack">
       <HintPath>..\packages\HtmlAgilityPack.1.4.6\lib\Net45\HtmlAgilityPack.dll</HintPath>
     </Reference>
-    <Reference Include="JsonLD">
-      <HintPath>..\packages\json-ld.net.1.0.4\lib\net40-Client\JsonLD.dll</HintPath>
+    <Reference Include="ImpromptuInterface, Version=6.2.2.0, Culture=neutral, PublicKeyToken=0b1781c923b2975b, processorArchitecture=MSIL">
+      <HintPath>..\packages\ImpromptuInterface.6.2.2\lib\net40\ImpromptuInterface.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="json-ld.net, Version=1.0.5.0, Culture=neutral, PublicKeyToken=f17fb428089df9bc, processorArchitecture=MSIL">
+      <HintPath>..\packages\json-ld.net.1.0.5\lib\net40-client\json-ld.net.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -100,9 +105,12 @@
     <Compile Include="CodeGen\XsdUriParser.cs" />
     <Compile Include="CodeGen\HydraUriParser.cs" />
     <Compile Include="CodeGen\IClassGenerator.cs" />
-    <Compile Include="CollectionModelTransformer.cs" />
+    <Compile Include="CollectionResponseModelTransformer.cs" />
     <Compile Include="Configuration\ComponentProviderExtensions.cs" />
     <Compile Include="Configuration\DescriptionConfigurationSection.cs" />
+    <Compile Include="NamedGraphs\FixedNamedGraphSelector.cs" />
+    <Compile Include="RdfPayloadModelTransformer.cs" />
+    <Compile Include="Reflection\AbstractCollectionWrapper.cs" />
     <Compile Include="RequestHelper.cs" />
     <Compile Include="Converters\EntityConverter.cs" />
     <Compile Include="DescriptionContext.cs" />
@@ -131,10 +139,10 @@
     <Compile Include="Mapping\LinqServerBehaviorAttribute.cs" />
     <Compile Include="Mapping\ServerBehaviorAttribute.cs" />
     <Compile Include="Model\EntityQuadExtensions.cs" />
-    <Compile Include="NamedGraphs\ILocallyControlledNamedGraphSelector.cs" />
-    <Compile Include="NamedGraphs\INamedGraphSelectorFactory.cs" />
-    <Compile Include="NamedGraphs\LocallyControlledOwningResourceNamedGraphSelector.cs" />
-    <Compile Include="NamedGraphs\OwningResourceNamedGraphSelector.cs" />
+    <None Include="NamedGraphs\ILocallyControlledNamedGraphSelector.cs" />
+    <None Include="NamedGraphs\INamedGraphSelectorFactory.cs" />
+    <None Include="NamedGraphs\LocallyControlledOwningResourceNamedGraphSelector.cs" />
+    <None Include="NamedGraphs\OwningResourceNamedGraphSelector.cs" />
     <Compile Include="OperationExtensions.cs" />
     <Compile Include="Owl\IClass.cs" />
     <Compile Include="Owl\IInverseFunctionalProperty.cs" />

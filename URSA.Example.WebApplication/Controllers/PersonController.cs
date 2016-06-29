@@ -14,7 +14,19 @@ namespace URSA.Example.WebApplication.Controllers
     /// <summary>Provides a basic person handling.</summary>
     public class PersonController : IWriteController<Person, Guid>
     {
-        private static readonly IList<Person> Repository = new List<Person>();
+        private readonly IPersistingRepository<Person, Guid> _repository;
+
+        /// <summary>Initializes a new instance of the <see cref="PersonController"/> class.</summary>
+        /// <param name="repository">The repository.</param>
+        public PersonController(IPersistingRepository<Person, Guid> repository)
+        {
+            if (repository == null)
+            {
+                throw new ArgumentNullException("repository");
+            }
+
+            _repository = repository;
+        }
 
         /// <inheritdoc />
         public IResponseInfo Response { get; set; }
@@ -32,24 +44,8 @@ namespace URSA.Example.WebApplication.Controllers
             [LinqServerBehavior(LinqOperations.Take), FromQueryString("{?$top}")] int take = 0,
             [LinqServerBehavior(LinqOperations.Filter), FromQueryString("{?$filter}")] Expression<Func<Person, bool>> filter = null)
         {
-            totalItems = Repository.Count;
-            IEnumerable<Person> result = Repository;
-            if (skip > 0)
-            {
-                result = result.Skip(skip);
-            }
-
-            if (take > 0)
-            {
-                result = result.Take(take);
-            }
-
-            if (filter != null)
-            {
-                result = result.Where(entity => filter.Compile()(entity));
-            }
-
-            return result;
+            totalItems = _repository.Count;
+            return _repository.All(skip, take, (filter != null ? filter.Compile() : null));
         }
 
         /// <summary>Gets the person with identifier of <paramref name="id" />.</summary>
@@ -57,7 +53,7 @@ namespace URSA.Example.WebApplication.Controllers
         /// <returns>Instance of the <see cref="Person" /> if matching <paramref name="id" />; otherwise <b>null</b>.</returns>
         public Person Get(Guid id)
         {
-            return (from entity in Repository where entity.Key == id select entity).FirstOrDefault();
+            return _repository.Get(id);
         }
 
         /// <summary>Creates the specified person.</summary>
@@ -67,7 +63,7 @@ namespace URSA.Example.WebApplication.Controllers
         public Guid Create(Person person)
         {
             person.Key = Guid.NewGuid();
-            Repository.Add(person);
+            _repository.Create(person);
             return person.Key;
         }
 
@@ -77,7 +73,8 @@ namespace URSA.Example.WebApplication.Controllers
         [DenyClaim(ClaimTypes.Anonymous)]
         public void Update(Guid id, Person person)
         {
-            (Repository[GetIndex(id)] = person).Key = id;
+            person.Key = id;
+            _repository.Update(person);
         }
 
         /// <summary>Deletes a person.</summary>
@@ -85,7 +82,7 @@ namespace URSA.Example.WebApplication.Controllers
         [DenyClaim(ClaimTypes.Anonymous)]
         public void Delete(Guid id)
         {
-            Repository.RemoveAt(GetIndex(id));
+            _repository.Delete(id);
         }
 
         /// <summary>Adds the given <paramref name="roles" /> to the user with given <paramref name="id" />.</summary>
@@ -94,9 +91,15 @@ namespace URSA.Example.WebApplication.Controllers
         [DenyClaim(ClaimTypes.Anonymous)]
         public void SetRoles(Guid id, IEnumerable<string> roles)
         {
-            var user = Repository[GetIndex(id)];
-            user.Roles.Clear();
-            roles.ForEach(role => user.Roles.Add(role));
+            var person = _repository.Get(id);
+            if (person == null)
+            {
+                throw new NotFoundException(String.Format("Person with identifier of '{0}' does not exist.", id));
+            }
+
+            person.Roles.Clear();
+            roles.ForEach(role => person.Roles.Add(role));
+            _repository.Update(person);
         }
 
         /// <summary>Adds the given <paramref name="favouriteDishes" /> to the user with given <paramref name="id" />.</summary>
@@ -105,21 +108,15 @@ namespace URSA.Example.WebApplication.Controllers
         [DenyClaim(ClaimTypes.Anonymous)]
         public void SetFavouriteDishes(Guid id, IList<string> favouriteDishes)
         {
-            var user = Repository[GetIndex(id)];
-            user.FavouriteDishes.Clear();
-            favouriteDishes.ForEach(role => user.FavouriteDishes.Add(role));
-        }
-
-        private int GetIndex(Guid id)
-        {
-            int index = -1;
-            Repository.Where((entity, entityIndex) => (entity.Key == id) && ((index = entityIndex) != -1)).FirstOrDefault();
-            if (index == -1)
+            var person = _repository.Get(id);
+            if (person == null)
             {
-                throw new NotFoundException(String.Format("Person with id of '{0}' does not exist.", id));
+                throw new NotFoundException(String.Format("Person with identifier of '{0}' does not exist.", id));
             }
 
-            return index;
+            person.FavouriteDishes.Clear();
+            favouriteDishes.ForEach(role => person.FavouriteDishes.Add(role));
+            _repository.Update(person);
         }
     }
 }

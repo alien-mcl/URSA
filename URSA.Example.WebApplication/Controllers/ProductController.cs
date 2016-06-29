@@ -15,8 +15,6 @@ namespace URSA.Example.WebApplication.Controllers
     /// <summary>Provides a basic product handling.</summary>
     public class ProductController : IWriteController<IProduct, Guid>
     {
-        private readonly IList<IProduct> _repository;
-
         private readonly IEntityContext _entityContext;
 
         /// <summary>Initializes a new instance of the <see cref="ProductController"/> class.</summary>
@@ -28,11 +26,7 @@ namespace URSA.Example.WebApplication.Controllers
                 throw new ArgumentNullException("entityContext");
             }
 
-            _repository = new List<IProduct>();
-            foreach (var product in (_entityContext = entityContext).AsQueryable<IProduct>())
-            {
-                _repository.Add(product);
-            }
+            _entityContext = entityContext;
         }
 
         /// <inheritdoc />
@@ -50,8 +44,8 @@ namespace URSA.Example.WebApplication.Controllers
             [LinqServerBehavior(LinqOperations.Take), FromQueryString("{?$top}")] int take = 0,
             [LinqServerBehavior(LinqOperations.Filter), FromQueryString("{?$filter}")] Expression<Func<IProduct, bool>> filter = null)
         {
-            totalItems = _repository.Count;
-            IEnumerable<IProduct> result = _repository;
+            totalItems = _entityContext.AsQueryable<IProduct>().ToList().Count();
+            IEnumerable<IProduct> result = _entityContext.AsQueryable<IProduct>();
             if (skip > 0)
             {
                 result = result.Skip(skip);
@@ -75,7 +69,7 @@ namespace URSA.Example.WebApplication.Controllers
         /// <returns>Instance of the <see cref="IProduct" /> if matching <paramref name="id" />; otherwise <b>null</b>.</returns>
         public IProduct Get(Guid id)
         {
-            return (from entity in _repository where entity.Key == id select entity).FirstOrDefault();
+            return (from entity in _entityContext.AsQueryable<IProduct>() where entity.Key == id select entity).FirstOrDefault();
         }
 
         /// <summary>Creates the specified product.</summary>
@@ -83,10 +77,10 @@ namespace URSA.Example.WebApplication.Controllers
         /// <returns>Identifier of newly created product.</returns>
         public Guid Create(IProduct product)
         {
-            product.Key = Guid.NewGuid();
-            product.Context.Commit();
-            product = product.Rename(new EntityId(product.Id.Uri + (product.Id.Uri.AbsoluteUri.EndsWith("/") ? String.Empty : "/") + product.Key));
-            _repository.Add(product);
+            Guid id = Guid.NewGuid();
+            product = _entityContext.Copy(product, new EntityId(product.Id.Uri + (product.Id.Uri.AbsoluteUri.EndsWith("/") ? String.Empty : "/") + id));
+            product.Key = id;
+            _entityContext.Commit();
             return product.Key;
         }
 
@@ -95,29 +89,28 @@ namespace URSA.Example.WebApplication.Controllers
         /// <param name="product">The product.</param>
         public void Update(Guid id, IProduct product)
         {
-            (_repository[GetIndex(id)] = product).Key = id;
+            GetInternal(id).Update(product);
+            _entityContext.Commit();
         }
 
         /// <summary>Deletes a product.</summary>
         /// <param name="id">Identifier of the product to be deleted.</param>
         public void Delete(Guid id)
         {
-            var product = _repository[GetIndex(id)];
-            _repository.Remove(product);
-            _entityContext.Delete(product.Id);
+            var product = GetInternal(id);
+            _entityContext.Delete(product.Id, DeleteBehaviour.DeleteChildren);
             _entityContext.Commit();
         }
 
-        private int GetIndex(Guid id)
+        private IProduct GetInternal(Guid id)
         {
-            int index = -1;
-            _repository.Where((entity, entityIndex) => (entity.Key == id) && ((index = entityIndex) != -1)).FirstOrDefault();
-            if (index == -1)
+            var result = (from entity in _entityContext.AsQueryable<IProduct>() where entity.Key == id select entity).FirstOrDefault();
+            if (result == null)
             {
                 throw new NotFoundException(String.Format("Product with id of '{0}' does not exist.", id));
             }
 
-            return index;
+            return result;
         }
     }
 }

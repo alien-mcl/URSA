@@ -8,6 +8,7 @@ using URSA.Web.Description.Http;
 
 namespace URSA.Web.Http.Description.NamedGraphs
 {
+    //// TODO: Consider removing custom named graph selectors
     /// <summary>Default implementation of the locally controlled named graph selector.</summary>
     public class LocallyControlledOwningResourceNamedGraphSelector : OwningResourceNamedGraphSelector, ILocallyControlledNamedGraphSelector
     {

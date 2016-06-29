@@ -21,6 +21,14 @@ namespace URSA.Web.Http.Description.Tests.Data
         /// <summary> Gets or sets the products's features.</summary>
         [Collection("http://temp.uri/vocab#feature")]
         ICollection<string> Features { get; set; }
+
+        /// <summary>Gets or sets the related product.</summary>
+        [Property("http://temp.uri/vocab#related")]
+        IProduct RelatedProduct { get; set; }
+
+        /// <summary>Gets or sets similar products.</summary>
+        [Collection("http://temp.uri/vocab#similar")]
+        ICollection<IProduct> Similar { get; set; } 
     }
 
     /// <summary>Provides additional mappings for the <see cref="IProduct" />.</summary>

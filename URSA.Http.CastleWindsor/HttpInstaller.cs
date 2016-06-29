@@ -7,6 +7,7 @@ using RomanticWeb;
 using RomanticWeb.DotNetRDF;
 using System;
 using System.Configuration;
+using System.Linq;
 using System.Reflection;
 using Castle.Facilities.TypedFactory;
 using RomanticWeb.Configuration;
@@ -34,17 +35,17 @@ namespace URSA.CastleWindsor
     /// <summary>Installs HTTP components.</summary>
     public class HttpInstaller : IWindsorInstaller
     {
-        private readonly Lazy<ITripleStore> _tripleStore; 
+        private static readonly Uri MetaGraphUri = ConfigurationSectionHandler.Default.Factories[DescriptionConfigurationSection.Default.DefaultStoreFactoryName].MetaGraphUri;
         private readonly Lazy<EntityContextFactory> _entityContextFactory;
+        private readonly INamedGraphSelector _namedGraphSelector;
         private readonly object _lock = new object();
         private bool _isBaseUriInitialized;
-        private bool _isNamedGraphSelectorInitialized;
 
         /// <summary>Initializes a new instance of the <see cref="HttpInstaller" /> class.</summary>
         public HttpInstaller()
         {
-            _tripleStore = new Lazy<ITripleStore>(CreateTripleStore, true);
             _entityContextFactory = new Lazy<EntityContextFactory>(CreateEntityContextFactory, true);
+            _namedGraphSelector = new FixedNamedGraphSelector();
         }
 
         /// <inheritdoc />
@@ -52,48 +53,63 @@ namespace URSA.CastleWindsor
         {
             UrlParser.Register<HttpUrlParser>();
             UrlParser.Register<FtpUrlParser>();
-            WindsorComponentProvider componentProvider = container.Resolve<WindsorComponentProvider>();
+            container.AddFacility<TypedFactoryFacility>();
+            var typedFactory = new UrsaCustomTypedFactory();
+            InstallRdfDependencies(container, typedFactory);
+            InstallRequestPipelineDependencies(container, typedFactory);
+            InstallDescriptionDependencies(container, typedFactory);
+        }
+
+        private void InstallRequestPipelineDependencies(IWindsorContainer container, UrsaCustomTypedFactory typedFactory)
+        {
             var configuration = (HttpConfigurationSection)ConfigurationManager.GetSection(HttpConfigurationSection.ConfigurationSection);
             Type sourceSelectorType = ((configuration != null) && (configuration.DefaultValueRelationSelectorType != null) ?
                 configuration.DefaultValueRelationSelectorType :
                 typeof(DefaultValueRelationSelector));
-            container.AddFacility<TypedFactoryFacility>();
-            var typedFactory = new UrsaCustomTypedFactory();
             container.Register(Component.For<IControllerActivator>().UsingFactoryMethod((kernel, context) => new DefaultControllerActivator(UrsaConfigurationSection.InitializeComponentProvider())).LifestyleSingleton());
-            container.Register(Component.For<ITripleStore>().Instance(_tripleStore.Value).Named("InMemoryTripleStore").LifestyleSingleton());
-            container.Register(Component.For<INamedGraphSelectorFactory>().AsFactory(typedFactory).LifestyleSingleton());
-            container.Register(Component.For<INamedGraphSelector>().ImplementedBy<LocallyControlledOwningResourceNamedGraphSelector>()
-                .Forward<ILocallyControlledNamedGraphSelector>().Named("InMemoryNamedGraphSelector").LifestyleSingleton()
-                .PropertiesIgnore((model, property) => property == typeof(LocallyControlledOwningResourceNamedGraphSelector).GetProperty("CurrentRequest")));
-            container.Register(Component.For<IEntityContextFactory>().Instance(_entityContextFactory.Value).Named("InMemoryEntityContextFactory").LifestyleSingleton());
-            container.Register(Component.For<IEntityContext>().UsingFactoryMethod(CreateEntityContext).Named("InMemoryEntityContext").LifeStyle.HybridPerWebRequestPerThread());
-            container.Register(Component.For<IEntityContextProvider>().AsFactory(typedFactory).LifestyleSingleton());
             container.Register(Component.For<IDefaultValueRelationSelector>().ImplementedBy(sourceSelectorType).LifestyleSingleton());
-            container.Register(Component.For(typeof(DescriptionController<>)).Forward<IController>()
-                .ImplementedBy(typeof(DescriptionController<>), componentProvider.GenericImplementationMatchingStrategy).LifestyleTransient());
-            container.Register(Component.For<EntryPointDescriptionController>().Forward<IController>().ImplementedBy<EntryPointDescriptionController>().LifestyleTransient());
             container.Register(Component.For<IParameterSourceArgumentBinder>().ImplementedBy<FromQueryStringArgumentBinder>().Activator<NonPublicComponentActivator>().LifestyleSingleton());
             container.Register(Component.For<IParameterSourceArgumentBinder>().ImplementedBy<FromUrlArgumentBinder>().Activator<NonPublicComponentActivator>().LifestyleSingleton());
             container.Register(Component.For<IParameterSourceArgumentBinder>().ImplementedBy<FromBodyArgumentBinder>().Activator<NonPublicComponentActivator>().LifestyleSingleton());
-            container.Register(Component.For<IClassGenerator>().ImplementedBy<HydraClassGenerator>().LifestyleSingleton());
-            container.Register(Component.For<IUriParser>().ImplementedBy<Web.Http.Description.CodeGen.GenericUriParser>().LifestyleSingleton());
-            container.Register(Component.For<IUriParser>().ImplementedBy<HydraUriParser>().LifestyleSingleton().Named(typeof(HydraUriParser).FullName));
-            container.Register(Component.For<IUriParser>().ImplementedBy<XsdUriParser>().LifestyleSingleton().Named(typeof(XsdUriParser).FullName));
-            container.Register(Component.For<IUriParser>().ImplementedBy<OGuidUriParser>().LifestyleSingleton().Named(typeof(OGuidUriParser).FullName));
-            container.Register(Component.For<IXmlDocProvider>().ImplementedBy<XmlDocProvider>().LifestyleSingleton());
             container.Register(Component.For<IWebRequestProvider>().ImplementedBy<WebRequestProvider>().LifestyleSingleton());
             container.Register(Component.For<IRequestHandler<RequestInfo, ResponseInfo>>().ImplementedBy<RequestHandler>().LifestyleSingleton());
             container.Register(Component.For<IResponseComposer>().ImplementedBy<ResponseComposer>().LifestyleSingleton());
             container.Register(Component.For<IDelegateMapper<RequestInfo>>().ImplementedBy<DelegateMapper>().LifestyleSingleton());
             container.Register(Component.For<IArgumentBinder<RequestInfo>>().ImplementedBy<ArgumentBinder>().LifestyleSingleton());
             container.Register(Component.For<IResultBinder<RequestInfo>>().ImplementedBy<ResultBinder>().LifestyleSingleton());
+            container.Register(Component.For<IResponseModelTransformer>().ImplementedBy<RdfPayloadModelTransformer>().Named("RdfPayloadRequestModelTransformer").LifestyleSingleton());
+            container.Register(Component.For<IResponseModelTransformer>().ImplementedBy<CollectionResponseModelTransformer>().Named("CollectionResponseModelTransformer").LifestyleSingleton());
+            container.Register(Component.For<IRequestModelTransformer>().ImplementedBy<RdfPayloadModelTransformer>().Named("RdfPayloadResponseModelTransformer").LifestyleSingleton());
+        }
+
+        private void InstallRdfDependencies(IWindsorContainer container, UrsaCustomTypedFactory typedFactory)
+        {
+            container.Register(Component.For<ITripleStore>().UsingFactoryMethod(CreateTripleStore).Named("InMemoryTripleStore").LifeStyle.HybridPerWebRequestPerThread());
+            container.Register(Component.For<INamedGraphSelector>().Instance(_namedGraphSelector).Named("InMemoryNamedGraphSelector").LifestyleSingleton());
+            container.Register(Component.For<IEntityContextFactory>().Instance(_entityContextFactory.Value).Named("InMemoryEntityContextFactory").LifestyleSingleton());
+            container.Register(Component.For<IEntityContext>().UsingFactoryMethod(CreateEntityContext).Named("InMemoryEntityContext").LifeStyle.HybridPerWebRequestPerThread());
+            container.Register(Component.For<Uri>().Instance(MetaGraphUri).Named("InMemoryMetaGraph").LifestyleSingleton());
+            container.Register(Component.For<IEntityContextProvider>().AsFactory(typedFactory).LifeStyle.HybridPerWebRequestPerThread());
+        }
+
+        private void InstallDescriptionDependencies(IWindsorContainer container, UrsaCustomTypedFactory typedFactory)
+        {
+            WindsorComponentProvider componentProvider = container.Resolve<WindsorComponentProvider>();
+            container.Register(Component.For(typeof(DescriptionController<>)).Forward<IController>()
+                .ImplementedBy(typeof(DescriptionController<>), componentProvider.GenericImplementationMatchingStrategy).LifestyleTransient());
+            container.Register(Component.For<EntryPointDescriptionController>().Forward<IController>().ImplementedBy<EntryPointDescriptionController>().LifestyleTransient());
             container.Register(Component.For<ITypeDescriptionBuilder>().ImplementedBy<HydraCompliantTypeDescriptionBuilder>()
                 .Named(EntityConverter.Hydra.ToString()).IsDefault().LifestyleSingleton());
             container.Register(Component.For<IServerBehaviorAttributeVisitor>().ImplementedBy<DescriptionBuildingServerBahaviorAttributeVisitor<ParameterInfo>>().Named("Hydra"));
             container.Register(Component.For(typeof(IApiDescriptionBuilder<>)).ImplementedBy(typeof(ApiDescriptionBuilder<>)).LifestyleSingleton().Forward<IApiDescriptionBuilder>());
             container.Register(Component.For<IApiEntryPointDescriptionBuilder>().ImplementedBy<ApiEntryPointDescriptionBuilder>().LifestyleSingleton().Forward<IApiDescriptionBuilder>());
             container.Register(Component.For<IApiDescriptionBuilderFactory>().AsFactory(typedFactory).LifestyleSingleton());
-            container.Register(Component.For<IModelTransformer>().ImplementedBy<CollectionModelTransformer>().LifestyleSingleton());
+            container.Register(Component.For<IClassGenerator>().ImplementedBy<HydraClassGenerator>().LifestyleSingleton());
+            container.Register(Component.For<IUriParser>().ImplementedBy<Web.Http.Description.CodeGen.GenericUriParser>().LifestyleSingleton());
+            container.Register(Component.For<IUriParser>().ImplementedBy<HydraUriParser>().LifestyleSingleton().Named(typeof(HydraUriParser).FullName));
+            container.Register(Component.For<IUriParser>().ImplementedBy<XsdUriParser>().LifestyleSingleton().Named(typeof(XsdUriParser).FullName));
+            container.Register(Component.For<IUriParser>().ImplementedBy<OGuidUriParser>().LifestyleSingleton().Named(typeof(OGuidUriParser).FullName));
+            container.Register(Component.For<IXmlDocProvider>().ImplementedBy<XmlDocProvider>().LifestyleSingleton());
         }
 
         private IEntityContext CreateEntityContext(IKernel kernel, CreationContext context)
@@ -102,36 +118,51 @@ namespace URSA.CastleWindsor
             lock (_lock)
             {
                 EntityContextFactory entityContextFactory = _entityContextFactory.Value;
-                if (!_isNamedGraphSelectorInitialized)
-                {
-                    entityContextFactory = entityContextFactory.WithNamedGraphSelector(kernel.Resolve<INamedGraphSelector>());
-                    _isNamedGraphSelectorInitialized = true;
-                }
-
                 if (!_isBaseUriInitialized)
                 {
-                    var baseUri = kernel.Resolve<IHttpServerConfiguration>().BaseUri;
-                    if (baseUri != null)
+                    if (kernel.GetAssignableHandlers(typeof(IHttpServerConfiguration)).Any())
+                    {
+                        var baseUri = kernel.Resolve<IHttpServerConfiguration>().BaseUri;
+                        if (baseUri != null)
+                        {
+                            _isBaseUriInitialized = true;
+                            result = CreateThreadSafeEntityContext(
+                                entityContextFactory.WithBaseUri(policy => policy.Default.Is(baseUri)),
+                                kernel.Resolve<ITripleStore>("InMemoryTripleStore"));
+                        }
+                    }
+                    else
                     {
                         _isBaseUriInitialized = true;
-                        result = entityContextFactory.WithBaseUri(policy => policy.Default.Is(baseUri)).CreateContext();
                     }
                 }
 
                 if (result == null)
                 {
-                    result = entityContextFactory.CreateContext();
+                    result = CreateThreadSafeEntityContext(entityContextFactory, kernel.Resolve<ITripleStore>("InMemoryTripleStore"));
                 }
             }
 
             return result;
         }
 
+        private IEntityContext CreateThreadSafeEntityContext(IEntityContextFactory entityContextFactory, ITripleStore tripleStore)
+        {
+            var metaGraphUri = tripleStore.Graphs.First().BaseUri;
+            var sparqlCommandFactory = (ISparqlCommandFactory)typeof(TripleStoreAdapter).Assembly
+                .GetType("RomanticWeb.DotNetRDF.DefaultSparqlCommandFactory")
+                .GetConstructor(new[] { typeof(Uri) })
+                .Invoke(new object[] { metaGraphUri });
+            var tripleStoreAdapter = new TripleStoreAdapter(tripleStore, sparqlCommandFactory) { MetaGraphUri = metaGraphUri };
+            var result = entityContextFactory.CreateContext();
+            result.GetType().GetField("_entitySource", BindingFlags.NonPublic | BindingFlags.Instance).SetValue(result, tripleStoreAdapter);
+            return result;
+        }
+
         private ITripleStore CreateTripleStore()
         {
-            var metaGraphUri = ConfigurationSectionHandler.Default.Factories[DescriptionConfigurationSection.Default.DefaultStoreFactoryName].MetaGraphUri;
             var store = new ThreadSafeTripleStore();
-            var metaGraph = new ThreadSafeGraph() { BaseUri = metaGraphUri };
+            var metaGraph = new ThreadSafeGraph() { BaseUri = MetaGraphUri };
             store.Add(metaGraph);
             return store;
         }
@@ -141,7 +172,8 @@ namespace URSA.CastleWindsor
             return EntityContextFactory
                 .FromConfiguration(DescriptionConfigurationSection.Default.DefaultStoreFactoryName)
                 .WithDefaultOntologies()
-                .WithDotNetRDF(_tripleStore.Value);
+                .WithNamedGraphSelector(_namedGraphSelector)
+                .WithDotNetRDF(new TripleStore());
         }
     }
 }

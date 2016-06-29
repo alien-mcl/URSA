@@ -6,7 +6,6 @@ using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Reflection;
-using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -14,7 +13,6 @@ using Moq;
 using RomanticWeb;
 using RomanticWeb.Entities;
 using RomanticWeb.Mapping;
-using RomanticWeb.Mapping.Attributes;
 using RomanticWeb.Mapping.Model;
 using RomanticWeb.Model;
 using RomanticWeb.NamedGraphs;
@@ -27,7 +25,6 @@ using URSA.Web.Http.Converters;
 using URSA.Web.Http.Description;
 using URSA.Web.Http.Description.Hydra;
 using URSA.Web.Http.Description.Mapping;
-using URSA.Web.Http.Description.NamedGraphs;
 using URSA.Web.Http.Description.Rdfs;
 using URSA.Web.Http.Description.Testing;
 using URSA.Web.Http.Description.Tests;
@@ -47,7 +44,7 @@ namespace Given_instance_of_the
         private Mock<IApiDocumentation> _apiDocumentation;
         private Mock<IXmlDocProvider> _xmlDocProvider;
         private Mock<ITypeDescriptionBuilder> _typeDescriptionBuilder;
-        private Mock<INamedGraphSelectorFactory> _namedGraphSelectorFactory;
+        private Mock<INamedGraphSelector> _namedGraphSelector;
         private IHttpControllerDescriptionBuilder<TestController> _descriptionBuilder;
 
         [TestMethod]
@@ -58,7 +55,7 @@ namespace Given_instance_of_the
                 _xmlDocProvider.Object,
                 new[] { _typeDescriptionBuilder.Object },
                 new IServerBehaviorAttributeVisitor[0],
-                _namedGraphSelectorFactory.Object);
+                _namedGraphSelector.Object);
             apiDescriptionBuilder.BuildDescription(_apiDocumentation.Object, null);
 
             _apiDocumentation.Object.EntryPoints.Should().HaveCount(0);
@@ -77,7 +74,7 @@ namespace Given_instance_of_the
                 _xmlDocProvider.Object,
                 new[] { _typeDescriptionBuilder.Object, shaclTypeDescriptionBuilder.Object },
                 new IServerBehaviorAttributeVisitor[0],
-                _namedGraphSelectorFactory.Object);
+                _namedGraphSelector.Object);
             apiDescriptionBuilder.BuildDescription(_apiDocumentation.Object, new[] { EntityConverter.Hydra });
 
             _typeDescriptionBuilder.VerifyGet(instance => instance.SupportedProfiles, Times.Once);
@@ -94,7 +91,7 @@ namespace Given_instance_of_the
                 _xmlDocProvider.Object,
                 new[] { _typeDescriptionBuilder.Object, shaclTypeDescriptionBuilder.Object },
                 new IServerBehaviorAttributeVisitor[0],
-                _namedGraphSelectorFactory.Object);
+                _namedGraphSelector.Object);
             apiDescriptionBuilder.BuildDescription(_apiDocumentation.Object, new[] { EntityConverter.Shacl });
 
             _typeDescriptionBuilder.VerifyGet(instance => instance.SupportedProfiles, Times.Once);
@@ -110,7 +107,7 @@ namespace Given_instance_of_the
                 _xmlDocProvider.Object,
                 new[] { _typeDescriptionBuilder.Object },
                 new IServerBehaviorAttributeVisitor[0],
-                _namedGraphSelectorFactory.Object);
+                _namedGraphSelector.Object);
 
             var operationOwner = apiDescriptionBuilder.DetermineOperationOwner(
                 typeof(TestController).GetMethod("SetRoles").ToOperationInfo("http://temp.uri/", Verb.POST),
@@ -129,7 +126,7 @@ namespace Given_instance_of_the
                 _xmlDocProvider.Object,
                 new[] { _typeDescriptionBuilder.Object },
                 new IServerBehaviorAttributeVisitor[0],
-                _namedGraphSelectorFactory.Object);
+                _namedGraphSelector.Object);
 
             apiDescriptionBuilder.BuildDescription(_apiDocumentation.Object, null);
 
@@ -148,7 +145,7 @@ namespace Given_instance_of_the
                 _xmlDocProvider.Object,
                 new[] { _typeDescriptionBuilder.Object },
                 new IServerBehaviorAttributeVisitor[0],
-                _namedGraphSelectorFactory.Object);
+                _namedGraphSelector.Object);
 
             apiDescriptionBuilder.BuildDescription(_apiDocumentation.Object, null);
 
@@ -169,7 +166,7 @@ namespace Given_instance_of_the
             _entityContext.Setup(instance => instance.Mappings).Returns(mappingsRepository.Object);
             _xmlDocProvider = SetupXmlDocProvider();
             _typeDescriptionBuilder = SetupTypeDescriptionBuilder(_entityContext);
-            _namedGraphSelectorFactory = SetupNamedGraphSelectorFactory(baseUri);
+            _namedGraphSelector = SetupNamedGraphSelector(baseUri);
             _descriptionBuilder = SetupHttpControllerDescriptionBuilder();
         }
 
@@ -179,7 +176,7 @@ namespace Given_instance_of_the
             _apiDocumentation = null;
             _xmlDocProvider = null;
             _typeDescriptionBuilder = null;
-            _namedGraphSelectorFactory = null;
+            _namedGraphSelector = null;
             _descriptionBuilder = null;
         }
 
@@ -223,14 +220,12 @@ namespace Given_instance_of_the
             return new OperationInfo<Verb>(method, (HttpUrl)UrlParser.Parse("/"), uriTemplate, new Regex(".*"), verb, arguments.ToArray()).WithSecurityDetailsFrom(method);
         }
 
-        private static Mock<INamedGraphSelectorFactory> SetupNamedGraphSelectorFactory(Uri baseUri)
+        private static Mock<INamedGraphSelector> SetupNamedGraphSelector(Uri baseUri)
         {
             var namedGraphSelector = new Mock<INamedGraphSelector>(MockBehavior.Strict);
             namedGraphSelector.Setup(instance => instance.SelectGraph(It.IsAny<EntityId>(), It.IsAny<IEntityMapping>(), It.IsAny<IPropertyMapping>()))
                 .Returns<EntityId, IEntityMapping, IPropertyMapping>((id, map, property) => baseUri);
-            var namedGraphSelectorFactory = new Mock<INamedGraphSelectorFactory>(MockBehavior.Strict);
-            namedGraphSelectorFactory.SetupGet(instance => instance.NamedGraphSelector).Returns(namedGraphSelector.Object);
-            return namedGraphSelectorFactory;
+            return namedGraphSelector;
         }
 
         private static Mock<IXmlDocProvider> SetupXmlDocProvider()

@@ -1,9 +1,15 @@
 ﻿using System;
 using System.Configuration;
 using System.Data.SqlClient;
+using System.Linq;
 using System.Net;
+using RomanticWeb;
+using RomanticWeb.DotNetRDF;
+using RomanticWeb.Entities;
 using URSA.Example.WebApplication.Data;
 using URSA.Web.Http;
+using VDS.RDF;
+using Vocab;
 
 namespace URSA.Example
 {
@@ -13,8 +19,14 @@ namespace URSA.Example
         {
             CredentialCache.DefaultNetworkCredentials.UserName = ConfigurationManager.AppSettings["DefaultCredentials"].Split(':')[0];
             CredentialCache.DefaultNetworkCredentials.Password = ConfigurationManager.AppSettings["DefaultCredentials"].Split(':')[1];
-            var uri = (HttpUrl)UrlParser.Parse(new SqlConnectionStringBuilder(ConfigurationManager.ConnectionStrings["ServerUri"].ConnectionString).DataSource);
-            var client = new PersonClient(uri, ConfigurationManager.AppSettings["DefaultAuthenticationScheme"]);
+            var url = (HttpUrl)UrlParser.Parse(new SqlConnectionStringBuilder(ConfigurationManager.ConnectionStrings["ServerUri"].ConnectionString).DataSource);
+            //TestPerson(url);
+            TestProduct(url);
+        }
+
+        private static void TestPerson(HttpUrl url)
+        {
+            var client = new PersonClient(url, ConfigurationManager.AppSettings["DefaultAuthenticationScheme"]);
             var person = new Person() { Firstname = "Test", Lastname = "Testing", Roles = new[] { "Role" } };
             person.Key = client.Create(person);
             Console.WriteLine("Created person '{0}'.", person.Key);
@@ -23,7 +35,36 @@ namespace URSA.Example
             Console.WriteLine("Listing all {0} person(s):", totalEntities);
             foreach (var item in persons)
             {
-                Console.WriteLine("Person {0}", person.Key);
+                Console.WriteLine("Person {0}", item.Key);
+            }
+
+            Console.ReadLine();
+        }
+
+        private static void TestProduct(HttpUrl url)
+        {
+            var tripleStore = new TripleStore();
+            tripleStore.Add(new Graph() { BaseUri = new Uri("meta:graph") });
+            var entityContextFactory = EntityContextFactory.FromConfiguration("in-memory")
+                .WithMappings(builder => builder.FromAssemblyOf<IProduct>())
+                .WithMetaGraphUri(tripleStore.Graphs.First().BaseUri)
+                .WithDotNetRDF(tripleStore)
+                .WithDefaultOntologies();
+            var entityContext = entityContextFactory.CreateContext();
+            var client = new ProductClient(url, ConfigurationManager.AppSettings["DefaultAuthenticationScheme"]);
+            var product = entityContext.Create<IProduct>(new EntityId((Uri)(url + "/api/product")));
+            product.Name = "Test";
+            product.Price = 1.0;
+            product.Features.Add("Feature");
+            entityContext.Commit();
+            product.Key = client.Create(product);
+            Console.WriteLine("Created product '{0}'.", product.Key);
+            int totalEntities;
+            var products = client.List(out totalEntities, 0, 0, null);
+            Console.WriteLine("Listing all {0} products(s):", totalEntities);
+            foreach (var item in products)
+            {
+                Console.WriteLine("Product {0}", item.Key);
             }
 
             Console.ReadLine();

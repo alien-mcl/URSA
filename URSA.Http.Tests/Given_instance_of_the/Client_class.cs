@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text;
+using System.Threading.Tasks;
 using FluentAssertions;
 using FluentAssertions.Common;
 using URSA;
@@ -58,16 +59,16 @@ namespace Given_instance_of_the
         }
 
         [TestMethod]
-        public void it_should_create_a_request()
+        public async Task it_should_create_a_request()
         {
-            Call();
+            await Call();
 
             _webRequestProvider.Verify(instance => instance.SupportedProtocols, Times.Once);
             _webRequestProvider.Verify(instance => instance.CreateRequest(It.IsAny<Uri>(), It.IsAny<IDictionary<string, string>>()), Times.Once);
         }
 
         [TestMethod]
-        public void it_should_use_credentials_available_in_cache()
+        public async Task it_should_use_credentials_available_in_cache()
         {
             var expectedUserName = "userName";
             var expectedPassword = "password";
@@ -75,7 +76,7 @@ namespace Given_instance_of_the
             CredentialCache.DefaultNetworkCredentials.Password = expectedPassword;
             var url = (HttpUrl)CallUrl.AddSegments(RelativeUri.Split('/'));
 
-            Call();
+            await Call();
 
             _webRequest.VerifySet(
                 instance => instance.Credentials = It.Is<ICredentials>(
@@ -84,42 +85,42 @@ namespace Given_instance_of_the
         }
 
         [TestMethod]
-        public void it_should_serialize_request_body()
+        public async Task it_should_serialize_request_body()
         {
-            Call();
+            await Call();
 
             _converterProvider.Verify(instance => instance.FindBestOutputConverter<Person>(It.IsAny<IResponseInfo>()), Times.Once);
             _converter.Verify(instance => instance.ConvertFrom(Person, It.IsAny<IResponseInfo>()), Times.Once);
         }
 
         [TestMethod]
-        public void it_should_deserialize_response_body()
+        public async Task it_should_deserialize_response_body()
         {
-            Call();
+            await Call();
 
             _resultBinder.Verify(instance => instance.BindResults(typeof(Person), It.IsAny<RequestInfo>()), Times.Once);
         }
 
         [TestMethod]
-        public void it_should_return_result()
+        public async Task it_should_return_result()
         {
-            var result = Call();
+            var result = await Call();
 
             result.Should().Be(Person);
         }
 
         [TestMethod]
-        public void it_should_return_untyped_result()
+        public async Task it_should_return_untyped_result()
         {
-            Call(With.NoResult);
+            await Call(With.NoResult);
 
             _webRequest.Verify(instance => instance.GetResponse(), Times.Once);
         }
 
         [TestMethod]
-        public void it_should_parse_Content_Range_headers()
+        public async Task it_should_parse_Content_Range_headers()
         {
-            Call();
+            await Call();
 
             ((int)_arguments.totalEntities).Should().Be(1);
         }
@@ -129,13 +130,13 @@ namespace Given_instance_of_the
         {
             _headers["Content-Range"] = "test";
 
-            ((Client)null).Invoking(_ => Call()).ShouldThrow<FormatException>();
+            ((Client)null).Awaiting(_ => Call()).ShouldThrow<FormatException>();
         }
 
         [TestMethod]
-        public void it_should_deserialize_multipart_body_correctly()
+        public async Task it_should_deserialize_multipart_body_correctly()
         {
-            Call(With.MultipartBody);
+            await Call(With.MultipartBody);
 
             _requestStream.Seek(0, SeekOrigin.Begin);
             Encoding.UTF8.GetString(_requestStream.ToArray()).Should().Contain("--");
@@ -176,6 +177,7 @@ namespace Given_instance_of_the
             _container.Setup(instance => instance.Resolve<IConverterProvider>(null)).Returns(_converterProvider.Object);
             _container.Setup(instance => instance.ResolveAll<IWebRequestProvider>(null)).Returns(new[] { _webRequestProvider.Object });
             _container.Setup(instance => instance.Resolve<IResultBinder<RequestInfo>>(null)).Returns(_resultBinder.Object);
+            _container.Setup(instance => instance.ResolveAll<IRequestModelTransformer>(null)).Returns(new IRequestModelTransformer[0]);
             _client = new Client(CallUrl, AuthenticationScheme);
         }
 
@@ -193,7 +195,7 @@ namespace Given_instance_of_the
             _client = null;
         }
 
-        private Person Call(With options = With.StronglyTypedResult)
+        private async Task<Person> Call(With options = With.StronglyTypedResult)
         {
             _arguments.id = 1;
             if (options == With.NoResult)
@@ -204,10 +206,10 @@ namespace Given_instance_of_the
 
             if (options == With.MultipartBody)
             {
-                return _client.Call<Person>(Verb.PUT, RelativeUri, new[] { "application/json" }, new[] { "application/json" }, _arguments, Person, Person);
+                return await _client.Call<Person>(Verb.PUT, RelativeUri, new[] { "application/json" }, new[] { "application/json" }, _arguments, Person, Person);
             }
 
-            return _client.Call<Person>(Verb.PUT, RelativeUri, new[] { "application/json" }, new[] { "application/json" }, _arguments, Person);
+            return await _client.Call<Person>(Verb.PUT, RelativeUri, new[] { "application/json" }, new[] { "application/json" }, _arguments, Person);
         }
 
         private bool Test(ICredentials credentials, HttpUrl url, string expectedUserName, string expectedPassword)

@@ -3,7 +3,6 @@ using System.Reflection;
 using Castle.Facilities.TypedFactory;
 using URSA.Web.Http.Description;
 using URSA.Web.Http.Description.Entities;
-using URSA.Web.Http.Description.NamedGraphs;
 
 namespace URSA.CastleWindsor.ComponentModel
 {
@@ -20,9 +19,10 @@ namespace URSA.CastleWindsor.ComponentModel
             return base.GetComponentType(method, arguments);
         }
 
+        /// <inheritdoc />
         protected override string GetComponentName(MethodInfo method, object[] arguments)
         {
-            if ((MethodMatchesCriteria<INamedGraphSelectorFactory>(method, "get_NamedGraphSelector")) ||
+            if ((MethodMatchesCriteria<IEntityContextProvider>(method, "get_MetaGraph")) ||
                 (MethodMatchesCriteria<IEntityContextProvider>(method, "get_EntityContext")) ||
                 (MethodMatchesCriteria<IEntityContextProvider>(method, "get_TripleStore")))
             {

@@ -102,6 +102,7 @@
     <Compile Include="FluentAssertions\CustomAssertions.cs" />
     <Compile Include="Given_instance_of_the\ArgumentBinder_class.cs" />
     <Compile Include="Given_instance_of_the\BasicAuthenticationProvider_class\when_acting_as_IDefaultAuthenticationScheme.cs" />
+    <Compile Include="Given_instance_of_the\DependencyTree_class.cs" />
     <Compile Include="When_working_with_URLs\FtpUrl_class.cs" />
     <Compile Include="When_working_with_URLs\HttpUrl_class.cs" />
     <None Include="When_sending_a_request\ArgumentBinder_class.cs" />

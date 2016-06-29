@@ -78,11 +78,11 @@ namespace Given_instance_of_the
         [TestMethod]
         public void it_should_parse_the_header_correctly()
         {
-            var header = Header.Parse("Accept: text/plain; q=0.5, text/html,\r\n text/x-dvi; q=\"test\", text/x-c");
+            var header = Header.Parse("Accept: text/plain; q=0.5, text/html,\r\n text/x-dvi; q=\"test\", text/x-c,text/csv");
 
             header.Should().NotBeNull();
             header.Name.Should().Be("Accept");
-            header.Values.Should().HaveCount(4);
+            header.Values.Should().HaveCount(5);
 
             header.Values.First().Value.Should().Be("text/plain");
             header.Values.First().Parameters.Should().HaveCount(1);
@@ -96,7 +96,9 @@ namespace Given_instance_of_the
             header.Values.Skip(2).First().Parameters.First().Name.Should().Be("q");
             header.Values.Skip(2).First().Parameters["q"].Value.Should().Be("test");
 
-            header.Values.Last().Value.Should().Be("text/x-c");
+            header.Values.Skip(3).First().Value.Should().Be("text/x-c");
+
+            header.Values.Last().Value.Should().Be("text/csv");
         }
 
         [TestMethod]

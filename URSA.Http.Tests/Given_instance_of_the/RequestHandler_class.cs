@@ -138,10 +138,10 @@ namespace Given_instance_of_the
         [TestMethod]
         public void it_should_process_model_transformers()
         {
-            var modelTransformer = new Mock<IModelTransformer>(MockBehavior.Strict);
+            var modelTransformer = new Mock<IResponseModelTransformer>(MockBehavior.Strict);
             modelTransformer.Setup(instance => instance.Transform(It.IsAny<IRequestMapping>(), It.IsAny<IRequestInfo>(), It.IsAny<object>(), It.IsAny<object[]>()))
                 .Returns<IRequestInfo, object, object[]>((request, result, arguments) => Task.FromResult(result));
-            var handler = SetupEnvironment(1, true, modelTransformer: modelTransformer.Object);
+            var handler = SetupEnvironment(1, true, responseModelTransformer: modelTransformer.Object);
 
             handler.HandleRequest(new RequestInfo(Verb.GET, (HttpUrl)UrlParser.Parse("http://temp.uri/api/test"), new MemoryStream(), new BasicClaimBasedIdentity()));
 
@@ -179,7 +179,7 @@ namespace Given_instance_of_the
             string methodName = "Substract",
             IPreRequestHandler preRequestHandler = null,
             IPostRequestHandler postRequestHandler = null,
-            IModelTransformer modelTransformer = null)
+            IResponseModelTransformer responseModelTransformer = null)
         {
             var operation = CreateOperation(methodName);
             _arguments = operation.UnderlyingMethod.GetParameters().Select(parameter =>
@@ -211,7 +211,7 @@ namespace Given_instance_of_the
                 _responseComposer.Object,
                 (preRequestHandler != null ? new[] { preRequestHandler } : null),
                 (postRequestHandler != null ? new[] { postRequestHandler } : null),
-                (modelTransformer != null ? new[] { modelTransformer } : null));
+                (responseModelTransformer != null ? new[] { responseModelTransformer } : null));
         }
 
         private OperationInfo<Verb> CreateOperation(string methodName)

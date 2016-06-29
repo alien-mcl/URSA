@@ -4,6 +4,7 @@ using RomanticWeb.NamedGraphs;
 
 namespace URSA.Web.Http.Description.NamedGraphs
 {
+    //// TODO: Consider removing custom named graph selectors
     /// <summary>Provides a contract for locally controller <see cref="INamedGraphSelector" /> implementation.</summary>
     public interface ILocallyControlledNamedGraphSelector : INamedGraphSelector
     {

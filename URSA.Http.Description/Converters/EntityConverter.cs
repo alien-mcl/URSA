@@ -1,6 +1,4 @@
 ﻿using RomanticWeb;
-using RomanticWeb.ComponentModel;
-using RomanticWeb.DotNetRDF;
 using RomanticWeb.Entities;
 using RomanticWeb.Vocabularies;
 using System;
@@ -10,10 +8,10 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Xml;
+using RomanticWeb.NamedGraphs;
 using URSA.Web.Converters;
 using URSA.Web.Http.Description;
 using URSA.Web.Http.Description.Entities;
-using URSA.Web.Http.Description.NamedGraphs;
 using URSA.Web.Http.Description.VDS.RDF;
 using VDS.RDF;
 using VDS.RDF.Parsing;
@@ -47,7 +45,7 @@ namespace URSA.Web.Http.Converters
         public const string ApplicationLdJson = "application/ld+json";
 
         /// <summary>Defines the supported media types.</summary>
-        public static readonly string[] MediaTypes = new[] { TextTurtle, ApplicationRdfXml, ApplicationOwlXml, ApplicationLdJson };
+        public static readonly string[] MediaTypes = { TextTurtle, ApplicationRdfXml, ApplicationOwlXml, ApplicationLdJson };
 
         /// <summary>Gets the media type file format mapping.</summary>
         public static readonly IDictionary<string, string> MediaTypeFileFormats = new ConcurrentDictionary<string, string>();
@@ -90,7 +88,7 @@ namespace URSA.Web.Http.Converters
             Hydra);
 
         private readonly IEntityContextProvider _entityContextProvider;
-        private readonly INamedGraphSelectorFactory _namedGraphSelectorFactory;
+        private readonly INamedGraphSelector _namedGraphSelector;
 
         static EntityConverter()
         {
@@ -102,21 +100,21 @@ namespace URSA.Web.Http.Converters
 
         /// <summary>Initializes a new instance of the <see cref="EntityConverter" /> class.</summary>
         /// <param name="entityContextProvider">Entity context provider.</param>
-        /// <param name="namedGraphSelectorFactory">Named graph selector factory.</param>
-        public EntityConverter(IEntityContextProvider entityContextProvider, INamedGraphSelectorFactory namedGraphSelectorFactory)
+        /// <param name="namedGraphSelector">Named graph selector.</param>
+        public EntityConverter(IEntityContextProvider entityContextProvider, INamedGraphSelector namedGraphSelector)
         {
             if (entityContextProvider == null)
             {
                 throw new ArgumentNullException("entityContextProvider");
             }
 
-            if (namedGraphSelectorFactory == null)
+            if (namedGraphSelector == null)
             {
-                throw new ArgumentNullException("namedGraphSelectorFactory");
+                throw new ArgumentNullException("namedGraphSelector");
             }
 
             _entityContextProvider = entityContextProvider;
-            _namedGraphSelectorFactory = namedGraphSelectorFactory;
+            _namedGraphSelector = namedGraphSelector;
         }
 
         /// <inheritdoc />
@@ -161,9 +159,7 @@ namespace URSA.Web.Http.Converters
         /// <inheritdoc />
         public T ConvertTo<T>(IRequestInfo request)
         {
-            return (T)typeof(EntityExtensions).GetMethod("AsEntity", BindingFlags.Public | BindingFlags.Static)
-                .MakeGenericMethod(typeof(T))
-                .Invoke(null, new object[] { (IEntity)ConvertTo(typeof(T), request) });
+            return (T)ConvertTo(typeof(T), request);
         }
 
         /// <inheritdoc />
@@ -174,7 +170,8 @@ namespace URSA.Web.Http.Converters
                 throw new ArgumentNullException("expectedType");
             }
 
-            if (!typeof(IEntity).IsAssignableFrom(expectedType))
+            var itemType = expectedType.FindItemType();
+            if (!typeof(IEntity).IsAssignableFrom(itemType))
             {
                 throw new ArgumentOutOfRangeException("expectedType");
             }
@@ -189,7 +186,7 @@ namespace URSA.Web.Http.Converters
             var mediaType = (contentType != null ? contentType.Values.Join(MediaTypes, outer => outer.Value, inner => inner, (outer, inner) => outer.Value).First() : TextTurtle);
             var reader = CreateReader(mediaType);
             var entityId = (Uri)requestInfo.Url.WithFragment(null);
-            var graphUri = _namedGraphSelectorFactory.NamedGraphSelector.SelectGraph(new EntityId(entityId), null, null);
+            var graphUri = _namedGraphSelector.SelectGraph(new EntityId(entityId), null, null);
             var graph = _entityContextProvider.TripleStore.FindOrCreate(graphUri);
             graph.Clear();
             using (var textReader = new StreamReader(requestInfo.Body))
@@ -198,12 +195,22 @@ namespace URSA.Web.Http.Converters
             }
 
             _entityContextProvider.TripleStore.MapToMetaGraph(graph.BaseUri);
-            var entity = (IEntity)_entityContextProvider.EntityContext.GetType().GetInterfaceMap(typeof(IEntityContext))
+            if (itemType == expectedType)
+            {
+                return _entityContextProvider.EntityContext.GetType().GetInterfaceMap(typeof(IEntityContext))
+                    .TargetMethods
+                    .First(method => method.Name == "Load")
+                    .MakeGenericMethod(itemType)
+                    .Invoke(_entityContextProvider.EntityContext, new object[] { new EntityId(entityId) });
+            }
+
+            var result = _entityContextProvider.EntityContext.GetType().GetInterfaceMap(typeof(IEntityContext))
                 .TargetMethods
-                .First(method => method.Name == "Load")
-                .MakeGenericMethod(expectedType)
-                .Invoke(_entityContextProvider.EntityContext, new object[] { new EntityId(entityId) });
-            return entity;
+                .First(method => (method.Name == "AsQueryable") && (method.IsGenericMethod))
+                .MakeGenericMethod(itemType)
+                .Invoke(_entityContextProvider.EntityContext, null);
+            result = typeof(Enumerable).GetMethod("ToList", BindingFlags.Static | BindingFlags.Public).MakeGenericMethod(itemType).Invoke(null, new[] { result });
+            return (expectedType.IsArray ? result.GetType().GetMethod("ToArray").Invoke(result, null) : result);
         }
 
         /// <inheritdoc />
@@ -293,8 +300,11 @@ namespace URSA.Web.Http.Converters
             }
 
             //// TODO: Add support for graph based serializations.
-            var graph = CreateResultingGraph(instance, (Uri)requestInfo.Url);
-            WriteResponseBody(graph, mediaType, response);
+            var graphs = _entityContextProvider.TripleStore.Graphs.Where(graph => !AbsoluteUriComparer.Default.Equals(graph.BaseUri, _entityContextProvider.MetaGraph));
+            if (graphs.Any())
+            {
+                WriteResponseBody(graphs, mediaType, response);
+            }
         }
 
         private static IRdfReader CreateReader(string mediaType)
@@ -350,93 +360,9 @@ namespace URSA.Web.Http.Converters
             return result;
         }
 
-        private IGraph CreateResultingGraph(object instance, Uri requestUri)
+        private void WriteResponseBody(IEnumerable<IGraph> graphs, string mediaType, IResponseInfo response)
         {
-            var entities = (instance is IEnumerable<IEntity> ? (IEnumerable<IEntity>)instance : new[] { (IEntity)instance });
-            IGraph graph = new Graph();
-            var relatedEntities = new List<IUriNode>();
-            var visitedEntities = new HashSet<string>();
-            foreach (var entity in entities)
-            {
-                AssertEntityTriples(entity, graph, relatedEntities, visitedEntities);
-            }
-
-            for (int index = 0; index < relatedEntities.Count; index++)
-            {
-                AssertEntityTriples(index, graph, relatedEntities, visitedEntities);
-            }
-
-            if (!visitedEntities.Contains(requestUri.ToString()))
-            {
-                relatedEntities.Add(_entityContextProvider.TripleStore.Graphs.First().CreateUriNode(requestUri));
-                int startAt = relatedEntities.Count - 1;
-                AssertEntityTriples(startAt, graph, relatedEntities, visitedEntities);
-                for (int index = startAt + 1; index < relatedEntities.Count; index++)
-                {
-                    AssertEntityTriples(index, graph, relatedEntities, visitedEntities);
-                }
-            }
-
-            return graph;
-        }
-
-        private void AssertEntityTriples(IEntity entity, IGraph graph, IList<IUriNode> relatedEntities, ISet<string> visitedEntities)
-        {
-            var graphUri = _namedGraphSelectorFactory.NamedGraphSelector.SelectGraph(entity.Id, null, null);
-            foreach (var triple in _entityContextProvider.TripleStore.Graphs[graphUri].Triples)
-            {
-                if (triple.Subject is IUriNode)
-                {
-                    visitedEntities.Add(((IUriNode)triple.Subject).Uri.ToString());
-                }
-
-                if (triple.Object is IUriNode)
-                {
-                    var uriNode = (IUriNode)triple.Object;
-                    var uriNodeGraphUri = _namedGraphSelectorFactory.NamedGraphSelector.SelectGraph(new EntityId(uriNode.Uri), null, null);
-                    if ((!AbsoluteUriComparer.Default.Equals(uriNodeGraphUri, graphUri)) && (!relatedEntities.Contains(uriNode)))
-                    {
-                        relatedEntities.Add(uriNode);
-                    }
-                }
-
-                graph.Assert(triple.CopyTriple(graph));
-            }
-        }
-
-        private void AssertEntityTriples(int index, IGraph graph, IList<IUriNode> relatedEntities, ISet<string> visitedEntities)
-        {
-            var entity = relatedEntities[index];
-            var graphUri = _namedGraphSelectorFactory.NamedGraphSelector.SelectGraph(new EntityId(entity.Uri), null, null);
-            var sourceGraph = _entityContextProvider.TripleStore.Graphs.FirstOrDefault(existingGraph => AbsoluteUriComparer.Default.Equals(existingGraph.BaseUri, graphUri));
-            if (sourceGraph == null)
-            {
-                return;
-            }
-
-            foreach (var triple in sourceGraph.Triples)
-            {
-                if (triple.Subject is IUriNode)
-                {
-                    visitedEntities.Add(((IUriNode)triple.Subject).Uri.ToString());
-                }
-
-                if (triple.Object is IUriNode)
-                {
-                    var uriNode = (IUriNode)triple.Object;
-                    var uriNodeGraphUri = _namedGraphSelectorFactory.NamedGraphSelector.SelectGraph(new EntityId(uriNode.Uri), null, null);
-                    if ((!AbsoluteUriComparer.Default.Equals(uriNodeGraphUri, graphUri)) && (!relatedEntities.Contains(uriNode)))
-                    {
-                        relatedEntities.Add(uriNode);
-                    }
-                }
-
-                graph.Assert(triple.CopyTriple(graph));
-            }
-        }
-
-        private void WriteResponseBody(IGraph graph, string mediaType, IResponseInfo response)
-        {
+            var graph = new UnionGraph(graphs.First(), graphs.Skip(1));
             var writer = CreateWriter(mediaType);
             if (writer is RdfXmlWriter)
             {

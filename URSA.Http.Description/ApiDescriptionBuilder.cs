@@ -15,7 +15,6 @@ using URSA.Web.Description.Http;
 using URSA.Web.Http.Converters;
 using URSA.Web.Http.Description.Hydra;
 using URSA.Web.Http.Description.Mapping;
-using URSA.Web.Http.Description.NamedGraphs;
 using URSA.Web.Http.Mapping;
 using URSA.Web.Mapping;
 using IClass = URSA.Web.Http.Description.Hydra.IClass;
@@ -32,20 +31,20 @@ namespace URSA.Web.Http.Description
         private readonly IXmlDocProvider _xmlDocProvider;
         private readonly IEnumerable<ITypeDescriptionBuilder> _typeDescriptionBuilders;
         private readonly IEnumerable<IServerBehaviorAttributeVisitor> _serverBehaviorAttributeVisitors;
-        private readonly INamedGraphSelectorFactory _namedGraphSelectorFactory;
+        private readonly INamedGraphSelector _namedGraphSelector;
 
         /// <summary>Initializes a new instance of the <see cref="ApiDescriptionBuilder" /> class.</summary>
         /// <param name="descriptionBuilder">Description builder.</param>
         /// <param name="xmlDocProvider">The XML documentation provider.</param>
         /// <param name="typeDescriptionBuilders">Type description builders.</param>
         /// <param name="serverBehaviorAttributeVisitors">Server behavior attribute visitors.</param>
-        /// <param name="namedGraphSelectorFactory">Named graph selector factory.</param>
+        /// <param name="namedGraphSelector">Named graph selector.</param>
         protected ApiDescriptionBuilder(
             IHttpControllerDescriptionBuilder descriptionBuilder,
             IXmlDocProvider xmlDocProvider,
             IEnumerable<ITypeDescriptionBuilder> typeDescriptionBuilders,
             IEnumerable<IServerBehaviorAttributeVisitor> serverBehaviorAttributeVisitors,
-            INamedGraphSelectorFactory namedGraphSelectorFactory)
+            INamedGraphSelector namedGraphSelector)
         {
             if (descriptionBuilder == null)
             {
@@ -67,16 +66,16 @@ namespace URSA.Web.Http.Description
                 throw new ArgumentOutOfRangeException("typeDescriptionBuilders");
             }
 
-            if (namedGraphSelectorFactory == null)
+            if (namedGraphSelector == null)
             {
-                throw new ArgumentNullException("namedGraphSelectorFactory");
+                throw new ArgumentNullException("namedGraphSelector");
             }
 
             _descriptionBuilder = descriptionBuilder;
             _xmlDocProvider = xmlDocProvider;
             _typeDescriptionBuilders = typeDescriptionBuilders;
             _serverBehaviorAttributeVisitors = serverBehaviorAttributeVisitors ?? new IServerBehaviorAttributeVisitor[0];
-            _namedGraphSelectorFactory = namedGraphSelectorFactory;
+            _namedGraphSelector = namedGraphSelector;
         }
 
         /// <inheritdoc />
@@ -132,22 +131,14 @@ namespace URSA.Web.Http.Description
             }
         }
 
-        private static void BuildOperationMediaType(IOperation result, IEnumerable<IClass> resources, OperationInfo operation, bool requiresRdf)
+        private static void BuildOperationMediaType(IOperation result, OperationInfo operation, bool requiresRdf)
         {
-            foreach (var resource in resources)
+            foreach (var mediaType in operation.UnderlyingMethod.GetCustomAttributes<AsMediaTypeAttribute>())
             {
-                foreach (var mediaType in operation.UnderlyingMethod.GetCustomAttributes<AsMediaTypeAttribute>())
-                {
-                    result.MediaTypes.Add(mediaType.MediaType);
-                }
-
-                if (result.MediaTypes.Count != 0)
-                {
-                    continue;
-                }
-
-                BuildOperationMediaType(result, requiresRdf);
+                result.MediaTypes.Add(mediaType.MediaType);
             }
+
+            BuildOperationMediaType(result, requiresRdf);
         }
 
         private static Rdfs.IProperty GetMappingProperty(DescriptionContext context, ParameterInfo parameter)
@@ -214,7 +205,7 @@ namespace URSA.Web.Http.Description
 
         private void BuildOperationDescription(DescriptionContext context, OperationInfo<Verb> operation, IClass specializationType)
         {
-            Uri graphUri = _namedGraphSelectorFactory.NamedGraphSelector.SelectGraph(specializationType.Id, null, null);
+            Uri graphUri = _namedGraphSelector.SelectGraph(specializationType.Id, null, null);
             IIriTemplate template;
             var operationDefinition = BuildOperation(context, operation, out template);
             IResource operationOwner = DetermineOperationOwner(operation, context, specializationType);
@@ -267,8 +258,7 @@ namespace URSA.Web.Http.Description
             }
 
             BuildStatusCodes(result, operation);
-            BuildOperationMediaType(result, result.Returns, operation, requiresRdf);
-            BuildOperationMediaType(result, result.Expects, operation, requiresRdf);
+            BuildOperationMediaType(result, operation, requiresRdf);
             if (!result.MediaTypes.Any())
             {
                 BuildOperationMediaType(result, requiresRdf);
@@ -355,14 +345,14 @@ namespace URSA.Web.Http.Description
         /// <param name="xmlDocProvider">The XML documentation provider.</param>
         /// <param name="typeDescriptionBuilders">Type description builders.</param>
         /// <param name="serverBehaviorAttributeVisitors">Server behavior attribute visitors.</param>
-        /// <param name="namedGraphSelectorFactory">Named graph selector factory.</param>
+        /// <param name="namedGraphSelector">Named graph selector.</param>
         public ApiDescriptionBuilder(
             IHttpControllerDescriptionBuilder<T> descriptionBuilder, 
             IXmlDocProvider xmlDocProvider, 
             IEnumerable<ITypeDescriptionBuilder> typeDescriptionBuilders, 
             IEnumerable<IServerBehaviorAttributeVisitor> serverBehaviorAttributeVisitors,
-            INamedGraphSelectorFactory namedGraphSelectorFactory) :
-            base(descriptionBuilder, xmlDocProvider, typeDescriptionBuilders, serverBehaviorAttributeVisitors, namedGraphSelectorFactory)
+            INamedGraphSelector namedGraphSelector) :
+            base(descriptionBuilder, xmlDocProvider, typeDescriptionBuilders, serverBehaviorAttributeVisitors, namedGraphSelector)
         {
         }
 

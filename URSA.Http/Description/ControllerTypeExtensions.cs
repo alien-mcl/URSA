@@ -24,34 +24,37 @@ namespace URSA.Web.Http.Description
         internal static IDictionary<Verb, MethodInfo> DiscoverCrudMethods(this Type controllerType)
         {
             IDictionary<Verb, MethodInfo> result;
-            if (ControllerCrudMethodsCache.TryGetValue(controllerType, out result))
+            lock (ControllerCrudMethodStatusCodes)
             {
-                return result;
-            }
-
-            ControllerCrudMethodsCache[controllerType] = result = new Dictionary<Verb, MethodInfo>();
-            foreach (var @interface in controllerType.GetInterfaces())
-            {
-                if (!@interface.IsGenericType)
+                if (ControllerCrudMethodsCache.TryGetValue(controllerType, out result))
                 {
-                    continue;
+                    return result;
                 }
 
-                var definition = @interface.GetGenericTypeDefinition();
-                if ((typeof(IWriteController<,>).IsAssignableFrom(definition)) || (typeof(IAsyncWriteController<,>).IsAssignableFrom(definition)))
+                ControllerCrudMethodsCache[controllerType] = result = new Dictionary<Verb, MethodInfo>();
+                foreach (var @interface in controllerType.GetInterfaces())
                 {
-                    var write = @interface;
-                    result[Verb.POST] = controllerType.GetInterfaceMap(write).TargetMethods.First(method => method.Name.StartsWith("Create"));
-                    result[Verb.PUT] = controllerType.GetInterfaceMap(write).TargetMethods.First(method => method.Name.StartsWith("Update"));
-                    result[Verb.DELETE] = controllerType.GetInterfaceMap(write).TargetMethods.First(method => method.Name.StartsWith("Delete"));
-                }
-                else if ((typeof(IReadController<,>).IsAssignableFrom(definition)) || (typeof(IAsyncReadController<,>).IsAssignableFrom(definition)))
-                {
-                    result[Verb.GET] = controllerType.GetInterfaceMap(@interface).TargetMethods.First();
-                }
-                else if ((typeof(IController<>).IsAssignableFrom(definition)) || (typeof(IAsyncController<>).IsAssignableFrom(definition)))
-                {
-                    result[Verb.Empty] = controllerType.GetInterfaceMap(@interface).TargetMethods.First();
+                    if (!@interface.IsGenericType)
+                    {
+                        continue;
+                    }
+
+                    var definition = @interface.GetGenericTypeDefinition();
+                    if ((typeof(IWriteController<,>).IsAssignableFrom(definition)) || (typeof(IAsyncWriteController<,>).IsAssignableFrom(definition)))
+                    {
+                        var write = @interface;
+                        result[Verb.POST] = controllerType.GetInterfaceMap(write).TargetMethods.First(method => method.Name.StartsWith("Create"));
+                        result[Verb.PUT] = controllerType.GetInterfaceMap(write).TargetMethods.First(method => method.Name.StartsWith("Update"));
+                        result[Verb.DELETE] = controllerType.GetInterfaceMap(write).TargetMethods.First(method => method.Name.StartsWith("Delete"));
+                    }
+                    else if ((typeof(IReadController<,>).IsAssignableFrom(definition)) || (typeof(IAsyncReadController<,>).IsAssignableFrom(definition)))
+                    {
+                        result[Verb.GET] = controllerType.GetInterfaceMap(@interface).TargetMethods.First();
+                    }
+                    else if ((typeof(IController<>).IsAssignableFrom(definition)) || (typeof(IAsyncController<>).IsAssignableFrom(definition)))
+                    {
+                        result[Verb.Empty] = controllerType.GetInterfaceMap(@interface).TargetMethods.First();
+                    }
                 }
             }
 

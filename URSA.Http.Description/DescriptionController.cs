@@ -1,17 +1,12 @@
-﻿using RomanticWeb;
-using RomanticWeb.Entities;
+﻿using RomanticWeb.Entities;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using RomanticWeb.NamedGraphs;
 using URSA.Web.Http.Converters;
 using URSA.Web.Http.Description.Entities;
 using URSA.Web.Http.Description.Hydra;
-using URSA.Web.Http.Description.NamedGraphs;
 using URSA.Web.Http.Mapping;
 using URSA.Web.Mapping;
-using VDS.RDF;
 
 namespace URSA.Web.Http.Description
 {
@@ -45,13 +40,12 @@ namespace URSA.Web.Http.Description
 
         private readonly IEntityContextProvider _entityContextProvider;
         private readonly IApiDescriptionBuilder _apiDescriptionBuilder;
-        private readonly INamedGraphSelectorFactory _namedGraphSelectorFactory;
 
         /// <summary>Initializes a new instance of the <see cref="DescriptionController" /> class.</summary>
         /// <param name="entityContextProvider">Entity context provider.</param>
         /// <param name="apiDescriptionBuilder">API description builder.</param>
-        /// <param name="namedGraphSelectorFactory">Named graph selector factory.</param>
-        protected DescriptionController(IEntityContextProvider entityContextProvider, IApiDescriptionBuilder apiDescriptionBuilder, INamedGraphSelectorFactory namedGraphSelectorFactory)
+        //// <param name="namedGraphSelectorFactory">Named graph selector factory.</param>
+        protected DescriptionController(IEntityContextProvider entityContextProvider, IApiDescriptionBuilder apiDescriptionBuilder)
         {
             if (entityContextProvider == null)
             {
@@ -63,14 +57,8 @@ namespace URSA.Web.Http.Description
                 throw new ArgumentNullException("apiDescriptionBuilder");
             }
 
-            if (namedGraphSelectorFactory == null)
-            {
-                throw new ArgumentNullException("namedGraphSelectorFactory");
-            }
-
             _entityContextProvider = entityContextProvider;
             _apiDescriptionBuilder = apiDescriptionBuilder;
-            _namedGraphSelectorFactory = namedGraphSelectorFactory;
         }
 
         /// <inheritdoc />
@@ -103,40 +91,7 @@ namespace URSA.Web.Http.Description
 
         private IApiDocumentation GetApiEntryPointDescription(string fileExtension)
         {
-            var namedGraphSelector = _namedGraphSelectorFactory.NamedGraphSelector;
-            ILocallyControlledNamedGraphSelector locallyControlledNamedGraphSelector = namedGraphSelector as ILocallyControlledNamedGraphSelector;
-            return locallyControlledNamedGraphSelector != null ?
-                GetApiEntryPointDescriptionWithLock(fileExtension, locallyControlledNamedGraphSelector) :
-                BuildApiDocumentation(fileExtension, (Uri)((HttpUrl)Response.Request.Url).WithFragment(String.Empty));
-        }
-
-        private IApiDocumentation GetApiEntryPointDescriptionWithLock(string fileExtension, ILocallyControlledNamedGraphSelector locallyControlledNamedGraphSelector)
-        {
-            IApiDocumentation result;
-            lock (locallyControlledNamedGraphSelector)
-            {
-                Uri graphUri;
-                HttpUrl url = Response.Request.Url as HttpUrl;
-                if (url != null)
-                {
-                    if (url.HasParameters)
-                    {
-                        url = (HttpUrl)url.WithoutParameters();
-                    }
-
-                    graphUri = (Uri)url.WithFragment(String.Empty);
-                }
-                else
-                {
-                    graphUri = (Uri)Response.Request.Url;
-                }
-
-                result = BuildApiDocumentation(fileExtension, locallyControlledNamedGraphSelector.NamedGraph = graphUri);
-                _entityContextProvider.EntityContext.Disposed += () => _entityContextProvider.TripleStore.Remove(graphUri);
-                locallyControlledNamedGraphSelector.NamedGraph = null;
-            }
-
-            return result;
+            return BuildApiDocumentation(fileExtension, (Uri)((HttpUrl)Response.Request.Url).WithFragment(String.Empty));
         }
 
         private IApiDocumentation BuildApiDocumentation(string fileExtension, Uri entityId)
@@ -192,9 +147,9 @@ namespace URSA.Web.Http.Description
         /// <summary>Initializes a new instance of the <see cref="DescriptionController{T}" /> class.</summary>
         /// <param name="entityContextProvider">Entity context provider.</param>
         /// <param name="apiDescriptionBuilder">API description builder.</param>
-        /// <param name="namedGraphSelectorFactory">Named graph selector factory.</param>
-        public DescriptionController(IEntityContextProvider entityContextProvider, IApiDescriptionBuilder<T> apiDescriptionBuilder, INamedGraphSelectorFactory namedGraphSelectorFactory) :
-            base(entityContextProvider, apiDescriptionBuilder, namedGraphSelectorFactory)
+        //// <param name="namedGraphSelectorFactory">Named graph selector factory.</param>
+        public DescriptionController(IEntityContextProvider entityContextProvider, IApiDescriptionBuilder<T> apiDescriptionBuilder/*, INamedGraphSelectorFactory namedGraphSelectorFactory*/) :
+            base(entityContextProvider, apiDescriptionBuilder/*, namedGraphSelectorFactory*/)
         {
         }
 

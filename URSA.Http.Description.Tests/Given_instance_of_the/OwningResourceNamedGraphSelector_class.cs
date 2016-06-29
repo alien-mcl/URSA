@@ -14,6 +14,8 @@ using URSA.Web.Http.Tests.Testing;
 
 namespace Given_instance_of_the
 {
+    //// TODO: Consider removing custom named graph selectors
+
     [TestClass]
     public class OwningResourceNamedGraphSelector_class
     {

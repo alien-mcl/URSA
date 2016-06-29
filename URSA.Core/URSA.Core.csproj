@@ -11,7 +11,7 @@
     <AssemblyName>URSA.Core</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <NuGetPackageImportStamp>859dbb06</NuGetPackageImportStamp>
+    <NuGetPackageImportStamp>791be19d</NuGetPackageImportStamp>
     <SccProjectName>SAK</SccProjectName>
     <SccLocalPath>SAK</SccLocalPath>
     <SccAuxPath>SAK</SccAuxPath>
@@ -77,7 +77,8 @@
     <Compile Include="UrlParser.cs" />
     <Compile Include="Web\IHypermediaDrivenAsyncController.cs" />
     <Compile Include="Web\IHypermediaDrivenController.cs" />
-    <Compile Include="Web\IModelTransformer.cs" />
+    <Compile Include="Web\IRequestModelTransformer.cs" />
+    <Compile Include="Web\IResponseModelTransformer.cs" />
     <Compile Include="Web\IPostRequestHandler.cs" />
     <Compile Include="Web\IPreRequestHandler.cs" />
     <Compile Include="Web\UnauthenticatedAccessException.cs" />

@@ -1,13 +1,12 @@
-﻿using System;
-using System.Diagnostics.CodeAnalysis;
+﻿using System.Diagnostics.CodeAnalysis;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using URSA;
+using URSA.Web.Description.Http;
 using URSA.Web.Http;
 using URSA.Web.Http.Description;
 using URSA.Web.Http.Description.Entities;
-using URSA.Web.Http.Description.NamedGraphs;
 
 namespace Given_instance_of_the
 {
@@ -43,7 +42,7 @@ namespace Given_instance_of_the
                 entryPoint,
                 new Mock<IEntityContextProvider>(MockBehavior.Strict).Object,
                 builder.Object,
-                new Mock<INamedGraphSelectorFactory>(MockBehavior.Strict).Object);
+                new[] { new Mock<IHttpControllerDescriptionBuilder>(MockBehavior.Strict).Object });
         }
     }
 }

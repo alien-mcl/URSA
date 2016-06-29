@@ -75,7 +75,7 @@ namespace URSA.Example.WebApplication.Controllers
         /// <returns>Instance of the <see cref="IArticle" /> if matching <paramref name="id" />; otherwise <b>null</b>.</returns>
         public IArticle Get(Guid id)
         {
-            return (from entity in _repository where entity.Key == id select entity).FirstOrDefault();
+            return (from entity in _entityContext.AsQueryable<IArticle>() where entity.Key == id select entity).FirstOrDefault();
         }
 
         /// <summary>Creates the specified article.</summary>
@@ -83,10 +83,10 @@ namespace URSA.Example.WebApplication.Controllers
         /// <returns>Identifier of newly created article.</returns>
         public Guid Create(IArticle article)
         {
-            article.Key = Guid.NewGuid();
-            article.Context.Commit();
-            article = article.Rename(new EntityId(article.Id.Uri + (article.Id.Uri.AbsoluteUri.EndsWith("/") ? String.Empty : "/") + article.Key));
-            _repository.Add(article);
+            Guid id = Guid.NewGuid();
+            article = _entityContext.Copy(article, new EntityId(article.Id.Uri + (article.Id.Uri.AbsoluteUri.EndsWith("/") ? String.Empty : "/") + id));
+            article.Key = id;
+            _entityContext.Commit();
             return article.Key;
         }
 
@@ -95,29 +95,28 @@ namespace URSA.Example.WebApplication.Controllers
         /// <param name="article">The article.</param>
         public void Update(Guid id, IArticle article)
         {
-            (_repository[GetIndex(id)] = article).Key = id;
+            GetInternal(id).Update(article);
+            _entityContext.Commit();
         }
 
         /// <summary>Deletes an article.</summary>
         /// <param name="id">Identifier of the article to be deleted.</param>
         public void Delete(Guid id)
         {
-            var article = _repository[GetIndex(id)];
-            _repository.Remove(article);
-            _entityContext.Delete(article.Id);
+            var article = GetInternal(id);
+            _entityContext.Delete(article.Id, DeleteBehaviour.DeleteChildren);
             _entityContext.Commit();
         }
 
-        private int GetIndex(Guid id)
+        private IArticle GetInternal(Guid id)
         {
-            int index = -1;
-            _repository.Where((entity, entityIndex) => (entity.Key == id) && ((index = entityIndex) != -1)).FirstOrDefault();
-            if (index == -1)
+            var result = (from entity in _entityContext.AsQueryable<IArticle>() where entity.Key == id select entity).FirstOrDefault();
+            if (result == null)
             {
                 throw new NotFoundException(String.Format("Article with id of '{0}' does not exist.", id));
             }
 
-            return index;
+            return result;
         }
     }
 }

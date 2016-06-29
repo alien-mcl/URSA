@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Net;
@@ -98,7 +99,7 @@ namespace URSA.Owin.Handlers
         private async Task HandleRequest(IOwinContext context)
         {
             var headers = new HeaderCollection();
-            context.Request.Headers.ForEach(header => headers[header.Key] = new Header(header.Key, header.Value));
+            context.Request.Headers.ForEach(header => ((IDictionary<string, string>)headers)[header.Key] = String.Join(",", header.Value));
             var requestInfo = new RequestInfo(
                 Verb.Parse(context.Request.Method),
                 (HttpUrl)UrlParser.Parse(context.Request.Uri.AbsoluteUri.TrimEnd('/')),

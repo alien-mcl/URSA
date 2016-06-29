@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using RomanticWeb;
+using RomanticWeb.Entities;
 
 namespace URSA.Web.Http.Description.Tests.Data
 {

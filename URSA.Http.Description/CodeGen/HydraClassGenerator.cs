@@ -26,6 +26,7 @@ namespace URSA.CodeGen
     /// <summary>Provides a basic implementation of the <see cref="IClassGenerator" />.</summary>
     public class HydraClassGenerator : IClassGenerator
     {
+        private const string AsyncInvocation = "System.Threading.Tasks.Task.Run(async () => await ";
         private static readonly string EntityClassTemplate = new StreamReader(typeof(HydraClassGenerator).Assembly.GetManifestResourceStream("URSA.Web.Http.Description.CodeGen.Templates.Entity.cs")).ReadToEnd();
         private static readonly string ClientClassTemplate = new StreamReader(typeof(HydraClassGenerator).Assembly.GetManifestResourceStream("URSA.Web.Http.Description.CodeGen.Templates.Client.cs")).ReadToEnd();
         private static readonly string ResponseClassTemplate = new StreamReader(typeof(HydraClassGenerator).Assembly.GetManifestResourceStream("URSA.Web.Http.Description.CodeGen.Templates.Response.cs")).ReadToEnd();
@@ -33,6 +34,7 @@ namespace URSA.CodeGen
         private static readonly string OperationTemplate = new StreamReader(typeof(HydraClassGenerator).Assembly.GetManifestResourceStream("URSA.Web.Http.Description.CodeGen.Templates.Operation.cs")).ReadToEnd();
         private static readonly IDictionary<IResource, string> Namespaces = new ConcurrentDictionary<IResource, string>();
         private static readonly IDictionary<IResource, string> Names = new ConcurrentDictionary<IResource, string>();
+        private static readonly IDictionary<IResource, string> InterfaceNames = new ConcurrentDictionary<IResource, string>();
         private static readonly string[] KnownDataTypeNamespaces = new[] { XsdUriParser.Xsd, OGuidUriParser.OGuid };
 
         private readonly IEnumerable<IUriParser> _uriParsers;
@@ -107,7 +109,7 @@ namespace URSA.CodeGen
             return Names[resource];
         }
 
-        private string CreateListName(IClass @class)
+        private string CreateListName(IClass @class, bool interfaceName = false)
         {
             IRestriction itemTypeRestriction;
             IEntity itemType = null;
@@ -116,14 +118,16 @@ namespace URSA.CodeGen
             if (itemType != null)
             {
                 Namespaces[@class] = typeof(IList<>).Namespace;
-                return Names[@class] = String.Format("IList<{0}>", CreateName(itemType.AsEntity<IClass>()));
+                var itemClass = itemType.AsEntity<IClass>();
+                var name = CreateName(itemClass, interfaceName);
+                return Names[@class] = String.Format("IList<{0}.{1}>", Namespaces[itemClass], name);
             }
 
             Namespaces[@class] = typeof(IList).Namespace;
             return Names[@class] = "IList";
         }
 
-        private string CreateCollectionName(IClass @class)
+        private string CreateCollectionName(IClass @class, bool interfaceName = false)
         {
             IRestriction itemTypeRestriction;
             IEntity itemType = null;
@@ -133,42 +137,45 @@ namespace URSA.CodeGen
             if (itemType != null)
             {
                 Namespaces[@class] = typeof(IEnumerable<>).Namespace;
-                return Names[@class] = String.Format("ICollection<{0}>", CreateName(itemType.AsEntity<IClass>()));
+                var itemClass = itemType.AsEntity<IClass>();
+                var name = CreateName(itemClass, interfaceName);
+                return Names[@class] = String.Format("ICollection<{0}.{1}>", Namespaces[itemClass], name);
             }
 
             Namespaces[@class] = typeof(ICollection).Namespace;
             return Names[@class] = "ICollection";
         }
 
-        private string CreateName(IClass @class)
+        private string CreateName(IClass @class, bool interfaceName = false)
         {
-            if (Names.ContainsKey(@class))
+            var names = (interfaceName ? InterfaceNames : Names);
+            if (names.ContainsKey(@class))
             {
-                return Names[@class];
+                return names[@class];
             }
 
             if (@class.IsClass(Rdf.List))
             {
-                return CreateListName(@class);
+                return CreateListName(@class, interfaceName);
             }
 
             if (@class.IsClass(@class.Context.Mappings.MappingFor<ICollection>().Classes.First().Uri))
             {
-                return CreateCollectionName(@class);
+                return CreateCollectionName(@class, interfaceName);
             }
 
             if (@class.Id is BlankId)
             {
                 foreach (var superClass in @class.SubClassOf)
                 {
-                    var result = Names[@class] = CreateName(superClass.AsEntity<IClass>());
+                    var result = names[@class] = CreateName(superClass.AsEntity<IClass>(), interfaceName);
                     Namespaces[@class] = CreateNamespace(superClass.AsEntity<IClass>());
                     return result;
                 }
             }
 
-            ParseUri(@class);
-            return Names[@class];
+            ParseUri(@class, interfaceName);
+            return names[@class];
         }
 
         private string CreateName(IOperation operation, string method)
@@ -188,7 +195,7 @@ namespace URSA.CodeGen
             return result;
         }
 
-        private void ParseUri(IResource resource)
+        private void ParseUri(IResource resource, bool interfaceName = false)
         {
             var uriParser = (from parser in _uriParsers
                              orderby parser.IsApplicable(resource.Id.Uri) descending
@@ -199,8 +206,16 @@ namespace URSA.CodeGen
                 throw new InvalidOperationException(String.Format("Cannot find a suitable parser for resource uri '{0}'.", resource.Id.Uri));
             }
 
+            var names = (interfaceName ? InterfaceNames : Names);
             string @namespace;
-            Names[resource] = uriParser.Parse(resource.Id.Uri, out @namespace);
+            string name = uriParser.Parse(resource.Id.Uri, out @namespace);
+            if ((interfaceName) && ((name.Length == 1) || ((name.Length > 1) && ((name[0] != 'I') || (!Char.IsUpper(name[1]))))) &&
+                (resource.Context.AsQueryable<IApiDocumentation>().First().SupportedClasses.Any(@class => @class.Id == resource.Id)))
+            {
+                name = "I" + name;
+            }
+
+            names[resource] = name;
             Namespaces[resource] = @namespace;
         }
 
@@ -262,7 +277,7 @@ namespace URSA.CodeGen
             }
 
             IClass propertyType = property.Property.Range.First().AsEntity<IClass>();
-            propertyTypeName = CreateName(propertyType);
+            propertyTypeName = CreateName(propertyType, true);
             propertyTypeNamespace = CreateNamespace(propertyType);
             return String.Format("{0}.{1}", propertyTypeNamespace, propertyTypeName);
         }
@@ -293,7 +308,8 @@ namespace URSA.CodeGen
                 var operationName = CreateName(operation, method);
                 var uri = operation.Id.Uri.ToRelativeUri().ToString();
                 var returnedType = String.Empty;
-                var isReturns = String.Empty;
+                var isReturns = AsyncInvocation;
+                var isResult = ").Wait()";
                 bool isContentRangeHeaderParameterAdded = false;
                 if (template != null)
                 {
@@ -309,7 +325,8 @@ namespace URSA.CodeGen
 
                 if (operation.Returns.Any())
                 {
-                    isReturns = "var result = ";
+                    isReturns = "var result = " + isReturns;
+                    isResult = ").Result";
                     returns = AnalyzeResult(operationName, operation.Returns, classes, accept, operation.MediaTypes);
                     returnedType = String.Format("<{0}>", returns);
                 }
@@ -336,11 +353,12 @@ namespace URSA.CodeGen
                     uriArguments,
                     bodyArguments,
                     isReturns,
+                    isResult,
                     returnedType,
                     accept,
                     contentType,
                     (isContentRangeHeaderParameterAdded ? "            totalEntities = (int)uriArguments[\"totalEntities\"];" + Environment.NewLine : String.Empty),
-                    (isReturns.Length > 0 ? "            return result;" + Environment.NewLine : String.Empty));
+                    (isReturns != AsyncInvocation ? "            return result;" + Environment.NewLine : String.Empty));
             }
         }
 
@@ -402,7 +420,7 @@ namespace URSA.CodeGen
             {
                 string variableName = expected.Label.ToLowerCamelCase();
                 string @namespace;
-                string name = AnalyzeType(expected, out @namespace, validMediaTypesList);
+                string name = AnalyzeType(expected, out @namespace, validMediaTypesList, true);
                 parameters.AppendFormat(
                     "{3}{0}.{1}{4} {2}, ",
                     @namespace,
@@ -443,7 +461,7 @@ namespace URSA.CodeGen
                     var properties = new StringBuilder(256);
                     foreach (var returned in returns)
                     {
-                        name = AnalyzeType(returned, out @namespace, validMediaTypesList);
+                        name = AnalyzeType(returned, out @namespace, validMediaTypesList, true);
                         properties.AppendFormat(PropertyTemplate, name, " get;", String.Empty, @namespace, String.Empty, String.Empty);
                     }
 
@@ -453,12 +471,12 @@ namespace URSA.CodeGen
             }
             else
             {
-                name = AnalyzeType(returns.First(), out @namespace, validMediaTypesList);
-                if ((!name.StartsWith("ICollection")) && (!name.StartsWith("IList")) && (!(validMediaTypesList.Count == 0 ? operationMediaTypes : validMediaTypes)
-                    .Join(EntityConverter.MediaTypes, outer => outer, inner => inner, (outer, inner) => inner).Any()))
-                {
-                    name = name.TrimStart('I');
-                }
+                name = AnalyzeType(returns.First(), out @namespace, validMediaTypesList, true);
+                ////if ((!name.StartsWith("ICollection")) && (!name.StartsWith("IList")) && (!(validMediaTypesList.Count == 0 ? operationMediaTypes : validMediaTypes)
+                ////    .Join(EntityConverter.MediaTypes, outer => outer, inner => inner, (outer, inner) => inner).Any()))
+                ////{
+                ////    name = name.TrimStart('I');
+                ////}
 
                 result = String.Format("{0}.{1}", @namespace, name);
             }
@@ -473,14 +491,14 @@ namespace URSA.CodeGen
             return result;
         }
 
-        private string AnalyzeType(IClass @class, out string @namespace, IList<string> validMediaTypes = null)
+        private string AnalyzeType(IClass @class, out string @namespace, IList<string> validMediaTypes, bool interfaceName = false)
         {
             if (validMediaTypes != null)
             {
                 validMediaTypes.AddRange(@class.MediaTypes);
             }
 
-            var name = CreateName(@class);
+            var name = CreateName(@class, interfaceName);
             @namespace = CreateNamespace(@class);
             return name;
         }
