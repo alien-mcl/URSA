@@ -162,5 +162,15 @@ namespace URSA.ComponentModel
         /// <param name="serviceType">Type of the components.</param>
         /// <returns>Enumeration of types registered.</returns>
         IEnumerable<Type> ResolveAllTypes(Type serviceType);
+
+        /// <summary>Instructs the container to dispose a registered instance and drop all scopes bound to that instance.</summary>
+        /// <typeparam name="T">Type of the service.</typeparam>
+        /// <param name="instance">The instance being disposed.</param>
+        void Dispose<T>(T instance);
+
+        /// <summary>Instructs the container to dispose a registered instance and drop all scopes bound to that instance.</summary>
+        /// <param name="serviceType">Type of the service.</param>
+        /// <param name="instance">The instance being disposed.</param>
+        void Dispose(Type serviceType, object instance);
     }
 }

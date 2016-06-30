@@ -260,6 +260,18 @@ namespace URSA.ComponentModel
         }
 
         /// <inheritdoc />
+        public void Dispose<T>(T instance)
+        {
+            Dispose(typeof(T), instance);
+        }
+
+        /// <inheritdoc />
+        public void Dispose(Type serviceType, object instance)
+        {
+            _container.Release(instance);
+        }
+
+        /// <inheritdoc />
         public void Dispose()
         {
             if (_container != null)

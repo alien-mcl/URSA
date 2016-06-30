@@ -84,12 +84,12 @@ namespace URSA.CastleWindsor
 
         private void InstallRdfDependencies(IWindsorContainer container, UrsaCustomTypedFactory typedFactory)
         {
-            container.Register(Component.For<ITripleStore>().UsingFactoryMethod(CreateTripleStore).Named("InMemoryTripleStore").LifeStyle.HybridPerWebRequestPerThread());
+            container.Register(Component.For<ITripleStore>().UsingFactoryMethod(CreateTripleStore).Named("InMemoryTripleStore").LifeStyle.PerUniversalWebRequest());
             container.Register(Component.For<INamedGraphSelector>().Instance(_namedGraphSelector).Named("InMemoryNamedGraphSelector").LifestyleSingleton());
             container.Register(Component.For<IEntityContextFactory>().Instance(_entityContextFactory.Value).Named("InMemoryEntityContextFactory").LifestyleSingleton());
-            container.Register(Component.For<IEntityContext>().UsingFactoryMethod(CreateEntityContext).Named("InMemoryEntityContext").LifeStyle.HybridPerWebRequestPerThread());
+            container.Register(Component.For<IEntityContext>().UsingFactoryMethod(CreateEntityContext).Named("InMemoryEntityContext").LifeStyle.PerUniversalWebRequest());
             container.Register(Component.For<Uri>().Instance(MetaGraphUri).Named("InMemoryMetaGraph").LifestyleSingleton());
-            container.Register(Component.For<IEntityContextProvider>().AsFactory(typedFactory).LifeStyle.HybridPerWebRequestPerThread());
+            container.Register(Component.For<IEntityContextProvider>().AsFactory(typedFactory).LifeStyle.PerUniversalWebRequest());
         }
 
         private void InstallDescriptionDependencies(IWindsorContainer container, UrsaCustomTypedFactory typedFactory)

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using System.Web;
 using System.Web.Routing;
+using Microsoft.Web.Infrastructure.DynamicModuleHelper;
 using URSA.ComponentModel;
 using URSA.Configuration;
 using URSA.Security;
@@ -15,6 +16,7 @@ using URSA.Web.Http;
 using URSA.Web.Http.Configuration;
 using URSA.Web.Http.Converters;
 using URSA.Web.Http.Security;
+using URSA.Web.Modules;
 
 namespace URSA.Web
 {
@@ -27,6 +29,12 @@ namespace URSA.Web
             .First(method => (method.Name == "RegisterApi") && (method.IsGenericMethodDefinition));
 
         private static readonly object Lock = new Object();
+
+        /// <summary>Initializes an HTTP module.</summary>
+        public static void SetupModule()
+        {
+            DynamicModuleUtility.RegisterModule(typeof(UrsaModule));
+        }
 
         /// <summary>Registers all APIs into the ASP.net pipeline.</summary>
         /// <param name="application">The application to work with.</param>

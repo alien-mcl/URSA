@@ -6,6 +6,7 @@ using System.Net;
 using System.Threading.Tasks;
 using Microsoft.Owin;
 using URSA.Owin.Security;
+using URSA.Owin.Web;
 using URSA.Web;
 using URSA.Web.Http;
 using URSA.Web.Http.Configuration;
@@ -106,7 +107,8 @@ namespace URSA.Owin.Handlers
                 context.Request.Body,
                 new OwinPrincipal(context.Authentication.User),
                 headers);
-            System.Runtime.Remoting.Messaging.CallContext.HostContext = requestInfo;
+            var requestContext = new OwinRequestContext(context);
+            System.Runtime.Remoting.Messaging.CallContext.HostContext = requestContext;
             ResponseInfo response;
             try
             {
@@ -114,6 +116,7 @@ namespace URSA.Owin.Handlers
             }
             finally
             {
+                requestContext.Dispose();
                 System.Runtime.Remoting.Messaging.CallContext.HostContext = null;
             }
 
