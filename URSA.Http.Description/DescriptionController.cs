@@ -70,6 +70,9 @@ namespace URSA.Web.Http.Description
         /// <summary>Gets the API description builder.</summary>
         protected IApiDescriptionBuilder ApiDescriptionBuilder { get { return _apiDescriptionBuilder; } }
 
+        /// <summary>Gets the entity context provider.</summary>
+        protected IEntityContextProvider EntityContextProvider { get { return _entityContextProvider; } }
+
         /// <summary>Gets the API documentation.</summary>
         /// <param name="format">Optional output format.</param>
         /// <returns><see cref="IApiDocumentation" /> instance.</returns>

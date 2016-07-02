@@ -113,7 +113,6 @@ namespace URSA.Web.Http
                 response = new ExceptionResponseInfo(request, exception);
             }
 
-            await ProcessPostRequestHandlers(response);
             if (((ExceptionResponseInfo)response).Value is UnauthenticatedAccessException)
             {
                 await _defaultAuthenticationScheme.Process(response);
@@ -194,7 +193,7 @@ namespace URSA.Web.Http
 
         private async Task<object> ProcessModelTransformers(IRequestMapping requestMapping, RequestInfo requestInfo, object result, object[] arguments)
         {
-            foreach (IResponseModelTransformer modelTransformer in _modelTransformers)
+            foreach (IResponseModelTransformer modelTransformer in _modelTransformers.Concat(requestInfo.HypermediaControls))
             {
                 result = await modelTransformer.Transform(requestMapping, requestInfo, result, arguments);
             }

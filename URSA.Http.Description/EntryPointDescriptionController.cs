@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using RomanticWeb.Entities;
 using URSA.Reflection;
 using URSA.Web.Description.Http;
 using URSA.Web.Http.Description.Entities;
@@ -54,9 +55,10 @@ namespace URSA.Web.Http.Description
         }
         
         /// <summary>Gets the hypermedia enabled controller list operations.</summary>
+        /// <returns>Returns entry point details.</returns>
         [OnGet]
         [Route("/")]
-        public void GetEntryPoint()
+        public IEntity GetEntryPoint()
         {
             foreach (var controllerDescriptionBuilder in _httpControllerDescriptionBuilders)
             {
@@ -71,9 +73,11 @@ namespace URSA.Web.Http.Description
                 {
                     controllerInfo.ControllerType.InjectOperation(
                         controllerInfo.ControllerType.GetInterfaceMap(@interface).TargetMethods.First(method => method.Name == "List"),
-                        Response.Request);
+                        Response);
                 }
             }
+
+            return EntityContextProvider.EntityContext.Load<IEntity>(new EntityId((Uri)Response.Request.Url));
         }
     }
 }

@@ -109,6 +109,7 @@
     <Compile Include="Configuration\ComponentProviderExtensions.cs" />
     <Compile Include="Configuration\DescriptionConfigurationSection.cs" />
     <Compile Include="NamedGraphs\FixedNamedGraphSelector.cs" />
+    <Compile Include="OperationHypermediaControl.cs" />
     <Compile Include="RdfPayloadModelTransformer.cs" />
     <Compile Include="Reflection\AbstractCollectionWrapper.cs" />
     <Compile Include="RequestHelper.cs" />

@@ -75,21 +75,20 @@ namespace URSA.Web.Http.Description
             return controller;
         }
 
-        internal static void InjectOperation(this Type controllerType, MethodInfo methodInfo, IRequestInfo request)
+        internal static void InjectOperation(this Type controllerType, MethodInfo methodInfo, IResponseInfo response)
         {
-            var entityContextProvider = EntityContextProvider();
-            var controllerDescriptionBuilder = ControllerDescriptionBuilder(controllerType);
-            var apiDescriptionBuilder = ApiDescriptionBuilder(controllerType);
-            var hook = entityContextProvider.EntityContext.Create<IEntity>(new EntityId((Uri)request.Url));
-            var targetOperation = (OperationInfo<Verb>)controllerDescriptionBuilder.BuildDescriptor().Operations.First(operation => operation.UnderlyingMethod == methodInfo);
-            apiDescriptionBuilder.BuildOperationDescription(hook, targetOperation, request.GetRequestedMediaTypeProfiles());
-            entityContextProvider.EntityContext.Commit();
+            var hypermediaControls = new OperationHypermediaControl(
+                HypermediaControlRules.Include,
+                (OperationInfo<Verb>)ControllerDescriptionBuilder(controllerType).BuildDescriptor().Operations.First(operation => operation.UnderlyingMethod == methodInfo),
+                ApiDescriptionBuilder(controllerType),
+                EntityContextProvider());
+            response.Request.HypermediaControls.Add(hypermediaControls);
         }
 
         private static void InjectOperation<TController>(this TController controller, MethodInfo methodInfo)
             where TController : IController
         {
-            typeof(TController).InjectOperation(methodInfo, controller.Response.Request);
+            typeof(TController).InjectOperation(methodInfo, controller.Response);
         }
 
         private static MethodInfo UnpackMethodSignature(this Expression operation)

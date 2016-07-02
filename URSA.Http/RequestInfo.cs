@@ -14,6 +14,7 @@ namespace URSA.Web.Http
     {
         private const string AnyAny = "*/*";
         private readonly Stream _stream;
+        private readonly ICollection<HypermediaControl> _hypermediaControls;
         private IClaimBasedIdentity _identity;
 
         /// <summary>Initializes a new instance of the <see cref="RequestInfo"/> class.</summary>
@@ -61,6 +62,7 @@ namespace URSA.Web.Http
 
             Method = method;
             Url = url;
+            _hypermediaControls = new List<HypermediaControl>();
             if (!body.CanSeek)
             {
                 var seekableStream = new MemoryStream();
@@ -85,6 +87,9 @@ namespace URSA.Web.Http
 
         /// <inheritdoc />
         Url IRequestInfo.Url { get { return Url; } }
+
+        /// <inheritdoc />
+        public ICollection<HypermediaControl> HypermediaControls { get { return _hypermediaControls; } }
 
         /// <summary>Gets the request headers.</summary>
         public HeaderCollection Headers { get; private set; }

@@ -24,5 +24,8 @@ namespace URSA.Web
         /// <summary>Gets or sets the identity of this request.</summary>
         /// <exception cref="ArgumentNullException">Thrown when setting a <b>null</b> value.</exception>
         IClaimBasedIdentity Identity { get; set; }
+
+        /// <summary>Gets the hypermedia controls to be taken into account when generating a response.</summary>
+        ICollection<HypermediaControl> HypermediaControls { get; }
     }
 }

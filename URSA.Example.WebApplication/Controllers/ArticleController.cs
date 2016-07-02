@@ -6,6 +6,7 @@ using RomanticWeb;
 using RomanticWeb.Entities;
 using URSA.Example.WebApplication.Data;
 using URSA.Web;
+using URSA.Web.Http.Description;
 using URSA.Web.Http.Description.Entities;
 using URSA.Web.Http.Description.Mapping;
 using URSA.Web.Mapping;
@@ -67,6 +68,7 @@ namespace URSA.Example.WebApplication.Controllers
                 result = result.Where(entity => filter.Compile()(entity));
             }
 
+            this.Inject<ArticleController, IArticle>(controller => controller.Create(null));
             return result;
         }
 
@@ -75,7 +77,10 @@ namespace URSA.Example.WebApplication.Controllers
         /// <returns>Instance of the <see cref="IArticle" /> if matching <paramref name="id" />; otherwise <b>null</b>.</returns>
         public IArticle Get(Guid id)
         {
-            return (from entity in _entityContext.AsQueryable<IArticle>() where entity.Key == id select entity).FirstOrDefault();
+            var result = (from entity in _entityContext.AsQueryable<IArticle>() where entity.Key == id select entity).FirstOrDefault();
+            this.Inject<ArticleController, IArticle>(controller => controller.Update(result.Key, result));
+            this.Inject<ArticleController, IArticle>(controller => controller.Delete(result.Key));
+            return result;
         }
 
         /// <summary>Creates the specified article.</summary>
