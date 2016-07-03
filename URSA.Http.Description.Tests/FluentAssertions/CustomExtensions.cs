@@ -51,7 +51,7 @@ namespace URSA.Http.Description.Tests.FluentAssertions
 
         private static string CleanupText(this string text)
         {
-            return Regex.Replace(Regex.Replace(text, "\r\n", "\n"), " {2,}", String.Empty);
+            return Regex.Replace(Regex.Replace(Regex.Replace(text, "\r\n", "\n"), " {2,}", String.Empty), "\n{2,}", String.Empty);
         }
     }
 }
