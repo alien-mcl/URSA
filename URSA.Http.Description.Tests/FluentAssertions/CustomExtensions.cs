@@ -44,8 +44,8 @@ namespace URSA.Http.Description.Tests.FluentAssertions
         /// <returns></returns>
         public static AndConstraint<StringAssertions> BeEquivalentToStream(this StringAssertions subject, string streamName, string because = "", params object[] reasonArgs)
         {
-            var expected = Regex.Replace(new StreamReader(typeof(CustomExtensions).Assembly.GetManifestResourceStream(streamName)).ReadToEnd(), "\r\n", "\n");
-            Regex.Replace(subject.Subject, "\r\n", "\n").Should().Be(expected, because, reasonArgs);
+            var expected = new StreamReader(typeof(CustomExtensions).Assembly.GetManifestResourceStream(streamName)).ReadToEnd().CleanupText();
+            subject.Subject.CleanupText().Should().Be(expected, because, reasonArgs);
             return new AndConstraint<StringAssertions>(subject);
         }
 
