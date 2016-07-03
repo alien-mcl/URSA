@@ -4,7 +4,7 @@
         <NugetsToRemove Include="$(MSBuildProjectDirectory)\NuGetBuild\**\*.nupkg" />
     </ItemGroup>
 
-    <Target Name="Version setup" BeforeTargets="Build">
+    <Target Name="Version setup" BeforeTargets="Build" Condition="'$(Configuration)' == 'Release'">
         <Exec Command='"$(MSBuildProjectDirectory)\.build\Version.bat"'></Exec>
     </Target>
 
