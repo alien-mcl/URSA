@@ -58,12 +58,12 @@
     <Reference Include="Remotion.Linq">
       <HintPath>..\packages\Remotion.Linq.1.15.15.0\lib\portable-net45+wp80+wpa81+win\Remotion.Linq.dll</HintPath>
     </Reference>
-    <Reference Include="RomanticWeb, Version=0.3.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\RomanticWeb.0.3.136.0\Lib\net40\RomanticWeb.dll</HintPath>
+    <Reference Include="RomanticWeb, Version=0.4.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\RomanticWeb.0.4.0.0\Lib\net40\RomanticWeb.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="RomanticWeb.dotNetRDF, Version=0.3.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\RomanticWeb.dotNetRDF.0.3.136.0\Lib\net40\RomanticWeb.dotNetRDF.dll</HintPath>
+    <Reference Include="RomanticWeb.dotNetRDF, Version=0.4.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\RomanticWeb.dotNetRDF.0.4.0.0\Lib\net40\RomanticWeb.dotNetRDF.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />

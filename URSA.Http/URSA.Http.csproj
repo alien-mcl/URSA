@@ -59,8 +59,8 @@
       <HintPath>..\packages\Resta.UriTemplates.1.2.0\lib\net35-client\Resta.UriTemplates.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="RomanticWeb, Version=0.3.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\RomanticWeb.0.3.136.0\Lib\net40\RomanticWeb.dll</HintPath>
+    <Reference Include="RomanticWeb, Version=0.4.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\RomanticWeb.0.4.0.0\Lib\net40\RomanticWeb.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Sprint.Filter.OData, Version=1.2.0.0, Culture=neutral, processorArchitecture=MSIL">
