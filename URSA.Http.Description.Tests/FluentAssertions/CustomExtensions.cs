@@ -1,5 +1,7 @@
 ﻿using System;
+using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using FluentAssertions;
 using FluentAssertions.Execution;
 using FluentAssertions.Primitives;
@@ -31,6 +33,20 @@ namespace URSA.Http.Description.Tests.FluentAssertions
                 .BecauseOf(because, reasonArgs)
                 .FailWith("Expected both graphs to have same statements, but {0} differed.", Math.Abs(subject.Which.Triples.Count - sameStatements));
             return subject;
+        }
+
+        /// <summary>Tests a givent <paramref name="subject" /> string wether it equals to a string taken from the <paramref name="streamName" /> stream.</summary>
+        /// <remarks>This method replaces all carriage-return/new-line-feeds to new-line-feeds.</remarks>
+        /// <param name="subject">The subject.</param>
+        /// <param name="streamName">Name of the stream.</param>
+        /// <param name="because">The because.</param>
+        /// <param name="reasonArgs">The reason arguments.</param>
+        /// <returns></returns>
+        public static AndConstraint<StringAssertions> BeEquivalentToStream(this StringAssertions subject, string streamName, string because = "", params object[] reasonArgs)
+        {
+            var expected = Regex.Replace(new StreamReader(typeof(CustomExtensions).Assembly.GetManifestResourceStream(streamName)).ReadToEnd(), "\r\n", "\n");
+            Regex.Replace(subject.Subject, "\r\n", "\n").Should().Be(expected, because, reasonArgs);
+            return new AndConstraint<StringAssertions>(subject);
         }
     }
 }

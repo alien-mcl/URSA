@@ -10,9 +10,9 @@ using RomanticWeb.Vocabularies;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.IO;
 using System.Linq;
 using URSA.CodeGen;
+using URSA.Http.Description.Tests.FluentAssertions;
 using URSA.Web;
 using URSA.Web.Http.Converters;
 using URSA.Web.Http.Description;
@@ -53,7 +53,7 @@ namespace Given_instance_of_the.HydraClassGenerator_class
         {
             var result = _generator.CreateCode(_class.Object);
 
-            result.First().Value.Should().Be(new StreamReader(GetType().Assembly.GetManifestResourceStream("URSA.Http.Description.Tests.Testing.Templates.Type.cs")).ReadToEnd());
+            result.First().Value.Should().BeEquivalentToStream("URSA.Http.Description.Tests.Testing.Templates.Type.cs");
         }
 
         [TestMethod]
@@ -61,7 +61,7 @@ namespace Given_instance_of_the.HydraClassGenerator_class
         {
             var result = _generator.CreateCode(_class.Object);
 
-            result.Last().Value.Should().Be(new StreamReader(GetType().Assembly.GetManifestResourceStream("URSA.Http.Description.Tests.Testing.Templates.TypeClient.cs")).ReadToEnd());
+            result.Last().Value.Should().BeEquivalentToStream("URSA.Http.Description.Tests.Testing.Templates.TypeClient.cs");
         }
 
         [TestInitialize]
