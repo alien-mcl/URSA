@@ -48,5 +48,10 @@ namespace URSA.Http.Description.Tests.FluentAssertions
             Regex.Replace(subject.Subject, "\r\n", "\n").Should().Be(expected, because, reasonArgs);
             return new AndConstraint<StringAssertions>(subject);
         }
+
+        private static string CleanupText(this string text)
+        {
+            return Regex.Replace(Regex.Replace(text, "\r\n", "\n"), " {2,}", String.Empty);
+        }
     }
 }
