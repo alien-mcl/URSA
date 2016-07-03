@@ -5,7 +5,7 @@
     </ItemGroup>
 
     <Target Name="Version setup" BeforeTargets="Build" Condition="'$(Configuration)' == 'Release'">
-        <Exec Command='"$(MSBuildProjectDirectory)\.build\Version.bat"'></Exec>
+        <Exec Command='"$(MSBuildProjectDirectory)\.build\Version.bat $(Build) $(Branch)"'></Exec>
     </Target>
 
     <Target Name="Nuget restore" BeforeTargets="Build">

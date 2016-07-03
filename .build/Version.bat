@@ -1,5 +1,15 @@
-SET release=0
-SET version=0
-FOR /F "tokens=1" %%a IN ('git rev-list master') DO SET /A release+=1
-FOR /F "tokens=*" %%a IN ('git tag') DO SET /A version+=1
-echo [assembly: System.Reflection.AssemblyVersion("0.5.%version%.%release%")] > "%CD%\.build\VersionAssemblyInfo.cs""
+@ECHO OFF
+SET build=%1
+IF "%~1"=="" SET build=0
+SET "branch=master"
+FOR /F "tokens=1" %%b IN ('git rev-parse --abbrev-ref HEAD') DO SET branch=%%b
+SET "version="
+FOR /F "tokens=1" %%t IN ('git tag') DO SET version=%%t
+SET commit=0
+IF "%version%"=="" (
+    SET "version=0.1"
+    FOR /F "tokens=1" %%r IN ('git rev-list %branch%') DO SET /A commit+=1
+) ELSE (
+    FOR /F "tokens=1" %%r IN ('git log %version%..HEAD --oneline') DO SET /A commit+=1
+)
+ECHO [assembly: System.Reflection.AssemblyVersion("%version%.%commit%.%build%")] > "%CD%\.build\VersionAssemblyInfo.cs""
