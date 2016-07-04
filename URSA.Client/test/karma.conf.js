@@ -89,7 +89,8 @@ module.exports = function(config) {
             "app/scripts/filters/stringify.js",
             "app/scripts/directives/ursa.js",
             "app/scripts/controllers/main.js",
-            "test/mock/**/*.js",
+            "test/matchers/toBeOfType.js",
+            "test/fixtures/api-documentation.js",
             "test/spec/**/*.js"
         ],
 
