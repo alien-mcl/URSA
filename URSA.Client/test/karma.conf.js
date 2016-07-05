@@ -98,6 +98,20 @@ module.exports = function(config) {
         exclude: [
         ],
 
+        preprocessors: {
+            "app/scripts/ursa/*.js": "coverage"
+        },
+
+        reporters: ["coverage", "teamcity"],
+
+        coverageReporter: {
+            dir: "build/reports/coverage",
+            reporters: [
+                { type: "html", subdir: "html" },
+                { type: "teamcity", subdir: ".", file: "teamcity.txt" }
+            ]
+        },
+
         // web server port
         port: 8080,
 
@@ -114,6 +128,8 @@ module.exports = function(config) {
         ],
 
         plugins: [
+            "karma-teamcity-reporter",
+            "karma-coverage",
             "karma-phantomjs-launcher",
             "karma-jasmine"
         ],
