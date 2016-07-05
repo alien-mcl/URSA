@@ -108,7 +108,7 @@ module.exports = function(config) {
             dir: "build/reports/coverage",
             reporters: [
                 { type: "html", subdir: "html" },
-                { type: "teamcity", subdir: ".", file: "teamcity.txt" }
+                { type: "teamcity" }
             ]
         },
 
