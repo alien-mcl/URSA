@@ -44,6 +44,7 @@ module.exports = function(config) {
             "app/scripts/ursa/IPromise.js",
             "app/scripts/ursa/IDeferred.js",
             "app/scripts/ursa/IPromiseProvider.js",
+            "app/scripts/ursa/NotSupportedException.js",
             "app/scripts/ursa/Encoder.js",
             "app/scripts/ursa/Base64Encoder.js",
             "app/scripts/ursa/IGraph.js",

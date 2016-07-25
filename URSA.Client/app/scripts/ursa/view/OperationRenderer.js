@@ -303,7 +303,7 @@
             return;
         }
 
-        if (typeof (page) === "number") {
+        if (typeof(page) === "number") {
             scope.filters.currentPage = page;
         }
 
@@ -436,7 +436,7 @@
         scope.rootScope.broadcastEvent(ursa.view.Events.Authenticated);
     };
 
-    _OperationRenderer.prepareRequest = function (operation, methodOverride, instance, isList) {
+    _OperationRenderer.prepareRequest = function(operation, methodOverride, instance, isList) {
         var url = operation.createCallUrl(instance);
         var request = new ursa.web.HttpRequest(methodOverride || operation.methods[0], url, { Accept: operation.mediaTypes.join() });
         request.initialInstanceId = undefined;
@@ -484,8 +484,8 @@
                 return response;
             });
 
-        promise.catch(function (response) {
-            if (typeof (failure) === "function") {
+        promise.catch(function(response) {
+            if (typeof(failure) === "function") {
                 failure.call(that, scope, operation, instance, request, response);
             }
 
