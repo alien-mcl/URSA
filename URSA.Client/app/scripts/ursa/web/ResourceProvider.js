@@ -12,14 +12,17 @@
      * @class
      * @param supportedClass {ursa.model.Type} Supported class of this resource provider.
      * @param http {ursa.web.HttpService} HTTP cummunication facility.
+     * @param httpService {ursa.web.HttpService} HTTP cummunication facility.
+     * @param filterProvider {ursa.model.FilterProvider} Filter provider.
+     * @param promiseProvider {ursa.IPromiseProvider} Promise provider.
      */
-    var ResourceProvider = namespace.ResourceProvider = function(supportedClass, http, filterProvider, promiseProvider) {
+    var ResourceProvider = namespace.ResourceProvider = function(supportedClass, httpService, filterProvider, promiseProvider) {
         Function.requires("supportedClass", supportedClass, ursa.model.Type);
-        Function.requires("http", http, ursa.web.HttpService);
+        Function.requires("httpService", httpService, ursa.web.HttpService);
         Function.requiresArgument("filterProvider", filterProvider, ursa.model.FilterProvider);
         Function.requiresArgument("promiseProvider", promiseProvider, ursa.IPromiseProvider);
         this.supportedClass = supportedClass;
-        this.http = http;
+        this.httpService = httpService;
         this.filterProvider = filterProvider;
         this.promiseProvider = promiseProvider;
         var allCandidate = null;
@@ -62,6 +65,54 @@
      * @property {string}
      */
     ResourceProvider.prototype.authorization = null;
+
+    /**
+     * Gets a flag indicating whether the provider supports listing operation.
+     * @memberof ursa.web.ResourceProvider
+     * @public
+     * @member {boolean} canList
+     */
+    Object.defineProperty(ResourceProvider.prototype, "canList", { enumerable: true, configurable: false, get: function() { return this._all !== null; } });
+
+    /**
+     * Gets a flag indicating whether the provider supports read operation.
+     * @memberof ursa.web.ResourceProvider
+     * @public
+     * @member {boolean} anRead
+     */
+    Object.defineProperty(ResourceProvider.prototype, "canRead", { enumerable: true, configurable: false, get: function() { return this._get !== null; } });
+
+    /**
+     * Gets a flag indicating whether the provider supports update operation.
+     * @memberof ursa.web.ResourceProvider
+     * @public
+     * @member {boolean} anUpdate
+     */
+    Object.defineProperty(ResourceProvider.prototype, "canUpdate", { enumerable: true, configurable: false, get: function() { return this._put !== null; } });
+
+    /**
+     * Gets a flag indicating whether the provider supports create operation.
+     * @memberof ursa.web.ResourceProvider
+     * @public
+     * @member {boolean} anCreate
+     */
+    Object.defineProperty(ResourceProvider.prototype, "canCreate", { enumerable: true, configurable: false, get: function() { return this._post !== null; } });
+
+    /**
+     * Gets a flag indicating whether the provider supports delete operation.
+     * @memberof ursa.web.ResourceProvider
+     * @public
+     * @member {boolean} anDelete
+     */
+    Object.defineProperty(ResourceProvider.prototype, "canDelete", { enumerable: true, configurable: false, get: function() { return this._delete !== null; } });
+
+    /**
+     * Gets a flag indicating whether the provider supports delete operation.
+     * @memberof ursa.web.ResourceProvider
+     * @public
+     * @member {boolean} anDelete
+     */
+    Object.defineProperty(ResourceProvider.prototype, "ownerContainer", { enumerable: true, configurable: false, get: function() { return (this.canCreate ? this._post.owner : null); } });
 
     /**
      * Gets all the resources.
@@ -198,7 +249,7 @@
      */
     ResourceProvider.prototype.supportedClass = null;
 
-    Object.defineProperty(ResourceProvider.prototype, "http", { enumerable: false, configurable: false, writable: true, value: null });
+    Object.defineProperty(ResourceProvider.prototype, "httpService", { enumerable: false, configurable: false, writable: true, value: null });
 
     Object.defineProperty(ResourceProvider.prototype, "filterProvider", { enumerable: false, configurable: false, writable: true, value: null });
 

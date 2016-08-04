@@ -1,8 +1,7 @@
 ﻿/*globals namespace, ursa, hydra, confirm */
-(function (namespace) {
+(function(namespace) {
     "use strict";
 
-    var bodylessVerbs = ["TRACE"];
     var _OperationRenderer = {};
 
     /**
@@ -13,8 +12,9 @@
      * @class
      * @extends ursa.view.ViewRenderer
      */
-    var OperationRenderer = (namespace.OperationRenderer = function(httpService, jsonLdProcessor, authenticationProvider, filterProvider) {
-        ursa.view.ViewRenderer.prototype.constructor.call(this, httpService, jsonLdProcessor, authenticationProvider, filterProvider);
+    var OperationRenderer = (namespace.OperationRenderer = function(resourceProviderBuilder, jsonLdProcessor, authenticationProvider) {
+        ursa.view.ViewRenderer.prototype.constructor.call(this, resourceProviderBuilder.httpService, jsonLdProcessor, authenticationProvider, resourceProviderBuilder.filterProvider);
+        this.resourceProviderBuilder = resourceProviderBuilder;
     })[":"](ursa.view.ViewRenderer);
 
     OperationRenderer.prototype.isApplicableTo = function(apiMember) {
@@ -25,6 +25,7 @@
     OperationRenderer.prototype.initialize = function(apiMember) {
         Function.requiresArgument("apiMember", apiMember, ursa.model.Operation);
         ursa.view.ViewRenderer.prototype.initialize.apply(this, arguments);
+        this.resourceProvider = this.resourceProviderBuilder.createFor(apiMember);
     };
 
     OperationRenderer.prototype.render = function(scope, classNames) {
@@ -36,7 +37,7 @@
         return "";
     };
 
-    OperationRenderer.toString = function () { return "ursa.view.OperationRenderer"; };
+    OperationRenderer.toString = function() { return "ursa.view.OperationRenderer"; };
 
     _OperationRenderer.renderEntityList = function(scope, classNames) {
         if (!scope.supportedProperties) {
@@ -64,21 +65,21 @@
                 "<tr ng-repeat-start=\"entity in entities{1}\" ng-hide=\"entityEquals(entity)\"" + (scope.keyProperty !== "" ? " title=\"{{ entity['{0}'] | asId }}\"" : "") + ">" +
                 "<td ng-repeat=\"supportedProperty in supportedProperties track by supportedProperty.id\" ng-hide=\"supportedProperty.key\">{{ getPropertyValue(entity, supportedProperty, operation) | stringify }}</td>" +
                 "<td><div class=\"btn-block\">" +
-                (scope.getOperation !== null ? "<button class=\"btn btn-default\" title=\"Edit\" ng-click=\"get(entity)\"><span class=\"glyphicon glyphicon-pencil\"></span></button>" : "") +
-                (scope.deleteOperation !== null ? "<button class=\"btn btn-default\" title=\"Delete\" ng-click=\"delete(entity, $event)\"><span class=\"glyphicon glyphicon-remove\"></span></button>" : "") +
+                (this.resourceProvider.canRead ? "<button class=\"btn btn-default\" title=\"Edit\" ng-click=\"get(entity)\"><span class=\"glyphicon glyphicon-pencil\"></span></button>" : "") +
+                (this.resourceProvider.canDelete ? "<button class=\"btn btn-default\" title=\"Delete\" ng-click=\"delete(entity, $event)\"><span class=\"glyphicon glyphicon-remove\"></span></button>" : "") +
                 "</div></td>" +
                 "</tr>", scope.keyProperty, (scope.keyProperty !== "" ? " track by entity['" + scope.keyProperty + "']" : "")) + String.format(
                 "<tr ng-repeat-end ng-show=\"entityEquals(entity)\" ng-init=\"initialize($index)\">" +
                 "<td colspan=\"{0}\"><div><ursa-api-member-view api-member=\"operation.owner\" target-instance=\"editedEntity\" unique-id=\"{{ uniqueId[$index] }}\"></ursa-api-member-view></div></td>" +
                 "<td><div class=\"btn-block\">" +
-                (scope.updateOperation !== null ? "<button class=\"btn btn-default\" title=\"Update\" ng-disabled=\"isFormDisabled(uniqueId[$index])\" ng-click=\"update(editedEntity)\"><span class=\"glyphicon glyphicon-floppy-disk\"></span></button>" : "") +
+                (this.resourceProvider.canUpdate ? "<button class=\"btn btn-default\" title=\"Update\" ng-disabled=\"isFormDisabled(uniqueId[$index])\" ng-click=\"update(editedEntity)\"><span class=\"glyphicon glyphicon-floppy-disk\"></span></button>" : "") +
                 "<button class=\"btn btn-default\" title=\"Cancel\" ng-click=\"cancel()\"><span class=\"glyphicon glyphicon-repeat\"></span></button>" +
                 "</div></td>" +
                 "</tr>", scope.supportedProperties.length - 1) + String.format(
                 "<tr ng-hide=\"editedEntity !== null\" ng-init=\"initialize(-1)\">" +
                 "<td colspan=\"{0}\"><div ng-show=\"footerVisible\"><ursa-api-member-view api-member=\"operation.owner\" target-instance=\"newInstance\" unique-id=\"{{ uniqueId.footer }}\"></ursa-api-member-view></div></td>" +
                 "<td><div class=\"btn-block\">" +
-                (scope.createOperation !== null ? "<button class=\"btn btn-default\" title=\"Create\" ng-disabled=\"isFormDisabled(uniqueId.footer)\" ng-click=\"create(newInstance)\"><span class=\"glyphicon glyphicon-plus\"></span></button>" : "") +
+                (this.resourceProvider.canCreate ? "<button class=\"btn btn-default\" title=\"Create\" ng-disabled=\"isFormDisabled(uniqueId.footer)\" ng-click=\"create(newInstance)\"><span class=\"glyphicon glyphicon-plus\"></span></button>" : "") +
                 "</div></td>" +
                 "</tr>", scope.supportedProperties.length - 1) +
             pager +
@@ -103,10 +104,7 @@
         var that = this;
         scope.uniqueId = [];
         scope.operation = this.apiMember;
-        scope.deleteOperation = namespace.findEntityCrudOperation.call(this, "DELETE");
-        scope.updateOperation = namespace.findEntityCrudOperation.call(this, "PUT");
-        scope.getOperation = namespace.findEntityCrudOperation.call(this, "GET");
-        if ((scope.createOperation = namespace.findEntityCrudOperation.call(this, "POST")) !== null) {
+        if (this.resourceProvider.canCreate) {
             scope.newInstance = this.apiMember.owner.createInstance(this.apiMember);
             scope.footerVisible = false;
         }
@@ -133,87 +131,87 @@
 
         scope.entities = null;
         scope.editedEntity = null;
-        scope.getPropertyValue = function (entity, supportedProperty, operation) { return entity[supportedProperty.propertyName(operation)]; };
-        scope.cancel = function () { scope.editedEntity = null; };
-        scope.list = function (page) { _OperationRenderer.loadEntityList.call(that, scope, scope.operation, null, page); };
-        scope.get = function (instance) { _OperationRenderer.loadEntity.call(that, scope, scope.getOperation, instance); };
-        scope.create = function (instance) { _OperationRenderer.createEntity.call(that, scope, scope.createOperation, instance); };
-        scope.update = function (instance) { _OperationRenderer.updateEntity.call(that, scope, scope.updateOperation, instance); };
-        scope.delete = function (instance, e) { _OperationRenderer.deleteEntity.call(that, scope, scope.deleteOperation, instance, e); };
-        scope.entityEquals = function (entity) { return _OperationRenderer.entityEquals.call(that, entity, scope.editedEntity, scope.operation); };
-        scope.initialize = function (index) { _OperationRenderer.initialize.call(that, scope, index); };
-        scope.isFormDisabled = function (name) { return _OperationRenderer.isFormDisabled.call(that, scope, name); };
+        scope.getPropertyValue = function(entity, supportedProperty, operation) { return entity[supportedProperty.propertyName(operation)]; };
+        scope.cancel = function() { scope.editedEntity = null; };
+        scope.list = function(page) { _OperationRenderer.loadEntityList.call(that, scope, null, page); };
+        scope.get = function(instance) { _OperationRenderer.loadEntity.call(that, scope, instance); };
+        scope.create = function(instance) { _OperationRenderer.createEntity.call(that, scope, instance); };
+        scope.update = function(instance) { _OperationRenderer.updateEntity.call(that, scope, instance); };
+        scope.delete = function(instance, e) { _OperationRenderer.deleteEntity.call(that, scope, instance, e); };
+        scope.entityEquals = function(entity) { return _OperationRenderer.entityEquals.call(that, entity, scope.editedEntity, scope.operation); };
+        scope.initialize = function(index) { _OperationRenderer.initialize.call(that, scope, index); };
+        scope.isFormDisabled = function(name) { return _OperationRenderer.isFormDisabled.call(that, scope, name); };
     };
 
-    _OperationRenderer.onLoadEntitySuccess = function(scope, createOperation, instance, request, response) {
+    _OperationRenderer.onLoadEntitySuccess = function(scope, instance, response) {
         var that = this;
         if ((response.headers["Content-Type"] || "*/*").indexOf(ursa.model.EntityFormat.ApplicationLdJson) === 0) {
             that.jsonLdProcessor.expand(response.data).
-                then(function (expanded) {
-                    scope.rootScope.broadcastEvent(ursa.view.Events.EntityLoaded, scope.editedEntity = (expanded.length > 0 ? expanded[0] : null), createOperation.owner);
+                then(function(expanded) {
+                    scope.rootScope.broadcastEvent(ursa.view.Events.EntityLoaded, scope.editedEntity = (expanded.length > 0 ? expanded[0] : null), that.apiMember.owner);
                     scope.updateView();
                     return expanded;
                 });
         }
         else {
-            scope.rootScope.broadcastEvent(ursa.view.Events.EntityLoaded, scope.editedEntity = response.data, createOperation.owner);
+            scope.rootScope.broadcastEvent(ursa.view.Events.EntityLoaded, scope.editedEntity = response.data, that.apiMember.owner);
         }
     };
 
-    _OperationRenderer.loadEntity = function(scope, getOperation, instance) {
-        _OperationRenderer.handleOperation.call(this, scope, getOperation, null, instance, _OperationRenderer.onLoadEntitySuccess, null, _OperationRenderer.loadEntity);
+    _OperationRenderer.loadEntity = function(scope, instance) {
+        _OperationRenderer.handleOperation.call(this, scope, this.resourceProvider.get, instance, _OperationRenderer.onLoadEntitySuccess, null, _OperationRenderer.loadEntity);
     };
 
-    _OperationRenderer.createEntitySuccess = function(scope, createOperation, instance) {
-        scope.newInstance = createOperation.owner.createInstance(createOperation);
-        scope.rootScope.broadcastEvent(ursa.view.Events.EntityCreated, instance, createOperation.owner);
+    _OperationRenderer.createEntitySuccess = function(scope, instance) {
+        scope.newInstance = this.apiMember.owner.createInstance(this.apiMember);
+        scope.rootScope.broadcastEvent(ursa.view.Events.EntityCreated, instance, this.apiMember.owner);
         scope.list(1);
         scope.footerVisible = false;
     };
 
-    _OperationRenderer.ammendEntityFailure = function(scope, createOperation, instance, request) {
-        if (request.initialInstanceId !== undefined) {
-            if (request.initialInstanceId) {
+    _OperationRenderer.ammendEntityFailure = function(scope, instance, response) {
+        if (response.request.initialInstanceId !== undefined) {
+            if (response.request.initialInstanceId) {
                 delete instance["@id"];
             }
             else {
-                instance["@id"] = request.initialInstanceId;
+                instance["@id"] = response.request.initialInstanceId;
             }
         }
     };
 
-    _OperationRenderer.createEntity = function(scope, createOperation, instance) {
+    _OperationRenderer.createEntity = function(scope, instance) {
         if (!scope.footerVisible) {
             scope.footerVisible = true;
             return;
         }
 
-        _OperationRenderer.handleOperation.call(this, scope, createOperation, null, instance, _OperationRenderer.createEntitySuccess, _OperationRenderer.ammendEntityFailure, _OperationRenderer.createEntity);
+        _OperationRenderer.handleOperation.call(this, scope, this.resourceProvider.set, instance, _OperationRenderer.createEntitySuccess, _OperationRenderer.ammendEntityFailure, _OperationRenderer.createEntity);
     };
 
-    _OperationRenderer.onUpdateEntitySuccess = function(scope, updateOperation, instance) {
+    _OperationRenderer.onUpdateEntitySuccess = function(scope, instance) {
         scope.editedEntity = null;
-        scope.rootScope.broadcastEvent(ursa.view.Events.EntityModified, instance, updateOperation.owner);
+        scope.rootScope.broadcastEvent(ursa.view.Events.EntityModified, instance, this.apiMember.owner);
         scope.list();
     };
 
-    _OperationRenderer.updateEntity = function(scope, updateOperation, instance) {
-        _OperationRenderer.handleOperation.call(this, scope, updateOperation, null, instance, _OperationRenderer.onUpdateEntitySuccess, _OperationRenderer.ammendEntityFailure, _OperationRenderer.updateEntity);
+    _OperationRenderer.updateEntity = function(scope, instance) {
+        _OperationRenderer.handleOperation.call(this, scope, this.resourceProvider.set, instance, _OperationRenderer.onUpdateEntitySuccess, _OperationRenderer.ammendEntityFailure, _OperationRenderer.updateEntity);
     };
 
-    _OperationRenderer.onDeleteEntitySuccess = function(scope, deleteOperation, instance) {
-        scope.rootScope.broadcastEvent(ursa.view.Events.EntityRemoved, instance, deleteOperation);
+    _OperationRenderer.onDeleteEntitySuccess = function(scope, instance) {
+        scope.rootScope.broadcastEvent(ursa.view.Events.EntityRemoved, instance, this.apiMember.owner);
         scope.list(1);
     };
 
-    _OperationRenderer.deleteEntity = function(scope, deleteOperation, instance, e) {
+    _OperationRenderer.deleteEntity = function(scope, instance, e) {
         if ((e) && (!confirm("Are you sure you want to delete this item?"))) {
             e.preventDefault();
             e.stopPropagation();
             return;
         }
 
-        _OperationRenderer.handleOperation.call(this, scope, deleteOperation, null, instance, _OperationRenderer.onDeleteEntitySuccess, null, _OperationRenderer.deleteEntity);
+        _OperationRenderer.handleOperation.call(this, scope, this.resourceProvider.delete, instance, _OperationRenderer.onDeleteEntitySuccess, null, _OperationRenderer.deleteEntity);
     };
 
     _OperationRenderer.setupPaging = function(scope) {
@@ -281,12 +279,12 @@
         return result;
     };
 
-    _OperationRenderer.onLoadEntityListSuccess = function(scope, listOperation, instance, request, response) {
+    _OperationRenderer.onLoadEntityListSuccess = function(scope, instance, response) {
         var that = this;
         _OperationRenderer.parseContentRange.call(this, scope, response);
         if ((response.headers["Content-Type"] || "*/*").indexOf(ursa.model.EntityFormat.ApplicationLdJson) === 0) {
             that.jsonLdProcessor.expand(response.data).
-                then(function (expanded) {
+                then(function(expanded) {
                     scope.entities = _OperationRenderer.parseHypermediaControls.call(this, scope, response, expanded);
                     scope.updateView();
                     return expanded;
@@ -297,35 +295,12 @@
         }
     };
 
-    _OperationRenderer.loadEntityList = function(scope, listOperation, instance, page) {
-        var candidateMethod = _OperationRenderer.findEntityListMethod.call(this, listOperation);
-        if (candidateMethod === null) {
-            return;
-        }
-
+    _OperationRenderer.loadEntityList = function(scope, instance, page) {
         if (typeof(page) === "number") {
             scope.filters.currentPage = page;
         }
 
-        if (listOperation.mappings !== null) {
-            for (var index = 0; index < listOperation.mappings.length; index++) {
-                var mapping = listOperation.mappings[index];
-                var filterExpressionProvider = this.filterProvider.resolve(mapping.property);
-                if (filterExpressionProvider === null) {
-                    continue;
-                }
-
-                var filterExpression = filterExpressionProvider.createFilter(mapping, scope.filters);
-                if (filterExpression === null) {
-                    continue;
-                }
-
-                instance = instance || {};
-                instance[mapping.propertyName(listOperation)] = (listOperation.isRdf ? [{ "@value": filterExpression }] : filterExpression);
-            }
-        }
-
-        _OperationRenderer.handleOperation.call(this, scope, listOperation, candidateMethod, instance, _OperationRenderer.onLoadEntityListSuccess, null, _OperationRenderer.loadEntityList, page, true);
+        _OperationRenderer.handleOperation.call(this, scope, this.resourceProvider.all, instance, _OperationRenderer.onLoadEntityListSuccess, null, _OperationRenderer.loadEntityList, page);
     };
 
     _OperationRenderer.entityEquals = function(leftOperand, rightOperand, operation) {
@@ -352,43 +327,6 @@
         return (leftOperand["@id"] === rightOperand["@id"]);
     };
 
-    _OperationRenderer.findEntityListMethod = function(listOperation) {
-        var candidateMethod = null;
-        for (var index = 0; index < listOperation.methods.length; index++) {
-            if ((candidateMethod !== null) && (listOperation.methods[index] !== "GET")) {
-                continue;
-            }
-
-            candidateMethod = listOperation.methods[index];
-            if (listOperation.methods[index] === "GET") {
-                break;
-            }
-        }
-
-        return candidateMethod;
-    };
-
-    _OperationRenderer.sanitizeEntity = function(instance, operation) {
-        if (!operation.isRdf) {
-            return instance;
-        }
-
-        for (var property in instance) {
-            if ((instance.hasOwnProperty(property)) && (instance[property] instanceof Array)) {
-                if (instance[property.length] === 0) {
-                    delete instance[property];
-                }
-                else {
-                    for (var index = 0; instance < instance[property].length; index++) {
-                        _OperationRenderer.sanitizeEntity.call(this, instance[property][index], operation);
-                    }
-                }
-            }
-        }
-
-        return instance;
-    };
-
     _OperationRenderer.initialize = function(scope, index) {
         if (index === -1) {
             scope.uniqueId.footer = "instance_" + Math.random().toString().replace(".", "").substr(1);
@@ -410,9 +348,9 @@
         }
 
         var that = this;
-        this._authenticationEventHandler = scope.onEvent(ursa.view.Events.Authenticate, function (e, userName, password) {
+        this._authenticationEventHandler = scope.onEvent(ursa.view.Events.Authenticate, function(e, userName, password) {
             that.authenticationProvider.authenticate(challenge, userName, password).
-                then(function (authorization) {
+                then(function(authorization) {
                     that._authorization = authorization;
                     callback();
                     return authorization;
@@ -436,47 +374,12 @@
         scope.rootScope.broadcastEvent(ursa.view.Events.Authenticated);
     };
 
-    _OperationRenderer.prepareRequest = function(operation, methodOverride, instance, isList) {
-        var url = operation.createCallUrl(instance);
-        var request = new ursa.web.HttpRequest(methodOverride || operation.methods[0], url, { Accept: operation.mediaTypes.join() });
-        request.initialInstanceId = undefined;
-        if ((operation.mediaTypes.length > 0) && (bodylessVerbs.indexOf(operation.methods[0]) === -1)) {
-            request.headers["Content-Type"] = operation.mediaTypes[0];
-        }
-
-        if (isList) {
-            request.headers["Accept-Ranges"] = "members";
-        }
-
-        if (instance) {
-            if (operation.isRdf) {
-                if (instance["@id"] === undefined) {
-                    request.initialInstanceId = true;
-                    instance["@id"] = url;
-                }
-                else if ((instance["@id"] === null) || (instance["@id"] === "") || (instance["@id"].indexOf("_:") === 0)) {
-                    request.initialInstanceId = instance["@id"];
-                    instance["@id"] = url;
-                }
-            }
-
-            request.data = JSON.stringify(_OperationRenderer.sanitizeEntity.call(this, instance, operation));
-        }
-
-        if (this._authorization) {
-            request.headers.Authorization = this._authorization;
-        }
-
-        return request;
-    };
-
-    _OperationRenderer.handleOperation = function(scope, operation, methodOverride, instance, success, failure, callbackMethod, context, isList) {
+    _OperationRenderer.handleOperation = function(scope, instance, operation, success, failure, callbackMethod, context) {
         var that = this;
-        var request = _OperationRenderer.prepareRequest.call(this, operation, methodOverride, instance, isList);
-        var promise = this.httpService.sendRequest(request).
-            then(function (response) {
-                if (typeof (success) === "function") {
-                    success.call(that, scope, operation, instance, request, response);
+        var promise = operation(operation === this.resourceProvider.all ? scope.filters : instance).
+            then(function(response) {
+                if (typeof(success) === "function") {
+                    success.call(that, scope, instance, response);
                 }
 
                 _OperationRenderer.handleAuthorized.call(that, scope);
@@ -486,7 +389,7 @@
 
         promise.catch(function(response) {
             if (typeof(failure) === "function") {
-                failure.call(that, scope, operation, instance, request, response);
+                failure.call(that, scope, operation, instance, response);
             }
 
             if (response.status === ursa.model.HttpStatusCodes.Unauthorized) {

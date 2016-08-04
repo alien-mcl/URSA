@@ -8,16 +8,15 @@
      * @name HttpResponse
      * @public
      * @class
-     * @param {string} method An HTTP method.
+     * @param {ursa.web.HttpRequest} request HTTP request.
      * @param {string} url Source Url of the response.
      * @param {number} status Status of the response.
      * @param {string} statusText Text of the status of the response.
      * @param {object} headers Optional response headers.
      * @param {object} data Body of the response.
      */
-    var HttpResponse = namespace.HttpResponse = function(method, url, status, statusText, headers, data) {
-        Function.requiresArgument("method", method, "string");
-        Function.requiresArgument("url", url, "string");
+    var HttpResponse = namespace.HttpResponse = function(request, status, statusText, headers, data) {
+        Function.requiresArgument("request", request, ursa.web.HttpRequest);
         Function.requiresArgument("status", status, "number");
         Function.requiresArgument("statusText", statusText, "string");
         Function.requiresOptionalArgument("headers", headers, Object);
@@ -25,8 +24,9 @@
             throw new joice.ArgumentOutOfRangeException("url");
         }
 
-        this.url = url;
-        this.method = method;
+        this.request = request;
+        this.url = request.url;
+        this.method = request.method;
         this.status = status;
         this.statusText = statusText;
         this.headers = headers || {};
@@ -34,12 +34,20 @@
     };
 
     /**
+     * Gets a request object.
+     * @memberof ursa.web.HttpResponse
+     * @public
+     * @member {ursa.web.HttpRequest} request
+     */
+    HttpResponse.prototype.request = null;
+
+    /**
      * Gets a response url.
      * @memberof ursa.web.HttpResponse
      * @public
      * @member {string} url
      */
-    HttpResponse.prototype.url = null;
+    Object.defineProperty(HttpResponse.prototype, "url", { enumerable: true, configurable: false, get: function() { return this.request.url; } });
 
     /**
      * Gets a response method.
@@ -47,7 +55,7 @@
      * @public
      * @member {string} method
      */
-    HttpResponse.prototype.method = null;
+    Object.defineProperty(HttpResponse.prototype, "method", { enumerable: true, configurable: false, get: function() { return this.request.method; } });
 
     /**
      * Gets a response status.

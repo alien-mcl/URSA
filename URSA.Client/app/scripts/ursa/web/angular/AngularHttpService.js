@@ -46,7 +46,7 @@
     
     _AngularHttpService.processResponse = function(request, response) {
         var that = this;
-        var result = new ursa.web.HttpResponse(request.method, request.url, response.status, response.statusText, {}, response.data);
+        var result = new ursa.web.HttpResponse(request, response.status, response.statusText, {}, response.data);
         Object.defineProperty(result, "headers", { get: function() { return _AngularHttpService.processHeaders.call(that, response.headers()); } });
         return result;
     };

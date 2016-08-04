@@ -26,6 +26,7 @@
 ///<reference path="/app/scripts/ursa/web/HttpRequest.js" />
 ///<reference path="/app/scripts/ursa/web/HttpResponse.js" />
 ///<reference path="/app/scripts/ursa/web/HttpService.js" />
+///<reference path="/app/scripts/ursa/web/ResourceProvider.js" />
 ///<reference path="/app/scripts/ursa/web/angular/AngularHttpService.js" />
 ///<reference path="/app/scripts/ursa/web/angular/AngularAuthenticationProvider.js" />
 ///<reference path="/app/scripts/ursa/model/helpers.js" />

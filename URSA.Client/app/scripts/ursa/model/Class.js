@@ -151,7 +151,7 @@
 
     Class.toString = function () { return "ursa.model.Class"; };
 
-    _Class.createJsonInstance = function (operation) {
+    _Class.createJsonInstance = function(operation) {
         var result = {};
         for (var index = 0; index < this.supportedProperties.length; index++) {
             var supportedProperty = this.supportedProperties[index];
@@ -174,7 +174,7 @@
         return result;
     };
 
-    _Class.createRdfInstance = function (operation) {
+    _Class.createRdfInstance = function(operation) {
         var result = { "@id": "_:bnode" + Math.random().toString().replace(".", "").substr(1) };
         if (this.id.indexOf("_") !== 0) {
             result["@type"] = this.id;
