@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Net;
-using System.Web;
 using URSA.Web.Description;
 using URSA.Web.Description.Http;
 using URSA.Web.Http.Description;

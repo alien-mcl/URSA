@@ -66,7 +66,7 @@ namespace URSA.Web.Http.Description
                 return context.BuildTypeDescription(out requiresRdf);
             }
 
-            if (System.Reflection.TypeExtensions.IsEnumerable(context.Type))
+            if (System.Reflection.TypeInfoExtensions.IsEnumerable(context.Type))
             {
                 if (context.Type.IsList())
                 {
@@ -237,7 +237,7 @@ namespace URSA.Web.Http.Description
             result.Property.Description = _xmlDocProvider.GetDescription(property);
             result.Property.Domain.Add(@class);
             IClass propertyType;
-            var itemPropertyType = (System.Reflection.TypeExtensions.IsEnumerable(property.PropertyType) ? property.PropertyType : property.PropertyType.GetItemType());
+            var itemPropertyType = (System.Reflection.TypeInfoExtensions.IsEnumerable(property.PropertyType) ? property.PropertyType : property.PropertyType.GetItemType());
             if (!context.ContainsType(itemPropertyType))
             {
                 bool requiresRdf;
@@ -251,7 +251,7 @@ namespace URSA.Web.Http.Description
             }
 
             result.Property.Range.Add(propertyType);
-            if ((System.Reflection.TypeExtensions.IsEnumerable(property.PropertyType)) && (property.PropertyType != typeof(byte[])))
+            if ((System.Reflection.TypeInfoExtensions.IsEnumerable(property.PropertyType)) && (property.PropertyType != typeof(byte[])))
             {
                 return result;
             }

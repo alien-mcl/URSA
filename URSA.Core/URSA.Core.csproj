@@ -23,12 +23,12 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
+    <OutputPath>net-bin\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <DocumentationFile>bin\Debug\URSA.Core.xml</DocumentationFile>
+    <DocumentationFile>net-bin\Debug\URSA.Core.xml</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -62,7 +62,6 @@
       <Link>Properties\VersionAssemblyInfo.cs</Link>
     </Compile>
     <Compile Include="ComponentModel\IComponentProvider.cs" />
-    <Compile Include="Configuration\ConfigurationSectionExtensions.cs" />
     <Compile Include="Configuration\UrsaConfigurationSection.cs" />
     <Compile Include="Security\BasicClaimBasedIdentity.cs" />
     <Compile Include="Security\ClaimBasedSecurityConstraintAttribute.cs" />
@@ -128,6 +127,7 @@
   <ItemGroup>
     <None Include="app.config" />
     <None Include="packages.config" />
+    <None Include="URSA.Core.project.json" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\URSA.Tools\URSA.Tools.csproj">

@@ -54,8 +54,8 @@ namespace URSA.Web.Http.Converters
                 throw new ArgumentNullException("request");
             }
 
-            if ((!typeof(Expression).IsAssignableFrom(expectedType)) || (!expectedType.IsGenericType) || (!expectedType.GetGenericArguments()[0].IsGenericType) || 
-                (expectedType.GetGenericArguments()[0].GetGenericArguments()[0].GetImplementationOfAny(typeof(IControlledEntity<>)) == null))
+            if ((!typeof(Expression).IsAssignableFrom(expectedType)) || (!expectedType.GetTypeInfo().IsGenericType) || (!expectedType.GetGenericArguments()[0].GetTypeInfo().IsGenericType) || 
+                (expectedType.GetGenericArguments()[0].GetGenericArguments()[0].GetTypeInfo().GetImplementationOfAny(typeof(IControlledEntity<>)) == null))
             {
                 return CompatibilityLevel.None;
             }
@@ -107,7 +107,7 @@ namespace URSA.Web.Http.Converters
 
             if (body == null)
             {
-                return (expectedType.IsValueType ? Activator.CreateInstance(expectedType) : null);
+                return (expectedType.GetTypeInfo().IsValueType ? Activator.CreateInstance(expectedType) : null);
             }
 
             var entityType = expectedType.GetGenericArguments()[0].GetGenericArguments()[0];

@@ -2,14 +2,19 @@
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+#if !CORE
 using System.Collections.Specialized;
+#endif
 using System.Linq;
 using System.Text;
+#if CORE
+using Microsoft.Extensions.Primitives;
+#endif
 
 namespace URSA.Web.Http
 {
     /// <summary>Provides an easy access to key-value query string parameters.</summary>
-    public class ParametersCollection : IEnumerable<KeyValuePair<string, string>>, ICloneable
+    public class ParametersCollection : IEnumerable<KeyValuePair<string, string>>
     {
         private static readonly string[] NoValues = new string[0];
 
@@ -64,6 +69,29 @@ namespace URSA.Web.Http
             }
         }
 
+#if CORE
+        /// <summary>Converts a parsed query string of type <see cref="Dictionary{string, StringValues}" /> into <see cref="ParametersCollection" />.</summary>
+        /// <param name="queryString">The query string.</param>
+        /// <returns>Collection of key-value parameters.</returns>
+        public static explicit operator ParametersCollection(Dictionary<string, StringValues> queryString)
+        {
+            if (queryString == null)
+            {
+                return null;
+            }
+
+            var result = new ParametersCollection("&", "=");
+            foreach (var entry in queryString)
+            {
+                foreach (var value in entry.Value)
+                {
+                    result.AddValue(entry.Key, value);
+                }
+            }
+
+            return result;
+        }
+#else
         /// <summary>Converts a parsed query string of type <see cref="NameValueCollection" /> into <see cref="ParametersCollection" />.</summary>
         /// <param name="queryString">The query string.</param>
         /// <returns>Collection of key-value parameters.</returns>
@@ -85,6 +113,7 @@ namespace URSA.Web.Http
 
             return result;
         }
+#endif
 
         /// <summary>Gets the values for a given <paramref name="key" />.</summary>
         /// <param name="key">The key.</param>
@@ -138,7 +167,7 @@ namespace URSA.Web.Http
 
         /// <summary>Clones this parameters collection.</summary>
         /// <returns>Copy of the parameters collection.</returns>
-        public ParametersCollection Clone()
+        public ParametersCollection DeepCopy()
         {
             var result = new ParametersCollection(_separator, _valueIndicator);
             foreach (var entry in _container)
@@ -153,12 +182,6 @@ namespace URSA.Web.Http
             }
 
             return result;
-        }
-
-        /// <inheritdoc />
-        object ICloneable.Clone()
-        {
-            return Clone();
         }
 
         /// <inheritdoc />

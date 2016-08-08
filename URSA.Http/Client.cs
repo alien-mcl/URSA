@@ -1,17 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
-using System.Dynamic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using Resta.UriTemplates;
-using RomanticWeb.Entities;
+using Tavis.UriTemplates;
 using URSA.ComponentModel;
 using URSA.Configuration;
 using URSA.Security;
@@ -85,7 +83,12 @@ namespace URSA.Web.Http
         internal HttpUrl BuildUrl(string url, IDictionary<string, object> uriArguments)
         {
             var template = new UriTemplate(BaseUrl.ToString() + url);
-            var result = template.ResolveUri(uriArguments.ToDictionary(entry => entry.Key, entry => (object)(entry.Value != null ? entry.Value.ToString() : null)));
+            foreach (var parameter in uriArguments)
+            {
+                template.SetParameter(parameter.Key, parameter.Value);
+            }
+
+            var result = template.Resolve();
             return (HttpUrl)UrlParser.Parse(Regex.Replace(result.ToString(), "%([0-9]+)", match => Convert.ToChar(UInt32.Parse(match.Groups[1].Value, NumberStyles.HexNumber)).ToString()));
         }
 
@@ -138,7 +141,9 @@ namespace URSA.Web.Http
                 var credentials = new CredentialCache();
                 credentials.Add(new Uri(callUrl.Authority), _authenticationScheme, new NetworkCredential(CredentialCache.DefaultNetworkCredentials.UserName, CredentialCache.DefaultNetworkCredentials.Password));
                 request.Credentials = credentials;
+#if !CORE
                 request.PreAuthenticate = true;
+#endif
             }
 
             request.Method = verb.ToString();
@@ -147,7 +152,7 @@ namespace URSA.Web.Http
                 await FillRequestBody(verb, callUrl, request, contentType, accepted, bodyArguments);
             }
 
-            var response = (HttpWebResponse)request.GetResponse();
+            var response = (HttpWebResponse)(await request.GetResponseAsync());
             ParseContentRange(response, uriArguments);
             if (responseType == null)
             {
@@ -156,7 +161,7 @@ namespace URSA.Web.Http
 
             RequestInfo fakeRequest = new RequestInfo(verb, callUrl, response.GetResponseStream(), new BasicClaimBasedIdentity(), HeaderCollection.Parse(response.Headers.ToString()));
             var result = _resultBinder.BindResults(responseType, fakeRequest);
-            return result.FirstOrDefault(responseType.IsInstanceOfType);
+            return result.FirstOrDefault(responseType.GetTypeInfo().IsInstanceOfType);
         }
 
         private async Task FillRequestBody(Verb verb, HttpUrl url, WebRequest request, IEnumerable<string> contentType, IEnumerable<string> accepted, params object[] bodyArguments)
@@ -168,7 +173,7 @@ namespace URSA.Web.Http
             }
 
             ResponseInfo fakeResponse = CreateFakeResponseInfo(fakeRequest, contentType, bodyArguments);
-            using (var target = request.GetRequestStream())
+            using (var target = await request.GetRequestStreamAsync())
             using (var source = fakeResponse.Body)
             {
                 source.CopyTo(target);
@@ -184,7 +189,7 @@ namespace URSA.Web.Http
                         request.ContentType = header.Value;
                         break;
                     default:
-                        request.Headers.Add(header.Name, header.Value);
+                        request.Headers[header.Name] = header.Value;
                         break;
                 }
             }

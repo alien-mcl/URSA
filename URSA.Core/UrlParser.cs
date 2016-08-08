@@ -3,7 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Runtime.Remoting.Messaging;
+using System.Reflection;
 using System.Text;
 using URSA.Configuration;
 using URSA.Web.Http;
@@ -64,8 +64,8 @@ namespace URSA
         {
             foreach (var entry in UrlParserConfigurationSection.Default.Parsers)
             {
-                object[] arguments = new object[] { (entry.Value.Any() ? entry.Value.Cast<object>().ToArray() : new string[0]) };
-                typeof(UrlParser).GetMethod("Register").MakeGenericMethod(entry.Key).Invoke(null, arguments);
+                object[] arguments = { (entry.Value.Any() ? entry.Value.Cast<object>().ToArray() : new string[0]) };
+                typeof(UrlParser).GetTypeInfo().DeclaredMethods.First(method => method.Name == "Register").MakeGenericMethod(entry.Key).Invoke(null, arguments);
             }
         }
 

@@ -12,12 +12,13 @@ namespace URSA.Web.Http.Converters
         /// <inheritdoc />
         protected override bool CanConvert(Type expectedType)
         {
-            return (expectedType.GetItemType() == typeof(byte)) || (expectedType.GetItemType() == typeof(sbyte)) ||
-                (expectedType.GetItemType() == typeof(ushort)) || (expectedType.GetItemType() == typeof(short)) ||
-                (expectedType.GetItemType() == typeof(uint)) || (expectedType.GetItemType() == typeof(int)) ||
-                (expectedType.GetItemType() == typeof(ulong)) || (expectedType.GetItemType() == typeof(long)) ||
-                (expectedType.GetItemType() == typeof(float)) || (expectedType.GetItemType() == typeof(double)) ||
-                (expectedType.GetItemType() == typeof(decimal));
+            var itemType = expectedType.GetTypeInfo().GetItemType();
+            return (itemType == typeof(byte)) || (itemType == typeof(sbyte)) ||
+                (itemType == typeof(ushort)) || (itemType == typeof(short)) ||
+                (itemType == typeof(uint)) || (itemType == typeof(int)) ||
+                (itemType == typeof(ulong)) || (itemType == typeof(long)) ||
+                (itemType == typeof(float)) || (itemType == typeof(double)) ||
+                (itemType == typeof(decimal));
         }
     }
 }

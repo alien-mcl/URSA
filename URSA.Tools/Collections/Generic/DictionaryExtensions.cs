@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Diagnostics.CodeAnalysis;
 
 namespace System.Collections.Generic
 {
@@ -23,11 +18,6 @@ namespace System.Collections.Generic
             if (dictionary == null)
             {
                 throw new ArgumentNullException("dictionary");
-            }
-
-            if ((!typeof(TKey).IsValueType) && (key == null))
-            {
-                throw new ArgumentOutOfRangeException("key");
             }
 
             if (defaultValue == null)

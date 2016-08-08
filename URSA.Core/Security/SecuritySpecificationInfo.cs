@@ -6,7 +6,7 @@ using System.Diagnostics.CodeAnalysis;
 namespace URSA.Security
 {
     /// <summary>Provides a claims specification of a resource.</summary>
-    public class SecuritySpecificationInfo : IEnumerable<string>, ICloneable
+    public class SecuritySpecificationInfo : IEnumerable<string>
     {
         private readonly IDictionary<string, IDictionary<string, string>> _claimValues;
 
@@ -44,14 +44,6 @@ namespace URSA.Security
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
         {
             return ((IEnumerable<string>)this).GetEnumerator();
-        }
-
-        /// <inheritdoc />
-        [ExcludeFromCodeCoverage]
-        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
-        object ICloneable.Clone()
-        {
-            return Clone();
         }
 
         internal void Add(string claimType, string claimValue = null)
@@ -104,7 +96,7 @@ namespace URSA.Security
             }
         }
 
-        internal SecuritySpecificationInfo Clone()
+        internal SecuritySpecificationInfo DeepCopy()
         {
             SecuritySpecificationInfo result = new SecuritySpecificationInfo();
             foreach (var claimSpecification in _claimValues)

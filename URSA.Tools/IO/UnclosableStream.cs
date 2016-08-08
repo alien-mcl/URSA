@@ -1,5 +1,7 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+#if !CORE
 using System.Runtime.Remoting;
+#endif
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -83,6 +85,7 @@ namespace System.IO
             _stream.Write(buffer, offset, count);
         }
 
+#if !CORE
         /// <inheritdoc />
         public override IAsyncResult BeginRead(byte[] buffer, int offset, int count, AsyncCallback callback, object state)
         {
@@ -98,12 +101,6 @@ namespace System.IO
         /// <inheritdoc />
         public override void Close()
         {
-        }
-
-        /// <inheritdoc />
-        public override Task CopyToAsync(Stream destination, int bufferSize, CancellationToken cancellationToken)
-        {
-            return _stream.CopyToAsync(destination, bufferSize, cancellationToken);
         }
 
         /// <inheritdoc />
@@ -125,6 +122,19 @@ namespace System.IO
         }
 
         /// <inheritdoc />
+        public override object InitializeLifetimeService()
+        {
+            return _stream.InitializeLifetimeService();
+        }
+#endif
+
+        /// <inheritdoc />
+        public override Task CopyToAsync(Stream destination, int bufferSize, CancellationToken cancellationToken)
+        {
+            return _stream.CopyToAsync(destination, bufferSize, cancellationToken);
+        }
+
+        /// <inheritdoc />
         public override bool Equals(object obj)
         {
             return _stream.Equals(obj);
@@ -140,12 +150,6 @@ namespace System.IO
         public override int GetHashCode()
         {
             return _stream.GetHashCode();
-        }
-
-        /// <inheritdoc />
-        public override object InitializeLifetimeService()
-        {
-            return _stream.InitializeLifetimeService();
         }
 
         /// <inheritdoc />

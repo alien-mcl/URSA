@@ -6,7 +6,7 @@ using System.Linq.Expressions;
 namespace URSA.Security
 {
     /// <summary>Describes a security requirements of a resource.</summary>
-    public class ResourceSecurityInfo : ICloneable
+    public class ResourceSecurityInfo
     {
         /// <summary>Initializes a new instance of the <see cref="ResourceSecurityInfo"/> class.</summary>
         public ResourceSecurityInfo() : this(new SecuritySpecificationInfo(), new SecuritySpecificationInfo())
@@ -97,7 +97,7 @@ namespace URSA.Security
                 throw new ArgumentNullException("specificSecurityInfo");
             }
 
-            var result = Clone();
+            var result = DeepCopy();
             result.Merge(specificSecurityInfo.Allowed, securitySpecification => securitySpecification.Allow(null, null));
             result.Merge(specificSecurityInfo.Denied, securitySpecification => securitySpecification.Deny(null, null));
             return result;
@@ -105,17 +105,9 @@ namespace URSA.Security
 
         /// <summary>Clones this instance.</summary>
         /// <returns>Deeply cloned instance.</returns>
-        public ResourceSecurityInfo Clone()
+        internal ResourceSecurityInfo DeepCopy()
         {
-            return new ResourceSecurityInfo(Allowed.Clone(), Denied.Clone());
-        }
-
-        /// <inheritdoc />
-        [ExcludeFromCodeCoverage]
-        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
-        object ICloneable.Clone()
-        {
-            return Clone();
+            return new ResourceSecurityInfo(Allowed.DeepCopy(), Denied.DeepCopy());
         }
 
         private void Merge(SecuritySpecificationInfo securitySpecificationInfo, Expression<Func<ResourceSecurityInfo, object>> mergingDelegate)

@@ -73,7 +73,7 @@ namespace URSA.Web.Http
                     resultingValues.Add(output);
                 }
 
-                if (requestMapping.Target.GetType().GetImplementationOfAny(typeof(IController<>), typeof(IAsyncController<>)) != null)
+                if (requestMapping.Target.GetType().GetTypeInfo().GetImplementationOfAny(typeof(IController<>), typeof(IAsyncController<>)) != null)
                 {
                     result = HandleCrudRequest(requestMapping, resultingValues, arguments, out success);
                 }
@@ -103,7 +103,7 @@ namespace URSA.Web.Http
                 switch (method.Key.ToString())
                 {
                     case "":
-                        var type = requestMapping.Operation.UnderlyingMethod.ReturnType;
+                        var type = requestMapping.Operation.UnderlyingMethod.ReturnType.GetTypeInfo();
                         var items = (resultingValues.Count > 1 ? (IEnumerable)resultingValues[1] : new[] { new object[0].MakeInstance(type, type.GetItemType()) });
                         var totalItems = (resultingValues.Count > 0 ? (int)resultingValues[0] : -1);
                         return MakeListResponse(requestMapping, items, arguments, totalItems);

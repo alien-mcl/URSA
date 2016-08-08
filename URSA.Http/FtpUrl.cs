@@ -93,7 +93,7 @@ namespace URSA.Web.Http
             }
 
             var parameters = (!requiresParameters.HasValue ? null :
-                (requiresParameters.Value ? (Parameters != null ? Parameters.Clone() : new ParametersCollection(";", "=")) : Parameters));
+                (requiresParameters.Value ? (Parameters != null ? Parameters.DeepCopy() : new ParametersCollection(";", "=")) : Parameters));
             string url = ToAbsoluteString(Scheme, UserName, Password, Host, Port, path.ToString(), parameters);
             return new FtpUrl(url, Scheme, UserName, Password, Host, Port, path.ToString(), Parameters, segments.ToArray());
         }

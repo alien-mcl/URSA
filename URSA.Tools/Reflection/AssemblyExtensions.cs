@@ -44,7 +44,8 @@ namespace System.Reflection
                 try
                 {
                     result = (from type in assembly.GetTypes()
-                              where (type.IsEnum) && (!type.IsGenericType)
+                              let typeInfo = type.GetTypeInfo()
+                              where (typeInfo.IsEnum) && (!typeInfo.IsGenericType)
                               from enumValue in Enum.GetValues(type).Cast<object>()
                               where StringComparer.OrdinalIgnoreCase.Equals(enumValue.ToString(), value)
                               select enumValue).FirstOrDefault();

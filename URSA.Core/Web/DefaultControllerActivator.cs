@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Reflection;
 using URSA.ComponentModel;
 
 namespace URSA.Web
@@ -34,12 +35,13 @@ namespace URSA.Web
                 return (IController)_container.Resolve(candidate, arguments);
             }
 
-            if ((type.IsGenericType) && (_container.CanResolve(candidate = type.GetGenericTypeDefinition(), arguments)))
+            var typeInfo = type.GetTypeInfo();
+            if ((typeInfo.IsGenericType) && (_container.CanResolve(candidate = type.GetGenericTypeDefinition(), arguments)))
             {
                 return (IController)_container.Resolve(candidate, arguments);
             }
 
-            candidate = type.GetInterfaces()
+            candidate = typeInfo.ImplementedInterfaces
                 .Where(@interface => typeof(IController).IsAssignableFrom(@interface))
                 .OrderByDescending(@interface => @interface.GetGenericArguments().Length)
                 .First();

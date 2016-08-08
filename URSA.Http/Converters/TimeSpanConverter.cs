@@ -12,7 +12,7 @@ namespace URSA.Web.Http.Converters
         /// <inheritdoc />
         protected override bool CanConvert(Type expectedType)
         {
-            return expectedType.GetItemType() == typeof(TimeSpan);
+            return expectedType.GetTypeInfo().GetItemType() == typeof(TimeSpan);
         }
     }
 }

@@ -44,7 +44,7 @@ namespace URSA.Web.Description.Http
             }
             
             if ((!parameter.ParameterType.IsValueType) && (typeof(string) != parameter.ParameterType) &&
-                (!((System.TypeExtensions.IsEnumerable(parameter.ParameterType)) && (parameter.ParameterType.GetItemType().IsNumber()))))
+                (!((parameter.ParameterType.GetTypeInfo().IsEnumerable()) && (parameter.ParameterType.GetTypeInfo().GetItemType().IsNumber()))))
             {
                 return FromBodyAttribute.For(parameter);
             }
@@ -66,7 +66,7 @@ namespace URSA.Web.Description.Http
             {
                 var methodInfo = (MethodInfo)parameter.Member;
                 Type implementation;
-                if (((implementation = methodInfo.DeclaringType.GetImplementationOfAny(typeof(IController<>), typeof(IAsyncController<>))) != null) &&
+                if (((implementation = methodInfo.DeclaringType.GetTypeInfo().GetImplementationOfAny(typeof(IController<>), typeof(IAsyncController<>))) != null) &&
                     (methodInfo.DeclaringType.GetInterfaceMap(implementation).TargetMethods[0] == methodInfo) && (parameter.Position == 0))
                 {
                     return new ToHeaderAttribute(Header.ContentRange);

@@ -3,7 +3,9 @@
 namespace URSA.Web.Http
 {
     /// <summary>Provides an easy to use Url representation.</summary>
+#if !CORE
     [Serializable]
+#endif
     public abstract class Url
     {
         /// <summary>Gets the scheme of the Url.</summary>

@@ -168,7 +168,7 @@ namespace URSA.Web.Http.Description.Entities
                         continue;
                     }
 
-                    if (System.Reflection.TypeExtensions.IsEnumerable(property.ReturnType))
+                    if (System.Reflection.TypeInfoExtensions.IsEnumerable(property.ReturnType))
                     {
                         value = entityContext.CopyCollection(mappedResult, property, value, id, visited);
                     }
@@ -227,7 +227,7 @@ namespace URSA.Web.Http.Description.Entities
                     continue;
                 }
 
-                if (System.Reflection.TypeExtensions.IsEnumerable(property.ReturnType))
+                if (System.Reflection.TypeInfoExtensions.IsEnumerable(property.ReturnType))
                 {
                     value = target.UpdateCollection(property, (IEnumerable)value, depth);
                 }

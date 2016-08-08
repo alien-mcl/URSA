@@ -101,7 +101,7 @@ namespace URSA.Web.Converters
                           where ((level & CompatibilityLevel.ProtocolMatch) == CompatibilityLevel.ProtocolMatch) &&
                               ((level & CompatibilityLevel.TypeMatch) == CompatibilityLevel.TypeMatch)
                           orderby level descending
-                          orderby (expectedType.GetItemType() != typeof(string) ? 1 : 0) descending
+                          orderby (expectedType.GetTypeInfo().GetItemType() != typeof(string) ? 1 : 0) descending
                           select item).FirstOrDefault();
             if (result != null)
             {

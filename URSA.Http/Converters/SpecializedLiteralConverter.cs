@@ -62,7 +62,7 @@ namespace URSA.Web.Http.Converters
                 return result;
             }
 
-            var itemType = expectedType.GetItemType();
+            var itemType = expectedType.GetTypeInfo().GetItemType();
             using (var reader = new StreamReader(request.Body))
             {
                 string content = reader.ReadToEnd();
@@ -130,7 +130,8 @@ namespace URSA.Web.Http.Converters
             }
 
             bool isEnumerable = System.TypeExtensions.IsEnumerable(expectedType);
-            Type itemType = expectedType.GetItemType();
+            var expectedTypeInfo = expectedType.GetTypeInfo();
+            Type itemType = expectedTypeInfo.GetItemType();
             IList<object> result = new List<object>();
             foreach (var item in Regex.Split(body, "\r\n"))
             {
@@ -152,7 +153,7 @@ namespace URSA.Web.Http.Converters
                 return (expectedType.IsValueType ? Activator.CreateInstance(expectedType) : null);
             }
 
-            return result.MakeInstance(expectedType, expectedType.GetItemType());
+            return result.MakeInstance(expectedTypeInfo, itemType);
         }
 
         /// <inheritdoc />

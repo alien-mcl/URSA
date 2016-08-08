@@ -89,12 +89,13 @@ namespace URSA.Web.Http.Converters
                 throw new ArgumentNullException("collectionType");
             }
 
-            var itemType = collectionType.GetItemType();
+            var collectionTypeInfo = collectionType.GetTypeInfo();
+            var itemType = collectionTypeInfo.GetItemType();
             bool success;
             var result = ConvertUsingTypeConverters(values, itemType, out success);
             if ((success) || (request == null))
             {
-                return result.MakeInstance(collectionType, itemType);
+                return result.MakeInstance(collectionTypeInfo, itemType);
             }
 
             if (converterProvider == null)
@@ -102,7 +103,7 @@ namespace URSA.Web.Http.Converters
                 throw new ArgumentNullException("converterProvider");
             }
 
-            return ConvertUsingCustomConverters(converterProvider, request, values, itemType).MakeInstance(collectionType, itemType);
+            return ConvertUsingCustomConverters(converterProvider, request, values, itemType).MakeInstance(collectionTypeInfo, itemType);
         }
 
         private static IEnumerable<object> ConvertUsingTypeConverters(IEnumerable<string> values, Type itemType, out bool success)

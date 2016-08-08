@@ -109,7 +109,7 @@ namespace URSA.Web.Http.Description
                                      select supportedMediaType;
             return 
                 ((DescriptionConfigurationSection.Default.HypermediaMode == HypermediaModes.SameGraph) && 
-                (System.Reflection.TypeExtensions.IsEnumerable(returnType)) && 
+                (System.Reflection.TypeInfoExtensions.IsEnumerable(returnType)) && 
                 (requestInfo != null) && ((requestInfo.Headers[Header.Accept] != null) && (matchingMediaTypes.Any())));
         }
     }

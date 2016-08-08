@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.Serialization;
 using System.Text;
 using System.Xml.Serialization;
@@ -94,7 +95,7 @@ namespace URSA.Web.Http.Converters
             }
 
             return (body == null ?
-                (expectedType.IsValueType ? Activator.CreateInstance(expectedType) : null) :
+                (expectedType.GetTypeInfo().IsValueType ? Activator.CreateInstance(expectedType) : null) :
                 ConvertTo(expectedType, new MemoryStream(Encoding.UTF8.GetBytes(body))));
         }
 
@@ -176,7 +177,7 @@ namespace URSA.Web.Http.Converters
             }
 
             var additionalTypes = type.GetProperties()
-                .Where(property => (property.PropertyType.IsInterface))
+                .Where(property => (property.PropertyType.GetTypeInfo().IsInterface))
                 .Select(property =>
                     {
                         var value = property.GetValue(type);

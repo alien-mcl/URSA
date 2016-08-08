@@ -15,7 +15,7 @@ namespace URSA.Web.Http.Converters
         /// <inheritdoc />
         protected override bool CanConvert(Type expectedType)
         {
-            return expectedType.GetItemType() == typeof(Guid);
+            return expectedType.GetTypeInfo().GetItemType() == typeof(Guid);
         }
     }
 }

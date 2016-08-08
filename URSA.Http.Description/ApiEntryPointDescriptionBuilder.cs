@@ -139,7 +139,7 @@ namespace URSA.Web.Http.Description
                     url = template.ResolveUri(variables);
                 }
 
-                var operationId = new EntityId(url.Combine(baseUri));
+                var operationId = new EntityId((Uri)((HttpUrl)baseUri + url.ToString()));
                 var supportedOperation = operation.AsOperation(apiDocumentation, operationId);
                 supportedOperation.MediaTypes.AddRange(ApiDescriptionBuilder.RdfMediaTypes);
                 supportedOperation.Label = operation.UnderlyingMethod.Name;

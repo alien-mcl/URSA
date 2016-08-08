@@ -40,7 +40,7 @@ namespace URSA.Web.Http.Converters
                 throw new ArgumentNullException("request");
             }
 
-            if (expectedType.GetItemType() != typeof(Uri))
+            if (expectedType.GetTypeInfo().GetItemType() != typeof(Uri))
             {
                 return CompatibilityLevel.None;
             }
@@ -110,7 +110,7 @@ namespace URSA.Web.Http.Converters
                 throw new ArgumentNullException("response");
             }
 
-            if (givenType.GetItemType() != typeof(Uri))
+            if (givenType.GetTypeInfo().GetItemType() != typeof(Uri))
             {
                 return CompatibilityLevel.None;
             }
@@ -203,7 +203,7 @@ namespace URSA.Web.Http.Converters
         /// <inheritdoc />
         protected override bool CanConvert(Type expectedType)
         {
-            return expectedType.GetItemType() == typeof(Uri);
+            return expectedType.GetTypeInfo().GetItemType() == typeof(Uri);
         }
     }
 }

@@ -143,7 +143,7 @@ namespace URSA.Web.Description.Http
             IList<OperationInfo> result = new List<OperationInfo>();
             foreach (var item in verbs)
             {
-                UriTemplateBuilder uriTemplate = templateRegex.Clone(false);
+                UriTemplateBuilder uriTemplate = templateRegex.DeepCopy(false);
                 var parameters = BuildParameterDescriptors(method, item.Verb, templateRegex, ref uriTemplate);
                 var regex = new Regex("^" + templateRegex + "$", RegexOptions.IgnoreCase);
                 result.Add(new OperationInfo<Verb>(method, url, uriTemplate, regex, item.Verb, parameters).WithSecurityDetailsFrom(method));

@@ -2,7 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+#if CORE
+using Microsoft.AspNetCore.WebUtilities;
+#else
 using System.Web;
+#endif
 
 namespace URSA.Web.Http
 {
@@ -207,7 +211,7 @@ namespace URSA.Web.Http
                     throw new InvalidOperationException(String.Format("Cannot convert Uri of scheme '{0}' to HTTP URL.", uri.Scheme));
                 }
 
-                query = (uri.Query.Length > 0 ? (ParametersCollection)HttpUtility.ParseQueryString(uri.Query) : null);
+                query = (uri.Query.Length > 0 ? ParseQueryString(uri.Query) : null);
                 return new HttpUrl(true, uri.ToString(), uri.Scheme, uri.Host, (ushort)uri.Port, uri.AbsolutePath, query, (uri.Fragment.Length > 0 ? uri.Fragment : null));
             }
 
@@ -238,7 +242,7 @@ namespace URSA.Web.Http
 
             if (queryString != null)
             {
-                query = (ParametersCollection)HttpUtility.ParseQueryString(queryString);
+                query = ParseQueryString(queryString);
             }
 
             return new HttpUrl(false, url, null, null, 0, path, query, fragment);
@@ -307,8 +311,17 @@ namespace URSA.Web.Http
 
             string url = (_isAbsolute ? ToAbsoluteString(Scheme, Host, Port, path.ToString(), _query, _fragment) : ToRelativeString(path.ToString(), _query, _fragment));
             var query = (!requiresParameters.HasValue ? null :
-                (requiresParameters.Value ? (Query != null ? Query.Clone() : new ParametersCollection("&", "=")) : Query));
+                (requiresParameters.Value ? (Query != null ? Query.DeepCopy() : new ParametersCollection("&", "=")) : Query));
             return new HttpUrl(_isAbsolute, url, Scheme, Host, Port, path.ToString(), query, Fragment, segments.ToArray());
+        }
+
+        private static ParametersCollection ParseQueryString(string queryString)
+        {
+#if CORE
+            return (ParametersCollection)QueryHelpers.ParseQuery(queryString);
+#else
+            return (ParametersCollection)HttpUtility.ParseQueryString(queryString);
+#endif
         }
 
         private static string ToAbsoluteString(string scheme, string host, ushort port, string path = null, ParametersCollection query = null, string fragment = null)

@@ -1,5 +1,4 @@
 ﻿using System.Text;
-using System.Web;
 
 namespace System
 {
@@ -28,51 +27,6 @@ namespace System
                 result = result.Substring(1 + uri.Port.ToString().Length);
             }
 
-            return new Uri(result, UriKind.Relative);
-        }
-
-        /// <summary>Combines two <see cref="Uri" />s altogether, without checking if the base one is an absolute uri.</summary>
-        /// <param name="uri">Relative uri to be appended.</param>
-        /// <param name="baseUri">Base uri.</param>
-        /// <returns><see cref="Uri" /> being a combination of the <paramref name="baseUri" /> and <paramref name="uri" />.</returns>
-        public static Uri Combine(this Uri uri, Uri baseUri)
-        {
-            if (uri == null)
-            {
-                throw new ArgumentNullException("uri");
-            }
-
-            if (baseUri == null)
-            {
-                throw new ArgumentNullException("baseUri");
-            }
-
-            if (baseUri.IsAbsoluteUri)
-            {
-                Uri relativeUri = uri;
-                if (relativeUri.ToString().StartsWith("/"))
-                {
-                    if (!baseUri.ToString().EndsWith("/"))
-                    {
-                        baseUri = new Uri(baseUri.ToString() + "/");
-                    }
-
-                    relativeUri = new Uri(relativeUri.ToString().Substring(1), UriKind.Relative);
-                }
-
-                return new Uri(baseUri, relativeUri);
-            }
-
-            string uriString = uri.ToString();
-            if (uriString == "/")
-            {
-                return baseUri;
-            }
-
-            string baseUriString = VirtualPathUtility.AppendTrailingSlash(baseUri.ToString());
-            string result = VirtualPathUtility.Combine(
-                (baseUriString[0] == '/' ? String.Empty : "/") + baseUriString,
-                (uriString[0] == '/' ? uriString.Substring(1) : uriString));
             return new Uri(result, UriKind.Relative);
         }
 

@@ -1,13 +1,17 @@
 ﻿using System;
 using System.Diagnostics.CodeAnalysis;
+#if !CORE
 using System.Runtime.Serialization;
+#endif
 
 namespace URSA.Web
 {
     /// <summary>Describes an exception when a given entity does not exist.</summary>
     [ExcludeFromCodeCoverage]
     [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
+#if !CORE
     [Serializable]
+#endif
     public class AlreadyExistsException : Exception
     {
         /// <summary>Initializes a new instance of the <see cref="AlreadyExistsException"/> class.</summary>
@@ -23,11 +27,13 @@ namespace URSA.Web
         {
         }
 
+#if !CORE
         /// <summary>Initializes a new instance of the <see cref="AlreadyExistsException"/> class.</summary>
         /// <param name="serializationInfo">The serialization information.</param>
         /// <param name="streamingContext">The streaming context.</param>
         public AlreadyExistsException(SerializationInfo serializationInfo, StreamingContext streamingContext) : base(serializationInfo, streamingContext)
         {
         }
+#endif
     }
 }

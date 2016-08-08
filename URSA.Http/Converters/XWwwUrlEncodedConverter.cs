@@ -7,7 +7,6 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
-using System.Web;
 using URSA.Web.Converters;
 using URSA.Web.Http.Reflection;
 
@@ -54,7 +53,7 @@ namespace URSA.Web.Http.Converters
 
             var result = (requestInfo.Headers.ContentType.StartsWith(MediaTypes[0]) ? CompatibilityLevel.ExactProtocolMatch : CompatibilityLevel.None);
             TypeConverter typeConverter;
-            if ((!expectedType.IsValueType) && ((!(typeConverter = TypeDescriptor.GetConverter(expectedType)).CanConvertFrom(typeof(string))) || (typeConverter.GetType() == typeof(TypeConverter))))
+            if ((!expectedType.GetTypeInfo().IsValueType) && ((!(typeConverter = TypeDescriptor.GetConverter(expectedType)).CanConvertFrom(typeof(string))) || (typeConverter.GetType() == typeof(TypeConverter))))
             {
                 result |= CompatibilityLevel.TypeMatch;
             }
@@ -182,7 +181,7 @@ namespace URSA.Web.Http.Converters
             }
 
             TypeConverter typeConverter;
-            if ((!givenType.IsValueType) && ((!(typeConverter = TypeDescriptor.GetConverter(givenType)).CanConvertTo(typeof(string))) || (typeConverter.GetType() == typeof(TypeConverter))))
+            if ((!givenType.GetTypeInfo().IsValueType) && ((!(typeConverter = TypeDescriptor.GetConverter(givenType)).CanConvertTo(typeof(string))) || (typeConverter.GetType() == typeof(TypeConverter))))
             {
                 result |= CompatibilityLevel.TypeMatch;
             }
@@ -231,7 +230,7 @@ namespace URSA.Web.Http.Converters
             {
                 string separator = String.Empty;
                 foreach (var property in givenType.GetProperties(BindingFlags.Public | BindingFlags.Instance)
-                    .Where(property => (property.CanRead) && ((property.CanWrite) || (System.Reflection.TypeExtensions.IsEnumerable(property.PropertyType)))))
+                    .Where(property => (property.CanRead) && ((property.CanWrite) || (property.PropertyType.GetTypeInfo().IsEnumerable()))))
                 {
                     var value = property.GetValue(instance);
                     if (value == null)
@@ -239,7 +238,7 @@ namespace URSA.Web.Http.Converters
                         continue;
                     }
 
-                    var typeConverter = TypeDescriptor.GetConverter(property.PropertyType.FindItemType());
+                    var typeConverter = TypeDescriptor.GetConverter(property.PropertyType.GetTypeInfo().GetItemType());
                     if ((value is IEnumerable) && (value.GetType() != typeof(string)))
                     {
                         if (value is byte[])
@@ -250,14 +249,14 @@ namespace URSA.Web.Http.Converters
                         {
                             foreach (var item in (IEnumerable)value)
                             {
-                                writer.Write("{0}{1}={2}", separator, property.Name, HttpUtility.UrlEncode(typeConverter.ConvertToInvariantString(item)));
+                                writer.Write("{0}{1}={2}", separator, property.Name, Uri.EscapeDataString(typeConverter.ConvertToInvariantString(item)));
                                 separator = "&";
                             }
                         }
                     }
                     else
                     {
-                        writer.Write("{0}{1}={2}", separator, property.Name, HttpUtility.UrlEncode(typeConverter.ConvertToInvariantString(value)));
+                        writer.Write("{0}{1}={2}", separator, property.Name, Uri.EscapeDataString(typeConverter.ConvertToInvariantString(value)));
                     }
 
                     separator = "&";
@@ -273,12 +272,12 @@ namespace URSA.Web.Http.Converters
             }
 
             var matchingProperty = (from property in expectedType.GetProperties(BindingFlags.Public | BindingFlags.Instance)
-                                    where (property.CanRead) && ((property.CanWrite) || (System.Reflection.TypeExtensions.IsEnumerable(property.PropertyType)))
+                                    where (property.CanRead) && ((property.CanWrite) || (property.PropertyType.GetTypeInfo().IsEnumerable()))
                                         && (String.Compare(property.Name, propertyName.ToString(), true) == 0)
                                     select property).FirstOrDefault();
             if (matchingProperty != null)
             {
-                instance.SetPropertyValue(matchingProperty, HttpUtility.UrlDecode(value.ToString()));
+                instance.SetPropertyValue(matchingProperty, Uri.UnescapeDataString(value.ToString()));
             }
         }
     }

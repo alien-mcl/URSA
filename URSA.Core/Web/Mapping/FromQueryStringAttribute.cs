@@ -69,11 +69,12 @@ namespace URSA.Web.Mapping
                 throw new ArgumentNullException("parameter");
             }
 
-            var format = ((!parameter.HasDefaultValue) && (parameter.ParameterType.IsValueType) ? "&{0}={{{0}}}" :
-                "{{?{0}" + (System.Reflection.TypeExtensions.IsEnumerable(parameter.ParameterType) ? "*}}" : "}}"));
+            var parameterTypeInfo = parameter.ParameterType.GetTypeInfo();
+            var format = ((!parameter.HasDefaultValue) && (parameterTypeInfo.IsValueType) ? "&{0}={{{0}}}" :
+                "{{?{0}" + (parameterTypeInfo.IsEnumerable() ? "*}}" : "}}"));
             var result = new FromQueryStringAttribute(String.Format(format, parameter.Name));
-            result._default = ((!parameter.HasDefaultValue) && (parameter.ParameterType.IsValueType) ? "&key={value}" :
-                "{?key" + (System.Reflection.TypeExtensions.IsEnumerable(parameter.ParameterType) ? "*}" : "}"));
+            result._default = ((!parameter.HasDefaultValue) && (parameterTypeInfo.IsValueType) ? "&key={value}" :
+                "{?key" + (parameterTypeInfo.IsEnumerable() ? "*}" : "}"));
             return result;
         }
 

@@ -45,7 +45,7 @@ namespace URSA.Web.Http.Reflection
                 return false;
             }
 
-            if (System.Reflection.TypeExtensions.IsEnumerable(property.PropertyType))
+            if (property.PropertyType.GetTypeInfo().IsEnumerable())
             {
                 return instance.SetPropertyValues(property, value);
             }
@@ -63,7 +63,7 @@ namespace URSA.Web.Http.Reflection
                 return property.SetPropertyArrayValue(instance, container, value);
             }
 
-            if ((container != null) && (container.GetType().GetImplementationOfAny(typeof(ICollection<>), typeof(ICollection)) != null))
+            if ((container != null) && (container.GetType().GetTypeInfo().GetImplementationOfAny(typeof(ICollection<>), typeof(ICollection)) != null))
             {
                 container.GetType().GetMethod("Add", BindingFlags.Instance | BindingFlags.Public).Invoke(container, new[] { value });
                 return true;

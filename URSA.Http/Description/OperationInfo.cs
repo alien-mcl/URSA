@@ -33,8 +33,5 @@ namespace URSA.Web.Description.Http
 
         /// <summary>Gets the HTTP verb for given operation.</summary>
         public Verb Verb { get; private set; }
-
-        /// <summary>Gets the uri template regular expression,</summary>
-        internal Regex TemplateRegex { get; private set; }
     }
 }

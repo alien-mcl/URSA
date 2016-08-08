@@ -23,11 +23,11 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
+    <OutputPath>net-bin\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <DocumentationFile>bin\Debug\URSA.Http.XML</DocumentationFile>
+    <DocumentationFile>net-bin\Debug\URSA.Http.XML</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -55,10 +55,6 @@
       <HintPath>..\packages\Remotion.Linq.1.15.15.0\lib\portable-net45+wp80+wpa81+win\Remotion.Linq.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Resta.UriTemplates, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Resta.UriTemplates.1.2.0\lib\net35-client\Resta.UriTemplates.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
     <Reference Include="RomanticWeb, Version=0.4.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\RomanticWeb.0.4.0.0\Lib\net40\RomanticWeb.dll</HintPath>
       <Private>True</Private>
@@ -78,6 +74,10 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Serialization" />
+    <Reference Include="Tavis.UriTemplates, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Tavis.UriTemplates.1.1.0\lib\Net45\Tavis.UriTemplates.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Client.cs" />
@@ -179,6 +179,7 @@
     <Compile Include="RequestMapping.cs" />
     <Compile Include="ResponseInfo.cs" />
     <Compile Include="Verb.cs" />
+    <None Include="URSA.Http.project.json" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\URSA.Core\URSA.Core.csproj">

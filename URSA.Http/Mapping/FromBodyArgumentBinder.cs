@@ -4,7 +4,6 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
-using System.Web;
 using URSA.Web.Converters;
 using URSA.Web.Http.Converters;
 using URSA.Web.Mapping;
@@ -92,7 +91,7 @@ namespace URSA.Web.Http.Mapping
             MatchCollection matches = Regex.Matches(data, template);
             return (matches.Count == 0 ? null :
                 _converterProvider.ConvertToCollection(
-                    matches.Cast<Match>().Select(match => HttpUtility.UrlDecode(match.Groups["Value"].Value)),
+                    matches.Cast<Match>().Select(match => Uri.UnescapeDataString(match.Groups["Value"].Value)),
                     context.Parameter.ParameterType,
                     context.Request));
         }

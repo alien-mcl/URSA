@@ -1,9 +1,11 @@
 ﻿using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Net;
+using System.Reflection;
+#if !CORE
 using System.Web;
+#endif
 using URSA.Web;
 using URSA.Web.Http;
 
@@ -43,7 +45,11 @@ namespace System
                 return (ProtocolException)exception;
             }
 
+#if CORE
+            HttpStatusCode httpStatusCode = exception.ToHttpStatusCode();
+#else
             HttpStatusCode httpStatusCode = (exception is HttpException ? (HttpStatusCode)((HttpException)exception).GetHttpCode() : exception.ToHttpStatusCode());
+#endif
             try
             {
                 throw new ProtocolException(httpStatusCode, exception);
@@ -77,7 +83,7 @@ namespace System
                 throw new ArgumentNullException("exceptionType");
             }
 
-            if (!typeof(Exception).IsAssignableFrom(exceptionType))
+            if (!typeof(Exception).GetTypeInfo().IsAssignableFrom(exceptionType))
             {
                 throw new ArgumentOutOfRangeException("exceptionType");
             }

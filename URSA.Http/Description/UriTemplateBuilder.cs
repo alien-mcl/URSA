@@ -9,7 +9,7 @@ using URSA.Web.Mapping;
 
 namespace URSA.Web.Description.Http
 {
-    internal class UriTemplateBuilder : ICloneable
+    internal class UriTemplateBuilder
     {
         internal static readonly Regex VariableTemplateRegex = new Regex("\\{(?<ExpansionType>[/?&#\\.;])*(?<ParameterName>[^*}]+)(?<ListIndicator>[*]*)\\}");
         private readonly bool _isRegexMode;
@@ -56,12 +56,6 @@ namespace URSA.Web.Description.Http
             return (withQueryString ? ToString() : String.Format("{0}{1}", (_isRegexMode ? String.Empty : "/"), Segments));
         }
 
-        /// <inheritdoc />
-        object ICloneable.Clone()
-        {
-            return Clone();
-        }
-
         internal void Add(string part, MappingAttribute source, ICustomAttributeProvider member, bool hasDefaultValue = false)
         {
             part = (_isRegexMode ? ((source is FromQueryStringAttribute) ? part.Replace("=[^&]+", String.Empty) : part) : part).Trim('/');
@@ -73,7 +67,7 @@ namespace URSA.Web.Description.Http
             (source is FromQueryStringAttribute ? (UriTemplatePartList)_queryString : _segments).Add(part, source, member, hasDefaultValue);
         }
 
-        internal UriTemplateBuilder Clone(bool? isRegexMode = null)
+        internal UriTemplateBuilder DeepCopy(bool? isRegexMode = null)
         {
             return new UriTemplateBuilder(
                 new SegmentList(_controlledEntityType, isRegexMode ?? _isRegexMode, _segments),

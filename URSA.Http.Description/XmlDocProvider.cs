@@ -190,7 +190,7 @@ namespace URSA.Web.Http.Description
                 return;
             }
 
-            var documentPath = Path.Combine(AppDomain.CurrentDomain.GetPrimaryAssemblyDirectory(), assembly.GetName().Name + ".xml");
+            var documentPath = Path.Combine(ExecutionContext.GetPrimaryAssemblyDirectory(), assembly.GetName().Name + ".xml");
             if (!File.Exists(documentPath))
             {
                 AssemblyCache[assembly] = new XDocument();

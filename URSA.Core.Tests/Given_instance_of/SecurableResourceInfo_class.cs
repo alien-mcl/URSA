@@ -44,7 +44,7 @@ namespace Given_instance_of
         public void Setup()
         {
             UrlParser.Register<RelativeUrlParser>();
-            var controllerType = typeof(TestController);
+            var controllerType = typeof(TestController).GetTypeInfo();
             var operationUrl = "/api/test/operation";
             var methodInfo = controllerType.GetMethod("Operation");
             var entryPoint = new EntryPointInfo(UrlParser.Parse("/api")).WithSecurityDetailsFrom(controllerType.Assembly);

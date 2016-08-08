@@ -28,7 +28,7 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
+    <OutputPath>net-bin\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -95,6 +95,7 @@
   <ItemGroup>
     <None Include="app.config" />
     <None Include="packages.config" />
+    <None Include="URSA.Core.Tests.project.json" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\URSA.Core\URSA.Core.csproj">

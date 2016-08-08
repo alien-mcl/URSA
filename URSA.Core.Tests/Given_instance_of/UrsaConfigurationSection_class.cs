@@ -19,7 +19,7 @@ namespace Given_instance_of
             ArgumentNullException exception = null;
             try
             {
-                ((UrsaConfigurationSection)ConfigurationManager.GetSection(UrsaConfigurationSection.ConfigurationSectionGroupName)).GetProvider<IConverterProvider>(null);
+                UrsaConfigurationSection.GetProvider<IConverterProvider>(null);
             }
             catch (ArgumentNullException error)
             {
@@ -35,7 +35,7 @@ namespace Given_instance_of
             ArgumentOutOfRangeException exception = null;
             try
             {
-                ((UrsaConfigurationSection)ConfigurationManager.GetSection(UrsaConfigurationSection.ConfigurationSectionGroupName)).GetProvider<IConverterProvider>(typeof(object));
+                UrsaConfigurationSection.GetProvider<IConverterProvider>(typeof(object));
             }
             catch (ArgumentOutOfRangeException error)
             {
@@ -51,8 +51,7 @@ namespace Given_instance_of
             InvalidOperationException exception = null;
             try
             {
-                ((UrsaConfigurationSection)ConfigurationManager.GetSection(UrsaConfigurationSection.ConfigurationSectionGroupName))
-                    .GetProvider<IConverterProvider>(typeof(DefaultConverterProvider), typeof(object));
+                UrsaConfigurationSection.GetProvider<IConverterProvider>(typeof(DefaultConverterProvider), typeof(object));
             }
             catch (InvalidOperationException error)
             {
@@ -66,7 +65,8 @@ namespace Given_instance_of
         public void it_should_create_a_provider_of_given_type()
         {
             var providerType = typeof(DefaultConverterProvider);
-            var provider = ((UrsaConfigurationSection)ConfigurationManager.GetSection(UrsaConfigurationSection.ConfigurationSectionGroupName)).GetProvider<IConverterProvider>(providerType);
+
+            var provider = UrsaConfigurationSection.GetProvider<IConverterProvider>(providerType);
 
             provider.Should().NotBeNull();
             provider.DeclaringType.Should().Be(providerType);

@@ -43,7 +43,7 @@ namespace URSA.Web.Http.Converters
                 throw new ArgumentNullException("request");
             }
 
-            if (expectedType.GetItemType() != typeof(string))
+            if (expectedType.GetTypeInfo().GetItemType() != typeof(string))
             {
                 return CompatibilityLevel.None;
             }
@@ -103,7 +103,8 @@ namespace URSA.Web.Http.Converters
                 return (expectedType.IsValueType ? Activator.CreateInstance(expectedType) : null);
             }
 
-            return (System.TypeExtensions.IsEnumerable(expectedType) ? Regex.Split(body, "\r\n").MakeInstance(expectedType, typeof(string)) : body);
+            var expectedTypeInfo = expectedType.GetTypeInfo();
+            return (expectedTypeInfo.IsEnumerable() ? Regex.Split(body, "\r\n").MakeInstance(expectedTypeInfo, typeof(string)) : body);
         }
 
         /// <inheritdoc />
@@ -125,7 +126,7 @@ namespace URSA.Web.Http.Converters
                 throw new ArgumentNullException("response");
             }
 
-            if (givenType.GetItemType() != typeof(string))
+            if (givenType.GetTypeInfo().GetItemType() != typeof(string))
             {
                 return CompatibilityLevel.None;
             }
