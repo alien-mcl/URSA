@@ -1,9 +1,10 @@
-﻿using System;
+﻿using RomanticWeb.Entities;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using Resta.UriTemplates;
-using RomanticWeb.Entities;
+using System.Reflection;
+using Tavis.UriTemplates;
 using URSA.Reflection;
 using URSA.Web.Description;
 using URSA.Web.Description.Http;
@@ -102,8 +103,8 @@ namespace URSA.Web.Http.Description
             var controllerDescriptionBuilderType = controllerDescriptionBuilder.GetType();
             controllerDescriptionBuilderType.GetInterfaceImplementation(
                 typeof(IHttpControllerDescriptionBuilder<>),
-                candidateInterface => typeof(IController).IsAssignableFrom(possibleImplementation = candidateInterface.GetGenericArguments()[0]));
-            if ((possibleImplementation == null) || ((possibleImplementation.IsGenericType) && (possibleImplementation.GetGenericTypeDefinition() == typeof(DescriptionController<>))))
+                candidateInterface => typeof(IController).GetTypeInfo().IsAssignableFrom(possibleImplementation = candidateInterface.GetGenericArguments()[0]));
+            if ((possibleImplementation == null) || ((possibleImplementation.GetTypeInfo().IsGenericType) && (possibleImplementation.GetGenericTypeDefinition() == typeof(DescriptionController<>))))
             {
                 return null;
             }
@@ -136,7 +137,8 @@ namespace URSA.Web.Http.Description
                 {
                     var template = new UriTemplate(baseUri + operation.UrlTemplate.TrimStart('/'));
                     var variables = operation.UnderlyingMethod.GetParameters().ToDictionary(parameter => parameter.Name, parameter => (object)parameter.DefaultValue.ToString());
-                    url = template.ResolveUri(variables);
+                    template.AddParameters(variables);
+                    url = new Uri(template.Resolve());
                 }
 
                 var operationId = new EntityId((Uri)((HttpUrl)baseUri + url.ToString()));

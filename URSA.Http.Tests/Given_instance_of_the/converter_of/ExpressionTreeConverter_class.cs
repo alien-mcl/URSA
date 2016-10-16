@@ -3,12 +3,12 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using RomanticWeb;
 using RomanticWeb.Mapping;
-using RomanticWeb.Mapping.Attributes;
 using RomanticWeb.Mapping.Model;
 using URSA.Web.Http.Converters;
 using URSA.Web.Http.Description.CodeGen;
@@ -23,7 +23,7 @@ namespace Given_instance_of_the.converter_of
     {
         private const string EntityBody = "<http://temp.uri/vocab#price> eq 0";
         private static readonly Expression<Func<IProduct, bool>> Entity = t => t.Price == 0.0;
-        private static readonly string PropertyUri = "javascript:Person.Key";
+        private static readonly string PropertyUri = "http://temp.uri/vocab#price";
 
         private Mock<IUriParser> _uriParser;
 
@@ -40,9 +40,9 @@ namespace Given_instance_of_the.converter_of
         [TestMethod]
         public virtual void it_should_deserialize_query_as_an_to_an_expression_tree()
         {
-            Expression<Func<Person, bool>> expected = t => t.Key == 0;
+            Expression<Func<IProduct, bool>> expected = t => t.Price == 0.0;
 
-            var result = ConvertTo<Expression<Func<Person, bool>>>("POST", OperationName, SingleEntityContentType, "<" + PropertyUri + "> eq 0");
+            var result = ConvertTo<Expression<Func<IProduct, bool>>>("POST", OperationName, SingleEntityContentType, "<" + PropertyUri + "> eq 0");
 
             result.ShouldBeEquivalentTo(expected);
         }
@@ -54,10 +54,7 @@ namespace Given_instance_of_the.converter_of
 
         protected override ExpressionTreeConverter CreateInstance()
         {
-            Func<PropertyInfo, Uri, bool> attributeMatch = (property, uri) =>
-                (from attribute in property.GetCustomAttributes<PropertyAttribute>(true)
-                where AbsoluteUriComparer.Default.Equals(attribute.Uri, uri)
-                select attribute).Any();
+            Func<PropertyInfo, Uri, bool> attributeMatch = (property, uri) => uri.Fragment.Contains(Regex.Replace(property.Name, "s$", String.Empty).ToLower());
             Func<Uri, string> propertyMatch = uri => typeof(IProduct).GetProperties().First(property => attributeMatch(property, uri)).Name;
             var mappingsRepository = new Mock<IMappingsRepository>(MockBehavior.Strict);
             mappingsRepository.Setup(instance => instance.MappingForProperty(It.IsAny<Uri>()))

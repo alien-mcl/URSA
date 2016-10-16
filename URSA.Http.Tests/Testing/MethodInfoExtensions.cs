@@ -97,8 +97,9 @@ namespace URSA.Web.Http.Tests.Testing
                 return FromUrlAttribute.For(parameter);
             }
 
-            if ((!parameter.ParameterType.IsValueType) && (typeof(string) != parameter.ParameterType) &&
-                (!((System.TypeExtensions.IsEnumerable(parameter.ParameterType)) && (IsNumber(parameter.ParameterType.GetItemType())))))
+            var parameterTypeInfo = parameter.ParameterType.GetTypeInfo();
+            if ((parameterTypeInfo.IsValueType) && (typeof(string) != parameter.ParameterType) &&
+                (!((parameterTypeInfo.IsEnumerable()) && (IsNumber(parameterTypeInfo.GetItemType())))))
             {
                 return FromBodyAttribute.For(parameter);
             }

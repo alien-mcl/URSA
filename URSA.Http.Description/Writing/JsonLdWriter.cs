@@ -44,9 +44,13 @@ namespace VDS.RDF.Writing
         public event RdfWriterWarning Warning;
 
         /// <inheritdoc />
-        public void Save(IGraph graph, string filename)
+        public void Save(IGraph graph, string fileName)
         {
-            Save(graph, new StreamWriter(filename));
+            using (var fileStream = new FileStream(fileName, FileMode.Create, FileAccess.Write))
+            using (var streamWriter = new StreamWriter(fileStream))
+            {
+                Save(graph, streamWriter);
+            }
         }
 
         /// <inheritdoc />

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Reflection;
 using System.Text;
 using URSA.Web.Converters;
 
@@ -116,12 +117,12 @@ namespace URSA.Web.Http
                 throw new ArgumentNullException("valueType");
             }
 
-            if ((value != null) && (!valueType.IsInstanceOfType(value)))
+            if ((value != null) && (!valueType.GetTypeInfo().IsInstanceOfType(value)))
             {
                 throw new ArgumentOutOfRangeException("value");
             }
 
-            return (ResponseInfo)typeof(ObjectResponseInfo<>).MakeGenericType(valueType)
+            return (ResponseInfo)typeof(ObjectResponseInfo<>).MakeGenericType(valueType).GetTypeInfo()
                 .GetConstructor(new[] { typeof(Encoding), typeof(RequestInfo), valueType, typeof(IConverterProvider), typeof(HeaderCollection) })
                 .Invoke(new object[] { encoding, request, value, converterProvider, headers });
         }

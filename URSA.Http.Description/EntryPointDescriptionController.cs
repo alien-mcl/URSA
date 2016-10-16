@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Reflection;
 using RomanticWeb.Entities;
 using URSA.Reflection;
 using URSA.Web.Description.Http;
@@ -68,11 +69,11 @@ namespace URSA.Web.Http.Description
                     continue;
                 }
 
-                foreach (var @interface in controllerInfo.ControllerType.GetInterfaces()
-                    .Where(implemented => (implemented.IsGenericType) && (implemented.GetGenericTypeDefinition() == typeof(IController<>))))
+                foreach (var @interface in controllerInfo.ControllerType.GetTypeInfo().GetInterfaces()
+                    .Where(implemented => (implemented.GetTypeInfo().IsGenericType) && (implemented.GetGenericTypeDefinition() == typeof(IController<>))))
                 {
                     controllerInfo.ControllerType.InjectOperation(
-                        controllerInfo.ControllerType.GetInterfaceMap(@interface).TargetMethods.First(method => method.Name == "List"),
+                        controllerInfo.ControllerType.GetTypeInfo().GetRuntimeInterfaceMap(@interface).TargetMethods.First(method => method.Name == "List"),
                         Response);
                 }
             }

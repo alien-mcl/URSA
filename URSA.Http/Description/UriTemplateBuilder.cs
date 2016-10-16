@@ -161,7 +161,7 @@ namespace URSA.Web.Description.Http
                 Type implementation;
                 var identifierSegment = this
                     .Where((item, index) => (item.Source is FromUrlAttribute) && (item.Member is ParameterInfo) &&
-                        ((implementation = ControlledEntityType.GetInterfaces().First(@interface => (@interface.IsGenericType) && (@interface.GetGenericTypeDefinition() == typeof(IControlledEntity<>)))) != null) &&
+                        ((implementation = ControlledEntityType.GetInterfaces().First(@interface => (@interface.GetTypeInfo().IsGenericType) && (@interface.GetGenericTypeDefinition() == typeof(IControlledEntity<>)))) != null) &&
                         (((ParameterInfo)item.Member).ParameterType == implementation.GetProperty("Key").PropertyType) &&
                         ((indexOf = index) != -1))
                     .FirstOrDefault();
@@ -200,7 +200,7 @@ namespace URSA.Web.Description.Http
                 int optionalParameters = 0;
                 foreach (var parameter in this)
                 {
-                    optionalParameters += ((parameter.HasDefaultValue) || (!((ParameterInfo)parameter.Member).ParameterType.IsValueType) ? 1 : 0);
+                    optionalParameters += ((parameter.HasDefaultValue) || (!((ParameterInfo)parameter.Member).ParameterType.GetTypeInfo().IsValueType) ? 1 : 0);
                     var match = VariableTemplateRegex.Match(((FromQueryStringAttribute)parameter.Source).UrlTemplate);
                     var parameterName = match.Groups["ParameterName"].Value;
                     fixedParameters.Append(fixedParameters.Length == 0 ? "([?&](" : "|");
@@ -223,7 +223,7 @@ namespace URSA.Web.Description.Http
                 {
                     var match = VariableTemplateRegex.Match(((FromQueryStringAttribute)parameter.Source).UrlTemplate);
                     var parameterName = match.Groups["ParameterName"].Value;
-                    if ((parameter.HasDefaultValue) || (!((ParameterInfo)parameter.Member).ParameterType.IsValueType))
+                    if ((parameter.HasDefaultValue) || (!((ParameterInfo)parameter.Member).ParameterType.GetTypeInfo().IsValueType))
                     {
                         optionalParameters.Append(optionalParameters.Length == 0 ? "{&" : ",");
                         optionalParameters.Append(parameterName + match.Groups["ListIndicator"].Value);

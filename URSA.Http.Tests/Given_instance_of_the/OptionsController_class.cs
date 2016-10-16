@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using FluentAssertions;
@@ -22,7 +23,7 @@ namespace Given_instance_of_the
         [TestMethod]
         public void it_should_create_an_instance_correctly()
         {
-            var result = OptionsController.CreateOperationInfo(typeof(TestController).GetMethod("Add").ToOperationInfo("/", Verb.GET));
+            var result = OptionsController.CreateOperationInfo(typeof(TestController).GetTypeInfo().GetMethod("Add").ToOperationInfo("/", Verb.GET));
 
             result.ProtocolSpecificCommand.Should().Be(Verb.OPTIONS);
         }

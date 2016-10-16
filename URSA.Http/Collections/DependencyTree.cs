@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 
 namespace URSA.Web.Http.Collections
 {
@@ -111,8 +112,8 @@ namespace URSA.Web.Http.Collections
             {
                 ModelTransformer = modelTransformer;
                 Dependencies = new List<DependencyNode>();
-                var dependencies = from @interface in modelTransformer.GetType().GetInterfaces()
-                                   where (@interface.IsGenericType) && (@interface.GetGenericTypeDefinition() == dependencyTypeFlag)
+                var dependencies = from @interface in modelTransformer.GetType().GetTypeInfo().GetInterfaces()
+                                   where (@interface.GetTypeInfo().IsGenericType) && (@interface.GetGenericTypeDefinition() == dependencyTypeFlag)
                                    select @interface;
                 foreach (var dependency in dependencies)
                 {

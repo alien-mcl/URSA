@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Linq;
 using Castle.MicroKernel;
 using Castle.MicroKernel.Context;
@@ -34,7 +35,8 @@ namespace URSA.Example.WebApplication
         public void Install(IWindsorContainer container, IConfigurationStore store)
         {
             InstallRdfDependencies(container);
-            var jsonFileRepository = new JsonFilePersistingRepository<Person, Guid>(AppDomain.CurrentDomain.GetApplicationStoragePath());
+            var storagePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "App_Data");
+            var jsonFileRepository = new JsonFilePersistingRepository<Person, Guid>(storagePath);
             container.Register(Component.For<IPersistingRepository<Person, Guid>>().Instance(jsonFileRepository).Named("PersonsJsonFileRepository"));
         }
 

@@ -48,7 +48,7 @@ namespace URSA.Web.Http.Description
             int take = 0;
             bool canOutputHypermedia = false;
             KeyValuePair<Verb, MethodInfo> method;
-            if ((requestMapping.Target.GetType().GetImplementationOfAny(typeof(IController<>), typeof(IAsyncController<>)) != null) &&
+            if ((requestMapping.Target.GetType().GetTypeInfo().GetImplementationOfAny(typeof(IController<>), typeof(IAsyncController<>)) != null) &&
                 (!Equals(method = requestMapping.Target.GetType().DiscoverCrudMethods().FirstOrDefault(entry => entry.Value == underlyingMethod), default(KeyValuePair<Verb, MethodInfo>))))
             {
                 switch (method.Key.ToString())
@@ -109,7 +109,7 @@ namespace URSA.Web.Http.Description
                                      select supportedMediaType;
             return 
                 ((DescriptionConfigurationSection.Default.HypermediaMode == HypermediaModes.SameGraph) && 
-                (System.Reflection.TypeInfoExtensions.IsEnumerable(returnType)) && 
+                (returnType.GetTypeInfo().IsEnumerable()) && 
                 (requestInfo != null) && ((requestInfo.Headers[Header.Accept] != null) && (matchingMediaTypes.Any())));
         }
     }

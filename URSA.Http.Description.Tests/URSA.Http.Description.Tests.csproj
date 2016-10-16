@@ -16,7 +16,8 @@
     <ReferencePath>$(ProgramFiles)\Common Files\microsoft shared\VSTT\$(VisualStudioVersion)\UITestExtensionPackages</ReferencePath>
     <IsCodedUITest>False</IsCodedUITest>
     <TestProjectType>UnitTest</TestProjectType>
-    <NuGetPackageImportStamp>bfc2e961</NuGetPackageImportStamp>
+    <NuGetPackageImportStamp>
+    </NuGetPackageImportStamp>
     <SccProjectName>SAK</SccProjectName>
     <SccLocalPath>SAK</SccLocalPath>
     <SccAuxPath>SAK</SccAuxPath>
@@ -51,6 +52,10 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\dotNetRDF.1.0.3\lib\net40\dotNetRDF.dll</HintPath>
     </Reference>
+    <Reference Include="dotNetRDF.Data.Virtuoso, Version=1.0.0.2473, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\dotNetRDF.Data.Virtuoso.1.0.0.2473\lib\net40\dotNetRDF.Data.Virtuoso.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="FluentAssertions, Version=3.3.0.0, Culture=neutral, PublicKeyToken=33f2691a05b67b6a, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\FluentAssertions.3.3.0\lib\net45\FluentAssertions.dll</HintPath>
@@ -78,18 +83,28 @@
     <Reference Include="NLog">
       <HintPath>..\packages\NLog.3.2.0.0\lib\net45\NLog.dll</HintPath>
     </Reference>
-    <Reference Include="Remotion.Linq">
-      <HintPath>..\packages\Remotion.Linq.1.15.15.0\lib\portable-net45+wp80+wpa81+win\Remotion.Linq.dll</HintPath>
-    </Reference>
-    <Reference Include="RomanticWeb, Version=0.4.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\RomanticWeb.0.4.0.0\Lib\net40\RomanticWeb.dll</HintPath>
+    <Reference Include="OpenLink.Data.Virtuoso, Version=6.2.3128.1, Culture=neutral, PublicKeyToken=6654f6917d07cb95, processorArchitecture=MSIL">
+      <HintPath>..\packages\dotNetRDF.Data.Virtuoso.1.0.0.2473\lib\net40\OpenLink.Data.Virtuoso.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="RomanticWeb.dotNetRDF, Version=0.4.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\RomanticWeb.dotNetRDF.0.4.0.0\Lib\net40\RomanticWeb.dotNetRDF.dll</HintPath>
+    <Reference Include="Remotion.Linq, Version=2.1.0.0, Culture=neutral, PublicKeyToken=fee00910d6e5f53b, processorArchitecture=MSIL">
+      <HintPath>..\packages\Remotion.Linq.2.1.1\lib\net45\Remotion.Linq.dll</HintPath>
       <Private>True</Private>
+    </Reference>
+    <Reference Include="RomanticWeb">
+      <HintPath>..\packages\RomanticWeb.1.0.0\lib\net45\RomanticWeb.dll</HintPath>
+    </Reference>
+    <Reference Include="RomanticWeb.Contracts">
+      <HintPath>..\packages\RomanticWeb.Contracts.1.0.0\lib\net45\RomanticWeb.Contracts.dll</HintPath>
+    </Reference>
+    <Reference Include="RomanticWeb.dotNetRDF">
+      <HintPath>..\packages\RomanticWeb.dotNetRDF.1.0.0-pre\lib\net45\RomanticWeb.dotNetRDF.dll</HintPath>
+    </Reference>
+    <Reference Include="RomanticWeb.Mapping.Fluent">
+      <HintPath>..\packages\RomanticWeb.Mapping.Fluent.1.0.0\lib\net45\RomanticWeb.Mapping.Fluent.dll</HintPath>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Xml" />
@@ -97,6 +112,10 @@
     <Reference Include="VDS.Common, Version=1.2.0.0, Culture=neutral, PublicKeyToken=ab5f4eb908061bf0, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\VDS.Common.1.2.0\lib\net40-client\VDS.Common.dll</HintPath>
+    </Reference>
+    <Reference Include="virtado4, Version=4.0.0.0, Culture=neutral, PublicKeyToken=391bf132017ae989, processorArchitecture=MSIL">
+      <HintPath>..\packages\OpenLink.Data.Virtuoso.7.20.3214.1\lib\net40\virtado4.dll</HintPath>
+      <Private>True</Private>
     </Reference>
   </ItemGroup>
   <Choose>
@@ -128,7 +147,6 @@
     <Compile Include="Given_instance_of_the\ApiEntryPointDescriptionBuilder_class.cs" />
     <Compile Include="Given_instance_of_the\EntryPointControllerDescriptionBuilder_class.cs" />
     <Compile Include="Given_instance_of_the\EntryPointDescriptionController_class.cs" />
-    <None Include="Given_instance_of_the\OwningResourceNamedGraphSelector_class.cs" />
     <Compile Include="Given_instance_of_the\EntityExtensions_class\when_copying_between_entity_contexts.cs" />
     <Compile Include="Given_instance_of_the\CollectionModelTransformer_class.cs" />
     <Compile Include="Given_instance_of_the\XmlDocProvider_class.cs" />
@@ -167,9 +185,6 @@
     <None Include="app.config" />
     <None Include="packages.config" />
   </ItemGroup>
-  <ItemGroup>
-    <Content Include="FodyWeavers.xml" />
-  </ItemGroup>
   <Choose>
     <When Condition="'$(VisualStudioVersion)' == '10.0' And '$(IsCodedUITest)' == 'True'">
       <ItemGroup>
@@ -196,12 +211,10 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
-  <Import Project="..\packages\Fody.1.26.4\build\Fody.targets" Condition="Exists('..\packages\Fody.1.26.4\build\Fody.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
-    <Error Condition="!Exists('..\packages\Fody.1.26.4\build\Fody.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Fody.1.26.4\build\Fody.targets'))" />
     <Error Condition="!Exists('..\packages\StyleCop.MSBuild.4.7.49.1\build\StyleCop.MSBuild.Targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\StyleCop.MSBuild.4.7.49.1\build\StyleCop.MSBuild.Targets'))" />
     <Error Condition="!Exists('..\packages\StyleCop.Error.MSBuild.1.0.0\build\StyleCop.Error.MSBuild.Targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\StyleCop.Error.MSBuild.1.0.0\build\StyleCop.Error.MSBuild.Targets'))" />
     <Error Condition="!Exists('$(SolutionDir)\.nuget\NuGet.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)\.nuget\NuGet.targets'))" />

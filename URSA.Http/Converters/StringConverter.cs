@@ -98,12 +98,12 @@ namespace URSA.Web.Http.Converters
                 throw new ArgumentNullException("expectedType");
             }
 
+            var expectedTypeInfo = expectedType.GetTypeInfo();
             if (body == null)
             {
-                return (expectedType.IsValueType ? Activator.CreateInstance(expectedType) : null);
+                return (expectedTypeInfo.IsValueType ? Activator.CreateInstance(expectedType) : null);
             }
 
-            var expectedTypeInfo = expectedType.GetTypeInfo();
             return (expectedTypeInfo.IsEnumerable() ? Regex.Split(body, "\r\n").MakeInstance(expectedTypeInfo, typeof(string)) : body);
         }
 
@@ -171,7 +171,7 @@ namespace URSA.Web.Http.Converters
                 }
 
                 string content = null;
-                if (!System.TypeExtensions.IsEnumerable(givenType))
+                if (!givenType.GetTypeInfo().IsEnumerable())
                 {
                     content = (string)instance;
                 }

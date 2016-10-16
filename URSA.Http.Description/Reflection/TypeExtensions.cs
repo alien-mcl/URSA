@@ -25,7 +25,7 @@ namespace URSA.Reflection
                 return type.GetElementType().MakeTypeName(includeNamespace, keepSyntax) + "[]";
             }
 
-            if (!type.IsGenericType)
+            if (!type.GetTypeInfo().IsGenericType)
             {
                 return (includeNamespace ? type.FullName : type.Name).Replace("&", String.Empty);
             }
@@ -34,7 +34,7 @@ namespace URSA.Reflection
             return String.Format(
                 (keepSyntax ? "{0}.{1}<{2}>" : "{0}.{1}Of{2}"),
                 type.Namespace,
-                (type.IsInterface ? typeName.TrimStart('I') : typeName),
+                (type.GetTypeInfo().IsInterface ? typeName.TrimStart('I') : typeName),
                 String.Join((keepSyntax ? "," : "And"), type.GetGenericArguments().Select(genericType => genericType.MakeTypeName(keepSyntax && includeNamespace, keepSyntax))));
         }
 
@@ -46,7 +46,7 @@ namespace URSA.Reflection
         internal static Type GetInterfaceImplementation(this Type implementour, Type implementation, Func<Type, bool> withPredicate = null)
         {
             return (implementour.GetInterfaces().FirstOrDefault(@interface => @interface.IsGenericBaseOf(implementation, withPredicate))) ??
-                ((implementour.IsInterface) && (implementour.IsGenericBaseOf(implementation, withPredicate)) ? implementour : null);
+                ((implementour.GetTypeInfo().IsInterface) && (implementour.IsGenericBaseOf(implementation, withPredicate)) ? implementour : null);
         }
 
         internal static bool ImplementsGeneric(this PropertyInfo implementour, Type genericType, string propertyName)
@@ -58,8 +58,8 @@ namespace URSA.Reflection
 
         internal static bool Implements(this PropertyInfo implementour, PropertyInfo property)
         {
-            return ((implementour.DeclaringType.IsInterface) && (implementour.Matches(property))) || ((!implementour.DeclaringType.IsInterface) &&
-                (implementour.DeclaringType.GetInterfaceMap(property.DeclaringType).TargetMethods.Any(targetMethod => targetMethod == property.GetGetMethod())));
+            return ((implementour.DeclaringType.GetTypeInfo().IsInterface) && (implementour.Matches(property))) || ((!implementour.DeclaringType.GetTypeInfo().IsInterface) &&
+                (implementour.DeclaringType.GetTypeInfo().GetRuntimeInterfaceMap(property.DeclaringType).TargetMethods.Any(targetMethod => targetMethod == property.GetGetMethod())));
         }
 
         internal static bool Matches(this PropertyInfo leftOperand, PropertyInfo rightOperand)
@@ -86,7 +86,7 @@ namespace URSA.Reflection
 
         private static bool IsGenericBaseOf(this Type @interface, Type implementation, Func<Type, bool> withPredicate = null)
         {
-            return (@interface.IsGenericType) && (@interface.GetGenericTypeDefinition() == implementation) &&
+            return (@interface.GetTypeInfo().IsGenericType) && (@interface.GetGenericTypeDefinition() == implementation) &&
                 ((withPredicate == null) || (withPredicate(@interface)));
         }
     }

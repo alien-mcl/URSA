@@ -194,25 +194,9 @@ namespace URSA.Configuration
 
         [ExcludeFromCodeCoverage]
         [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "Method uses local file system, which may proove to be diffucult for testing.")]
-        private static IEnumerable<Assembly> GetLoadedAssemblies(Regex assemblyNameRegex)
-        {
-#if CORE
-            return from library in DependencyContext.Default.RuntimeLibraries
-                   from assembly in library.Assemblies
-                   where assemblyNameRegex.IsMatch(assembly.Name.FullName)
-                   select Assembly.Load(assembly.Name);
-#else
-            return from assembly in AppDomain.CurrentDomain.GetAssemblies()
-                   where assemblyNameRegex.IsMatch(assembly.FullName)
-                   select assembly;
-#endif
-        }
-
-        [ExcludeFromCodeCoverage]
-        [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "Method uses local file system, which may proove to be diffucult for testing.")]
         private static IEnumerable<Assembly> GetInstallerAssemblies(string mask)
         {
-            var loadedAssemblies = GetLoadedAssemblies(new Regex(Regex.Escape(mask).Replace("\\*", ".*").Replace("\\?", ".")));
+            var loadedAssemblies = ExecutionContext.GetLoadedAssemblies(new Regex(Regex.Escape(mask).Replace("\\*", ".*").Replace("\\?", ".")));
             var loadedAssemblyFiles = loadedAssemblies.Select(assembly => System.IO.Path.GetFileNameWithoutExtension(assembly.CodeBase));
 #if CORE
             Func<string, Assembly> assemblyLoader = AssemblyLoadContext.Default.LoadFromAssemblyPath;

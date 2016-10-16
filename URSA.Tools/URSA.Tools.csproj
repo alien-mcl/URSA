@@ -66,6 +66,7 @@
     <Compile Include="Reflection\AssemblyExtensions.cs" />
     <Compile Include="StringExtensions.cs" />
     <Compile Include="Reflection\TypeInfoExtensions.cs" />
+    <Compile Include="StringExtensions.Encoder.cs" />
     <Compile Include="UriExtensions.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Reflection;
 using FluentAssertions;
 using URSA;
 using URSA.Security;
@@ -46,7 +47,7 @@ namespace Given_instance_of_the.binder
         [TestMethod]
         public void it_should_throw_when_parameter_type_is_an_enumeration()
         {
-            var method = typeof(TestController).GetMethod("Collection");
+            var method = typeof(TestController).GetTypeInfo().GetMethod("Collection");
             var context = new ArgumentBindingContext<FromUrlAttribute>(
                 new RequestInfo(Verb.GET, RequestUrl, new MemoryStream(), new BasicClaimBasedIdentity()),
                 new RequestMapping(new TestController(), method.ToOperationInfo("/", Verb.GET), (HttpUrl)UrlParser.Parse("/")),

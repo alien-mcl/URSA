@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Reflection;
 using RomanticWeb.Entities;
 using URSA.Web.Description;
 using URSA.Web.Http.Description.Hydra;
@@ -11,8 +12,8 @@ namespace URSA.Web.Http.Description
         internal static bool IsWriteControllerOperation<T>(this OperationInfo<T> operation)
         {
             Type type;
-            return (((type = operation.UnderlyingMethod.DeclaringType.GetInterfaces().FirstOrDefault(IsWriteControllerOperation)) != null) &&
-                (operation.UnderlyingMethod.DeclaringType.GetInterfaceMap(type).TargetMethods.Contains(operation.UnderlyingMethod)));
+            return (((type = operation.UnderlyingMethod.DeclaringType.GetTypeInfo().GetInterfaces().FirstOrDefault(IsWriteControllerOperation)) != null) &&
+                (operation.UnderlyingMethod.DeclaringType.GetTypeInfo().GetRuntimeInterfaceMap(type).TargetMethods.Contains(operation.UnderlyingMethod)));
         }
 
         internal static EntityId CreateId<T>(this OperationInfo<T> operation, Uri baseUri)
@@ -49,7 +50,7 @@ namespace URSA.Web.Http.Description
 
         private static bool IsWriteControllerOperation(Type @interface)
         {
-            return (@interface.IsGenericType) && (typeof(IWriteController<,>).IsAssignableFrom(@interface.GetGenericTypeDefinition()));
+            return (@interface.GetTypeInfo().IsGenericType) && (typeof(IWriteController<,>).IsAssignableFrom(@interface.GetGenericTypeDefinition()));
         }
     }
 }

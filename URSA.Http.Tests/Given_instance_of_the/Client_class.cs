@@ -114,7 +114,7 @@ namespace Given_instance_of_the
         {
             await Call(With.NoResult);
 
-            _webRequest.Verify(instance => instance.GetResponse(), Times.Once);
+            _webRequest.Verify(instance => instance.GetResponseAsync(), Times.Once);
         }
 
         [TestMethod]
@@ -146,14 +146,17 @@ namespace Given_instance_of_the
         public void Setup()
         {
             _arguments = new ExpandoObject();
-            _headers = new WebHeaderCollection { { "Content-Type", "application/json" }, { "Content-Length", "0" }, { "Content-Range", " 0-0/1" } };
+            _headers = new WebHeaderCollection();
+            _headers["Content-Type"] = "application/json";
+            _headers["Content-Length"] = "0";
+            _headers["Content-Range"] = " 0-0/1";
             _webResponse = new Mock<HttpWebResponse>();
             _webResponse.Setup(instance => instance.GetResponseStream()).Returns(new MemoryStream());
             _webResponse.SetupGet(instance => instance.Headers).Returns(_headers);
             var webHeaders = new WebHeaderCollection();
             _webRequest = new Mock<HttpWebRequest>();
-            _webRequest.Setup(instance => instance.GetRequestStream()).Returns(new UnclosableStream(_requestStream = new MemoryStream()));
-            _webRequest.Setup(instance => instance.GetResponse()).Returns(_webResponse.Object);
+            _webRequest.Setup(instance => instance.GetRequestStreamAsync()).ReturnsAsync(new UnclosableStream(_requestStream = new MemoryStream()));
+            _webRequest.Setup(instance => instance.GetResponseAsync()).ReturnsAsync(_webResponse.Object);
             _webRequest.SetupSet(instance => instance.Credentials = It.IsAny<ICredentials>());
             _webRequest.SetupGet(instance => instance.Headers).Returns(webHeaders);
             _webRequestProvider = new Mock<IWebRequestProvider>(MockBehavior.Strict);

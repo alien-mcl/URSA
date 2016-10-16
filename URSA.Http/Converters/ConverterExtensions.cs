@@ -26,7 +26,7 @@ namespace URSA.Web.Http.Converters
 
             if (value == null)
             {
-                return (type.IsValueType ? Activator.CreateInstance(type) : null);
+                return (type.GetTypeInfo().IsValueType ? Activator.CreateInstance(type) : null);
             }
 
             bool success;

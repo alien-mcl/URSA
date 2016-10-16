@@ -11,7 +11,7 @@ namespace URSA.Web.Http.Description.Model
     internal static class EntityQuadExtensions
     {
         [ExcludeFromCodeCoverage]
-        internal static bool PredicateIs(this EntityQuad quad, IEntityContext context, Uri type)
+        internal static bool PredicateIs(this IEntityQuad quad, IEntityContext context, Uri type)
         {
             return (quad.Predicate.IsUri) && (!quad.Predicate.Uri.AbsoluteUri.StartsWith(EntityConverter.Hydra.AbsoluteUri)) && 
                 (context.Load<IEntity>(new EntityId(quad.Predicate.Uri)).GetTypes().Any(currentType => AbsoluteUriComparer.Default.Equals(currentType.Uri, type)));

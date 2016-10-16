@@ -249,14 +249,14 @@ namespace URSA.Web.Http.Converters
                         {
                             foreach (var item in (IEnumerable)value)
                             {
-                                writer.Write("{0}{1}={2}", separator, property.Name, Uri.EscapeDataString(typeConverter.ConvertToInvariantString(item)));
+                                writer.Write("{0}{1}={2}", separator, property.Name, typeConverter.ConvertToInvariantString(item).UrlEncode());
                                 separator = "&";
                             }
                         }
                     }
                     else
                     {
-                        writer.Write("{0}{1}={2}", separator, property.Name, Uri.EscapeDataString(typeConverter.ConvertToInvariantString(value)));
+                        writer.Write("{0}{1}={2}", separator, property.Name, typeConverter.ConvertToInvariantString(value).UrlEncode());
                     }
 
                     separator = "&";
@@ -273,11 +273,11 @@ namespace URSA.Web.Http.Converters
 
             var matchingProperty = (from property in expectedType.GetProperties(BindingFlags.Public | BindingFlags.Instance)
                                     where (property.CanRead) && ((property.CanWrite) || (property.PropertyType.GetTypeInfo().IsEnumerable()))
-                                        && (String.Compare(property.Name, propertyName.ToString(), true) == 0)
+                                        && (String.Compare(property.Name, propertyName, true) == 0)
                                     select property).FirstOrDefault();
             if (matchingProperty != null)
             {
-                instance.SetPropertyValue(matchingProperty, Uri.UnescapeDataString(value.ToString()));
+                instance.SetPropertyValue(matchingProperty, value.UrlDecode());
             }
         }
     }

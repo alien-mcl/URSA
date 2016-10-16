@@ -3,7 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using ImpromptuInterface;
 using RomanticWeb;
 using RomanticWeb.DotNetRDF;
 using RomanticWeb.Entities;
@@ -153,7 +152,7 @@ namespace URSA.Web.Http.Description.Entities
 
             foreach (var entityMapping in entityContext.Mappings)
             {
-                if (!(entityMapping.EntityType.IsInterface) ||
+                if (!(entityMapping.EntityType.GetTypeInfo().IsInterface) ||
                     (!entityMapping.Classes.Join(typedResult.Types, outer => outer.Uri, inner => inner.Uri, (outer, inner) => outer, AbsoluteUriComparer.Default).Any()))
                 {
                     continue;
@@ -168,14 +167,14 @@ namespace URSA.Web.Http.Description.Entities
                         continue;
                     }
 
-                    if (System.Reflection.TypeInfoExtensions.IsEnumerable(property.ReturnType))
+                    if (property.ReturnType.GetTypeInfo().IsEnumerable())
                     {
                         value = entityContext.CopyCollection(mappedResult, property, value, id, visited);
                     }
 
                     if (value != null)
                     {
-                        if ((property.ReturnType.IsValueType) && (!entity.Context.Store.GetEntityQuads(entity.Id)
+                        if ((property.ReturnType.GetTypeInfo().IsValueType) && (!entity.Context.Store.GetEntityQuads(entity.Id)
                             .Any(quad => (quad.Subject.ToEntityId().Equals(entity.Id)) &&
                                 (AbsoluteUriComparer.Default.Equals(quad.Predicate.ToEntityId().Uri, property.Uri)))))
                         {
@@ -216,31 +215,31 @@ namespace URSA.Web.Http.Description.Entities
 
             foreach (var property in target.Context.Mappings.MappingFor<T>().Properties)
             {
-                var value = (object)Impromptu.InvokeGet(source, property.Name);
+                var value = RomanticWeb.Entities.Proxies.DynamicExtensions.InvokeGet(source, property.Name);
                 if (value == null)
                 {
                     if (depth == 0)
                     {
-                        Impromptu.InvokeSet(target, property.Name, null);
+                        RomanticWeb.Entities.Proxies.DynamicExtensions.InvokeSet(target, property.Name, null);
                     }
 
                     continue;
                 }
 
-                if (System.Reflection.TypeInfoExtensions.IsEnumerable(property.ReturnType))
+                if (property.ReturnType.GetTypeInfo().IsEnumerable())
                 {
                     value = target.UpdateCollection(property, (IEnumerable)value, depth);
                 }
                 else if (value is IEntity)
                 {
-                    var current = (IEntity)Impromptu.InvokeGet(target, property.Name);
+                    var current = (IEntity)RomanticWeb.Entities.Proxies.DynamicExtensions.InvokeGet(target, property.Name);
                     value = (current != null ? current.Update((IEntity)value) :
                         AsEntityMethod.MakeGenericMethod(property.ReturnType).Invoke(null, new[] { target.Context.Copy((IEntity)value) })); 
                 }
 
                 if (value != null)
                 {
-                    Impromptu.InvokeSet(target, property.Name, value);
+                    RomanticWeb.Entities.Proxies.DynamicExtensions.InvokeSet(target, property.Name, value);
                 }
             }
 
@@ -250,7 +249,7 @@ namespace URSA.Web.Http.Description.Entities
         private static object UpdateCollection<T>(this T target, IPropertyMapping property, IEnumerable source, int depth = 0) where T : class, IEntity
         {
             int indexOf = -1;
-            IEnumerable current = (IEnumerable)Impromptu.InvokeGet(target, property.Name);
+            IEnumerable current = (IEnumerable)RomanticWeb.Entities.Proxies.DynamicExtensions.InvokeGet(target, property.Name);
             var collection = (current != null ? new AbstractCollectionWrapper(current) : new AbstractCollectionWrapper(new List<object>()) { IsReplaced = true });
             foreach (var item in source)
             {

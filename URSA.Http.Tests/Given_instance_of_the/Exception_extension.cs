@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using System.Net;
 using System.Text;
+#if !CORE
 using System.Web;
+#endif
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using URSA.Web.Http;
@@ -25,13 +27,13 @@ namespace Given_instance_of_the
 
             exception.AsHttpException().Should().Be(exception);
         }
-
+#if !CORE
         [TestMethod]
-        public void it_should_use_a_status_code_from_a_HttpException()
+        public void it_should_use_a_status_code_from_an_HttpException()
         {
             new HttpException((int)HttpStatusCode.Conflict, "test").AsHttpException().Status.Should().Be(HttpStatusCode.Conflict);
         }
-
+#endif
         [TestMethod]
         public void it_should_throw_when_no_exception_is_passed_for_status_code_conversion()
         {

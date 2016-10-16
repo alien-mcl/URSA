@@ -314,7 +314,7 @@ namespace URSA.Web.Http.Description
         {
             IIriTemplateMapping templateMapping = context.Entity.Context.Create<IIriTemplateMapping>(templateUri.AddFragment(mapping.VariableName));
             templateMapping.Variable = mapping.VariableName;
-            templateMapping.Required = (mapping.Parameter.ParameterType.IsValueType) && (!mapping.Parameter.HasDefaultValue);
+            templateMapping.Required = (mapping.Parameter.ParameterType.GetTypeInfo().IsValueType) && (!mapping.Parameter.HasDefaultValue);
             templateMapping.Description = _xmlDocProvider.GetDescription(operation.UnderlyingMethod, mapping.Parameter);
             var linqBehaviors = mapping.Parameter.GetCustomAttributes<LinqServerBehaviorAttribute>(true);
             if (linqBehaviors.Any())
@@ -362,7 +362,7 @@ namespace URSA.Web.Http.Description
             get
             {
                 return _specializationType ?? (_specializationType = 
-                    (_specializationType = typeof(T).GetImplementationOfAny(typeof(IController<>), typeof(IAsyncController<>))) != null ? 
+                    (_specializationType = typeof(T).GetTypeInfo().GetImplementationOfAny(typeof(IController<>), typeof(IAsyncController<>))) != null ? 
                     _specializationType.GetGenericArguments()[0] : 
                     typeof(object));
             }

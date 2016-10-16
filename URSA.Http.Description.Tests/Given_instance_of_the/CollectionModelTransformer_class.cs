@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -71,7 +72,7 @@ namespace Given_instance_of_the
                     { 2, ArgumentValueSources.Bound } 
                 };
             _mapping = new Mock<IRequestMapping>(MockBehavior.Strict);
-            _mapping.SetupGet(instance => instance.Operation).Returns(typeof(TestController).GetMethod("List").ToOperationInfo("/", Verb.GET));
+            _mapping.SetupGet(instance => instance.Operation).Returns(typeof(TestController).GetTypeInfo().GetMethod("List").ToOperationInfo("/", Verb.GET));
             _mapping.SetupGet(instance => instance.Target).Returns(new TestController());
             _mapping.SetupGet(instance => instance.ArgumentSources).Returns(argumentValueSources);
             _entityContext = new Mock<IEntityContext>(MockBehavior.Strict);

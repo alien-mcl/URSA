@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using URSA.Web.Converters;
 
 namespace URSA.Web.Http.Converters
@@ -170,7 +171,7 @@ namespace URSA.Web.Http.Converters
 
             if (instance != null)
             {
-                if (!givenType.IsAssignableFrom(instance.GetType()))
+                if (!givenType.GetTypeInfo().IsAssignableFrom(instance.GetType()))
                 {
                     throw new InvalidOperationException(String.Format("Instance type '{0}' mismatch from the given '{1}'.", instance.GetType(), givenType));
                 }

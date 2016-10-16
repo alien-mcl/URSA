@@ -199,7 +199,7 @@ namespace URSA.Web.Http
             var controllerDescriptor = (from controller in _controllerDescriptors.Value
                                         from operation in controller.Operations
                                         where operation.Equals(requestMapping.Operation)
-                                        let type = controllerType = operation.UnderlyingMethod.ReflectedType
+                                        let type = controllerType = operation.UnderlyingMethod.DeclaringType
                                         select controller).FirstOrDefault();
             if (controllerDescriptor == null)
             {
@@ -207,8 +207,8 @@ namespace URSA.Web.Http
             }
 
             var getMethod = (from @interface in controllerType.GetInterfaces()
-                             where (@interface.IsGenericType) && (@interface.GetGenericTypeDefinition() == typeof(IReadController<,>))
-                             from method in controllerType.GetInterfaceMap(@interface).TargetMethods
+                             where (@interface.GetTypeInfo().IsGenericType) && (@interface.GetGenericTypeDefinition() == typeof(IReadController<,>))
+                             from method in controllerType.GetTypeInfo().GetRuntimeInterfaceMap(@interface).TargetMethods
                              join operation in controllerDescriptor.Operations on method equals operation.UnderlyingMethod
                              select operation).First();
             result.Headers.Add(new Header(Header.Location, getMethod.UrlTemplate.Replace("{" + getMethod.Arguments.First().VariableName + "}", value.ToString())));

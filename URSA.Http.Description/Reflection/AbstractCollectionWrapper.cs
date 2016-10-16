@@ -24,7 +24,7 @@ namespace URSA.Web.Http.Description.Reflection
             bool isCollectionInitialized = false;
             foreach (var @interface in collectionType.GetInterfaces())
             {
-                if (@interface.IsGenericType)
+                if (@interface.GetTypeInfo().IsGenericType)
                 {
                     var genericType = @interface.GetGenericTypeDefinition();
                     if (genericType == typeof(IList<>))
@@ -160,7 +160,7 @@ namespace URSA.Web.Http.Description.Reflection
             MethodInfo remover = null;
             MethodInfo checker = null;
             var methods = from item in new[] { @interface }.Union(@interface.GetInterfaces())
-                          from method in collectionType.GetInterfaceMap(item).TargetMethods
+                          from method in collectionType.GetTypeInfo().GetRuntimeInterfaceMap(item).TargetMethods
                           select method;
             foreach (var method in methods)
             {

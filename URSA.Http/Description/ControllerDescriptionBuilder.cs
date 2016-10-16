@@ -66,7 +66,7 @@ namespace URSA.Web.Description.Http
             }
 
             argumentMapping = new ArgumentInfo[0];
-            OperationInfo method = _description.Value.Operations.FirstOrDefault(operation => operation.UnderlyingMethod == methodInfo);
+            Description.OperationInfo method = _description.Value.Operations.FirstOrDefault(operation => operation.UnderlyingMethod == methodInfo);
             if (method == null)
             {
                 return null;
@@ -99,9 +99,9 @@ namespace URSA.Web.Description.Http
         /// <returns>Controller information.</returns>
         protected virtual ControllerInfo<T> BuildDescriptorInternal()
         {
-            var assembly = (typeof(T).IsGenericType) &&
-                (typeof(T).GetGenericArguments()[0].GetInterfaces().Contains(typeof(IController))) ?
-                typeof(T).GetGenericArguments()[0].Assembly : typeof(T).Assembly;
+            var typeInfo = typeof(T).GetTypeInfo();
+            var assembly = (typeInfo.IsGenericType) && (typeof(T).GetGenericArguments()[0].GetInterfaces().Contains(typeof(IController))) ?
+                typeof(T).GetGenericArguments()[0].GetTypeInfo().Assembly : typeInfo.Assembly;
             var globalRoutePrefix = assembly.GetCustomAttribute<RouteAttribute>();
             var prefix = GetControllerRoute();
             EntryPointInfo entryPoint = null;
@@ -121,7 +121,7 @@ namespace URSA.Web.Description.Http
                 operations.AddRange(BuildMethodDescriptor(method, prefix));
             }
 
-            return new ControllerInfo<T>(entryPoint, prefix.Url, operations.ToArray()).WithSecurityDetailsFrom(typeof(T));
+            return new ControllerInfo<T>(entryPoint, prefix.Url, operations.ToArray()).WithSecurityDetailsFrom(typeInfo);
         }
 
         private IEnumerable<OperationInfo> BuildMethodDescriptor(MethodInfo method, RouteAttribute prefix)
@@ -130,14 +130,16 @@ namespace URSA.Web.Description.Http
             var verbs = new List<OnVerbAttribute>();
             var route = method.GetDefaults(verbs, out explicitRoute);
             Type entityType = null;
+            var typeInfo = typeof(T).GetTypeInfo();
             Type implementation;
-            if ((!explicitRoute) && ((implementation = typeof(T).GetInterfaces().FirstOrDefault(@interface => (@interface.IsGenericType) && (typeof(IReadController<,>).IsAssignableFrom(@interface.GetGenericTypeDefinition())))) != null))
+            if ((!explicitRoute) && ((implementation = typeInfo.ImplementedInterfaces
+                .FirstOrDefault(@interface => (@interface.GetTypeInfo().IsGenericType) && (typeof(IReadController<,>).IsAssignableFrom(@interface.GetGenericTypeDefinition())))) != null))
             {
                 entityType = implementation.GetGenericArguments()[0];
             }
 
             UriTemplateBuilder templateRegex = new UriTemplateBuilder(entityType, true);
-            templateRegex.Add(prefix.Url.ToString(), prefix, typeof(T));
+            templateRegex.Add(prefix.Url.ToString(), prefix, typeInfo);
             templateRegex.Add(route.Url.ToString(), route, method);
             Url url = UrlParser.Parse(templateRegex.ToString());
             IList<OperationInfo> result = new List<OperationInfo>();

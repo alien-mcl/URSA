@@ -1,24 +1,20 @@
-﻿using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
-using System;
+﻿using System;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
-using System.Net;
+using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using FluentAssertions;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 using URSA;
-using URSA.ComponentModel;
-using URSA.Configuration;
 using URSA.Security;
 using URSA.Web;
 using URSA.Web.Converters;
 using URSA.Web.Description;
-using URSA.Web.Description.Http;
 using URSA.Web.Http;
-using URSA.Web.Http.Mapping;
 using URSA.Web.Http.Security;
 using URSA.Web.Mapping;
 using URSA.Web.Tests;
@@ -216,7 +212,7 @@ namespace Given_instance_of_the
 
         private OperationInfo<Verb> CreateOperation(string methodName)
         {
-            var method = typeof(TestController).GetMethod(methodName);
+            var method = typeof(TestController).GetTypeInfo().GetMethod(methodName);
             var arguments = method.GetParameters().Select(parameter => (ValueInfo)new ArgumentInfo(parameter, FromQueryStringAttribute.For(parameter), "test", "test"));
             return new OperationInfo<Verb>(
                 method,

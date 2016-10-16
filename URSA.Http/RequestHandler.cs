@@ -156,7 +156,7 @@ namespace URSA.Web.Http
             }
 
             await task;
-            if ((task.GetType().IsGenericType) && (typeof(Task<>).IsAssignableFrom(task.GetType().GetGenericTypeDefinition())))
+            if ((task.GetType().GetTypeInfo().IsGenericType) && (typeof(Task<>).IsAssignableFrom(task.GetType().GetGenericTypeDefinition())))
             {
                 return task.GetType().GetProperty("Result", BindingFlags.Instance | BindingFlags.Public).GetValue(task);
             }

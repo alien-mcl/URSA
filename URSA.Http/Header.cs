@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 
 namespace URSA.Web.Http
@@ -334,7 +335,7 @@ namespace URSA.Web.Http
         /// <param name="values">Value of the header.</param>
         public Header(string name, IEnumerable<HeaderValue<T>> values) : base(
             name, 
-            ((typeof(T).IsValueType) && (!values.Any()) ? new HeaderValue<T>[] { new HeaderValue<T>(default(T)) } : values.Cast<HeaderValue>()))
+            ((typeof(T).GetTypeInfo().IsValueType) && (!values.Any()) ? new[] { new HeaderValue<T>(default(T)) } : values))
         {
             (_parsedValues = new ObservableCollection<HeaderValue<T>>()).AddRange(values);
             _parsedValues.CollectionChanged += OnParsedValuesCollectionChanged;
@@ -374,7 +375,7 @@ namespace URSA.Web.Http
             }
 
             _changingValues = false;
-            if ((Values.Count == 0) && (typeof(T).IsValueType))
+            if ((Values.Count == 0) && (typeof(T).GetTypeInfo().IsValueType))
             {
                 throw new InvalidOperationException("Cannot remove last value of the value-type based header.");
             }
@@ -404,7 +405,7 @@ namespace URSA.Web.Http
                 }
             }
 
-            if ((Values.Count == 0) && (typeof(T).IsValueType))
+            if ((Values.Count == 0) && (typeof(T).GetTypeInfo().IsValueType))
             {
                 throw new InvalidOperationException("Cannot remove last value of the value-type based header.");
             }

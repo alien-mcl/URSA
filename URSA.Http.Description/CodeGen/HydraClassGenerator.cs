@@ -27,11 +27,11 @@ namespace URSA.CodeGen
     public class HydraClassGenerator : IClassGenerator
     {
         private const string AsyncInvocation = "System.Threading.Tasks.Task.Run(async () => await ";
-        private static readonly string EntityClassTemplate = new StreamReader(typeof(HydraClassGenerator).Assembly.GetManifestResourceStream("URSA.Web.Http.Description.CodeGen.Templates.Entity.cs")).ReadToEnd();
-        private static readonly string ClientClassTemplate = new StreamReader(typeof(HydraClassGenerator).Assembly.GetManifestResourceStream("URSA.Web.Http.Description.CodeGen.Templates.Client.cs")).ReadToEnd();
-        private static readonly string ResponseClassTemplate = new StreamReader(typeof(HydraClassGenerator).Assembly.GetManifestResourceStream("URSA.Web.Http.Description.CodeGen.Templates.Response.cs")).ReadToEnd();
-        private static readonly string PropertyTemplate = new StreamReader(typeof(HydraClassGenerator).Assembly.GetManifestResourceStream("URSA.Web.Http.Description.CodeGen.Templates.Property.cs")).ReadToEnd();
-        private static readonly string OperationTemplate = new StreamReader(typeof(HydraClassGenerator).Assembly.GetManifestResourceStream("URSA.Web.Http.Description.CodeGen.Templates.Operation.cs")).ReadToEnd();
+        private static readonly string EntityClassTemplate = new StreamReader(typeof(HydraClassGenerator).GetTypeInfo().Assembly.GetManifestResourceStream("URSA.Web.Http.Description.CodeGen.Templates.Entity.cs_")).ReadToEnd();
+        private static readonly string ClientClassTemplate = new StreamReader(typeof(HydraClassGenerator).GetTypeInfo().Assembly.GetManifestResourceStream("URSA.Web.Http.Description.CodeGen.Templates.Client.cs_")).ReadToEnd();
+        private static readonly string ResponseClassTemplate = new StreamReader(typeof(HydraClassGenerator).GetTypeInfo().Assembly.GetManifestResourceStream("URSA.Web.Http.Description.CodeGen.Templates.Response.cs_")).ReadToEnd();
+        private static readonly string PropertyTemplate = new StreamReader(typeof(HydraClassGenerator).GetTypeInfo().Assembly.GetManifestResourceStream("URSA.Web.Http.Description.CodeGen.Templates.Property.cs_")).ReadToEnd();
+        private static readonly string OperationTemplate = new StreamReader(typeof(HydraClassGenerator).GetTypeInfo().Assembly.GetManifestResourceStream("URSA.Web.Http.Description.CodeGen.Templates.Operation.cs_")).ReadToEnd();
         private static readonly IDictionary<IResource, string> Namespaces = new ConcurrentDictionary<IResource, string>();
         private static readonly IDictionary<IResource, string> Names = new ConcurrentDictionary<IResource, string>();
         private static readonly IDictionary<IResource, string> InterfaceNames = new ConcurrentDictionary<IResource, string>();
@@ -183,7 +183,7 @@ namespace URSA.CodeGen
             string result = operation.Label;
             if (operation.Method.Count > 1)
             {
-                result = MemberInfoExtensions.PopularNameMappings
+                result = Web.Http.Reflection.MemberInfoExtensions.PopularNameMappings
                     .Where(item => item.Value.ToString() == method).Select(item => item.Key).FirstOrDefault() ?? method.ToUpperCamelCase();
             }
 

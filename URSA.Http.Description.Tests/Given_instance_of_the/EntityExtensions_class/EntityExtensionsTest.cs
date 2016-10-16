@@ -7,6 +7,7 @@ using RomanticWeb.Entities;
 using URSA.Configuration;
 using URSA.Web.Http.Description.Tests.Data;
 using VDS.RDF;
+using System.Linq;
 
 namespace Given_instance_of_the.EntityExtensions_class
 {
@@ -28,7 +29,7 @@ namespace Given_instance_of_the.EntityExtensions_class
         [TestInitialize]
         public virtual void Setup()
         {
-            var metaGraphUri = ConfigurationSectionHandler.Default.Factories[DescriptionConfigurationSection.Default.DefaultStoreFactoryName].MetaGraphUri;
+            var metaGraphUri = ConfigurationSectionHandler.Default.Factories.Cast<FactoryElement>().First(factory => factory.Name == DescriptionConfigurationSection.Default.DefaultStoreFactoryName).MetaGraphUri;
             ITripleStore store;
             SourceEntityContext = SetupEntityContext(metaGraphUri, out store);
             SourceStore = store;

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text.RegularExpressions;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -52,7 +53,7 @@ namespace Given_instance_of_the.DelegateMapper_class
         [TestInitialize]
         public void Setup()
         {
-            var method = typeof(TestController).GetMethod("Add");
+            var method = typeof(TestController).GetTypeInfo().GetMethod("Add");
             _controller = new TestController();
             _operation = new OperationInfo<Verb>(
                 method,

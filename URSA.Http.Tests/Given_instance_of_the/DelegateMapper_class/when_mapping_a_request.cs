@@ -1,11 +1,12 @@
-﻿using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Reflection;
 using System.Text.RegularExpressions;
+using FluentAssertions;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 using URSA;
 using URSA.Security;
 using URSA.Web;
@@ -31,7 +32,7 @@ namespace Given_instance_of_the.DelegateMapper_class
             mapping.Should().NotBeNull();
             mapping.Target.Should().NotBeNull();
             mapping.Target.Should().BeOfType<TestController>();
-            mapping.Operation.UnderlyingMethod.Should().BeSameAs(typeof(TestController).GetMethod("Add"));
+            mapping.Operation.UnderlyingMethod.Should().BeSameAs(typeof(TestController).GetTypeInfo().GetMethod("Add"));
         }
 
         [TestMethod]
@@ -42,7 +43,7 @@ namespace Given_instance_of_the.DelegateMapper_class
             mapping.Should().NotBeNull();
             mapping.Target.Should().NotBeNull();
             mapping.Target.Should().BeOfType<TestController>();
-            mapping.Operation.UnderlyingMethod.Should().BeSameAs(typeof(TestController).GetMethod("Add"));
+            mapping.Operation.UnderlyingMethod.Should().BeSameAs(typeof(TestController).GetTypeInfo().GetMethod("Add"));
         }
 
         [TestMethod]
@@ -53,7 +54,7 @@ namespace Given_instance_of_the.DelegateMapper_class
             mapping.Should().NotBeNull();
             mapping.Target.Should().NotBeNull();
             mapping.Target.Should().BeOfType<TestController>();
-            mapping.Operation.UnderlyingMethod.Should().BeSameAs(typeof(TestController).GetMethod("Add"));
+            mapping.Operation.UnderlyingMethod.Should().BeSameAs(typeof(TestController).GetTypeInfo().GetMethod("Add"));
         }
 
         [TestMethod]
@@ -75,7 +76,7 @@ namespace Given_instance_of_the.DelegateMapper_class
         [TestInitialize]
         public void Setup()
         {
-            var method = typeof(TestController).GetMethod("Add");
+            var method = typeof(TestController).GetTypeInfo().GetMethod("Add");
             var baseUri = (HttpUrl)UrlParser.Parse("/api/test/");
             var operationUri = ((HttpUrl)UrlParser.Parse("/add")).InsertSegments(0, baseUri.Segments);
             var operation = new OperationInfo<Verb>(

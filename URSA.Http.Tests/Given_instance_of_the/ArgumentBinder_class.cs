@@ -250,18 +250,18 @@ namespace Given_instance_of_the
             {
                 return Double.Parse(body);
             }
-            else if (type == typeof(int))
+
+            if (type == typeof(int))
             {
                 return Int32.Parse(body);
             }
-            else if (type == typeof(byte[]))
+
+            if (type == typeof(byte[]))
             {
                 return System.Convert.FromBase64String(body);
             }
-            else
-            {
-                return body;
-            }
+            
+            return body;
         }
 
         private IController GetControllerInstance()

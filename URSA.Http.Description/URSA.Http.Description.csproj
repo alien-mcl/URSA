@@ -11,7 +11,8 @@
     <AssemblyName>URSA.Http.Description</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <NuGetPackageImportStamp>b83a3709</NuGetPackageImportStamp>
+    <NuGetPackageImportStamp>
+    </NuGetPackageImportStamp>
     <SccProjectName>SAK</SccProjectName>
     <SccLocalPath>SAK</SccLocalPath>
     <SccAuxPath>SAK</SccAuxPath>
@@ -61,22 +62,24 @@
     <Reference Include="NLog">
       <HintPath>..\packages\NLog.3.2.0.0\lib\net45\NLog.dll</HintPath>
     </Reference>
-    <Reference Include="Remotion.Linq">
-      <HintPath>..\packages\Remotion.Linq.1.15.15.0\lib\portable-net45+wp80+wpa81+win\Remotion.Linq.dll</HintPath>
-    </Reference>
-    <Reference Include="Resta.UriTemplates, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Resta.UriTemplates.1.2.0\lib\net35-client\Resta.UriTemplates.dll</HintPath>
+    <Reference Include="Remotion.Linq, Version=2.1.0.0, Culture=neutral, PublicKeyToken=fee00910d6e5f53b, processorArchitecture=MSIL">
+      <HintPath>..\packages\Remotion.Linq.2.1.1\lib\net45\Remotion.Linq.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="RomanticWeb, Version=0.4.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\RomanticWeb.0.4.0.0\Lib\net40\RomanticWeb.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="RomanticWeb">
+      <HintPath>..\packages\RomanticWeb.1.0.0\lib\net45\RomanticWeb.dll</HintPath>
     </Reference>
-    <Reference Include="RomanticWeb.dotNetRDF, Version=0.4.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\RomanticWeb.dotNetRDF.0.4.0.0\Lib\net40\RomanticWeb.dotNetRDF.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="RomanticWeb.Contracts">
+      <HintPath>..\packages\RomanticWeb.Contracts.1.0.0\lib\net45\RomanticWeb.Contracts.dll</HintPath>
+    </Reference>
+    <Reference Include="RomanticWeb.dotNetRDF">
+      <HintPath>..\packages\RomanticWeb.dotNetRDF.1.0.0-pre\lib\net45\RomanticWeb.dotNetRDF.dll</HintPath>
+    </Reference>
+    <Reference Include="RomanticWeb.Mapping.Fluent">
+      <HintPath>..\packages\RomanticWeb.Mapping.Fluent.1.0.0\lib\net45\RomanticWeb.Mapping.Fluent.dll</HintPath>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
@@ -86,21 +89,24 @@
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
+    <Reference Include="Tavis.UriTemplates">
+      <HintPath>..\packages\Tavis.UriTemplates.1.1.0\lib\Net45\Tavis.UriTemplates.dll</HintPath>
+    </Reference>
     <Reference Include="VDS.Common">
       <HintPath>..\packages\VDS.Common.1.2.0\lib\net40-client\VDS.Common.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ApiDescriptionBuilder.cs" />
-    <EmbeddedResource Include="CodeGen\Templates\Client.cs" />
-    <EmbeddedResource Include="CodeGen\Templates\Entity.cs" />
+    <EmbeddedResource Include="CodeGen\Templates\Client.cs_" />
+    <EmbeddedResource Include="CodeGen\Templates\Entity.cs_" />
     <Compile Include="ApiEntryPointDescriptionBuilder.cs" />
     <Compile Include="CodeGen\HydraClassGenerator.cs" />
     <Compile Include="CodeGen\GenericUriParser.cs" />
     <Compile Include="CodeGen\OGuidUriParser.cs" />
-    <EmbeddedResource Include="CodeGen\Templates\Operation.cs" />
-    <EmbeddedResource Include="CodeGen\Templates\Property.cs" />
-    <EmbeddedResource Include="CodeGen\Templates\Response.cs" />
+    <EmbeddedResource Include="CodeGen\Templates\Operation.cs_" />
+    <EmbeddedResource Include="CodeGen\Templates\Property.cs_" />
+    <EmbeddedResource Include="CodeGen\Templates\Response.cs_" />
     <Compile Include="CodeGen\SpecializedUriParser.cs" />
     <Compile Include="CodeGen\XsdUriParser.cs" />
     <Compile Include="CodeGen\HydraUriParser.cs" />
@@ -140,10 +146,7 @@
     <Compile Include="Mapping\LinqServerBehaviorAttribute.cs" />
     <Compile Include="Mapping\ServerBehaviorAttribute.cs" />
     <Compile Include="Model\EntityQuadExtensions.cs" />
-    <None Include="NamedGraphs\ILocallyControlledNamedGraphSelector.cs" />
     <None Include="NamedGraphs\INamedGraphSelectorFactory.cs" />
-    <None Include="NamedGraphs\LocallyControlledOwningResourceNamedGraphSelector.cs" />
-    <None Include="NamedGraphs\OwningResourceNamedGraphSelector.cs" />
     <Compile Include="OperationExtensions.cs" />
     <Compile Include="Owl\IClass.cs" />
     <Compile Include="Owl\IInverseFunctionalProperty.cs" />
@@ -180,12 +183,12 @@
     <Compile Include="VDS\RDF\TripleStoreExtensions.cs" />
     <Compile Include="Writing\JsonLdWriter.cs" />
     <Compile Include="XmlDocProvider.cs" />
+    <None Include="URSA.Http.Description.project.json" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Method.png" />
     <EmbeddedResource Include="Property.png" />
     <EmbeddedResource Include="DocumentationStylesheet.xslt" />
-    <Content Include="FodyWeavers.xml" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
@@ -206,12 +209,10 @@
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <Import Project="..\packages\Fody.1.26.4\build\Fody.targets" Condition="Exists('..\packages\Fody.1.26.4\build\Fody.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
-    <Error Condition="!Exists('..\packages\Fody.1.26.4\build\Fody.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Fody.1.26.4\build\Fody.targets'))" />
     <Error Condition="!Exists('..\packages\StyleCop.Error.MSBuild.1.0.0\build\StyleCop.Error.MSBuild.Targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\StyleCop.Error.MSBuild.1.0.0\build\StyleCop.Error.MSBuild.Targets'))" />
     <Error Condition="!Exists('..\packages\StyleCop.MSBuild.4.7.49.1\build\StyleCop.MSBuild.Targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\StyleCop.MSBuild.4.7.49.1\build\StyleCop.MSBuild.Targets'))" />
     <Error Condition="!Exists('$(SolutionDir)\.nuget\NuGet.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)\.nuget\NuGet.targets'))" />

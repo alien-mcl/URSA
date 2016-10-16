@@ -43,7 +43,7 @@ namespace URSA.Web.Http
                         result.Accept = entry.Value;
                         break;
                     default:
-                        result.Headers.Add(entry.Key, entry.Value);
+                        result.Headers[entry.Key] = entry.Value;
                         break;
                 }
             }

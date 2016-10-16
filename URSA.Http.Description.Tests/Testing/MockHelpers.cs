@@ -36,7 +36,7 @@ namespace URSA.Web.Http.Description.Testing
             {
                 var parameter = Expression.Parameter(property.DeclaringType, "instance");
                 var expression = Expression.Lambda(Expression.MakeMemberAccess(parameter, property), parameter);
-                IEnumerable collection = (IEnumerable)typeof(List<>).MakeGenericType(property.PropertyType.GetItemType()).GetConstructor(new Type[0]).Invoke(null);
+                IEnumerable collection = (IEnumerable)typeof(List<>).MakeGenericType(property.PropertyType.GetTypeInfo().GetItemType()).GetConstructor(new Type[0]).Invoke(null);
                 Mock mock = result;
                 if (property.DeclaringType != typeof(T))
                 {
@@ -49,7 +49,7 @@ namespace URSA.Web.Http.Description.Testing
                     .Invoke(mock, new object[] { expression });
                 var getterSetupType = typeof(Moq.Language.IReturnsGetter<,>)
                     .MakeGenericType(property.DeclaringType, property.PropertyType);
-                getterSetup.GetType().GetInterfaceMap(getterSetupType)
+                getterSetup.GetType().GetTypeInfo().GetRuntimeInterfaceMap(getterSetupType)
                     .TargetMethods
                     .First(method => (method.Name == "Returns") && (method.GetParameters().Length == 1) &&
                         (method.GetParameters()[0].ParameterType == property.PropertyType))

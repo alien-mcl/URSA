@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using System.Reflection;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using URSA.Web.Description.Http;
@@ -16,7 +17,7 @@ namespace Given_instance_of_the.DefaultValueRelationSelector_class
         [TestMethod]
         public void it_should_provide_a_parameter_target_for_Guid()
         {
-            var result = _selector.ProvideDefault(typeof(TestController).GetMethod("GetByGuid").GetParameters()[1]);
+            var result = _selector.ProvideDefault(typeof(TestController).GetTypeInfo().GetMethod("GetByGuid").GetParameters()[1]);
 
             result.Should().BeOfType<ToHeaderAttribute>();
         }
@@ -24,7 +25,7 @@ namespace Given_instance_of_the.DefaultValueRelationSelector_class
         [TestMethod]
         public void it_should_provide_a_parameter_target_for_int()
         {
-            var result = _selector.ProvideDefault(typeof(TestController).GetMethod("Add").ReturnParameter);
+            var result = _selector.ProvideDefault(typeof(TestController).GetTypeInfo().GetMethod("Add").ReturnParameter);
 
             result.Should().BeOfType<ToBodyAttribute>();
         }
@@ -32,7 +33,7 @@ namespace Given_instance_of_the.DefaultValueRelationSelector_class
         [TestMethod]
         public void it_should_provide_a_parameter_target_for_Id()
         {
-            var result = _selector.ProvideDefault(typeof(TestController).GetMethod("GetBySomeId").GetParameters()[1]);
+            var result = _selector.ProvideDefault(typeof(TestController).GetTypeInfo().GetMethod("GetBySomeId").GetParameters()[1]);
 
             result.Should().BeOfType<ToHeaderAttribute>();
         }
@@ -40,7 +41,7 @@ namespace Given_instance_of_the.DefaultValueRelationSelector_class
         [TestMethod]
         public void it_should_provide_a_parameter_target_for_object()
         {
-            var result = _selector.ProvideDefault(typeof(TestController).GetMethod("GetSomething").GetParameters()[0]);
+            var result = _selector.ProvideDefault(typeof(TestController).GetTypeInfo().GetMethod("GetSomething").GetParameters()[0]);
 
             result.Should().BeOfType<ToBodyAttribute>();
         }

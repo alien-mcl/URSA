@@ -66,18 +66,16 @@ namespace URSA.Web.Http.Description
                 return context.BuildTypeDescription(out requiresRdf);
             }
 
-            if (System.Reflection.TypeInfoExtensions.IsEnumerable(context.Type))
+            var contextTypeInfo = context.Type.GetTypeInfo();
+            if (contextTypeInfo.IsEnumerable())
             {
-                if (context.Type.IsList())
-                {
-                    return CreateListDefinition(context, out requiresRdf, context.Type.IsGenericList());
-                }
-
-                return CreateCollectionDefinition(context, out requiresRdf, context.Type.IsGenericEnumerable());
+                return (context.Type.GetTypeInfo().IsList() ?
+                    CreateListDefinition(context, out requiresRdf, contextTypeInfo.IsGenericList()) :
+                    CreateCollectionDefinition(context, out requiresRdf, contextTypeInfo.IsGenericEnumerable()));
             }
 
             requiresRdf = false;
-            Type itemType = context.Type.GetItemType();
+            Type itemType = contextTypeInfo.GetItemType();
             if (TypeDescriptions.ContainsKey(itemType))
             {
                 return BuildDatatypeDescription(context, TypeDescriptions[itemType]);
@@ -209,7 +207,7 @@ namespace URSA.Web.Http.Description
                 return context.Entity.Context.Create<IClass>(baseType);
             }
 
-            itemType = context.Type.GetItemType();
+            itemType = context.Type.GetTypeInfo().GetItemType();
             IClass result = context.Entity.Context.Create<IClass>(context.Type.MakeUri());
             result.Label = context.Type.MakeTypeName(false, true);
             result.Description = _xmlDocProvider.GetDescription(context.Type);
@@ -227,7 +225,7 @@ namespace URSA.Web.Http.Description
             var result = context.Entity.Context.Create<ISupportedProperty>(propertyId);
             result.Readable = property.CanRead;
             result.Writeable = property.CanWrite;
-            result.Required = (property.PropertyType.IsValueType) || (property.GetCustomAttribute<RequiredAttribute>() != null);
+            result.Required = (property.PropertyType.GetTypeInfo().IsValueType) || (property.GetCustomAttribute<RequiredAttribute>() != null);
             var isKeyProperty = (property.GetCustomAttribute<KeyAttribute>() != null) ||
                 (property.ImplementsGeneric(typeof(IControlledEntity<>), "Key"));
             result.Property = (isKeyProperty ?
@@ -237,7 +235,7 @@ namespace URSA.Web.Http.Description
             result.Property.Description = _xmlDocProvider.GetDescription(property);
             result.Property.Domain.Add(@class);
             IClass propertyType;
-            var itemPropertyType = (System.Reflection.TypeInfoExtensions.IsEnumerable(property.PropertyType) ? property.PropertyType : property.PropertyType.GetItemType());
+            var itemPropertyType = (property.PropertyType.GetTypeInfo().IsEnumerable() ? property.PropertyType : property.PropertyType.GetTypeInfo().GetItemType());
             if (!context.ContainsType(itemPropertyType))
             {
                 bool requiresRdf;
@@ -251,7 +249,7 @@ namespace URSA.Web.Http.Description
             }
 
             result.Property.Range.Add(propertyType);
-            if ((System.Reflection.TypeInfoExtensions.IsEnumerable(property.PropertyType)) && (property.PropertyType != typeof(byte[])))
+            if ((property.PropertyType.GetTypeInfo().IsEnumerable()) && (property.PropertyType != typeof(byte[])))
             {
                 return result;
             }

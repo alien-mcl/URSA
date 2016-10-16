@@ -20,9 +20,13 @@ namespace VDS.RDF.Parsing
         public event RdfReaderWarning Warning;
 
         /// <inheritdoc />
-        public void Load(IRdfHandler handler, string filename)
+        public void Load(IRdfHandler handler, string fileName)
         {
-            Load(handler, new StreamReader(filename));
+            using (var fileStream = new FileStream(fileName, FileMode.Open, FileAccess.Read))
+            using (var streamReader = new StreamReader(fileStream))
+            {
+                Load(handler, streamReader);
+            }
         }
 
         /// <inheritdoc />
@@ -32,9 +36,13 @@ namespace VDS.RDF.Parsing
         }
 
         /// <inheritdoc />
-        public void Load(IGraph g, string filename)
+        public void Load(IGraph g, string fileName)
         {
-            Load(g, new StreamReader(filename));
+            using (var fileStream = new FileStream(fileName, FileMode.Open, FileAccess.Read))
+            using (var streamReader = new StreamReader(fileStream))
+            {
+                Load(g, streamReader);
+            }
         }
 
         /// <inheritdoc />

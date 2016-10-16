@@ -58,7 +58,7 @@ namespace Given_instance_of_the.ResponseComposer_class
         protected RequestMapping CreateRequestMapping(string methodName, Verb httpMethod, params object[] arguments)
         {
             var method = Controller.GetType().GetMethod(methodName);
-            string baseUri = Controller.GetType().GetCustomAttribute<RouteAttribute>().Url.ToString();
+            string baseUri = Controller.GetType().GetTypeInfo().GetCustomAttribute<RouteAttribute>().Url.ToString();
             string callUri;
             return new RequestMapping(Controller, method.ToOperationInfo(baseUri, httpMethod, out callUri, arguments), (HttpUrl)UrlParser.Parse(callUri.TrimStart('/')));
         }

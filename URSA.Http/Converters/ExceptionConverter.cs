@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Reflection;
 using URSA.Web.Converters;
 
 namespace URSA.Web.Http.Converters
@@ -107,7 +108,7 @@ namespace URSA.Web.Http.Converters
                 return;
             }
 
-            if (!givenType.IsInstanceOfType(instance))
+            if (!givenType.GetTypeInfo().IsInstanceOfType(instance))
             {
                 throw new InvalidOperationException(String.Format("Instance type '{0}' mismatch from the given '{1}'.", instance.GetType(), givenType));
             }
@@ -118,7 +119,7 @@ namespace URSA.Web.Http.Converters
                 "{0:000} {1} \"{2}\"",
                 (uint)exception.HResult % 999,
                 exception.Source ?? responseInfo.Request.Url.Host,
-                System.Web.HttpUtility.JavaScriptStringEncode(exception.Message));
+                exception.Message.JavaScriptStringEncode());
             responseInfo.Headers.Add(new Header(Header.Warning, message));
             responseInfo.Status = exception.Status;
             using (var writer = new StreamWriter(responseInfo.Body, responseInfo.Encoding))
@@ -127,8 +128,8 @@ namespace URSA.Web.Http.Converters
                     "{{{0}\t\"title\":\"{2}\",{0}\t\"details\":\"{3}\",\"status\":{1}{0}}}",
                     Environment.NewLine,
                     (int)exception.Status,
-                    System.Web.HttpUtility.JavaScriptStringEncode(exception.Message),
-                    System.Web.HttpUtility.JavaScriptStringEncode(exception.InnerException != null ? exception.InnerException.StackTrace : exception.StackTrace));
+                    exception.Message.JavaScriptStringEncode(),
+                    (exception.InnerException != null ? exception.InnerException.StackTrace : exception.StackTrace).JavaScriptStringEncode());
             }
         }
     }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Net;
+using System.Reflection;
 using URSA.Web.Description;
 using URSA.Web.Description.Http;
 using URSA.Web.Http.Description;
@@ -65,10 +66,11 @@ namespace URSA.Web.Http
             var allowedOptions = new List<OperationInfo<Verb>>();
             var methodMismatch = false;
             var possibleOperations = GetPossibleOperations(request);
+            var optionsControllerTypeInfo = typeof(OptionsController).GetTypeInfo();
             foreach (var match in possibleOperations)
             {
                 allowedOptions.Add(match.Value);
-                if ((request.IsCorsPreflight) && (!typeof(OptionsController).IsAssignableFrom(match.Value.UnderlyingMethod.DeclaringType)))
+                if ((request.IsCorsPreflight) && (!optionsControllerTypeInfo.IsAssignableFrom(match.Value.UnderlyingMethod.DeclaringType)))
                 {
                     continue;
                 }
@@ -118,7 +120,7 @@ namespace URSA.Web.Http
             foreach (var argument in operation.Arguments.Where(argument => argument.Source is FromQueryStringAttribute))
             {
                 (argument.Parameter.HasDefaultValue ? optionalQueryStringArguments : requiredQueryStringArguments).Add(argument.VariableName);
-                if (queryString.Contains(argument.VariableName, StringComparer.InvariantCultureIgnoreCase))
+                if (queryString.Contains(argument.VariableName, StringComparer.OrdinalIgnoreCase))
                 {
                     (argument.Parameter.HasDefaultValue ? matchingOptionalParameters : matchingRequiredParameters).Add(argument.VariableName);
                 }
@@ -126,20 +128,20 @@ namespace URSA.Web.Http
 
             return new Rank(
                 (operation.ProtocolSpecificCommand == method ? (VerbRanks.ContainsKey(method) ? VerbRanks[method] : VerbRanks[Verb.Empty]) : 0),
-                (controller.ControllerType.IsGenericType ? 0 : 1),
+                (controller.ControllerType.GetTypeInfo().IsGenericType ? 0 : 1),
                 (requiredQueryStringArguments.Count != 0 ? matchingRequiredParameters.Count / requiredQueryStringArguments.Count : 0),
                 (optionalQueryStringArguments.Count != 0 ? matchingOptionalParameters.Count / optionalQueryStringArguments.Count : 0));
         }
 
         private struct Rank
         {
-            internal int MatchingRequiredParameters;
+            internal readonly int MatchingRequiredParameters;
 
-            internal int MatchingOptionalParameters;
+            internal readonly int MatchingOptionalParameters;
 
-            internal int Specialization;
+            internal readonly int Specialization;
 
-            internal int MatchingMethod;
+            internal readonly int MatchingMethod;
 
             internal Rank(int matchingMethod, int specialization, int matchingRequiredParameters, int matchingOptionalParameters)
             {

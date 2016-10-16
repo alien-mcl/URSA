@@ -140,7 +140,7 @@ namespace URSA.Web.Http.Converters
             }
 
             var actualExpectedType = expectedType.FindItemType();
-            if (!typeof(IEntity).IsAssignableFrom(actualExpectedType))
+            if (!typeof(IEntity).GetTypeInfo().IsAssignableFrom(actualExpectedType))
             {
                 return CompatibilityLevel.None;
             }
@@ -171,7 +171,7 @@ namespace URSA.Web.Http.Converters
             }
 
             var itemType = expectedType.FindItemType();
-            if (!typeof(IEntity).IsAssignableFrom(itemType))
+            if (!typeof(IEntity).GetTypeInfo().IsAssignableFrom(itemType))
             {
                 throw new ArgumentOutOfRangeException("expectedType");
             }
@@ -197,14 +197,14 @@ namespace URSA.Web.Http.Converters
             _entityContextProvider.TripleStore.MapToMetaGraph(graph.BaseUri);
             if (itemType == expectedType)
             {
-                return _entityContextProvider.EntityContext.GetType().GetInterfaceMap(typeof(IEntityContext))
+                return _entityContextProvider.EntityContext.GetType().GetTypeInfo().GetRuntimeInterfaceMap(typeof(IEntityContext))
                     .TargetMethods
                     .First(method => method.Name == "Load")
                     .MakeGenericMethod(itemType)
                     .Invoke(_entityContextProvider.EntityContext, new object[] { new EntityId(entityId) });
             }
 
-            var result = _entityContextProvider.EntityContext.GetType().GetInterfaceMap(typeof(IEntityContext))
+            var result = _entityContextProvider.EntityContext.GetType().GetTypeInfo().GetRuntimeInterfaceMap(typeof(IEntityContext))
                 .TargetMethods
                 .First(method => (method.Name == "AsQueryable") && (method.IsGenericMethod))
                 .MakeGenericMethod(itemType)
@@ -245,7 +245,7 @@ namespace URSA.Web.Http.Converters
             }
 
             var actualGivenType = givenType.FindItemType();
-            if (!typeof(IEntity).IsAssignableFrom(actualGivenType))
+            if (!typeof(IEntity).GetTypeInfo().IsAssignableFrom(actualGivenType))
             {
                 return CompatibilityLevel.None;
             }

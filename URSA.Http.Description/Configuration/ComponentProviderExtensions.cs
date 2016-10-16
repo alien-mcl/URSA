@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using URSA.ComponentModel;
 using URSA.Configuration;
 using URSA.Web.Description;
@@ -60,7 +61,7 @@ namespace URSA.Web.Http.Configuration
                         lifestyle: Lifestyles.Singleton);
                 }
 
-                if (!typeof(EntryPointDescriptionController).IsAssignableFrom(controllerType))
+                if (!typeof(EntryPointDescriptionController).GetTypeInfo().IsAssignableFrom(controllerType))
                 {
                     container.Register(
                         typeof(IHttpControllerDescriptionBuilder),
@@ -80,7 +81,7 @@ namespace URSA.Web.Http.Configuration
         private static bool IsDescriptionController(this Type controllerType)
         {
             return (typeof(EntryPointDescriptionController).IsAssignableFrom(controllerType)) ||
-                ((controllerType.IsGenericType) && (controllerType.GetGenericTypeDefinition() == typeof(DescriptionController<>)));
+                ((controllerType.GetTypeInfo().IsGenericType) && (controllerType.GetGenericTypeDefinition() == typeof(DescriptionController<>)));
         }
     }
 }

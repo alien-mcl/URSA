@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text.RegularExpressions;
 using FluentAssertions;
 using FluentAssertions.Execution;
@@ -44,7 +45,7 @@ namespace URSA.Http.Description.Tests.FluentAssertions
         /// <returns></returns>
         public static AndConstraint<StringAssertions> BeEquivalentToStream(this StringAssertions subject, string streamName, string because = "", params object[] reasonArgs)
         {
-            var expected = new StreamReader(typeof(CustomExtensions).Assembly.GetManifestResourceStream(streamName)).ReadToEnd().CleanupText();
+            var expected = new StreamReader(typeof(CustomExtensions).GetTypeInfo().Assembly.GetManifestResourceStream(streamName)).ReadToEnd().CleanupText();
             subject.Subject.CleanupText().Should().Be(expected, because, reasonArgs);
             return new AndConstraint<StringAssertions>(subject);
         }

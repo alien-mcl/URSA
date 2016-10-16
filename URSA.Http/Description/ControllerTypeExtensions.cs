@@ -34,7 +34,7 @@ namespace URSA.Web.Http.Description
                 ControllerCrudMethodsCache[controllerType] = result = new Dictionary<Verb, MethodInfo>();
                 foreach (var @interface in controllerType.GetInterfaces())
                 {
-                    if (!@interface.IsGenericType)
+                    if (!@interface.GetTypeInfo().IsGenericType)
                     {
                         continue;
                     }
@@ -43,17 +43,18 @@ namespace URSA.Web.Http.Description
                     if ((typeof(IWriteController<,>).IsAssignableFrom(definition)) || (typeof(IAsyncWriteController<,>).IsAssignableFrom(definition)))
                     {
                         var write = @interface;
-                        result[Verb.POST] = controllerType.GetInterfaceMap(write).TargetMethods.First(method => method.Name.StartsWith("Create"));
-                        result[Verb.PUT] = controllerType.GetInterfaceMap(write).TargetMethods.First(method => method.Name.StartsWith("Update"));
-                        result[Verb.DELETE] = controllerType.GetInterfaceMap(write).TargetMethods.First(method => method.Name.StartsWith("Delete"));
+                        var interfaceMap = controllerType.GetTypeInfo().GetRuntimeInterfaceMap(write);
+                        result[Verb.POST] = interfaceMap.TargetMethods.First(method => method.Name.StartsWith("Create"));
+                        result[Verb.PUT] = interfaceMap.TargetMethods.First(method => method.Name.StartsWith("Update"));
+                        result[Verb.DELETE] = interfaceMap.TargetMethods.First(method => method.Name.StartsWith("Delete"));
                     }
                     else if ((typeof(IReadController<,>).IsAssignableFrom(definition)) || (typeof(IAsyncReadController<,>).IsAssignableFrom(definition)))
                     {
-                        result[Verb.GET] = controllerType.GetInterfaceMap(@interface).TargetMethods.First();
+                        result[Verb.GET] = controllerType.GetTypeInfo().GetRuntimeInterfaceMap(@interface).TargetMethods.First();
                     }
                     else if ((typeof(IController<>).IsAssignableFrom(definition)) || (typeof(IAsyncController<>).IsAssignableFrom(definition)))
                     {
-                        result[Verb.Empty] = controllerType.GetInterfaceMap(@interface).TargetMethods.First();
+                        result[Verb.Empty] = controllerType.GetTypeInfo().GetRuntimeInterfaceMap(@interface).TargetMethods.First();
                     }
                 }
             }

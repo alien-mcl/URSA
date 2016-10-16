@@ -199,12 +199,12 @@ namespace Given_instance_of_the
                     source = FromUrlAttribute.For(parameter);
                     uriTemplate += (parameterTemplate = "/" + parameter.Name + "/{?value}");
                 }
-                else if (parameter.ParameterType.IsValueType)
+                else if (parameter.ParameterType.GetTypeInfo().IsValueType)
                 {
                     source = FromQueryStringAttribute.For(parameter);
                     queryString += (parameterTemplate = "&" + parameter.Name + "={?value}");
                 }
-                else if (!parameter.ParameterType.IsValueType)
+                else if (!parameter.ParameterType.GetTypeInfo().IsValueType)
                 {
                     source = FromBodyAttribute.For(parameter);
                 }
@@ -299,8 +299,8 @@ namespace Given_instance_of_the
             var quads = new List<EntityQuad>();
             var store = new Mock<IEntityStore>(MockBehavior.Strict);
             store.SetupGet(instance => instance.Quads).Returns(quads);
-            store.Setup(instance => instance.ReplacePredicateValues(It.IsAny<EntityId>(), It.IsAny<Node>(), It.IsAny<Func<IEnumerable<Node>>>(), It.IsAny<Uri>(), CultureInfo.InvariantCulture))
-                .Callback<EntityId, Node, Func<IEnumerable<Node>>, Uri, CultureInfo>((id, node, nodes, uri, culture) =>
+            store.Setup(instance => instance.ReplacePredicateValues(It.IsAny<EntityId>(), It.IsAny<INode>(), It.IsAny<Func<IEnumerable<INode>>>(), It.IsAny<Uri>(), CultureInfo.InvariantCulture))
+                .Callback<EntityId, INode, Func<IEnumerable<INode>>, Uri, CultureInfo>((id, node, nodes, uri, culture) =>
                     nodes().ForEach(item => quads.Add(new EntityQuad(id, Node.ForUri(id.Uri), node, item))));
 
             var @class = new Mock<IClassMapping>(MockBehavior.Strict);

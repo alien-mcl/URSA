@@ -3,6 +3,7 @@ using Moq;
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Reflection;
 using URSA.Web;
 using URSA.Web.Converters;
 using URSA.Web.Http;
@@ -41,7 +42,7 @@ namespace Given_instance_of_the.binder.FromBodyArgumentBinder_class
             _argumentBinder = new ArgumentBinder(new[] { new FromBodyArgumentBinder(converterProvider) });
             _requestMapping = new Mock<IRequestMapping>(MockBehavior.Strict);
             _requestMapping.SetupGet(instance => instance.Target).Returns(new TestController());
-            _requestMapping.SetupGet(instance => instance.Operation).Returns(typeof(TestController).GetMethod("Upload").ToOperationInfo("api/", Verb.POST));
+            _requestMapping.SetupGet(instance => instance.Operation).Returns(typeof(TestController).GetTypeInfo().GetMethod("Upload").ToOperationInfo("api/", Verb.POST));
             _request.SetupGet(instance => instance.Body).Returns(new MemoryStream(Request));
         }
 

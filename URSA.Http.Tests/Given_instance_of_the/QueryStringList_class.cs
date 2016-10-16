@@ -1,4 +1,5 @@
-﻿using FluentAssertions;
+﻿using System.Reflection;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using URSA.Web.Description.Http;
 using URSA.Web.Mapping;
@@ -13,8 +14,8 @@ namespace Given_instance_of_the
         public void it_should_build_uri_template_properly()
         {
             var segments = new UriTemplateBuilder.QueryStringList(null, false);
-            segments.Add("id={?id}", new FromQueryStringAttribute("&id={?id}"), typeof(CrudController).GetMethod("Update").GetParameters()[0]);
-            segments.Add("person={?person}", new FromQueryStringAttribute("&person={?person}"), typeof(CrudController).GetMethod("Update").GetParameters()[1]);
+            segments.Add("id={?id}", new FromQueryStringAttribute("&id={?id}"), typeof(CrudController).GetTypeInfo().GetMethod("Update").GetParameters()[0]);
+            segments.Add("person={?person}", new FromQueryStringAttribute("&person={?person}"), typeof(CrudController).GetTypeInfo().GetMethod("Update").GetParameters()[1]);
 
             var result = segments.ToString();
 
@@ -25,8 +26,8 @@ namespace Given_instance_of_the
         public void it_should_build_uri_regex_properly()
         {
             var segments = new UriTemplateBuilder.QueryStringList(null, true);
-            segments.Add("id=[^&]+", new FromQueryStringAttribute("&id={?id}"), typeof(CrudController).GetMethod("Update").GetParameters()[0]);
-            segments.Add("person=[^&]+", new FromQueryStringAttribute("&person={?person}"), typeof(CrudController).GetMethod("Update").GetParameters()[1]);
+            segments.Add("id=[^&]+", new FromQueryStringAttribute("&id={?id}"), typeof(CrudController).GetTypeInfo().GetMethod("Update").GetParameters()[0]);
+            segments.Add("person=[^&]+", new FromQueryStringAttribute("&person={?person}"), typeof(CrudController).GetTypeInfo().GetMethod("Update").GetParameters()[1]);
 
             var result = segments.ToString();
 

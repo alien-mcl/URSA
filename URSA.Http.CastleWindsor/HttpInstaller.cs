@@ -153,7 +153,11 @@ namespace URSA.CastleWindsor
                 .GetType("RomanticWeb.DotNetRDF.DefaultSparqlCommandFactory")
                 .GetConstructor(new[] { typeof(Uri) })
                 .Invoke(new object[] { metaGraphUri });
-            var tripleStoreAdapter = new TripleStoreAdapter(tripleStore, sparqlCommandFactory) { MetaGraphUri = metaGraphUri };
+            var sparqlCommandExecutionStrategyFactory = (ISparqlCommandExecutionStrategyFactory)typeof(TripleStoreAdapter).Assembly
+                .GetType("RomanticWeb.DotNetRDF.DefaultSparqlCommandExecutionStrategyFactory")
+                .GetConstructor(Type.EmptyTypes)
+                .Invoke(null);
+            var tripleStoreAdapter = new TripleStoreAdapter(tripleStore, sparqlCommandFactory, sparqlCommandExecutionStrategyFactory) { MetaGraphUri = metaGraphUri };
             var result = entityContextFactory.CreateContext();
             result.GetType().GetField("_entitySource", BindingFlags.NonPublic | BindingFlags.Instance).SetValue(result, tripleStoreAdapter);
             return result;

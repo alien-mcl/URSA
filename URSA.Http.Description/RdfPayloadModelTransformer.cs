@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using RomanticWeb.Entities;
 using URSA.Web.Http.Description.Entities;
@@ -45,7 +46,7 @@ namespace URSA.Web.Http.Description
         private Task<object> Transform(object argument)
         {
             Type itemType;
-            if ((argument == null) || (!typeof(IEntity).IsAssignableFrom(itemType = argument.GetType().FindItemType())))
+            if ((argument == null) || (!typeof(IEntity).GetTypeInfo().IsAssignableFrom(itemType = argument.GetType().FindItemType())))
             {
                 return Task.FromResult(argument);
             }

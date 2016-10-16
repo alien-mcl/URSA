@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
@@ -83,7 +84,7 @@ namespace Given_instance_of_the
             var controllerDescription = new ControllerInfo<TestController>(
                 EntryPoint,
                 requestUrl.InsertSegments(0, ((HttpUrl)EntryPoint.Url).Segments),
-                typeof(TestController).GetMethod("Add").ToOperationInfo(requestUrl.InsertSegments(0, ((HttpUrl)EntryPoint.Url).Segments).ToString(), Verb.GET, out callUri));
+                typeof(TestController).GetTypeInfo().GetMethod("Add").ToOperationInfo(requestUrl.InsertSegments(0, ((HttpUrl)EntryPoint.Url).Segments).ToString(), Verb.GET, out callUri));
             _irrelevantControllerDescriptionBuilder = new Mock<IHttpControllerDescriptionBuilder>(MockBehavior.Strict);
             _controllerDescriptionBuilder = new Mock<IHttpControllerDescriptionBuilder<TestController>>(MockBehavior.Strict);
             _controllerDescriptionBuilder.As<IHttpControllerDescriptionBuilder>().Setup(instance => instance.BuildDescriptor()).Returns(controllerDescription);

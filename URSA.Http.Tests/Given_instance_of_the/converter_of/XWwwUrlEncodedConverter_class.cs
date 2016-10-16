@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections;
 using System.Diagnostics.CodeAnalysis;
+using System.Reflection;
 using System.Text;
-using System.Web;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using URSA.Web.Http.Testing;
 
@@ -34,7 +34,7 @@ namespace Given_instance_of_the.converter_of
         {
             StringBuilder result = new StringBuilder(1024);
             string separator = String.Empty;
-            foreach (var property in obj.GetType().GetProperties())
+            foreach (var property in obj.GetType().GetTypeInfo().GetProperties())
             {
                 var value = property.GetValue(obj);
                 if (value == null)
@@ -46,13 +46,13 @@ namespace Given_instance_of_the.converter_of
                 {
                     foreach (var item in (IEnumerable)value)
                     {
-                        result.AppendFormat("{0}{1}={2}", separator, property.Name, HttpUtility.UrlEncode(item.ToString()));
+                        result.AppendFormat("{0}{1}={2}", separator, property.Name, item.ToString().UrlEncode());
                         separator = "&";
                     }
                 }
                 else
                 {
-                    result.AppendFormat("{0}{1}={2}", separator, property.Name, HttpUtility.UrlEncode(value.ToString()));
+                    result.AppendFormat("{0}{1}={2}", separator, property.Name, value.ToString().UrlEncode());
                 }
 
                 separator = "&";

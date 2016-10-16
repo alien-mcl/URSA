@@ -111,7 +111,7 @@ namespace Given_instance_of_the.HydraCompliantTypeDescriptionBuilder_class
             var propertyInfo = Type.GetType(declaringTypeName).GetProperty(propertyName);
             var readOnly = propertyInfo.CanRead;
             var writeOnly = propertyInfo.CanWrite;
-            var required = (propertyInfo.PropertyType.IsValueType) || (propertyInfo.GetCustomAttribute<RequiredAttribute>() != null);
+            var required = (propertyInfo.PropertyType.GetTypeInfo().IsValueType) || (propertyInfo.GetCustomAttribute<RequiredAttribute>() != null);
             var result = new Mock<ISupportedProperty>(MockBehavior.Strict);
             IProperty property = null;
             result.SetupSet(instance => instance.Readable = It.Is<bool>(value => value == readOnly));

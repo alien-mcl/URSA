@@ -50,7 +50,8 @@ namespace URSA.Web.Http.Converters
             }
 
             var requestInfo = (RequestInfo)request;
-            if ((!System.TypeExtensions.IsEnumerable(expectedType)) && (requestInfo.Headers.ContentLength > 0) && (requestInfo.Headers.ContentLength > MaxBodyLength))
+            var expectedTypeInfo = expectedType.GetTypeInfo();
+            if ((!expectedTypeInfo.IsEnumerable()) && (requestInfo.Headers.ContentLength > 0) && (requestInfo.Headers.ContentLength > MaxBodyLength))
             {
                 return CompatibilityLevel.None;
             }
@@ -62,7 +63,7 @@ namespace URSA.Web.Http.Converters
                 return result;
             }
 
-            var itemType = expectedType.GetTypeInfo().GetItemType();
+            var itemType = expectedTypeInfo.GetItemType();
             using (var reader = new StreamReader(request.Body))
             {
                 string content = reader.ReadToEnd();
@@ -124,13 +125,13 @@ namespace URSA.Web.Http.Converters
                 throw new ArgumentNullException("expectedType");
             }
 
+            var expectedTypeInfo = expectedType.GetTypeInfo();
             if (String.IsNullOrEmpty(body))
             {
-                return (expectedType.IsValueType ? Activator.CreateInstance(expectedType) : null);
+                return (expectedTypeInfo.IsValueType ? Activator.CreateInstance(expectedType) : null);
             }
 
-            bool isEnumerable = System.TypeExtensions.IsEnumerable(expectedType);
-            var expectedTypeInfo = expectedType.GetTypeInfo();
+            bool isEnumerable = expectedTypeInfo.IsEnumerable();
             Type itemType = expectedTypeInfo.GetItemType();
             IList<object> result = new List<object>();
             foreach (var item in Regex.Split(body, "\r\n"))
@@ -150,7 +151,7 @@ namespace URSA.Web.Http.Converters
 
             if ((isEnumerable) && (result.Count == 0))
             {
-                return (expectedType.IsValueType ? Activator.CreateInstance(expectedType) : null);
+                return (expectedTypeInfo.IsValueType ? Activator.CreateInstance(expectedType) : null);
             }
 
             return result.MakeInstance(expectedTypeInfo, itemType);
@@ -223,7 +224,7 @@ namespace URSA.Web.Http.Converters
             }
 
             string content;
-            if (!System.TypeExtensions.IsEnumerable(givenType))
+            if (!givenType.GetTypeInfo().IsEnumerable())
             {
                 content = String.Format(CultureInfo.InvariantCulture, "{0}", instance);
             }

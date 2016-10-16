@@ -4,7 +4,7 @@ using System.Text.RegularExpressions;
 namespace System
 {
     /// <summary>Provides useful string extension methods.</summary>
-    public static class StringExtensions
+    public static partial class StringExtensions
     {
         /// <summary>Converts a camelCase or PascalCase strings to corresponding camel Case or Pascal Case strings.</summary>
         /// <param name="pascalOrCamelCaseString">String to be converted.</param>

@@ -22,9 +22,9 @@ namespace URSA.Web.Http.Description
                 throw new ArgumentNullException("type");
             }
 
-            EnsureAssemblyDocumentation(type.Assembly);
-            string memberName = CreateMemberName(type);
-            return GetText(AssemblyCache[type.Assembly], element => (element.Attribute("name") != null) && (element.Attribute("name").Value == memberName));
+            EnsureAssemblyDocumentation(type.GetTypeInfo().Assembly);
+            string memberName = CreateMemberName(type.GetTypeInfo());
+            return GetText(AssemblyCache[type.GetTypeInfo().Assembly], element => (element.Attribute("name") != null) && (element.Attribute("name").Value == memberName));
         }
 
         /// <inheritdoc />
@@ -35,10 +35,10 @@ namespace URSA.Web.Http.Description
                 throw new ArgumentNullException("method");
             }
 
-            EnsureAssemblyDocumentation(method.DeclaringType.Assembly);
+            EnsureAssemblyDocumentation(method.DeclaringType.GetTypeInfo().Assembly);
             string memberName = CreateMemberName(method);
             return GetText(
-                AssemblyCache[method.DeclaringType.Assembly],
+                AssemblyCache[method.DeclaringType.GetTypeInfo().Assembly],
                 element => (element.Attribute("name") != null) && (element.Attribute("name").Value == memberName));
         }
 
@@ -55,11 +55,11 @@ namespace URSA.Web.Http.Description
                 throw new ArgumentNullException("parameter");
             }
 
-            EnsureAssemblyDocumentation(method.DeclaringType.Assembly);
+            EnsureAssemblyDocumentation(method.DeclaringType.GetTypeInfo().Assembly);
             string memberName = CreateMemberName(method);
             var targetNode = (method.ReturnParameter == parameter ? "returns" : "param");
             return GetText(
-                AssemblyCache[method.DeclaringType.Assembly],
+                AssemblyCache[method.DeclaringType.GetTypeInfo().Assembly],
                 element => (element.Attribute("name") != null) && (element.Attribute("name").Value == memberName),
                 element => (element.Name.LocalName == targetNode) && ((targetNode == "returns") || 
                     ((element.Attribute("name") != null) && (element.Attribute("name").Value == parameter.Name))));
@@ -73,9 +73,9 @@ namespace URSA.Web.Http.Description
                 throw new ArgumentNullException("property");
             }
 
-            EnsureAssemblyDocumentation(property.DeclaringType.Assembly);
+            EnsureAssemblyDocumentation(property.DeclaringType.GetTypeInfo().Assembly);
             return GetText(
-                AssemblyCache[property.DeclaringType.Assembly],
+                AssemblyCache[property.DeclaringType.GetTypeInfo().Assembly],
                 element => (element.Attribute("name") != null) && (element.Attribute("name").Value == CreateMemberName(property)));
         }
 
@@ -87,9 +87,9 @@ namespace URSA.Web.Http.Description
                 throw new ArgumentNullException("method");
             }
 
-            EnsureAssemblyDocumentation(method.DeclaringType.Assembly);
+            EnsureAssemblyDocumentation(method.DeclaringType.GetTypeInfo().Assembly);
             string memberName = CreateMemberName(method);
-            return from element in AssemblyCache[method.DeclaringType.Assembly].Descendants("member")
+            return from element in AssemblyCache[method.DeclaringType.GetTypeInfo().Assembly].Descendants("member")
                    where (element.Attribute("name") != null) && (element.Attribute("name").Value == memberName)
                    from exception in element.Descendants("exception")
                    where (exception.Attribute("cref") != null) && (!String.IsNullOrEmpty(exception.Attribute("cref").Value))
@@ -122,9 +122,9 @@ namespace URSA.Web.Http.Description
                     (parameters.Length == 0 ? String.Empty : String.Format("({0})", parameters)));
             }
 
-            if (member is Type)
+            if (member is TypeInfo)
             {
-                return String.Format("T:{0}", ((Type)member).FullName);
+                return String.Format("T:{0}", ((TypeInfo)member).FullName);
             }
 
             return null;
@@ -132,7 +132,7 @@ namespace URSA.Web.Http.Description
 
         private static string CreateTypeName(Type type)
         {
-            if (!type.IsGenericType)
+            if (!type.GetTypeInfo().IsGenericType)
             {
                 return type.FullName.Replace("&", "@");
             }
@@ -212,7 +212,7 @@ namespace URSA.Web.Http.Description
             {
                 if (documentStream != null)
                 {
-                    documentStream.Close();
+                    documentStream.Dispose();
                 }
             }
         }

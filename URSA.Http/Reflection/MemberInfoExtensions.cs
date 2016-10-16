@@ -40,12 +40,13 @@ namespace URSA.Web.Http.Reflection
                 return false;
             }
 
-            if (!property.PropertyType.FindItemType().ConvertValue(ref value))
+            var propertyTypeInfo = property.PropertyType.GetTypeInfo();
+            if (!propertyTypeInfo.GetItemType().ConvertValue(ref value))
             {
                 return false;
             }
 
-            if (property.PropertyType.GetTypeInfo().IsEnumerable())
+            if (propertyTypeInfo.IsEnumerable())
             {
                 return instance.SetPropertyValues(property, value);
             }
@@ -57,7 +58,7 @@ namespace URSA.Web.Http.Reflection
         internal static bool SetPropertyValues(this object instance, PropertyInfo property, object value)
         {
             var container = (IEnumerable)property.GetValue(instance);
-            var itemType = property.PropertyType.FindItemType();
+            var itemType = property.PropertyType.GetTypeInfo().GetItemType();
             if (property.PropertyType.IsArray)
             {
                 return property.SetPropertyArrayValue(instance, container, value);
@@ -85,10 +86,11 @@ namespace URSA.Web.Http.Reflection
         {
             while (true)
             {
-                var route = type.GetCustomAttribute<RouteAttribute>(true) ??
-                    type.GetInterfaces().Select(@interface => @interface.GetCustomAttribute<RouteAttribute>(true)).FirstOrDefault();
+                var typeInfo = type.GetTypeInfo();
+                var route = typeInfo.GetCustomAttribute<RouteAttribute>(true) ??
+                    type.GetInterfaces().Select(@interface => @interface.GetTypeInfo().GetCustomAttribute<RouteAttribute>(true)).FirstOrDefault();
                 Type genericType = null;
-                if ((!(route is DependentRouteAttribute)) || (!type.IsGenericType) ||
+                if ((!(route is DependentRouteAttribute)) || (!typeInfo.IsGenericType) ||
                     (!type.GetGenericArguments().Any(argument => (typeof(IController).IsAssignableFrom(argument)) && ((genericType = argument) != null))))
                 {
                     return (route ?? new RouteAttribute("/" + type.BuildControllerName()));
@@ -101,9 +103,10 @@ namespace URSA.Web.Http.Reflection
         internal static RouteAttribute GetDefaults(this MethodInfo method, ICollection<OnVerbAttribute> verbs, out bool explicitRoute)
         {
             OnVerbAttribute verb = null;
-            verbs.AddRange(method.GetCustomAttributes<OnVerbAttribute>(true) ?? method.DeclaringType.GetInterfaces().Select(@interface => @interface.GetCustomAttribute<OnVerbAttribute>()));
+            verbs.AddRange(method.GetCustomAttributes<OnVerbAttribute>(true) ??
+                method.DeclaringType.GetInterfaces().Select(@interface => @interface.GetTypeInfo().GetCustomAttribute<OnVerbAttribute>()));
             var route = method.GetCustomAttribute<RouteAttribute>(true) ??
-                method.DeclaringType.GetInterfaces().Select(@interface => @interface.GetCustomAttribute<RouteAttribute>()).FirstOrDefault();
+                method.DeclaringType.GetInterfaces().Select(@interface => @interface.GetTypeInfo().GetCustomAttribute<RouteAttribute>()).FirstOrDefault();
             explicitRoute = (route != null);
             if ((route == null) || (!verbs.Any()))
             {
@@ -155,7 +158,7 @@ namespace URSA.Web.Http.Reflection
 
         internal static Type UnwrapIfTask(this Type type)
         {
-            return ((type.IsGenericType) && (typeof(Task<>).IsAssignableFrom(type.GetGenericTypeDefinition())) ? type.GetGenericArguments()[0] : type);
+            return ((type.GetTypeInfo().IsGenericType) && (typeof(Task<>).IsAssignableFrom(type.GetGenericTypeDefinition())) ? type.GetGenericArguments()[0] : type);
         }
 
         internal static bool IsIdentity(this Type type)
@@ -215,7 +218,7 @@ namespace URSA.Web.Http.Reflection
         private static void CreateParameterTemplateRegex(this ParameterInfo parameter, FromQueryStringAttribute fromQueryString, out string parameterTemplateRegex)
         {
             var parameterName = UriTemplateBuilder.VariableTemplateRegex.Match(fromQueryString.UrlTemplate).Groups["ParameterName"].Value;
-            parameterTemplateRegex = (parameter.HasDefaultValue) || (!parameter.ParameterType.IsValueType) ?
+            parameterTemplateRegex = (parameter.HasDefaultValue) || (!parameter.ParameterType.GetTypeInfo().IsValueType) ?
                 String.Format("([?&]({0}=[^&]*)){{0,}}", parameterName) :
                 String.Format("([?&]({0}=[^&]*)){{1,}}", parameterName);
         }
@@ -227,7 +230,7 @@ namespace URSA.Web.Http.Reflection
 
         private static bool SetPropertyArrayValue(this PropertyInfo property, object instance, IEnumerable container, object value)
         {
-            var itemType = property.PropertyType.FindItemType();
+            var itemType = property.PropertyType.GetTypeInfo().GetItemType();
             var collection = (ICollection)container;
             if ((container == null) && (!property.CanWrite))
             {

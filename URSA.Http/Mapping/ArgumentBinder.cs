@@ -80,7 +80,7 @@ namespace URSA.Web.Http.Mapping
                 }
                 else
                 {
-                    value = (argument.Parameter.ParameterType.IsValueType ? Activator.CreateInstance(argument.Parameter.ParameterType) : null);
+                    value = (argument.Parameter.ParameterType.GetTypeInfo().IsValueType ? Activator.CreateInstance(argument.Parameter.ParameterType) : null);
                     requestMapping.ArgumentSources[index] = ArgumentValueSources.Default;
                 }
 

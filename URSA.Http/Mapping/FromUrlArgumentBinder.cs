@@ -44,7 +44,7 @@ namespace URSA.Web.Http.Mapping
                 throw new ArgumentNullException("context");
             }
 
-            if (System.TypeExtensions.IsEnumerable(context.Parameter.ParameterType))
+            if (context.Parameter.ParameterType.GetTypeInfo().IsEnumerable())
             {
                 throw new InvalidOperationException(String.Format("Cannot bind types based on '{0}' to uri segments.", typeof(IEnumerable)));
             }

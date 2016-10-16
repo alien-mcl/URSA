@@ -168,7 +168,7 @@ namespace URSA.Web.Http.Converters
                     }
 
                     string content = null;
-                    if (!System.TypeExtensions.IsEnumerable(givenType))
+                    if (!givenType.GetTypeInfo().IsEnumerable())
                     {
                         content = instance.ToString();
                     }

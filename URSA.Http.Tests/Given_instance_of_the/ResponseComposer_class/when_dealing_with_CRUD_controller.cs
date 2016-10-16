@@ -6,6 +6,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Reflection;
 using URSA;
 using URSA.Web;
 using URSA.Web.Description;
@@ -29,7 +30,7 @@ namespace Given_instance_of_the.ResponseComposer_class
             var result = Composer.ComposeResponse(CreateRequestMapping("List", arguments), expected, arguments);
 
             result.Should().NotBeNull();
-            result.GetType().IsGenericType.Should().BeTrue();
+            result.GetType().GetTypeInfo().IsGenericType.Should().BeTrue();
             result.GetType().GetGenericTypeDefinition().Should().Be(typeof(ObjectResponseInfo<>));
             typeof(IEnumerable<Person>).IsAssignableFrom(result.GetType().GetGenericArguments()[0]).Should().BeTrue();
             result.Status.Should().Be(HttpStatusCode.PartialContent);

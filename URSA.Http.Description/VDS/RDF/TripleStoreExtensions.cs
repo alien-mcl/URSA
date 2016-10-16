@@ -27,7 +27,7 @@ namespace URSA.Web.Http.Description.VDS.RDF
                 throw new ArgumentNullException("graphUri");
             }
 
-            var metaGraphUri = ConfigurationSectionHandler.Default.Factories[DescriptionConfigurationSection.Default.DefaultStoreFactoryName].MetaGraphUri;
+            var metaGraphUri = ConfigurationSectionHandler.Default.Factories.Cast<FactoryElement>().First(factory => factory.Name == DescriptionConfigurationSection.Default.DefaultStoreFactoryName).MetaGraphUri;
             var metaGraph = tripleStore.FindOrCreate(metaGraphUri);
             var graph = tripleStore.FindOrCreate(graphUri);
             var graphNode = metaGraph.CreateUriNode(graphUri);

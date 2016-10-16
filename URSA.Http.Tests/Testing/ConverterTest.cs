@@ -1,11 +1,12 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
+﻿using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using FluentAssertions;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using URSA.Security;
 using URSA.Web.Converters;
 
@@ -299,7 +300,7 @@ namespace URSA.Web.Http.Testing
 
         protected virtual T CreateInstance()
         {
-            return (T)typeof(T).GetConstructor(new Type[0]).Invoke(null);
+            return (T)typeof(T).GetTypeInfo().GetConstructor(new Type[0]).Invoke(null);
         }
 
         protected CompatibilityLevel CanConvertFrom<TT>(string method, string handler, string mediaType, TT body)

@@ -41,7 +41,7 @@ namespace Given_instance_of_the.converter_of
         private static readonly string EntitiesBody = "[" + String.Format(BodyPattern, BaseUrl, EntityConverter.Hydra, OperationName, ClassId, BaseUrl) +
             "," + String.Format(BodyPattern, BaseUrl, EntityConverter.Hydra, "another", ClassId, BaseUrl) + "]";
 
-        private static readonly Uri MetaGraphUri = ConfigurationSectionHandler.Default.Factories[DescriptionConfigurationSection.Default.DefaultStoreFactoryName].MetaGraphUri;
+        private static readonly Uri MetaGraphUri = ConfigurationSectionHandler.Default.Factories.Cast<FactoryElement>().First(factory => factory.Name == DescriptionConfigurationSection.Default.DefaultStoreFactoryName).MetaGraphUri;
 
         private Mock<IEntityContext> _context;
         private ITripleStore _tripleStore;

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using URSA.Web.Converters;
 
 namespace URSA.Web.Http.Converters
@@ -73,7 +74,7 @@ namespace URSA.Web.Http.Converters
 
             if ((request.Body.CanSeek) && (request.Body.Length == 0))
             {
-                return (expectedType.IsValueType ? Activator.CreateInstance(expectedType) : null);
+                return (expectedType.GetTypeInfo().IsValueType ? Activator.CreateInstance(expectedType) : null);
             }
 
             using (var reader = new StreamReader(request.Body))
@@ -98,7 +99,7 @@ namespace URSA.Web.Http.Converters
             }
 
             return (body == null ?
-                (expectedType.IsValueType ? Activator.CreateInstance(expectedType) : null) :
+                (expectedType.GetTypeInfo().IsValueType ? Activator.CreateInstance(expectedType) : null) :
                 JsonConvert.DeserializeObject(body, expectedType));
         }
 

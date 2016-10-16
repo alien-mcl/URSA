@@ -153,7 +153,7 @@ namespace URSA.Web.Http
                 double numericValue;
                 result.Value = (Double.TryParse(rest, AllowedNumberStyles, CultureInfo.InvariantCulture, out numericValue) ? 
                     numericValue :
-                    AppDomain.CurrentDomain.GetAssemblies().FindEnumValue(rest)) ?? rest;
+                    ExecutionContext.GetLoadedAssemblies().FindEnumValue(rest)) ?? rest;
             }
 
             return result;

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics.CodeAnalysis;
+using System.Reflection;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using URSA.Web.Description.Http;
@@ -30,7 +31,7 @@ namespace Given_instance_of_the.DefaultValueRelationSelector_class
         [TestMethod]
         public void it_should_provide_a_parameter_source_for_Guid()
         {
-            var result = _selector.ProvideDefault(typeof(TestController).GetMethod("GetByGuid").GetParameters()[0], Verb.GET);
+            var result = _selector.ProvideDefault(typeof(TestController).GetTypeInfo().GetMethod("GetByGuid").GetParameters()[0], Verb.GET);
 
             result.Should().BeOfType<FromUrlAttribute>();
         }
@@ -38,7 +39,7 @@ namespace Given_instance_of_the.DefaultValueRelationSelector_class
         [TestMethod]
         public void it_should_provide_a_parameter_source_for_int()
         {
-            var result = _selector.ProvideDefault(typeof(TestController).GetMethod("Add").GetParameters()[0], Verb.GET);
+            var result = _selector.ProvideDefault(typeof(TestController).GetTypeInfo().GetMethod("Add").GetParameters()[0], Verb.GET);
 
             result.Should().BeOfType<FromQueryStringAttribute>();
         }
@@ -46,7 +47,7 @@ namespace Given_instance_of_the.DefaultValueRelationSelector_class
         [TestMethod]
         public void it_should_provide_a_parameter_source_for_Id()
         {
-            var result = _selector.ProvideDefault(typeof(TestController).GetMethod("GetBySomeId").GetParameters()[0], Verb.GET);
+            var result = _selector.ProvideDefault(typeof(TestController).GetTypeInfo().GetMethod("GetBySomeId").GetParameters()[0], Verb.GET);
 
             result.Should().BeOfType<FromUrlAttribute>();
         }
@@ -54,7 +55,7 @@ namespace Given_instance_of_the.DefaultValueRelationSelector_class
         [TestMethod]
         public void it_should_provide_a_parameter_source_for_object()
         {
-            var result = _selector.ProvideDefault(typeof(TestController).GetMethod("GetSomething").GetParameters()[0], Verb.GET);
+            var result = _selector.ProvideDefault(typeof(TestController).GetTypeInfo().GetMethod("GetSomething").GetParameters()[0], Verb.GET);
 
             result.Should().BeOfType<FromBodyAttribute>();
         }
