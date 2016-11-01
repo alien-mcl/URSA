@@ -53,6 +53,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ComponentInstaller.cs" />
+    <Compile Include="ComponentModel\ComponentProviderBuilderExtensions.cs" />
+    <Compile Include="ComponentModel\IComponentInstaller.cs" />
+    <Compile Include="ComponentModel\IComponentProviderBuilder.cs" />
     <Compile Include="Configuration\UrlParserConfigurationSection.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="..\.build\CommonAssemblyInfo.cs">
@@ -77,6 +81,9 @@
     <Compile Include="Web\IHypermediaDrivenAsyncController.cs" />
     <Compile Include="Web\IHypermediaDrivenController.cs" />
     <Compile Include="Web\HypermediaControl.cs" />
+    <Compile Include="Web\IHypermediaFacility.cs" />
+    <Compile Include="Web\IHypermediaFacilityFactory.cs" />
+    <Compile Include="Web\IHypermediaFacilityOwner.cs" />
     <Compile Include="Web\IRequestContext.cs" />
     <Compile Include="Web\IRequestModelTransformer.cs" />
     <Compile Include="Web\IResponseModelTransformer.cs" />

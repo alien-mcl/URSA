@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using RomanticWeb.Entities;
 using URSA.Reflection;
+using URSA.Web.Description;
 using URSA.Web.Description.Http;
 using URSA.Web.Http.Description.Entities;
 using URSA.Web.Http.Mapping;
@@ -72,9 +73,13 @@ namespace URSA.Web.Http.Description
                 foreach (var @interface in controllerInfo.ControllerType.GetTypeInfo().GetInterfaces()
                     .Where(implemented => (implemented.GetTypeInfo().IsGenericType) && (implemented.GetGenericTypeDefinition() == typeof(IController<>))))
                 {
-                    controllerInfo.ControllerType.InjectOperation(
-                        controllerInfo.ControllerType.GetTypeInfo().GetRuntimeInterfaceMap(@interface).TargetMethods.First(method => method.Name == "List"),
-                        Response);
+                    var methodInfo = controllerInfo.ControllerType.GetTypeInfo().GetRuntimeInterfaceMap(@interface).TargetMethods.First(method => method.Name == "List");
+                    var hypermediaControls = new OperationHypermediaControl(
+                        HypermediaControlRules.Include,
+                        (OperationInfo<Verb>)controllerInfo.Operations.First(operation => operation.UnderlyingMethod == methodInfo),
+                        _apiDescriptionBuilder,
+                        EntityContextProvider);
+                    Response.Request.HypermediaControls.Add(hypermediaControls);
                 }
             }
 

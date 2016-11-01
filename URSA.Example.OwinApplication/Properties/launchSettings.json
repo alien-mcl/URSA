@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "URSA.Example.OwinApplication": {
+      "commandName": "Project",
+      "commandLineArgs": "/uri=http://localhost:51509/"
+    }
+  }
+}

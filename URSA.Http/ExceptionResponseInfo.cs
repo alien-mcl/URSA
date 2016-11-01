@@ -15,7 +15,7 @@ namespace URSA.Web.Http
 
         static ExceptionResponseInfo()
         {
-            (ConverterProvider = new DefaultConverterProvider()).Initialize(new IConverter[] { new ExceptionConverter() });
+            (ConverterProvider = new DefaultConverterProvider()).Initialize(() => new IConverter[] { new ExceptionConverter() });
         }
 
         /// <summary>Initializes a new instance of the <see cref="ExceptionResponseInfo" /> class.</summary>

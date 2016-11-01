@@ -8,20 +8,20 @@ namespace URSA.Web.Converters
     /// <summary>Default implementation of the <see cref="IConverterProvider" />.</summary>
     public class DefaultConverterProvider : IConverterProvider
     {
-        private IEnumerable<IConverter> _converters;
+        private Lazy<IEnumerable<IConverter>> _converters;
 
         /// <inheritdoc />
-        public IEnumerable<string> SupportedMediaTypes { get { return _converters.SelectMany(item => item.SupportedMediaTypes); } } 
+        public IEnumerable<string> SupportedMediaTypes { get { return _converters.Value.SelectMany(item => item.SupportedMediaTypes); } } 
 
         /// <inheritdoc />
-        public void Initialize(IEnumerable<IConverter> converters)
+        public void Initialize(Func<IEnumerable<IConverter>> convertersFactory)
         {
-            if (converters == null)
+            if (convertersFactory == null)
             {
-                throw new ArgumentNullException("converters");
+                throw new ArgumentNullException("convertersFactory");
             }
 
-            _converters = converters;
+            _converters = new Lazy<IEnumerable<IConverter>>(convertersFactory);
         }
 
         /// <inheritdoc />
@@ -50,7 +50,7 @@ namespace URSA.Web.Converters
 
             var converterIndex = -1;
             IConverter bestConverter = null;
-            foreach (var item in _converters)
+            foreach (var item in _converters.Value)
             {
                 var level = item.CanConvertTo(expectedType, request);
                 if (((!ignoreProtocol) && ((level & CompatibilityLevel.ProtocolMatch) != CompatibilityLevel.ProtocolMatch)) || 
@@ -96,7 +96,7 @@ namespace URSA.Web.Converters
                 throw new ArgumentNullException("response");
             }
 
-            var result = (from item in _converters
+            var result = (from item in _converters.Value
                           let level = item.CanConvertFrom(expectedType, response)
                           where ((level & CompatibilityLevel.ProtocolMatch) == CompatibilityLevel.ProtocolMatch) &&
                               ((level & CompatibilityLevel.TypeMatch) == CompatibilityLevel.TypeMatch)
@@ -110,7 +110,7 @@ namespace URSA.Web.Converters
 
             if (response.Request.OutputNeutral)
             {
-                return (from item in _converters
+                return (from item in _converters.Value
                         let level = item.CanConvertTo(expectedType, response.Request)
                         orderby level descending
                         select item).FirstOrDefault();

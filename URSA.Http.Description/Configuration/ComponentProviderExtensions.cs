@@ -27,10 +27,12 @@ namespace URSA.Web.Http.Configuration
             var assemblies = UrsaConfigurationSection.GetInstallerAssemblies();
             container.RegisterAll<IController>(assemblies);
             var controllers = container.ResolveAllTypes<IController>();
-            container.RegisterControllerRelatedTypes(controllers);
             var registeredEntryPoints = new List<string>();
             foreach (var controller in controllers.Where(controller => !controller.IsDescriptionController()))
             {
+                container.RegisterGenericControllerDescriptionBuilder(controller);
+                container.RegisterApiDescriptionBuilder(controller);
+
                 var descriptionBuilder = (IHttpControllerDescriptionBuilder)container.Resolve(typeof(IHttpControllerDescriptionBuilder<>).MakeGenericType(controller));
                 var description = descriptionBuilder.BuildDescriptor();
                 if ((description.EntryPoint != null) && (!registeredEntryPoints.Contains(description.EntryPoint.ToString())))
@@ -48,25 +50,22 @@ namespace URSA.Web.Http.Configuration
             return container;
         }
 
-        private static void RegisterControllerRelatedTypes(this IComponentProvider container, IEnumerable<Type> controllerTypes)
+        private static void RegisterApiDescriptionBuilder(this IComponentProvider container, Type controllerType)
         {
-            foreach (var controllerType in controllerTypes)
-            {
-                if (!controllerType.IsDescriptionController())
-                {
-                    container.Register(
-                        typeof(IHttpControllerDescriptionBuilder<>).MakeGenericType(controllerType),
-                        typeof(ControllerDescriptionBuilder<>).MakeGenericType(controllerType),
-                        typeof(IHttpControllerDescriptionBuilder<>).MakeGenericType(controllerType).FullName,
-                        lifestyle: Lifestyles.Singleton);
-                }
+            var genericServiceType = typeof(IApiDescriptionBuilder<>).MakeGenericType(controllerType);
+            var implementationType = typeof(ApiDescriptionBuilder<>).MakeGenericType(controllerType);
+            container.Register(genericServiceType, implementationType, genericServiceType.FullName, lifestyle: Lifestyles.Singleton);
+            container.Register(typeof(IApiDescriptionBuilder), implementationType, implementationType.FullName, lifestyle: Lifestyles.Singleton);
+        }
 
-                if (!typeof(EntryPointDescriptionController).GetTypeInfo().IsAssignableFrom(controllerType))
-                {
-                    container.Register(
-                        typeof(IHttpControllerDescriptionBuilder),
-                        typeof(ControllerDescriptionBuilder<>).MakeGenericType(controllerType));
-                }
+        private static void RegisterGenericControllerDescriptionBuilder(this IComponentProvider container, Type controllerType)
+        {
+            var genericServiceType = typeof(IHttpControllerDescriptionBuilder<>).MakeGenericType(controllerType);
+            var implementationType = typeof(ControllerDescriptionBuilder<>).MakeGenericType(controllerType);
+            container.Register(genericServiceType, implementationType, genericServiceType.FullName, lifestyle: Lifestyles.Singleton);
+            if (!typeof(EntryPointDescriptionController).IsAssignableFrom(controllerType))
+            {
+                container.Register(typeof(IHttpControllerDescriptionBuilder), implementationType, implementationType.FullName, lifestyle: Lifestyles.Singleton);
             }
         }
 

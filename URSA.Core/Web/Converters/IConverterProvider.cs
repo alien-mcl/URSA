@@ -10,8 +10,8 @@ namespace URSA.Web.Converters
         IEnumerable<string> SupportedMediaTypes { get; }
 
         /// <summary>Initializes provider with converters.</summary>
-        /// <param name="converters">Converters to acknowledge.</param>
-        void Initialize(IEnumerable<IConverter> converters);
+        /// <param name="convertersFactory">Converters factory to acknowledge.</param>
+        void Initialize(Func<IEnumerable<IConverter>> convertersFactory);
 
         /// <summary>Searches for the best matching input <see cref="IConverter" />.</summary>
         /// <typeparam name="T">Type of the expected type.</typeparam>

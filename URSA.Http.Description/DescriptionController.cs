@@ -44,7 +44,6 @@ namespace URSA.Web.Http.Description
         /// <summary>Initializes a new instance of the <see cref="DescriptionController" /> class.</summary>
         /// <param name="entityContextProvider">Entity context provider.</param>
         /// <param name="apiDescriptionBuilder">API description builder.</param>
-        //// <param name="namedGraphSelectorFactory">Named graph selector factory.</param>
         protected DescriptionController(IEntityContextProvider entityContextProvider, IApiDescriptionBuilder apiDescriptionBuilder)
         {
             if (entityContextProvider == null)
@@ -150,9 +149,8 @@ namespace URSA.Web.Http.Description
         /// <summary>Initializes a new instance of the <see cref="DescriptionController{T}" /> class.</summary>
         /// <param name="entityContextProvider">Entity context provider.</param>
         /// <param name="apiDescriptionBuilder">API description builder.</param>
-        //// <param name="namedGraphSelectorFactory">Named graph selector factory.</param>
-        public DescriptionController(IEntityContextProvider entityContextProvider, IApiDescriptionBuilder<T> apiDescriptionBuilder/*, INamedGraphSelectorFactory namedGraphSelectorFactory*/) :
-            base(entityContextProvider, apiDescriptionBuilder/*, namedGraphSelectorFactory*/)
+        public DescriptionController(IEntityContextProvider entityContextProvider, IApiDescriptionBuilder<T> apiDescriptionBuilder)
+            : base(entityContextProvider, apiDescriptionBuilder)
         {
         }
 

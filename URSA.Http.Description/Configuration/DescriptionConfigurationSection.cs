@@ -3,6 +3,7 @@ using System.Configuration;
 using System.Diagnostics.CodeAnalysis;
 #if CORE
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Configuration.Memory;
 #endif
 using URSA.Web.Http.Description;
 
@@ -22,8 +23,16 @@ namespace URSA.Configuration
     [ExcludeFromCodeCoverage]
     public class DescriptionConfigurationSection : ConfigurationSection
     {
+#if CORE
+        private static DescriptionConfigurationSection _default;
+#endif
         internal const string ConfigurationSectionName = "description";
-        internal const string ConfigurationSection = UrsaConfigurationSection.ConfigurationSectionGroupName + "/" + ConfigurationSectionName;
+        internal const string ConfigurationSection = UrsaConfigurationSection.ConfigurationSectionGroupName + ConfigurationPathSeparator + ConfigurationSectionName;
+#if CORE
+        private const string ConfigurationPathSeparator = ":";
+#else
+        private const string ConfigurationPathSeparator = "/";
+#endif
         private const string TypeDescriptionBuilderTypeNameAttributeName = "typeDescriptionBuilderType";
         private const string DefaultStoreFactoryNameAttributeName = "defaultStoreFactoryName";
         private const string HypermediaModeAttributeName = "hypermediaMode";
@@ -35,7 +44,8 @@ namespace URSA.Configuration
         }
 
         /// <summary>Initializes a new instance of the <see cref="DescriptionConfigurationSection" /> class.</summary>
-        public DescriptionConfigurationSection() : base(new ConfigurationRoot(new IConfigurationProvider[0]), ConfigurationSection)
+        public DescriptionConfigurationSection()
+            : base(new ConfigurationRoot(new [] { new MemoryConfigurationProvider(new MemoryConfigurationSource()) }), ConfigurationSection)
         {
         }
 
@@ -52,8 +62,22 @@ namespace URSA.Configuration
         {
             get
             {
+#if CORE
+                if (_default == null)
+                {
+                    _default = new DescriptionConfigurationSection() { TypeDescriptionBuilderTypeName = typeof(HydraCompliantTypeDescriptionBuilder).FullName };
+                    var configuration = (DescriptionConfigurationSection)ConfigurationManager.GetSection(ConfigurationSection);
+                    if (configuration != null)
+                    {
+                        _default = configuration;
+                    }
+                }
+
+                return _default;
+#else
                 return (DescriptionConfigurationSection)ConfigurationManager.GetSection(ConfigurationSection) ??
                     new DescriptionConfigurationSection() { TypeDescriptionBuilderTypeName = typeof(HydraCompliantTypeDescriptionBuilder).FullName };
+#endif
             }
         }
 
@@ -68,7 +92,8 @@ namespace URSA.Configuration
             get
             {
 #if CORE
-                return (HypermediaModes)Enum.Parse(typeof(HypermediaModes), this[HypermediaModeAttributeName], true);
+                return (this[HypermediaModeAttributeName] == null ? HypermediaModes.Transport :
+                    (HypermediaModes)Enum.Parse(typeof(HypermediaModes), this[HypermediaModeAttributeName], true));
 #else
                 return (HypermediaModes)this[HypermediaModeAttributeName];
 #endif
@@ -89,7 +114,7 @@ namespace URSA.Configuration
         [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "Wrapper without testable logic.")]
         public Type TypeDescriptionBuilderType
         {
-            get { return Type.GetType(TypeDescriptionBuilderTypeName); }
+            get { return (TypeDescriptionBuilderTypeName != null ? Type.GetType(TypeDescriptionBuilderTypeName) : null); }
             set { TypeDescriptionBuilderTypeName = (value != null ? value.AssemblyQualifiedName : null); }
         }
 
@@ -105,12 +130,13 @@ namespace URSA.Configuration
             set { this[DefaultStoreFactoryNameAttributeName] = value; }
         }
 
+        /// <summary>Gets or sets the name of a type description builder type.</summary>
 #if !CORE
         [ConfigurationProperty(TypeDescriptionBuilderTypeNameAttributeName)]
 #endif
         [ExcludeFromCodeCoverage]
         [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "Wrapper without testable logic.")]
-        private string TypeDescriptionBuilderTypeName
+        public string TypeDescriptionBuilderTypeName
         {
             get { return (string)this[TypeDescriptionBuilderTypeNameAttributeName]; }
             set { this[TypeDescriptionBuilderTypeNameAttributeName] = value; }

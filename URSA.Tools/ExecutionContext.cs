@@ -32,10 +32,11 @@ namespace System
         public static IEnumerable<Assembly> GetLoadedAssemblies(Regex assemblyNameRegex = null)
         {
 #if CORE
-            return from library in DependencyContext.Default.RuntimeLibraries
-                   from assembly in library.Assemblies
-                   where (assemblyNameRegex == null) || (assemblyNameRegex.IsMatch(assembly.Name.FullName))
-                   select Assembly.Load(assembly.Name);
+            return new[] { Assembly.GetEntryAssembly() }.Concat
+                (from library in DependencyContext.Default.RuntimeLibraries
+                 where library.Name != Assembly.GetEntryAssembly().GetName().Name
+                 where (assemblyNameRegex == null) || (library.Assemblies.Any(assembly => assemblyNameRegex.IsMatch(assembly.Name.FullName)))
+                 select Assembly.Load(new AssemblyName(library.Name)));
 #else
             return from assembly in AppDomain.CurrentDomain.GetAssemblies()
                    where (assemblyNameRegex == null) || (assemblyNameRegex.IsMatch(assembly.FullName))

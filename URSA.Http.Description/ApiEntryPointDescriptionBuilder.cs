@@ -22,7 +22,9 @@ namespace URSA.Web.Http.Description
         /// <param name="apiDescriptionBuilderFactory">The API description builder factory.</param>
         /// <param name="controllerDescriptionBuilders">The controller description builders.</param>
         [ExcludeFromCodeCoverage]
-        public ApiEntryPointDescriptionBuilder(IApiDescriptionBuilderFactory apiDescriptionBuilderFactory, IEnumerable<IHttpControllerDescriptionBuilder> controllerDescriptionBuilders)
+        public ApiEntryPointDescriptionBuilder(
+            IApiDescriptionBuilderFactory apiDescriptionBuilderFactory,
+            IEnumerable<IHttpControllerDescriptionBuilder> controllerDescriptionBuilders)
         {
             if (apiDescriptionBuilderFactory == null)
             {

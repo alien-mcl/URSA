@@ -37,6 +37,9 @@ namespace URSA.Example.WebApplication.Controllers
         }
 
         /// <inheritdoc />
+        public IHypermediaFacility HypermediaFacility { get; set; }
+
+        /// <inheritdoc />
         public IResponseInfo Response { get; set; }
 
         /// <summary>Gets all articles.</summary>
@@ -68,7 +71,7 @@ namespace URSA.Example.WebApplication.Controllers
                 result = result.Where(entity => filter.Compile()(entity));
             }
 
-            this.Inject<ArticleController, IArticle>(controller => controller.Create(null));
+            HypermediaFacility.Inject<ArticleController>(controller => controller.Create(null));
             return result;
         }
 
@@ -78,8 +81,8 @@ namespace URSA.Example.WebApplication.Controllers
         public IArticle Get(Guid id)
         {
             var result = (from entity in _entityContext.AsQueryable<IArticle>() where entity.Key == id select entity).FirstOrDefault();
-            this.Inject<ArticleController, IArticle>(controller => controller.Update(result.Key, result));
-            this.Inject<ArticleController, IArticle>(controller => controller.Delete(result.Key));
+            HypermediaFacility.Inject<ArticleController>(controller => controller.Update(result.Key, result));
+            HypermediaFacility.Inject<ArticleController>(controller => controller.Delete(result.Key));
             return result;
         }
 

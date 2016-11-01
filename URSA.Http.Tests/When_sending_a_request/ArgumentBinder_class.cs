@@ -38,7 +38,7 @@ namespace Given_instance_of_the.binder.FromBodyArgumentBinder_class
         public void Setup()
         {
             var converterProvider = new DefaultConverterProvider();
-            converterProvider.Initialize(new IConverter[] { new BinaryConverter(), new StringConverter() });
+            converterProvider.Initialize(() => new IConverter[] { new BinaryConverter(), new StringConverter() });
             _argumentBinder = new ArgumentBinder(new[] { new FromBodyArgumentBinder(converterProvider) });
             _requestMapping = new Mock<IRequestMapping>(MockBehavior.Strict);
             _requestMapping.SetupGet(instance => instance.Target).Returns(new TestController());

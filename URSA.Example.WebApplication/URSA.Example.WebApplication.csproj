@@ -148,14 +148,33 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Controllers\ArticleController.cs" />
-    <Compile Include="Controllers\ProductController.cs" />
-    <Compile Include="Controllers\PersonController.cs" />
-    <Compile Include="Data\IArticle.cs" />
-    <Compile Include="Data\IPersistingRepository.cs" />
-    <Compile Include="Data\IProduct.cs" />
-    <Compile Include="Data\JsonFilePersistingRepository.cs" />
-    <Compile Include="Data\Person.cs" />
+    <Compile Include="..\URSA.Example.OwinApplication\Controllers\ArticleController.cs">
+      <Link>Controllers\ArticleController.cs</Link>
+    </Compile>
+    <Compile Include="..\URSA.Example.OwinApplication\Controllers\PersonController.cs">
+      <Link>Controllers\PersonController.cs</Link>
+    </Compile>
+    <Compile Include="..\URSA.Example.OwinApplication\Controllers\ProductController.cs">
+      <Link>Controllers\ProductController.cs</Link>
+    </Compile>
+    <Compile Include="..\URSA.Example.OwinApplication\Data\IArticle.cs">
+      <Link>Data\IArticle.cs</Link>
+    </Compile>
+    <Compile Include="..\URSA.Example.OwinApplication\Data\IPersistingRepository.cs">
+      <Link>Data\IPersistingRepository.cs</Link>
+    </Compile>
+    <Compile Include="..\URSA.Example.OwinApplication\Data\IProduct.cs">
+      <Link>Data\IProduct.cs</Link>
+    </Compile>
+    <Compile Include="..\URSA.Example.OwinApplication\Data\JsonFilePersistingRepository.cs">
+      <Link>Data\JsonFilePersistingRepository.cs</Link>
+    </Compile>
+    <Compile Include="..\URSA.Example.OwinApplication\Data\Person.cs">
+      <Link>Data\Person.cs</Link>
+    </Compile>
+    <Compile Include="..\URSA.Example.OwinApplication\Security\BasicIdentityProvider.cs">
+      <Link>Security\BasicIdentityProvider.cs</Link>
+    </Compile>
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
@@ -167,7 +186,6 @@
     <Compile Include="..\.build\VersionAssemblyInfo.cs">
       <Link>Properties\VersionAssemblyInfo.cs</Link>
     </Compile>
-    <Compile Include="Security\BasicIdentityProvider.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\URSA.CastleWindsor\URSA.CastleWindsor.csproj">

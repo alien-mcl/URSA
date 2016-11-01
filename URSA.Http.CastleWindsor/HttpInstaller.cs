@@ -17,6 +17,7 @@ using URSA.CodeGen;
 using URSA.ComponentModel;
 using URSA.Configuration;
 using URSA.Web;
+using URSA.Web.Converters;
 using URSA.Web.Description.Http;
 using URSA.Web.Http;
 using URSA.Web.Http.Configuration;
@@ -66,6 +67,12 @@ namespace URSA.CastleWindsor
             Type sourceSelectorType = ((configuration != null) && (configuration.DefaultValueRelationSelectorType != null) ?
                 configuration.DefaultValueRelationSelectorType :
                 typeof(DefaultValueRelationSelector));
+            container.Register(Component.For<IConverterProvider>().UsingFactoryMethod((kernel, context) =>
+                {
+                    var result = new DefaultConverterProvider();
+                    result.Initialize(container.ResolveAll<IConverter>);
+                    return result;
+                }).LifeStyle.PerUniversalWebRequest());
             container.Register(Component.For<IControllerActivator>().UsingFactoryMethod((kernel, context) => new DefaultControllerActivator(UrsaConfigurationSection.InitializeComponentProvider())).LifestyleSingleton());
             container.Register(Component.For<IDefaultValueRelationSelector>().ImplementedBy(sourceSelectorType).LifestyleSingleton());
             container.Register(Component.For<IParameterSourceArgumentBinder>().ImplementedBy<FromQueryStringArgumentBinder>().Activator<NonPublicComponentActivator>().LifestyleSingleton());
@@ -101,7 +108,8 @@ namespace URSA.CastleWindsor
             container.Register(Component.For<ITypeDescriptionBuilder>().ImplementedBy<HydraCompliantTypeDescriptionBuilder>()
                 .Named(EntityConverter.Hydra.ToString()).IsDefault().LifestyleSingleton());
             container.Register(Component.For<IServerBehaviorAttributeVisitor>().ImplementedBy<DescriptionBuildingServerBahaviorAttributeVisitor<ParameterInfo>>().Named("Hydra"));
-            container.Register(Component.For(typeof(IApiDescriptionBuilder<>)).ImplementedBy(typeof(ApiDescriptionBuilder<>)).LifestyleSingleton().Forward<IApiDescriptionBuilder>());
+            //// TODO: This should be removed once all API description builders are manually registered.
+            ////container.Register(Component.For(typeof(IApiDescriptionBuilder<>)).ImplementedBy(typeof(ApiDescriptionBuilder<>)).LifestyleSingleton().Forward<IApiDescriptionBuilder>());
             container.Register(Component.For<IApiEntryPointDescriptionBuilder>().ImplementedBy<ApiEntryPointDescriptionBuilder>().LifestyleSingleton().Forward<IApiDescriptionBuilder>());
             container.Register(Component.For<IApiDescriptionBuilderFactory>().AsFactory(typedFactory).LifestyleSingleton());
             container.Register(Component.For<IClassGenerator>().ImplementedBy<HydraClassGenerator>().LifestyleSingleton());

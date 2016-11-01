@@ -1,5 +1,12 @@
 ﻿using System;
+#if CORE
+using Microsoft.AspNetCore.Hosting;
+#endif
+
+#if CORE
+#else
 using Microsoft.Owin.Hosting;
+#endif
 
 namespace URSA.Example.OwinApplication
 {
@@ -23,7 +30,12 @@ namespace URSA.Example.OwinApplication
             }
 
             Console.WriteLine("Starting HTTP server at {0}.", baseUri);
+#if CORE
+            var server = new WebHostBuilder().UseKestrel().UseUrls(baseUri.ToString()).UseStartup<Startup>().Build();
+            server.Run();
+#else
             var server = WebApp.Start<Startup>(baseUri.ToString());
+#endif
             Console.WriteLine("Started HTTP server at {0}.", baseUri);
             Console.ReadLine();
             Console.WriteLine("Stopping HTTP server at {0}.", baseUri);

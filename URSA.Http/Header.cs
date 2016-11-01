@@ -71,7 +71,7 @@ namespace URSA.Web.Http
 
         internal static readonly IEqualityComparer<string> Comparer = StringComparer.OrdinalIgnoreCase;
 
-        private static readonly string[] UnparsableHeaders = new string[] { "User-Agent" };
+        private static readonly string[] UnparsableHeaders = new string[] { "User-Agent", "Cookie" };
 
         /// <summary>Initializes a new instance of the <see cref="Header" /> class.</summary>
         /// <param name="name">Name of the header.</param>

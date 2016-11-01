@@ -67,6 +67,7 @@
   <ItemGroup>
     <Compile Include="Client.cs" />
     <Compile Include="Collections\DependencyTree.cs" />
+    <Compile Include="ComponentInstaller.cs" />
     <Compile Include="Configuration\HttpConfigurationSection.cs" />
     <Compile Include="Configuration\IHttpServerConfiguration.cs" />
     <Compile Include="Configuration\StaticHttpServerConfiguration.cs" />

@@ -40,6 +40,7 @@ namespace System
                 throw new ArgumentNullException("exception");
             }
 
+            exception = exception.UnwrapException();
             if (exception is ProtocolException)
             {
                 return (ProtocolException)exception;
@@ -123,6 +124,23 @@ namespace System
             }
 
             return HttpStatusCode.InternalServerError;
+        }
+
+        private static Exception UnwrapException(this Exception exception)
+        {
+            var targetInvocationException = exception as TargetInvocationException;
+            if (targetInvocationException != null)
+            {
+                return targetInvocationException.InnerException.UnwrapException();
+            }
+
+            var aggregateException = exception as AggregateException;
+            if (aggregateException != null)
+            {
+                return (aggregateException.InnerExceptions.Count > 1 ? aggregateException : aggregateException.InnerException).UnwrapException();
+            }
+
+            return exception;
         }
     }
 }

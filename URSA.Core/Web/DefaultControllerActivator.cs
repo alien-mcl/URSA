@@ -32,20 +32,31 @@ namespace URSA.Web
             Type candidate = type;
             if (_container.CanResolve(candidate, arguments))
             {
-                return (IController)_container.Resolve(candidate, arguments);
+                return InitializeController((IController)_container.Resolve(candidate, arguments));
             }
 
             var typeInfo = type.GetTypeInfo();
             if ((typeInfo.IsGenericType) && (_container.CanResolve(candidate = type.GetGenericTypeDefinition(), arguments)))
             {
-                return (IController)_container.Resolve(candidate, arguments);
+                return InitializeController((IController)_container.Resolve(candidate, arguments));
             }
 
             candidate = typeInfo.ImplementedInterfaces
                 .Where(@interface => typeof(IController).IsAssignableFrom(@interface))
                 .OrderByDescending(@interface => @interface.GetGenericArguments().Length)
                 .First();
-            return (IController)_container.Resolve(candidate, arguments);
+            return InitializeController((IController)_container.Resolve(candidate, arguments));
+        }
+
+        private IController InitializeController(IController controller)
+        {
+            var hypermediaFacilityOwner = controller as IHypermediaFacilityOwner;
+            if (hypermediaFacilityOwner != null)
+            {
+                hypermediaFacilityOwner.HypermediaFacility = _container.Resolve<IHypermediaFacilityFactory>().CreateFor(controller);
+            }
+
+            return controller;
         }
     }
 }

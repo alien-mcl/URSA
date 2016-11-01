@@ -313,6 +313,18 @@
           "lib/netstandard1.0/Newtonsoft.Json.dll": {}
         }
       },
+      "RomanticWeb.Contracts/1.0.0": {
+        "type": "package",
+        "dependencies": {
+          "System.ComponentModel.TypeConverter": "4.1.0"
+        },
+        "compile": {
+          "lib/netstandard1.6/RomanticWeb.Contracts.dll": {}
+        },
+        "runtime": {
+          "lib/netstandard1.6/RomanticWeb.Contracts.dll": {}
+        }
+      },
       "runtime.native.System/4.0.0": {
         "type": "package",
         "dependencies": {
@@ -1844,6 +1856,20 @@
         "lib/portable-net45+wp80+win8+wpa81/Newtonsoft.Json.dll",
         "lib/portable-net45+wp80+win8+wpa81/Newtonsoft.Json.xml",
         "tools/install.ps1"
+      ]
+    },
+    "RomanticWeb.Contracts/1.0.0": {
+      "sha512": "5swLuztmO6/EOcsW22jf6Ekv6w1AL6bYG1FdeAhBdIRVegaJrd1Q74B1c9lxp/4/wl/0kw2iaqvklPBZRAsBzA==",
+      "type": "package",
+      "path": "RomanticWeb.Contracts/1.0.0",
+      "files": [
+        "RomanticWeb.Contracts.1.0.0.nupkg.sha512",
+        "RomanticWeb.Contracts.nuspec",
+        "lib/net45/RomanticWeb.Contracts.XML",
+        "lib/net45/RomanticWeb.Contracts.dll",
+        "lib/net45/RomanticWeb.Contracts.pdb",
+        "lib/netstandard1.6/RomanticWeb.Contracts.dll",
+        "lib/netstandard1.6/RomanticWeb.Contracts.pdb"
       ]
     },
     "runtime.native.System/4.0.0": {
@@ -5310,6 +5336,7 @@
     "": [
       "Microsoft.Extensions.DependencyModel >= 1.0.0",
       "NETStandard.Library >= 1.6.0",
+      "RomanticWeb.Contracts >= 1.0.0",
       "System.Runtime.Extensions >= 4.1.0",
       "System.Runtime.Loader >= 4.0.0",
       "System.Security.Claims >= 4.0.1",

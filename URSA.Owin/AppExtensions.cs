@@ -1,7 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+#if CORE
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
+#else
+using Microsoft.Owin;
 using Owin;
+#endif
 using URSA.ComponentModel;
 using URSA.Configuration;
 using URSA.Owin.Handlers;
@@ -21,20 +27,38 @@ namespace URSA.Owin
 
         /// <summary>Registers all APIs into the ASP.net pipeline.</summary>
         /// <param name="application">The application to work with.</param>
+#if CORE
+        public static IApplicationBuilder RegisterApis(this IApplicationBuilder application)
+#else
         public static IAppBuilder RegisterApis(this IAppBuilder application)
+#endif
         {
             if (application == null)
             {
                 throw new ArgumentNullException("application");
             }
 
+            IComponentProvider container;
             lock (Lock)
             {
-                var container = UrsaConfigurationSection.InitializeComponentProvider();
+                container = UrsaConfigurationSection.InitializeComponentProvider();
                 container.Register<IHttpServerConfiguration>(new LazyHttpServerConfiguration());
                 container.WithAutodiscoveredControllers();
-                application.Use(typeof(UrsaHandler), container.Resolve<IRequestHandler<RequestInfo, ResponseInfo>>());
             }
+
+            application.Use((context, next) =>
+                {
+                    if (LazyHttpServerConfiguration.HostingUri == null)
+                    {
+                        LazyHttpServerConfiguration.HostingUri = GetHostingUri(context);
+                    }
+
+                    using (IComponentProvider requestScopeContainer = container.BeginNewScope((builder, provider) => builder.InstallComponents(provider)))
+                    {
+                        var handler = new UrsaHandler(next, requestScopeContainer.Resolve<IRequestHandler<RequestInfo, ResponseInfo>>());
+                        return handler.Invoke(context);
+                    }
+                });
 
             return application;
         }
@@ -45,8 +69,13 @@ namespace URSA.Owin
         /// <param name="allowedHeaders">Allowed headers.</param>
         /// <param name="exposedHeaders">Exposed headers.</param>
         /// <returns>The application itself.</returns>
+#if CORE
+        public static IApplicationBuilder WithCorsEnabled(
+            this IApplicationBuilder application,
+#else
         public static IAppBuilder WithCorsEnabled(
             this IAppBuilder application,
+#endif
             IEnumerable<string> allowedOrigins = null,
             IEnumerable<string> allowedHeaders = null,
             IEnumerable<string> exposedHeaders = null)
@@ -68,7 +97,11 @@ namespace URSA.Owin
         /// <summary>Registers the Basic authentication mechanism and sets it as a default one.</summary>
         /// <param name="application">The application to work with.</param>
         /// <returns>The application itself.</returns>
+#if CORE
+        public static IApplicationBuilder WithBasicAuthentication(this IApplicationBuilder application)
+#else
         public static IAppBuilder WithBasicAuthentication(this IAppBuilder application)
+#endif
         {
             if (application == null)
             {
@@ -85,7 +118,11 @@ namespace URSA.Owin
         /// <typeparam name="T">Type of the identity provider to use.</typeparam>
         /// <param name="application">The application to work with.</param>
         /// <returns>The application itself.</returns>
+#if CORE
+        public static IApplicationBuilder WithIdentityProvider<T>(this IApplicationBuilder application) where T : IIdentityProvider
+#else
         public static IAppBuilder WithIdentityProvider<T>(this IAppBuilder application) where T : IIdentityProvider
+#endif
         {
             if (application == null)
             {
@@ -96,5 +133,17 @@ namespace URSA.Owin
             container.Register<IIdentityProvider, T>(lifestyle: Lifestyles.Singleton);
             return application;
         }
+
+#if CORE
+        private static Uri GetHostingUri(HttpContext context)
+        {
+            return new Uri(String.Format("{0}://{1}/", context.Request.Scheme, context.Request.Host));
+        }
+#else
+        private static Uri GetHostingUri(IOwinContext context)
+        {
+            return new Uri(context.Request.Uri.GetLeftPart(UriPartial.Authority), UriKind.Absolute);
+        }
+#endif
     }
 }

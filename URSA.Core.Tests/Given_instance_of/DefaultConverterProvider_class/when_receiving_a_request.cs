@@ -103,7 +103,7 @@ namespace Given_instance_of.DefaultConverterProvider_class
                 .Returns<Type, IRequestInfo>((type, request) => type == typeof(Uri) ? CompatibilityLevel.ExactMatch : CompatibilityLevel.None);
             _provider = new DefaultConverterProvider();
             _converters = new List<IConverter>() { _stringConverter.Object, _uriConverter.Object };
-            _provider.Initialize(_converters);
+            _provider.Initialize(() => _converters);
         }
 
         [TestCleanup]

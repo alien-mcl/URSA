@@ -10,10 +10,11 @@ using System.Runtime.Loader;
 #endif
 using System.Text.RegularExpressions;
 #if CORE
-using Microsoft.Extensions.DependencyModel;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Configuration.Memory;
 #endif
 using URSA.ComponentModel;
+using URSA.Web;
 using URSA.Web.Converters;
 
 namespace URSA.Configuration
@@ -27,6 +28,7 @@ namespace URSA.Configuration
         internal const string ConfigurationSectionName = "core";
         internal const string ConfigurationSection = ConfigurationSectionGroupName + ConfigurationPathSeparator + ConfigurationSectionName;
 #if CORE
+        private static UrsaConfigurationSection _default;
         private const string ConfigurationPathSeparator = ":";
 #else
         private const string ConfigurationPathSeparator = "/";
@@ -44,7 +46,7 @@ namespace URSA.Configuration
         }
 
         /// <summary>Initializes a new instance of the <see cref="UrsaConfigurationSection" /> class.</summary>
-        public UrsaConfigurationSection() : base(new ConfigurationRoot(new IConfigurationProvider[0]), ConfigurationSection)
+        public UrsaConfigurationSection() : base(new ConfigurationRoot(new [] { new MemoryConfigurationProvider(new MemoryConfigurationSource()) }), ConfigurationSection)
         {
         }
 
@@ -55,6 +57,38 @@ namespace URSA.Configuration
         {
         }
 #endif
+
+        /// <summary>Gets the default configuration.</summary>
+        public static UrsaConfigurationSection Default
+        {
+            get
+            {
+#if CORE
+                if (_default == null)
+                {
+                    _default = new UrsaConfigurationSection()
+                        {
+                            ConverterProviderTypeName = typeof(DefaultConverterProvider).FullName,
+                            ControllerActivatorTypeName = typeof(DefaultControllerActivator).FullName
+                        };
+                    var configuration = (UrsaConfigurationSection)ConfigurationManager.GetSection(ConfigurationSection);
+                    if (configuration != null)
+                    {
+                        _default = configuration;
+                    }
+                }
+
+                return _default;
+#else
+                return (UrsaConfigurationSection)ConfigurationManager.GetSection(ConfigurationSection) ??
+                    new UrsaConfigurationSection()
+                        {
+                            ConverterProviderTypeName = typeof(DefaultConverterProvider).FullName,
+                            ControllerActivatorTypeName = typeof(DefaultControllerActivator).FullName
+                        };
+#endif
+            }
+        }
 
         /// <summary>Gets or sets the installer assembly name mask.</summary>
 #if !CORE
@@ -73,7 +107,7 @@ namespace URSA.Configuration
         [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "Wrapper without testable logic.")]
         public Type ServiceProviderType
         {
-            get { return Type.GetType(ServiceProviderTypeName); }
+            get { return (ServiceProviderTypeName != null ? Type.GetType(ServiceProviderTypeName) : null); }
             set { ServiceProviderTypeName = (value != null ? value.AssemblyQualifiedName : null); }
         }
 
@@ -82,7 +116,7 @@ namespace URSA.Configuration
         [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "Wrapper without testable logic.")]
         public Type ConverterProviderType
         {
-            get { return Type.GetType(ConverterProviderTypeName); }
+            get { return (ConverterProviderTypeName != null ? Type.GetType(ConverterProviderTypeName) : null); }
             set { ConverterProviderTypeName = (value != null ? value.AssemblyQualifiedName : null); }
         }
 
@@ -91,45 +125,48 @@ namespace URSA.Configuration
         [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "Wrapper without testable logic.")]
         public Type ControllerActivatorType
         {
-            get { return Type.GetType(ControllerActivatorTypeName); }
+            get { return (ControllerActivatorTypeName != null ? Type.GetType(ControllerActivatorTypeName) : null); }
             set { ControllerActivatorTypeName = (value != null ? value.AssemblyQualifiedName : null); }
         }
 
-        /// <summary>Gets or sets the component provider.</summary>
-        internal static IComponentProvider ComponentProvider { get; set; }
-
+        /// <summary>Gets or sets a name of the service provider type.</summary>
 #if !CORE
         [ConfigurationProperty(ServiceProviderTypeNameAttribute)]
 #endif
         [ExcludeFromCodeCoverage]
         [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "Wrapper without testable logic.")]
-        private string ServiceProviderTypeName
+        public string ServiceProviderTypeName
         {
             get { return (string)this[ServiceProviderTypeNameAttribute]; }
             set { this[ServiceProviderTypeNameAttribute] = value; }
         }
 
+        /// <summary>Gets or sets a name of the converter provider type.</summary>
 #if !CORE
         [ConfigurationProperty(ConverterProviderTypeNameAttribute)]
 #endif
         [ExcludeFromCodeCoverage]
         [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "Wrapper without testable logic.")]
-        private string ConverterProviderTypeName
+        public string ConverterProviderTypeName
         {
             get { return (string)this[ConverterProviderTypeNameAttribute]; }
             set { this[ConverterProviderTypeNameAttribute] = value; }
         }
 
+        /// <summary>Gets or sets a name of the controller activator type.</summary>
 #if !CORE
         [ConfigurationProperty(ControllerActivatorTypeNameAttribute)]
 #endif
         [ExcludeFromCodeCoverage]
         [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "Wrapper without testable logic.")]
-        private string ControllerActivatorTypeName
+        public string ControllerActivatorTypeName
         {
             get { return (string)this[ControllerActivatorTypeNameAttribute]; }
             set { this[ControllerActivatorTypeNameAttribute] = value; }
         }
+
+        /// <summary>Gets or sets the component provider.</summary>
+        internal static IComponentProvider ComponentProvider { get; set; }
 
         /// <summary>Initializes the component provider configured.</summary>
         /// <returns>Implementation of the <see cref="IComponentProvider" /> pointed in the configuration with installers loaded.</returns>
@@ -142,21 +179,13 @@ namespace URSA.Configuration
                 return ComponentProvider;
             }
 
-            UrsaConfigurationSection configuration = (UrsaConfigurationSection)ConfigurationManager.GetSection(ConfigurationSection);
-            if (configuration == null)
-            {
-                throw new InvalidOperationException(String.Format("Cannot instantiate a '{0}' without a proper configuration.", typeof(IComponentProvider)));
-            }
-
+            var configuration = Default;
             string installerAssemblyNameMask = configuration.InstallerAssemblyNameMask ?? DefaultInstallerAssemblyNameMask;
             var componentProviderCtor = GetProvider<IComponentProvider>(configuration.ServiceProviderType);
             var container = (IComponentProvider)componentProviderCtor.Invoke(null);
             var assemblies = GetInstallerAssemblies(installerAssemblyNameMask).Concat(new[] { typeof(UrsaConfigurationSection).GetTypeInfo().Assembly });
             container.Install(assemblies);
-            container.RegisterAll<IConverter>(assemblies);
-            var converterProvider = (IConverterProvider)(GetProvider<IConverterProvider>(configuration.ConverterProviderType ?? typeof(DefaultConverterProvider))).Invoke(null);
-            converterProvider.Initialize(container.ResolveAll<IConverter>());
-            container.Register(converterProvider);
+            container.InstallComponents(container);
             ComponentProvider = container;
             return ComponentProvider;
         }
@@ -171,7 +200,12 @@ namespace URSA.Configuration
             return GetInstallerAssemblies(configuration.InstallerAssemblyNameMask ?? DefaultInstallerAssemblyNameMask);
         }
 
-        internal static ConstructorInfo GetProvider<T>(Type type, params Type[] parameterTypes)
+        /// <summary>Gets a constructor of a given <paramref name="type"/> and optionally of given <paramref name="parameterTypes" />.</summary>
+        /// <typeparam name="T">Type required to be implemented by the given <paramref name="type" />.</typeparam>
+        /// <param name="type">Type to obtain constructor for.</param>
+        /// <param name="parameterTypes">Optional constructor parameters.</param>
+        /// <returns><see cref="ConstructorInfo"/> matching required criteria or <b>null</b>.</returns>
+        public static ConstructorInfo GetProvider<T>(Type type, params Type[] parameterTypes)
         {
             if (type == null)
             {

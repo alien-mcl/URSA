@@ -180,7 +180,7 @@ namespace URSA.Web.Http.Converters
                 .Where(property => (property.PropertyType.GetTypeInfo().IsInterface))
                 .Select(property =>
                     {
-                        var value = property.GetValue(type);
+                        var value = property.GetValue(instance);
                         return (value != null ? value.GetType() : null);
                     })
                 .Where(valueType => valueType != null);

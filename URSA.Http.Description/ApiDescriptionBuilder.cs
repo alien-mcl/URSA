@@ -336,7 +336,7 @@ namespace URSA.Web.Http.Description
     /// <summary>Builds API description.</summary>
     /// <typeparam name="T">Type of the API to describe</typeparam>
     [SuppressMessage("StyleCop.CSharp.MaintainabilityRules", "SA1402:FileMayOnlyContainASingleClass", Justification = "Suppression is OK - generic and non-generic class.")]
-    public class ApiDescriptionBuilder<T> : ApiDescriptionBuilder where T : IController
+    public class ApiDescriptionBuilder<T> : ApiDescriptionBuilder, IApiDescriptionBuilder<T> where T : IController
     {
         private Type _specializationType;
 

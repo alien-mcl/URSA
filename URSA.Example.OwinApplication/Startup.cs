@@ -1,5 +1,9 @@
 ﻿using System;
+#if CORE
+using Microsoft.AspNetCore.Builder;
+#else
 using Owin;
+#endif
 using URSA.Example.WebApplication.Security;
 using URSA.Owin;
 
@@ -10,7 +14,11 @@ namespace URSA.Example.OwinApplication
     {
         /// <summary>Configures the Owin pipeline for URSA.</summary>
         /// <param name="appBuilder">The application builder.</param>
+#if CORE
+        public void Configure(IApplicationBuilder appBuilder)
+#else
         public void Configuration(IAppBuilder appBuilder)
+#endif
         {
             if (appBuilder == null)
             {

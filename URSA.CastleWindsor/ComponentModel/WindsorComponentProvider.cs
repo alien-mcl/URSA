@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Castle.Core;
+using Castle.MicroKernel.Lifestyle;
 using URSA.CastleWindsor.ComponentModel;
 
 namespace URSA.ComponentModel
@@ -17,20 +18,43 @@ namespace URSA.ComponentModel
     /// <summary>Provides a Castle Windsor based implementation of the <see cref="IServiceProvider"/> interface.</summary>
     public sealed class WindsorComponentProvider : IComponentProvider, IDisposable
     {
-        private readonly IWindsorContainer _container;
         private readonly IGenericImplementationMatchingStrategy _genericImplementationMatchingStrategy;
+        private IWindsorContainer _container;
+        private IDisposable _scope;
 
         /// <summary>Initializes a new instance of the <see cref="WindsorComponentProvider"/> class.</summary>
-        public WindsorComponentProvider()
+        public WindsorComponentProvider() : this(null)
         {
             _container = new WindsorContainer();
             _container.Kernel.Resolver.AddSubResolver(new AutoClosingCollectionResolver(_container.Kernel));
             _container.Kernel.Resolver.AddSubResolver(new CollectionResolver(_container.Kernel, true));
+            //// TODO: Consider removing container registration.
             _container.Register(Component.For<WindsorComponentProvider>().Instance(this));
-            _genericImplementationMatchingStrategy = new DefaultGenericImplementationMatchingStrategy(this);
         }
 
+        private WindsorComponentProvider(IDisposable scope)
+        {
+            _genericImplementationMatchingStrategy = new DefaultGenericImplementationMatchingStrategy(this);
+            _scope = scope;
+        }
+
+        /// <inheritdoc />
+        public bool IsRoot { get { return _scope == null; } }
+
         internal IGenericImplementationMatchingStrategy GenericImplementationMatchingStrategy { get { return _genericImplementationMatchingStrategy; } }
+
+        /// <inheritdoc />
+        public IComponentProvider BeginNewScope(Action<IComponentProviderBuilder, IComponentProvider> scopeBuilder = null)
+        {
+            var result = new WindsorComponentProvider(_container.BeginScope());
+            result._container = _container;
+            if (scopeBuilder != null)
+            {
+                scopeBuilder(result, this);
+            }
+
+            return result;
+        }
 
         /// <inheritdoc />
         public void Install(IEnumerable<Assembly> assemblies)
@@ -274,7 +298,11 @@ namespace URSA.ComponentModel
         /// <inheritdoc />
         public void Dispose()
         {
-            if (_container != null)
+            if (_scope != null)
+            {
+                _scope.Dispose();
+            }
+            else if (_container != null)
             {
                 _container.Dispose();
             }

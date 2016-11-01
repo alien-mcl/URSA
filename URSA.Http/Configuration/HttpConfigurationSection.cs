@@ -12,8 +12,10 @@ namespace URSA.Configuration
     [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "Wrapper without testable logic.")]
     public class HttpConfigurationSection : ConfigurationSection
     {
+        /// <summary>Exposes a default name of the URSA HTTP configuration section.</summary>
+        public const string ConfigurationSection = UrsaConfigurationSection.ConfigurationSectionGroupName + ConfigurationPathSeparator + ConfigurationSectionName;
+
         internal const string ConfigurationSectionName = "http";
-        internal const string ConfigurationSection = UrsaConfigurationSection.ConfigurationSectionGroupName + ConfigurationPathSeparator + ConfigurationSectionName;
         private const string DefaultValueRelationSelectorTypeNameAttribute = "defaultValueRelationSelectorType";
 #if CORE
         private const string ConfigurationPathSeparator = ":";

@@ -9,5 +9,4 @@ using System.Runtime.InteropServices;
 [assembly: InternalsVisibleTo("URSA.Http.Description")]
 [assembly: InternalsVisibleTo("URSA.Http.Tests")]
 [assembly: InternalsVisibleTo("URSA.Http.Description.Tests")]
-[assembly: InternalsVisibleTo("URSA.Http.CastleWindsor")]
 [assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")]
