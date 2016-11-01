@@ -69,6 +69,7 @@
     <Compile Include="ComponentModel\HandlerEqualityComparer.cs" />
     <Compile Include="ComponentModel\NonPublicComponentActivator.cs" />
     <Compile Include="ComponentModel\DefaultGenericImplementationMatchingStrategy.cs" />
+    <Compile Include="ComponentModel\WindsorComponentResolver.cs" />
     <Compile Include="MicroKernel\Lifestyle\UniversalWebRequestScopeAccessor.cs" />
     <Compile Include="MicroKernel\Registration\UrsaComponentRegistrationExtensions.cs" />
     <Compile Include="ComponentModel\WindsorComponentProvider.cs" />

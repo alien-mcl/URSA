@@ -4,8 +4,7 @@
     public interface IComponentInstaller
     {
         /// <summary>Installs additional components.</summary>
-        /// <param name="componentProviderBuilder">Component provider builder to be used for registrations.</param>
-        /// <param name="componentProvider">Component provider to be used for resolving existing registrations.</param>
-        void InstallComponents(IComponentProviderBuilder componentProviderBuilder, IComponentProvider componentProvider);
+        /// <param name="componentComposer">Component composer to be used for registrations.</param>
+        void InstallComponents(IComponentComposer componentComposer);
     }
 }

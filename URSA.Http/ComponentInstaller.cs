@@ -8,12 +8,9 @@ namespace URSA.Web.Http
     public class ComponentInstaller : IComponentInstaller
     {
         /// <inheritdoc />
-        public void InstallComponents(IComponentProviderBuilder componentProviderBuilder, IComponentProvider componentProvider)
+        public void InstallComponents(IComponentComposer componentComposer)
         {
-            if (componentProvider.IsRoot)
-            {
-                componentProviderBuilder.RegisterAll<IConverter>(new[] { GetType().GetTypeInfo().Assembly }, Lifestyles.Singleton);
-            }
+            componentComposer.RegisterAll<IConverter>(new[] { GetType().GetTypeInfo().Assembly }, Lifestyles.Singleton);
         }
     }
 }

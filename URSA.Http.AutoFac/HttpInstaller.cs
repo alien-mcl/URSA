@@ -9,7 +9,6 @@ using RomanticWeb.Configuration;
 using RomanticWeb.NamedGraphs;
 using URSA.CodeGen;
 using URSA.Configuration;
-using URSA.AutoFac;
 using URSA.Http.AutoFac.Description;
 using URSA.Http.AutoFac.Entities;
 using URSA.Web;
@@ -62,8 +61,6 @@ namespace URSA.AutoFac
             Type sourceSelectorType = ((configuration != null) && (configuration.DefaultValueRelationSelectorType != null) ?
                 configuration.DefaultValueRelationSelectorType :
                 typeof(DefaultValueRelationSelector));
-            //// TODO: This seems to be wrong as some controllers depends on per-request dependencies, this activator should also be registered per request.
-            //// builder.Register(context => new DefaultControllerActivator(UrsaConfigurationSection.InitializeComponentProvider())).As<IControllerActivator>().SingleInstance();
             builder.RegisterType<DelegateMapper>().As<IDelegateMapper<RequestInfo>>().InstancePerLifetimeScope();
             builder.RegisterType(sourceSelectorType).As<IDefaultValueRelationSelector>().SingleInstance();
             builder.RegisterType<FromQueryStringArgumentBinder>().As<IParameterSourceArgumentBinder>()
@@ -107,7 +104,7 @@ namespace URSA.AutoFac
             builder.RegisterType<DescriptionBuildingServerBahaviorAttributeVisitor<ParameterInfo>>().As<IServerBehaviorAttributeVisitor>()
                 .Named<IServerBehaviorAttributeVisitor>("Hydra");
             //// TODO: This should be removed once all API description builders are manually registered.
-            builder.RegisterType(typeof(ApiDescriptionBuilder<>)).AsSelf().As<IApiDescriptionBuilder>().SingleInstance();
+            //// builder.RegisterType(typeof(ApiDescriptionBuilder<>)).AsSelf().As<IApiDescriptionBuilder>().SingleInstance();
             builder.RegisterType<ApiEntryPointDescriptionBuilder>().As<IApiEntryPointDescriptionBuilder>().As<IApiDescriptionBuilder>().SingleInstance();
             builder.Register(context =>
                 {

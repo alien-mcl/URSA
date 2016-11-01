@@ -50,6 +50,8 @@
   <ItemGroup>
     <Compile Include="ComponentModel\AutoFacComponentProvider.cs" />
     <Compile Include="ComponentModel\AutoFacComponentProviderBuilder.cs" />
+    <Compile Include="ComponentModel\AutoFacScopedComponentResolver.cs" />
+    <Compile Include="ComponentModel\IComponentContextProvider.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="..\.build\CommonAssemblyInfo.cs">
       <Link>Properties\CommonAssemblyInfo.cs</Link>

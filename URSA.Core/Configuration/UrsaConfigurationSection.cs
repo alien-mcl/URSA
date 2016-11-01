@@ -185,7 +185,7 @@ namespace URSA.Configuration
             var container = (IComponentProvider)componentProviderCtor.Invoke(null);
             var assemblies = GetInstallerAssemblies(installerAssemblyNameMask).Concat(new[] { typeof(UrsaConfigurationSection).GetTypeInfo().Assembly });
             container.Install(assemblies);
-            container.InstallComponents(container);
+            container.InstallComponents();
             ComponentProvider = container;
             return ComponentProvider;
         }

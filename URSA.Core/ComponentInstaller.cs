@@ -9,23 +9,27 @@ namespace URSA
     public class ComponentInstaller : IComponentInstaller
     {
         /// <inheritdoc />
-        public void InstallComponents(IComponentProviderBuilder componentProviderBuilder, IComponentProvider componentProvider)
+        public void InstallComponents(IComponentComposer componentComposer)
         {
-            if (componentProvider.IsRoot)
-            {
-                return;
-            }
-
-            var controllerActivatorCtor = UrsaConfigurationSection.GetProvider<IControllerActivator>(
-                UrsaConfigurationSection.Default.ControllerActivatorType, typeof(IComponentProvider));
-            componentProviderBuilder.Register(
+            var controllerActivatorType = UrsaConfigurationSection.Default.ControllerActivatorType;
+            var controllerActivatorCtor = UrsaConfigurationSection.GetProvider<IControllerActivator>(controllerActivatorType, typeof(IComponentResolver));
+            componentComposer.Register(
                 typeof(IControllerActivator),
-                UrsaConfigurationSection.Default.ControllerActivatorType,
-                () => controllerActivatorCtor.Invoke(new object[] { componentProvider }));
-            var converterProvider = (IConverterProvider)(UrsaConfigurationSection.GetProvider<IConverterProvider>(
-                UrsaConfigurationSection.Default.ConverterProviderType ?? typeof(DefaultConverterProvider))).Invoke(null);
-            converterProvider.Initialize(() => componentProvider.ResolveAll<IConverter>());
-            componentProviderBuilder.Register(converterProvider);
+                controllerActivatorType,
+                context => controllerActivatorCtor.Invoke(new object[] { context }),
+                Lifestyles.Scoped);
+
+            var converterProviderType = UrsaConfigurationSection.Default.ConverterProviderType ?? typeof(DefaultConverterProvider);
+            var converterProviderCtor = UrsaConfigurationSection.GetProvider<IConverterProvider>(converterProviderType);
+            componentComposer.Register(
+                typeof(IConverterProvider),
+                converterProviderType,
+                context =>
+                    {
+                        var result = (IConverterProvider)converterProviderCtor.Invoke(null);
+                        result.Initialize(() => context.ResolveAll<IConverter>());
+                        return result;
+                    });
         }
     }
 }

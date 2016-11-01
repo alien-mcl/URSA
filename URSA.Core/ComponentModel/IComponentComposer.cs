@@ -10,12 +10,15 @@ namespace URSA.ComponentModel
         /// <summary>Singleton lifestyle.</summary>
         Singleton,
 
+        /// <summary>Per existing scope lifestyle.</summary>
+        Scoped,
+
         /// <summary>Transient lifestyle.</summary>
         Transient
     }
 
     /// <summary>Provides a basic service provider facility interface.</summary>
-    public interface IComponentProviderBuilder
+    public interface IComponentComposer
     {
         /// <summary>Gets a value indicating whether this is a root component provider.</summary>
         bool IsRoot { get; }
@@ -30,7 +33,7 @@ namespace URSA.ComponentModel
         /// <param name="name">Name of the implementation.</param>
         /// <param name="factoryMethod">Optional factory method.</param>
         /// <param name="lifestyle">Lifestyle of the registration.</param>
-        void Register<T, I>(string name, Func<T> factoryMethod = null, Lifestyles lifestyle = Lifestyles.Transient)
+        void Register<T, I>(string name, Func<IComponentResolver, T> factoryMethod = null, Lifestyles lifestyle = Lifestyles.Transient)
             where T : class
             where I : T;
 
@@ -40,7 +43,7 @@ namespace URSA.ComponentModel
         /// <param name="name">Name of the implementation.</param>
         /// <param name="factoryMethod">Optional factory method.</param>
         /// <param name="lifestyle">Lifestyle of the registration.</param>
-        void Register(Type serviceType, Type implementationType, string name, Func<object> factoryMethod = null, Lifestyles lifestyle = Lifestyles.Transient);
+        void Register(Type serviceType, Type implementationType, string name, Func<IComponentResolver, object> factoryMethod = null, Lifestyles lifestyle = Lifestyles.Transient);
 
         /// <summary>Registers an instance of the component implementing <typeparamref name="T" />.</summary>
         /// <typeparam name="T">Type of the component.</typeparam>
@@ -59,7 +62,7 @@ namespace URSA.ComponentModel
         /// <typeparam name="I">Type implementing the component.</typeparam>
         /// <param name="factoryMethod">Optional factory method.</param>
         /// <param name="lifestyle">Lifestyle of the registration.</param>
-        void Register<T, I>(Func<T> factoryMethod = null, Lifestyles lifestyle = Lifestyles.Transient)
+        void Register<T, I>(Func<IComponentResolver, T> factoryMethod = null, Lifestyles lifestyle = Lifestyles.Transient)
             where T : class
             where I : T;
 
@@ -68,7 +71,7 @@ namespace URSA.ComponentModel
         /// <param name="implementationType">Type implementing the component.</param>
         /// <param name="factoryMethod">Optional factory method.</param>
         /// <param name="lifestyle">Lifestyle of the registration.</param>
-        void Register(Type serviceType, Type implementationType, Func<object> factoryMethod = null, Lifestyles lifestyle = Lifestyles.Transient);
+        void Register(Type serviceType, Type implementationType, Func<IComponentResolver, object> factoryMethod = null, Lifestyles lifestyle = Lifestyles.Transient);
 
         /// <summary>Registers an instance of the component implementing <typeparamref name="T" />.</summary>
         /// <typeparam name="T">Type of the component.</typeparam>

@@ -4,20 +4,22 @@ using System.Linq;
 using System.Reflection;
 using Autofac;
 using Autofac.Core;
+using URSA.AutoFac.ComponentModel;
 using IContainer = Autofac.IContainer;
 
 namespace URSA.ComponentModel
 {
     /// <summary>Provides an <![CDATA[AutoFac]]> based implementation of the <see cref="IServiceProvider"/> interface.</summary>
-    public class AutoFacComponentProvider : IComponentProvider
+    public class AutoFacComponentProvider : IComponentProvider, IComponentContextProvider
     {
         private readonly AutoFacComponentProvider _parent;
-        private ILifetimeScope _container;
+        private readonly ILifetimeScope _container;
 
         /// <summary>Initializes a new instance of the <see cref="AutoFacComponentProvider"/> class.</summary>
         public AutoFacComponentProvider()
         {
             var builder = new ContainerBuilder();
+            //// TODO: Consider removing container registration.
             builder.Register(context => this).As<IComponentProvider>().InstancePerLifetimeScope();
             _container = builder.Build();
             _parent = null;
@@ -32,21 +34,14 @@ namespace URSA.ComponentModel
         /// <inheritdoc />
         public bool IsRoot { get { return _parent == null; } }
 
+        IComponentContext IComponentContextProvider.Container { get { return _container; } }
+
+        IComponentContextProvider IComponentContextProvider.Parent { get { return _parent; } }
+
         /// <inheritdoc />
-        public IComponentProvider BeginNewScope(Action<IComponentProviderBuilder, IComponentProvider> scopeBuilder = null)
+        public IComponentProvider BeginNewScope()
         {
-            var scopeContainer = new AutoFacComponentProvider(this, null);
-            var scope = _container.BeginLifetimeScope(
-                AutoFac.RegistrationExtensions.HttpRequestLifetimeScopeTag,
-                builder =>
-                    {
-                        if (scopeBuilder != null)
-                        {
-                            scopeBuilder(new AutoFacComponentProviderBuilder(builder), scopeContainer);
-                        }
-                    });
-            scopeContainer._container = scope;
-            return scopeContainer;
+            return new AutoFacComponentProvider(this, _container.BeginLifetimeScope(AutoFac.RegistrationExtensions.HttpRequestLifetimeScopeTag));
         }
 
         /// <inheritdoc />
@@ -58,21 +53,34 @@ namespace URSA.ComponentModel
         }
 
         /// <inheritdoc />
-        public void Register<T, I>(string name, Func<T> factoryMethod = null, Lifestyles lifestyle = Lifestyles.Transient) where T : class where I : T
+        public void Register<T, I>(string name, Func<IComponentResolver, T> factoryMethod = null, Lifestyles lifestyle = Lifestyles.Transient) where T : class where I : T
         {
             Register(typeof(T), typeof(I), name, factoryMethod, lifestyle);
         }
 
         /// <inheritdoc />
-        public void Register(Type serviceType, Type implementationType, string name, Func<object> factoryMethod = null, Lifestyles lifestyle = Lifestyles.Transient)
+        public void Register(Type serviceType, Type implementationType, string name, Func<IComponentResolver, object> factoryMethod = null, Lifestyles lifestyle = Lifestyles.Transient)
         {
             var builder = new ContainerBuilder();
             if (factoryMethod != null)
             {
-                var registration = builder.Register(context => factoryMethod()).As(serviceType);
+                var registration = builder.Register(context => factoryMethod(new AutoFacScopedComponentResolver(this, context.Resolve<IComponentContext>()))).As(serviceType);
                 if (name != null)
                 {
                     registration.Named(name, serviceType);
+                }
+
+                switch (lifestyle)
+                {
+                    case Lifestyles.Singleton:
+                        registration.SingleInstance();
+                        break;
+                    case Lifestyles.Transient:
+                        registration.InstancePerDependency();
+                        break;
+                    case Lifestyles.Scoped:
+                        registration.InstancePerLifetimeScope();
+                        break;
                 }
             }
             else
@@ -80,7 +88,20 @@ namespace URSA.ComponentModel
                 var registration = builder.RegisterType(implementationType).As(serviceType);
                 if (name != null)
                 {
-                    registration.Named(name, serviceType);
+                    registration = registration.Named(name, serviceType);
+                }
+
+                switch (lifestyle)
+                {
+                    case Lifestyles.Singleton:
+                        registration.SingleInstance();
+                        break;
+                    case Lifestyles.Transient:
+                        registration.InstancePerDependency();
+                        break;
+                    case Lifestyles.Scoped:
+                        registration.InstancePerLifetimeScope();
+                        break;
                 }
             }
 
@@ -88,18 +109,18 @@ namespace URSA.ComponentModel
         }
 
         /// <inheritdoc />
-        public void Register<T, I>(Func<T> factoryMethod = null, Lifestyles lifestyle = Lifestyles.Transient) where T : class where I : T
+        public void Register<T, I>(Func<IComponentResolver, T> factoryMethod = null, Lifestyles lifestyle = Lifestyles.Transient) where T : class where I : T
         {
             Register(typeof(T), typeof(I), factoryMethod, lifestyle);
         }
 
         /// <inheritdoc />
-        public void Register(Type serviceType, Type implementationType, Func<object> factoryMethod = null, Lifestyles lifestyle = Lifestyles.Transient)
+        public void Register(Type serviceType, Type implementationType, Func<IComponentResolver, object> factoryMethod = null, Lifestyles lifestyle = Lifestyles.Transient)
         {
             var builder = new ContainerBuilder();
             if (factoryMethod != null)
             {
-                var registration = builder.Register(context => factoryMethod()).As(serviceType);
+                var registration = builder.Register(context => factoryMethod(new AutoFacScopedComponentResolver(this, context.Resolve<IComponentContext>()))).As(serviceType);
                 switch (lifestyle)
                 {
                     case Lifestyles.Singleton:
@@ -107,6 +128,9 @@ namespace URSA.ComponentModel
                         break;
                     case Lifestyles.Transient:
                         registration.InstancePerDependency();
+                        break;
+                    case Lifestyles.Scoped:
+                        registration.InstancePerLifetimeScope();
                         break;
                 }
             }
@@ -120,6 +144,9 @@ namespace URSA.ComponentModel
                         break;
                     case Lifestyles.Transient:
                         registration.InstancePerDependency();
+                        break;
+                    case Lifestyles.Scoped:
+                        registration.InstancePerLifetimeScope();
                         break;
                 }
             }

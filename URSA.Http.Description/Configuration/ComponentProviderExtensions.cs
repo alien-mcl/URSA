@@ -73,7 +73,7 @@ namespace URSA.Web.Http.Configuration
         {
             container.Register<IHttpControllerDescriptionBuilder, EntryPointControllerDescriptionBuilder>(
                 entryPoint.ToString().Substring(1),
-                () => new EntryPointControllerDescriptionBuilder(entryPoint, container.Resolve<IDefaultValueRelationSelector>()),
+                context => new EntryPointControllerDescriptionBuilder(entryPoint, context.Resolve<IDefaultValueRelationSelector>()),
                 Lifestyles.Singleton);
         }
 

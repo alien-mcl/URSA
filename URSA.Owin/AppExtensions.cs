@@ -53,7 +53,7 @@ namespace URSA.Owin
                         LazyHttpServerConfiguration.HostingUri = GetHostingUri(context);
                     }
 
-                    using (IComponentProvider requestScopeContainer = container.BeginNewScope((builder, provider) => builder.InstallComponents(provider)))
+                    using (IComponentProvider requestScopeContainer = container.BeginNewScope())
                     {
                         var handler = new UrsaHandler(next, requestScopeContainer.Resolve<IRequestHandler<RequestInfo, ResponseInfo>>());
                         return handler.Invoke(context);

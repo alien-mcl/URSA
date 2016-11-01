@@ -10,18 +10,14 @@ namespace URSA.Web.Http.Description
     public class ComponentInstaller : IComponentInstaller
     {
         /// <inheritdoc />
-        public void InstallComponents(IComponentProviderBuilder componentProviderBuilder, IComponentProvider componentProvider)
+        public void InstallComponents(IComponentComposer componentComposer)
         {
-            if (componentProvider.IsRoot)
-            {
-                return;
-            }
-
-            componentProviderBuilder.Register<IHypermediaFacilityFactory, HypermediaFacilityFactory>(() => new HypermediaFacilityFactory(
-                () => componentProvider.Resolve<IEntityContextProvider>(),
-                type => (IHttpControllerDescriptionBuilder)componentProvider.Resolve(type),
-                type => (IApiDescriptionBuilder)componentProvider.Resolve(type)));
-            componentProviderBuilder.RegisterAll<IConverter>(new[] { GetType().GetTypeInfo().Assembly }, Lifestyles.Transient);
+            componentComposer.Register<IHypermediaFacilityFactory, HypermediaFacilityFactory>(
+                context => new HypermediaFacilityFactory(
+                    () => context.Resolve<IEntityContextProvider>(),
+                    type => (IHttpControllerDescriptionBuilder)context.Resolve(type),
+                    type => (IApiDescriptionBuilder)context.Resolve(type)));
+            componentComposer.RegisterAll<IConverter>(new[] { GetType().GetTypeInfo().Assembly }, Lifestyles.Scoped);
         }
     }
 }

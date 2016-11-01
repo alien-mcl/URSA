@@ -98,7 +98,6 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ComponentInstaller.cs" />
     <Compile Include="Description\DefaultApiDescriptionBuilderFactory.cs" />
     <Compile Include="Entities\DefaultEntityContextProvider.cs" />
     <Compile Include="HttpInstaller.cs" />

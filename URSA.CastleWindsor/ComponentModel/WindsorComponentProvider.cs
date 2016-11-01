@@ -44,16 +44,9 @@ namespace URSA.ComponentModel
         internal IGenericImplementationMatchingStrategy GenericImplementationMatchingStrategy { get { return _genericImplementationMatchingStrategy; } }
 
         /// <inheritdoc />
-        public IComponentProvider BeginNewScope(Action<IComponentProviderBuilder, IComponentProvider> scopeBuilder = null)
+        public IComponentProvider BeginNewScope()
         {
-            var result = new WindsorComponentProvider(_container.BeginScope());
-            result._container = _container;
-            if (scopeBuilder != null)
-            {
-                scopeBuilder(result, this);
-            }
-
-            return result;
+            return new WindsorComponentProvider(_container.BeginScope()) { _container = _container };
         }
 
         /// <inheritdoc />
@@ -63,7 +56,7 @@ namespace URSA.ComponentModel
         }
 
         /// <inheritdoc />
-        public void Register<T, I>(string name, Func<T> factoryMethod = null, Lifestyles lifestyle = Lifestyles.Transient)
+        public void Register<T, I>(string name, Func<IComponentResolver, T> factoryMethod = null, Lifestyles lifestyle = Lifestyles.Transient)
             where T : class
             where I : T
         {
@@ -71,12 +64,12 @@ namespace URSA.ComponentModel
         }
 
         /// <inheritdoc />
-        public void Register(Type serviceType, Type implementationType, string name, Func<object> factoryMethod = null, Lifestyles lifestyle = Lifestyles.Transient)
+        public void Register(Type serviceType, Type implementationType, string name, Func<IComponentResolver, object> factoryMethod = null, Lifestyles lifestyle = Lifestyles.Transient)
         {
             var registration = Component.For(serviceType).ImplementedBy(implementationType, _genericImplementationMatchingStrategy);
             if (factoryMethod != null)
             {
-                registration = registration.UsingFactoryMethod(factoryMethod);
+                registration = registration.UsingFactoryMethod(kernel => factoryMethod(new WindsorComponentResolver(kernel)));
             }
 
             switch (lifestyle)
@@ -86,6 +79,9 @@ namespace URSA.ComponentModel
                     break;
                 case Lifestyles.Singleton:
                     registration = registration.LifestyleSingleton();
+                    break;
+                case Lifestyles.Scoped:
+                    registration = registration.LifestyleScoped();
                     break;
             }
 
@@ -110,7 +106,7 @@ namespace URSA.ComponentModel
         }
 
         /// <inheritdoc />
-        public void Register<T, I>(Func<T> factoryMethod = null, Lifestyles lifestyle = Lifestyles.Transient)
+        public void Register<T, I>(Func<IComponentResolver, T> factoryMethod = null, Lifestyles lifestyle = Lifestyles.Transient)
             where T : class
             where I : T
         {
@@ -118,7 +114,7 @@ namespace URSA.ComponentModel
         }
 
         /// <inheritdoc />
-        public void Register(Type serviceType, Type implementationType, Func<object> factoryMethod = null, Lifestyles lifestyle = Lifestyles.Transient)
+        public void Register(Type serviceType, Type implementationType, Func<IComponentResolver, object> factoryMethod = null, Lifestyles lifestyle = Lifestyles.Transient)
         {
             Register(serviceType, implementationType, null, factoryMethod, lifestyle);
         }

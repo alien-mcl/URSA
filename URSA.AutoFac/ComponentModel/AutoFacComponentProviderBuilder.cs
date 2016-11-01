@@ -1,4 +1,4 @@
-﻿using System;
+﻿/*using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -28,20 +28,33 @@ namespace URSA.ComponentModel
         }
 
         /// <inheritdoc />
-        public void Register<T, I>(string name, Func<T> factoryMethod = null, Lifestyles lifestyle = Lifestyles.Transient) where T : class where I : T
+        public void Register<T, I>(string name, Func<IComponentProvider, T> factoryMethod = null, Lifestyles lifestyle = Lifestyles.Transient) where T : class where I : T
         {
             Register(typeof(T), typeof(I), name, factoryMethod, lifestyle);
         }
 
         /// <inheritdoc />
-        public void Register(Type serviceType, Type implementationType, string name, Func<object> factoryMethod = null, Lifestyles lifestyle = Lifestyles.Transient)
+        public void Register(Type serviceType, Type implementationType, string name, Func<IComponentProvider, object> factoryMethod = null, Lifestyles lifestyle = Lifestyles.Transient)
         {
             if (factoryMethod != null)
             {
                 var registration = _builder.Register(context => factoryMethod()).As(serviceType);
                 if (name != null)
                 {
-                    registration.Named(name, serviceType);
+                    registration = registration.Named(name, serviceType);
+                }
+
+                switch (lifestyle)
+                {
+                    case Lifestyles.Singleton:
+                        registration.SingleInstance();
+                        break;
+                    case Lifestyles.Transient:
+                        registration.InstancePerDependency();
+                        break;
+                    case Lifestyles.Scoped:
+                        registration.InstancePerLifetimeScope();
+                        break;
                 }
             }
             else
@@ -49,19 +62,32 @@ namespace URSA.ComponentModel
                 var registration = _builder.RegisterType(implementationType).As(serviceType);
                 if (name != null)
                 {
-                    registration.Named(name, serviceType);
+                    registration = registration.Named(name, serviceType);
+                }
+
+                switch (lifestyle)
+                {
+                    case Lifestyles.Singleton:
+                        registration.SingleInstance();
+                        break;
+                    case Lifestyles.Transient:
+                        registration.InstancePerDependency();
+                        break;
+                    case Lifestyles.Scoped:
+                        registration.InstancePerLifetimeScope();
+                        break;
                 }
             }
         }
 
         /// <inheritdoc />
-        public void Register<T, I>(Func<T> factoryMethod = null, Lifestyles lifestyle = Lifestyles.Transient) where T : class where I : T
+        public void Register<T, I>(Func<IComponentProvider, T> factoryMethod = null, Lifestyles lifestyle = Lifestyles.Transient) where T : class where I : T
         {
             Register(typeof(T), typeof(I), factoryMethod, lifestyle);
         }
 
         /// <inheritdoc />
-        public void Register(Type serviceType, Type implementationType, Func<object> factoryMethod = null, Lifestyles lifestyle = Lifestyles.Transient)
+        public void Register(Type serviceType, Type implementationType, Func<IComponentProvider, object> factoryMethod = null, Lifestyles lifestyle = Lifestyles.Transient)
         {
             if (factoryMethod != null)
             {
@@ -73,6 +99,9 @@ namespace URSA.ComponentModel
                         break;
                     case Lifestyles.Transient:
                         registration.InstancePerDependency();
+                        break;
+                    case Lifestyles.Scoped:
+                        registration.InstancePerLifetimeScope();
                         break;
                 }
             }
@@ -86,6 +115,9 @@ namespace URSA.ComponentModel
                         break;
                     case Lifestyles.Transient:
                         registration.InstancePerDependency();
+                        break;
+                    case Lifestyles.Scoped:
+                        registration.InstancePerLifetimeScope();
                         break;
                 }
             }
@@ -141,3 +173,4 @@ namespace URSA.ComponentModel
         }
     }
 }
+*/

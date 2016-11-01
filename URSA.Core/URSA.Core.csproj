@@ -55,8 +55,9 @@
   <ItemGroup>
     <Compile Include="ComponentInstaller.cs" />
     <Compile Include="ComponentModel\ComponentProviderBuilderExtensions.cs" />
+    <Compile Include="ComponentModel\IComponentComposer.cs" />
     <Compile Include="ComponentModel\IComponentInstaller.cs" />
-    <Compile Include="ComponentModel\IComponentProviderBuilder.cs" />
+    <Compile Include="ComponentModel\IComponentResolver.cs" />
     <Compile Include="Configuration\UrlParserConfigurationSection.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="..\.build\CommonAssemblyInfo.cs">

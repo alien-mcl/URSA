@@ -36,7 +36,8 @@ namespace URSA.CastleWindsor
     /// <summary>Installs HTTP components.</summary>
     public class HttpInstaller : IWindsorInstaller
     {
-        private static readonly Uri MetaGraphUri = ConfigurationSectionHandler.Default.Factories[DescriptionConfigurationSection.Default.DefaultStoreFactoryName].MetaGraphUri;
+        private static readonly Uri MetaGraphUri = ConfigurationSectionHandler.Default
+            .Factories[DescriptionConfigurationSection.Default.DefaultStoreFactoryName].MetaGraphUri;
         private readonly Lazy<EntityContextFactory> _entityContextFactory;
         private readonly INamedGraphSelector _namedGraphSelector;
         private readonly object _lock = new object();
@@ -67,35 +68,34 @@ namespace URSA.CastleWindsor
             Type sourceSelectorType = ((configuration != null) && (configuration.DefaultValueRelationSelectorType != null) ?
                 configuration.DefaultValueRelationSelectorType :
                 typeof(DefaultValueRelationSelector));
-            container.Register(Component.For<IConverterProvider>().UsingFactoryMethod((kernel, context) =>
-                {
-                    var result = new DefaultConverterProvider();
-                    result.Initialize(container.ResolveAll<IConverter>);
-                    return result;
-                }).LifeStyle.PerUniversalWebRequest());
-            container.Register(Component.For<IControllerActivator>().UsingFactoryMethod((kernel, context) => new DefaultControllerActivator(UrsaConfigurationSection.InitializeComponentProvider())).LifestyleSingleton());
+            container.Register(Component.For<IDelegateMapper<RequestInfo>>().ImplementedBy<DelegateMapper>().LifestyleScoped());
             container.Register(Component.For<IDefaultValueRelationSelector>().ImplementedBy(sourceSelectorType).LifestyleSingleton());
-            container.Register(Component.For<IParameterSourceArgumentBinder>().ImplementedBy<FromQueryStringArgumentBinder>().Activator<NonPublicComponentActivator>().LifestyleSingleton());
-            container.Register(Component.For<IParameterSourceArgumentBinder>().ImplementedBy<FromUrlArgumentBinder>().Activator<NonPublicComponentActivator>().LifestyleSingleton());
-            container.Register(Component.For<IParameterSourceArgumentBinder>().ImplementedBy<FromBodyArgumentBinder>().Activator<NonPublicComponentActivator>().LifestyleSingleton());
+            container.Register(Component.For<IParameterSourceArgumentBinder>().ImplementedBy<FromQueryStringArgumentBinder>()
+                .Activator<NonPublicComponentActivator>().LifestyleScoped());
+            container.Register(Component.For<IParameterSourceArgumentBinder>().ImplementedBy<FromUrlArgumentBinder>()
+                .Activator<NonPublicComponentActivator>().LifestyleScoped());
+            container.Register(Component.For<IParameterSourceArgumentBinder>().ImplementedBy<FromBodyArgumentBinder>()
+                .Activator<NonPublicComponentActivator>().LifestyleScoped());
             container.Register(Component.For<IWebRequestProvider>().ImplementedBy<WebRequestProvider>().LifestyleSingleton());
-            container.Register(Component.For<IRequestHandler<RequestInfo, ResponseInfo>>().ImplementedBy<RequestHandler>().LifestyleSingleton());
-            container.Register(Component.For<IResponseComposer>().ImplementedBy<ResponseComposer>().LifestyleSingleton());
-            container.Register(Component.For<IDelegateMapper<RequestInfo>>().ImplementedBy<DelegateMapper>().LifestyleSingleton());
-            container.Register(Component.For<IArgumentBinder<RequestInfo>>().ImplementedBy<ArgumentBinder>().LifestyleSingleton());
-            container.Register(Component.For<IResultBinder<RequestInfo>>().ImplementedBy<ResultBinder>().LifestyleSingleton());
-            container.Register(Component.For<IResponseModelTransformer>().ImplementedBy<RdfPayloadModelTransformer>().Named("RdfPayloadRequestModelTransformer").LifestyleSingleton());
-            container.Register(Component.For<IResponseModelTransformer>().ImplementedBy<CollectionResponseModelTransformer>().Named("CollectionResponseModelTransformer").LifestyleSingleton());
-            container.Register(Component.For<IRequestModelTransformer>().ImplementedBy<RdfPayloadModelTransformer>().Named("RdfPayloadResponseModelTransformer").LifestyleSingleton());
+            container.Register(Component.For<IRequestHandler<RequestInfo, ResponseInfo>>().ImplementedBy<RequestHandler>().LifeStyle.PerUniversalWebRequest());
+            container.Register(Component.For<IResponseComposer>().ImplementedBy<ResponseComposer>().LifestyleScoped());
+            container.Register(Component.For<IArgumentBinder<RequestInfo>>().ImplementedBy<ArgumentBinder>().LifestyleScoped());
+            container.Register(Component.For<IResultBinder<RequestInfo>>().ImplementedBy<ResultBinder>().LifestyleScoped());
+            container.Register(Component.For<IResponseModelTransformer>().ImplementedBy<RdfPayloadModelTransformer>()
+                .Named("RdfPayloadRequestModelTransformer").LifeStyle.PerUniversalWebRequest());
+            container.Register(Component.For<IResponseModelTransformer>().ImplementedBy<CollectionResponseModelTransformer>()
+                .Named("CollectionResponseModelTransformer").LifeStyle.PerUniversalWebRequest());
+            container.Register(Component.For<IRequestModelTransformer>().ImplementedBy<RdfPayloadModelTransformer>()
+                .Named("RdfPayloadResponseModelTransformer").LifeStyle.PerUniversalWebRequest());
         }
 
         private void InstallRdfDependencies(IWindsorContainer container, UrsaCustomTypedFactory typedFactory)
         {
-            container.Register(Component.For<ITripleStore>().UsingFactoryMethod(CreateTripleStore).Named("InMemoryTripleStore").LifeStyle.PerUniversalWebRequest());
+            container.Register(Component.For<Uri>().Instance(MetaGraphUri).Named("InMemoryMetaGraph").LifestyleSingleton());
             container.Register(Component.For<INamedGraphSelector>().Instance(_namedGraphSelector).Named("InMemoryNamedGraphSelector").LifestyleSingleton());
             container.Register(Component.For<IEntityContextFactory>().Instance(_entityContextFactory.Value).Named("InMemoryEntityContextFactory").LifestyleSingleton());
+            container.Register(Component.For<ITripleStore>().UsingFactoryMethod(CreateTripleStore).Named("InMemoryTripleStore").LifeStyle.PerUniversalWebRequest());
             container.Register(Component.For<IEntityContext>().UsingFactoryMethod(CreateEntityContext).Named("InMemoryEntityContext").LifeStyle.PerUniversalWebRequest());
-            container.Register(Component.For<Uri>().Instance(MetaGraphUri).Named("InMemoryMetaGraph").LifestyleSingleton());
             container.Register(Component.For<IEntityContextProvider>().AsFactory(typedFactory).LifeStyle.PerUniversalWebRequest());
         }
 
@@ -109,8 +109,8 @@ namespace URSA.CastleWindsor
                 .Named(EntityConverter.Hydra.ToString()).IsDefault().LifestyleSingleton());
             container.Register(Component.For<IServerBehaviorAttributeVisitor>().ImplementedBy<DescriptionBuildingServerBahaviorAttributeVisitor<ParameterInfo>>().Named("Hydra"));
             //// TODO: This should be removed once all API description builders are manually registered.
-            ////container.Register(Component.For(typeof(IApiDescriptionBuilder<>)).ImplementedBy(typeof(ApiDescriptionBuilder<>)).LifestyleSingleton().Forward<IApiDescriptionBuilder>());
-            container.Register(Component.For<IApiEntryPointDescriptionBuilder>().ImplementedBy<ApiEntryPointDescriptionBuilder>().LifestyleSingleton().Forward<IApiDescriptionBuilder>());
+            ////container.Register(Component.For(typeof(IApiDescriptionBuilder<>)).ImplementedBy(typeof(ApiDescriptionBuilder<>)).Forward<IApiDescriptionBuilder>().LifestyleSingleton());
+            container.Register(Component.For<IApiEntryPointDescriptionBuilder>().ImplementedBy<ApiEntryPointDescriptionBuilder>().Forward<IApiDescriptionBuilder>().LifestyleSingleton());
             container.Register(Component.For<IApiDescriptionBuilderFactory>().AsFactory(typedFactory).LifestyleSingleton());
             container.Register(Component.For<IClassGenerator>().ImplementedBy<HydraClassGenerator>().LifestyleSingleton());
             container.Register(Component.For<IUriParser>().ImplementedBy<Web.Http.Description.CodeGen.GenericUriParser>().LifestyleSingleton());
