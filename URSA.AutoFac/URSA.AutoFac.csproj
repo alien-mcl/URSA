@@ -49,8 +49,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ComponentModel\AutoFacComponentProvider.cs" />
-    <Compile Include="ComponentModel\AutoFacComponentProviderBuilder.cs" />
-    <Compile Include="ComponentModel\AutoFacScopedComponentResolver.cs" />
+    <Compile Include="ComponentModel\AutoFacComponentResolver.cs" />
     <Compile Include="ComponentModel\IComponentContextProvider.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="..\.build\CommonAssemblyInfo.cs">
@@ -59,7 +58,6 @@
     <Compile Include="..\.build\VersionAssemblyInfo.cs">
       <Link>Properties\VersionAssemblyInfo.cs</Link>
     </Compile>
-    <Compile Include="RegistrationExtensions.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\URSA.Core\URSA.Core.csproj">

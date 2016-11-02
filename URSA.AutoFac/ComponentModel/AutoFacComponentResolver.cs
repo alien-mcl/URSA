@@ -9,22 +9,22 @@ using IContainer = Autofac.IContainer;
 
 namespace URSA.ComponentModel
 {
-    /// <summary>Provides an <![CDATA[AutoFac]]> based implementation of the <see cref="IServiceProvider"/> interface.</summary>
-    public class AutoFacScopedComponentResolver : IComponentResolver, IComponentContextProvider
+    /// <summary>Provides an <![CDATA[AutoFac]]> based implementation of the <see cref="IComponentResolver"/> interface.</summary>
+    public class AutoFacComponentResolver : IComponentResolver, IComponentContextProvider
     {
-        private readonly AutoFacComponentProvider _parent;
-        private readonly IComponentContext _container;
+        private readonly IComponentContextProvider _parent;
+        private IComponentContext _container;
 
-        internal AutoFacScopedComponentResolver(AutoFacComponentProvider parent, IComponentContext container)
+        internal AutoFacComponentResolver(IComponentContextProvider parent, IComponentContext container)
         {
             _parent = parent;
             _container = container;
         }
 
         /// <inheritdoc />
-        public bool IsRoot { get { return false; } }
+        public bool IsRoot { get { return _parent == null; } }
 
-        IComponentContext IComponentContextProvider.Container { get { return _container; } }
+        IComponentContext IComponentContextProvider.Container { get { return _container; } set { _container = value; } }
 
         IComponentContextProvider IComponentContextProvider.Parent { get { return _parent; } }
 

@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Web;
-using URSA.Web.Web;
+using URSA.Configuration;
 
 namespace URSA.Web.Modules
 {
@@ -8,7 +8,7 @@ namespace URSA.Web.Modules
     public class UrsaModule : IHttpModule
     {
         /// <summary>Defines a key under which a request context is being held in the HTTP context.</summary>
-        private const string ContextKey = "URSA.CastleWindsor.RequestContext";
+        internal const string ContextKey = "URSA.RequestScope";
 
         /// <inheritdoc />
         public void Init(HttpApplication context)
@@ -25,15 +25,15 @@ namespace URSA.Web.Modules
         private static void OnBeginRequest(object sender, EventArgs e)
         {
             var context = ((HttpApplication)sender).Context;
-            context.Items[ContextKey] = new HttpRequestContext(context);
+            context.Items[ContextKey] = UrsaConfigurationSection.InitializeComponentProvider().BeginNewScope();
         }
 
         private static void OnEndRequest(object sender, EventArgs e)
         {
-            var requestContext = ((HttpApplication)sender).Context.Items[ContextKey] as HttpRequestContext;
-            if (requestContext != null)
+            var scope = ((HttpApplication)sender).Context.Items[ContextKey] as IDisposable;
+            if (scope != null)
             {
-                requestContext.Dispose();
+                scope.Dispose();
             }
         }
     }

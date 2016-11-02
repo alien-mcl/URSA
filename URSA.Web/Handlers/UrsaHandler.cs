@@ -18,18 +18,18 @@ namespace URSA.Web.Handlers
     public class UrsaHandler<T> : IHttpHandler, IRouteHandler
         where T : IController
     {
-        private readonly IRequestHandler<RequestInfo, ResponseInfo> _requestHandler;
+        private readonly Func<HttpContext, IRequestHandler<RequestInfo, ResponseInfo>> _requestHandlerFactoryMethod;
 
         /// <summary>Initializes a new instance of the <see cref="UrsaHandler{T}" /> class.</summary>
-        /// <param name="requestHandler">Request handler.</param>
-        public UrsaHandler(IRequestHandler<RequestInfo, ResponseInfo> requestHandler)
+        /// <param name="requestHandlerFactoryMethod">Request handler.</param>
+        public UrsaHandler(Func<HttpContext, IRequestHandler<RequestInfo, ResponseInfo>> requestHandlerFactoryMethod)
         {
-            if (requestHandler == null)
+            if (requestHandlerFactoryMethod == null)
             {
-                throw new ArgumentNullException("requestHandler");
+                throw new ArgumentNullException("requestHandlerFactoryMethod");
             }
 
-            _requestHandler = requestHandler;
+            _requestHandlerFactoryMethod = requestHandlerFactoryMethod;
         }
 
         /// <inheritdoc />
@@ -89,7 +89,7 @@ namespace URSA.Web.Handlers
                 context.Request.InputStream,
                 new HttpContextPrincipal(context.User),
                 headers);
-            ResponseInfo response = _requestHandler.HandleRequest(requestInfo);
+            ResponseInfo response = _requestHandlerFactoryMethod(context).HandleRequest(requestInfo);
             context.Response.ContentEncoding = context.Response.HeaderEncoding = response.Encoding;
             context.Response.StatusCode = (int)response.Status;
             foreach (var header in response.Headers)

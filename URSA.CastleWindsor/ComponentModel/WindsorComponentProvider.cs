@@ -19,8 +19,8 @@ namespace URSA.ComponentModel
     public sealed class WindsorComponentProvider : IComponentProvider, IDisposable
     {
         private readonly IGenericImplementationMatchingStrategy _genericImplementationMatchingStrategy;
+        private readonly IDisposable _scope;
         private IWindsorContainer _container;
-        private IDisposable _scope;
 
         /// <summary>Initializes a new instance of the <see cref="WindsorComponentProvider"/> class.</summary>
         public WindsorComponentProvider() : this(null)
@@ -151,6 +151,9 @@ namespace URSA.ComponentModel
                             break;
                         case Lifestyles.Transient:
                             registration = registration.LifestyleTransient();
+                            break;
+                        case Lifestyles.Scoped:
+                            registration = registration.LifestyleScoped();
                             break;
                     }
 

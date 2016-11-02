@@ -122,7 +122,8 @@ namespace URSA.Web
 
         private static IDictionary<string, Route> RegisterApi<T>(IComponentProvider container, ControllerInfo<T> description) where T : IController
         {
-            var handler = new UrsaHandler<T>(container.Resolve<IRequestHandler<RequestInfo, ResponseInfo>>());
+            var handler = new UrsaHandler<T>(httpContext =>
+                ((IComponentProvider)httpContext.Items[UrsaModule.ContextKey]).Resolve<IRequestHandler<RequestInfo, ResponseInfo>>());
             string globalRoutePrefix = (description.EntryPoint != null ? description.EntryPoint.Url.ToString().Substring(1) + "/" : String.Empty);
             IDictionary<string, Route> routes = new Dictionary<string, Route>();
             routes[typeof(T).FullName + "DocumentationStylesheet"] = new Route(globalRoutePrefix + EntityConverter.DocumentationStylesheet, handler);

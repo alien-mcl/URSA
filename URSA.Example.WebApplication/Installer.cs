@@ -44,7 +44,7 @@ namespace URSA.Example.WebApplication
         {
             container.Register(Component.For<ITripleStore>().Instance(_tripleStore.Value).LifestyleSingleton());
             container.Register(Component.For<IEntityContextFactory>().Instance(_entityContextFactory.Value).LifestyleSingleton());
-            container.Register(Component.For<IEntityContext>().UsingFactoryMethod(CreateEntityContext).LifeStyle.HybridPerWebRequestPerThread());
+            container.Register(Component.For<IEntityContext>().UsingFactoryMethod(CreateEntityContext).LifestyleScoped());
         }
 
         private IEntityContext CreateEntityContext(IKernel kernel, CreationContext context)

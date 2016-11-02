@@ -16,6 +16,8 @@ using URSA.CastleWindsor.ComponentModel;
 using URSA.CodeGen;
 using URSA.ComponentModel;
 using URSA.Configuration;
+using URSA.Http.AutoFac.Description;
+using URSA.Http.AutoFac.Entities;
 using URSA.Web;
 using URSA.Web.Converters;
 using URSA.Web.Description.Http;
@@ -77,16 +79,16 @@ namespace URSA.CastleWindsor
             container.Register(Component.For<IParameterSourceArgumentBinder>().ImplementedBy<FromBodyArgumentBinder>()
                 .Activator<NonPublicComponentActivator>().LifestyleScoped());
             container.Register(Component.For<IWebRequestProvider>().ImplementedBy<WebRequestProvider>().LifestyleSingleton());
-            container.Register(Component.For<IRequestHandler<RequestInfo, ResponseInfo>>().ImplementedBy<RequestHandler>().LifeStyle.PerUniversalWebRequest());
+            container.Register(Component.For<IRequestHandler<RequestInfo, ResponseInfo>>().ImplementedBy<RequestHandler>().LifestyleScoped());
             container.Register(Component.For<IResponseComposer>().ImplementedBy<ResponseComposer>().LifestyleScoped());
             container.Register(Component.For<IArgumentBinder<RequestInfo>>().ImplementedBy<ArgumentBinder>().LifestyleScoped());
             container.Register(Component.For<IResultBinder<RequestInfo>>().ImplementedBy<ResultBinder>().LifestyleScoped());
             container.Register(Component.For<IResponseModelTransformer>().ImplementedBy<RdfPayloadModelTransformer>()
-                .Named("RdfPayloadRequestModelTransformer").LifeStyle.PerUniversalWebRequest());
+                .Named("RdfPayloadRequestModelTransformer").LifestyleScoped());
             container.Register(Component.For<IResponseModelTransformer>().ImplementedBy<CollectionResponseModelTransformer>()
-                .Named("CollectionResponseModelTransformer").LifeStyle.PerUniversalWebRequest());
+                .Named("CollectionResponseModelTransformer").LifestyleScoped());
             container.Register(Component.For<IRequestModelTransformer>().ImplementedBy<RdfPayloadModelTransformer>()
-                .Named("RdfPayloadResponseModelTransformer").LifeStyle.PerUniversalWebRequest());
+                .Named("RdfPayloadResponseModelTransformer").LifestyleScoped());
         }
 
         private void InstallRdfDependencies(IWindsorContainer container, UrsaCustomTypedFactory typedFactory)
@@ -94,9 +96,12 @@ namespace URSA.CastleWindsor
             container.Register(Component.For<Uri>().Instance(MetaGraphUri).Named("InMemoryMetaGraph").LifestyleSingleton());
             container.Register(Component.For<INamedGraphSelector>().Instance(_namedGraphSelector).Named("InMemoryNamedGraphSelector").LifestyleSingleton());
             container.Register(Component.For<IEntityContextFactory>().Instance(_entityContextFactory.Value).Named("InMemoryEntityContextFactory").LifestyleSingleton());
-            container.Register(Component.For<ITripleStore>().UsingFactoryMethod(CreateTripleStore).Named("InMemoryTripleStore").LifeStyle.PerUniversalWebRequest());
-            container.Register(Component.For<IEntityContext>().UsingFactoryMethod(CreateEntityContext).Named("InMemoryEntityContext").LifeStyle.PerUniversalWebRequest());
-            container.Register(Component.For<IEntityContextProvider>().AsFactory(typedFactory).LifeStyle.PerUniversalWebRequest());
+            container.Register(Component.For<ITripleStore>().UsingFactoryMethod(CreateTripleStore).Named("InMemoryTripleStore").LifestyleScoped());
+            container.Register(Component.For<IEntityContext>().UsingFactoryMethod(CreateEntityContext).Named("InMemoryEntityContext").LifestyleScoped());
+            container.Register(Component.For<IEntityContextProvider>().UsingFactoryMethod(kernel => new DefaultEntityContextProvider(
+                kernel.Resolve<IEntityContext>("InMemoryEntityContext"),
+                kernel.Resolve<ITripleStore>("InMemoryTripleStore"),
+                kernel.Resolve<Uri>("InMemoryMetaGraph"))).LifestyleScoped());
         }
 
         private void InstallDescriptionDependencies(IWindsorContainer container, UrsaCustomTypedFactory typedFactory)
@@ -108,10 +113,9 @@ namespace URSA.CastleWindsor
             container.Register(Component.For<ITypeDescriptionBuilder>().ImplementedBy<HydraCompliantTypeDescriptionBuilder>()
                 .Named(EntityConverter.Hydra.ToString()).IsDefault().LifestyleSingleton());
             container.Register(Component.For<IServerBehaviorAttributeVisitor>().ImplementedBy<DescriptionBuildingServerBahaviorAttributeVisitor<ParameterInfo>>().Named("Hydra"));
-            //// TODO: This should be removed once all API description builders are manually registered.
-            ////container.Register(Component.For(typeof(IApiDescriptionBuilder<>)).ImplementedBy(typeof(ApiDescriptionBuilder<>)).Forward<IApiDescriptionBuilder>().LifestyleSingleton());
             container.Register(Component.For<IApiEntryPointDescriptionBuilder>().ImplementedBy<ApiEntryPointDescriptionBuilder>().Forward<IApiDescriptionBuilder>().LifestyleSingleton());
-            container.Register(Component.For<IApiDescriptionBuilderFactory>().AsFactory(typedFactory).LifestyleSingleton());
+            container.Register(Component.For<IApiDescriptionBuilderFactory>().UsingFactoryMethod(kernel =>
+                new DefaultApiDescriptionBuilderFactory(type => (IApiDescriptionBuilder)kernel.Resolve(typeof(IApiDescriptionBuilder<>).MakeGenericType(type)))).LifestyleSingleton());
             container.Register(Component.For<IClassGenerator>().ImplementedBy<HydraClassGenerator>().LifestyleSingleton());
             container.Register(Component.For<IUriParser>().ImplementedBy<Web.Http.Description.CodeGen.GenericUriParser>().LifestyleSingleton());
             container.Register(Component.For<IUriParser>().ImplementedBy<HydraUriParser>().LifestyleSingleton().Named(typeof(HydraUriParser).FullName));

@@ -98,8 +98,6 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Description\DefaultApiDescriptionBuilderFactory.cs" />
-    <Compile Include="Entities\DefaultEntityContextProvider.cs" />
     <Compile Include="HttpInstaller.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="..\.build\CommonAssemblyInfo.cs">

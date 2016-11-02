@@ -76,7 +76,6 @@
       <Link>Properties\VersionAssemblyInfo.cs</Link>
     </Compile>
     <Compile Include="Security\OwinPrincipal.cs" />
-    <Compile Include="Web\OwinRequestContext.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />

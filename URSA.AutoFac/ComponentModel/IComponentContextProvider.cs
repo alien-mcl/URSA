@@ -6,6 +6,6 @@ namespace URSA.AutoFac.ComponentModel
     {
         IComponentContextProvider Parent { get; }
 
-        IComponentContext Container { get; }
+        IComponentContext Container { get; set; }
     }
 }

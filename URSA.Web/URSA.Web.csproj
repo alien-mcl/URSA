@@ -82,7 +82,6 @@
       <Link>Properties\VersionAssemblyInfo.cs</Link>
     </Compile>
     <Compile Include="Security\HttpContextPrincipal.cs" />
-    <Compile Include="Web\HttpRequestContext.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\URSA.Core\URSA.Core.csproj">

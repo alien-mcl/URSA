@@ -70,16 +70,16 @@ namespace URSA.AutoFac
             builder.RegisterType<FromBodyArgumentBinder>().As<IParameterSourceArgumentBinder>()
                 .FindConstructorsWith(type => type.GetConstructors(BindingFlags.NonPublic | BindingFlags.Instance)).InstancePerLifetimeScope();
             builder.RegisterType<WebRequestProvider>().As<IWebRequestProvider>().SingleInstance();
-            builder.RegisterType<RequestHandler>().As<IRequestHandler<RequestInfo, ResponseInfo>>().InstancePerHttpRequest();
+            builder.RegisterType<RequestHandler>().As<IRequestHandler<RequestInfo, ResponseInfo>>().InstancePerLifetimeScope();
             builder.RegisterType<ResponseComposer>().As<IResponseComposer>().InstancePerLifetimeScope();
             builder.RegisterType<ArgumentBinder>().As<IArgumentBinder<RequestInfo>>().InstancePerLifetimeScope();
             builder.RegisterType<ResultBinder>().As<IResultBinder<RequestInfo>>().InstancePerLifetimeScope();
             builder.RegisterType<RdfPayloadModelTransformer>().As<IResponseModelTransformer>()
-                .Named<IResponseModelTransformer>("RdfPayloadResponseModelTransformer").InstancePerHttpRequest();
+                .Named<IResponseModelTransformer>("RdfPayloadResponseModelTransformer").InstancePerLifetimeScope();
             builder.RegisterType<CollectionResponseModelTransformer>().As<IResponseModelTransformer>()
-                .Named<IResponseModelTransformer>("CollectionResponseModelTransformer").InstancePerHttpRequest();
+                .Named<IResponseModelTransformer>("CollectionResponseModelTransformer").InstancePerLifetimeScope();
             builder.RegisterType<RdfPayloadModelTransformer>().As<IRequestModelTransformer>()
-                .Named<IRequestModelTransformer>("RdfPayloadRequestModelTransformer").InstancePerHttpRequest();
+                .Named<IRequestModelTransformer>("RdfPayloadRequestModelTransformer").InstancePerLifetimeScope();
         }
 
         private void InstallRdfDependencies(ContainerBuilder builder)
@@ -87,12 +87,12 @@ namespace URSA.AutoFac
             builder.RegisterInstance(MetaGraphUri).Named<Uri>("InMemoryMetaGraph").SingleInstance();
             builder.RegisterInstance(_namedGraphSelector).As<INamedGraphSelector>().SingleInstance();
             builder.RegisterInstance(_entityContextFactory.Value).Named<IEntityContextFactory>("InMemoryEntityContextFactory").SingleInstance();
-            builder.Register(CreateTripleStore).Named<ITripleStore>("InMemoryTripleStore").InstancePerHttpRequest();
-            builder.Register(CreateEntityContext).Named<IEntityContext>("InMemoryEntityContext").InstancePerHttpRequest();
+            builder.Register(CreateTripleStore).Named<ITripleStore>("InMemoryTripleStore").InstancePerLifetimeScope();
+            builder.Register(CreateEntityContext).Named<IEntityContext>("InMemoryEntityContext").InstancePerLifetimeScope();
             builder.Register(context => new DefaultEntityContextProvider(
                 context.ResolveNamed<IEntityContext>("InMemoryEntityContext"),
                 context.ResolveNamed<ITripleStore>("InMemoryTripleStore"),
-                context.ResolveNamed<Uri>("InMemoryMetaGraph"))).As<IEntityContextProvider>().InstancePerHttpRequest();
+                context.ResolveNamed<Uri>("InMemoryMetaGraph"))).As<IEntityContextProvider>().InstancePerLifetimeScope();
         }
         
         private void InstallDescriptionDependencies(ContainerBuilder builder)
@@ -103,8 +103,6 @@ namespace URSA.AutoFac
                 .Named<ITypeDescriptionBuilder>(EntityConverter.Hydra.ToString()).SingleInstance();
             builder.RegisterType<DescriptionBuildingServerBahaviorAttributeVisitor<ParameterInfo>>().As<IServerBehaviorAttributeVisitor>()
                 .Named<IServerBehaviorAttributeVisitor>("Hydra");
-            //// TODO: This should be removed once all API description builders are manually registered.
-            //// builder.RegisterType(typeof(ApiDescriptionBuilder<>)).AsSelf().As<IApiDescriptionBuilder>().SingleInstance();
             builder.RegisterType<ApiEntryPointDescriptionBuilder>().As<IApiEntryPointDescriptionBuilder>().As<IApiDescriptionBuilder>().SingleInstance();
             builder.Register(context =>
                 {

@@ -115,6 +115,8 @@
     <Compile Include="ComponentInstaller.cs" />
     <Compile Include="Configuration\ComponentProviderExtensions.cs" />
     <Compile Include="Configuration\DescriptionConfigurationSection.cs" />
+    <Compile Include="DefaultApiDescriptionBuilderFactory.cs" />
+    <Compile Include="Entities\DefaultEntityContextProvider.cs" />
     <Compile Include="HypermediaFacility.cs" />
     <Compile Include="HypermediaFacilityFactory.cs" />
     <Compile Include="NamedGraphs\FixedNamedGraphSelector.cs" />

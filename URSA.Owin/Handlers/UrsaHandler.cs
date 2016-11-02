@@ -13,7 +13,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Owin;
 #endif
 using URSA.Owin.Security;
-using URSA.Owin.Web;
 using URSA.Web;
 using URSA.Web.Http;
 using URSA.Web.Http.Configuration;
@@ -159,23 +158,7 @@ namespace URSA.Owin.Handlers
             var headers = new HeaderCollection();
             context.Request.Headers.ForEach(header => ((IDictionary<string, string>)headers)[header.Key] = String.Join(",", header.Value));
             var requestInfo = CreateRequestInfo(context, headers);
-            var requestContext = new OwinRequestContext(context);
-#if !CORE
-            System.Runtime.Remoting.Messaging.CallContext.HostContext = requestContext;
-#endif
-            ResponseInfo response;
-            try
-            {
-                response = await _requestHandler.HandleRequestAsync(requestInfo);
-            }
-            finally
-            {
-                requestContext.Dispose();
-#if !CORE
-                System.Runtime.Remoting.Messaging.CallContext.HostContext = null;
-#endif
-            }
-
+            ResponseInfo response = await _requestHandler.HandleRequestAsync(requestInfo);
             if ((IsResponseNoMatchingRouteFoundException(response)) && (Next != null))
             {
                 await Next();

@@ -47,7 +47,7 @@ namespace URSA.Example.OwinApplication
         {
             builder.RegisterInstance(_tripleStore.Value).As<ITripleStore>().SingleInstance();
             builder.RegisterInstance(_entityContextFactory.Value).As<IEntityContextFactory>().SingleInstance();
-            builder.Register(CreateEntityContext).As<IEntityContext>().InstancePerHttpRequest();
+            builder.Register(CreateEntityContext).As<IEntityContext>().InstancePerLifetimeScope();
         }
 
         private IEntityContext CreateEntityContext(IComponentContext context)
