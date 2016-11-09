@@ -20,6 +20,7 @@
     <DnxInvisibleContent Include="packages.config" />
     <DnxInvisibleContent Include="Settings.StyleCop" />
     <DnxInvisibleContent Include="StyleCop.Cache" />
+    <DnxInvisibleContent Include="URSA.Core.Tests.csproj.DotSettings" />
     <DnxInvisibleContent Include="URSA.Core.Tests.project.json" />
   </ItemGroup>
   <ItemGroup>
