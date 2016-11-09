@@ -33,6 +33,7 @@ namespace URSA.AutoFac
     {
         private static readonly Uri MetaGraphUri = ConfigurationSectionHandler.Default.Factories.Cast<FactoryElement>()
             .First(factory => factory.Name == DescriptionConfigurationSection.Default.DefaultStoreFactoryName).MetaGraphUri;
+
         private readonly Lazy<EntityContextFactory> _entityContextFactory;
         private readonly INamedGraphSelector _namedGraphSelector;
         private readonly object _lock = new object();
