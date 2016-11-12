@@ -75,9 +75,6 @@
     <Reference Include="RomanticWeb.dotNetRDF">
       <HintPath>..\packages\RomanticWeb.dotNetRDF.1.0.0-pre\lib\net45\RomanticWeb.dotNetRDF.dll</HintPath>
     </Reference>
-    <Reference Include="RomanticWeb.Mapping.Fluent">
-      <HintPath>..\packages\RomanticWeb.Mapping.Fluent.1.0.0\lib\net45\RomanticWeb.Mapping.Fluent.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.ComponentModel.DataAnnotations" />

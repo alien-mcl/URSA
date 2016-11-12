@@ -7,7 +7,7 @@
         <owners>alien-mcl</owners>
         <requireLicenseAcceptance>false</requireLicenseAcceptance>
         <title>Ultimate ReSt Api over HTTP implementation</title>
-        <description>$description$</description>
+        <description>Ultimate ReSt Api over HTTP implementation.</description>
         <releaseNotes>Initial release.</releaseNotes>
         <licenseUrl>http://opensource.org/licenses/BSD-3-Clause</licenseUrl>
         <iconUrl>http://alien-mcl.github.io/URSA/images/favicon.ico</iconUrl>
@@ -15,14 +15,29 @@
         <copyright>Copyright  © 2015</copyright>
         <tags>hydra rest api rdf semanticweb semantic</tags>
         <dependencies>
-            <dependency id="Newtonsoft.Json" version="6.0.8" />
-            <dependency id="Resta.UriTemplates" version="1.2.0" />
-            <dependency id="RomanticWeb" version="0.3.136.0" />
-            <dependency id="RomanticWeb.dotNetRDF" version="0.3.136.0" />
-            <dependency id="URSA" version="$version$" />
+            <group targetFramework="net45">
+                <dependency id="RomanticWeb.Contracts" version="1.0.0" />
+                <dependency id="Sprint.Filter.OData" version="1.2.0.0" />
+                <dependency id="Tavis.UriTemplates" version="1.1.0" />
+                <dependency id="URSA.Core" version="$version$" />
+                <dependency id="URSA.Tools" version="$version$" />
+            </group>
+            <group targetFramework="netstandard1.6">
+                <dependency id="Microsoft.AspNetCore.WebUtilities" version="1.0.0" />
+                <dependency id="Microsoft.Extensions.Configuration" version="1.0.0" />
+                <dependency id="Microsoft.Extensions.DependencyModel" version="1.0.0" />
+                <dependency id="NETStandard.Library" version="1.6.0" />
+                <dependency id="System.Net.Requests" version="4.0.11" />
+                <dependency id="System.Runtime.Extensions" version="4.1.0" />
+                <dependency id="System.Runtime.Loader" version="4.0.0" />
+                <dependency id="System.Runtime.Serialization.Xml" version="4.1.1" />
+                <dependency id="System.Security.Claims" version="4.0.1" />
+                <dependency id="Tavis.UriTemplates" version="1.1.0" />
+                <dependency id="RomanticWeb.Contracts" version="1.0.0" />
+                <dependency id="Sprint.Filter.OData" version="1.3.0" />
+                <dependency id="URSA.Core" version="$version$" />
+                <dependency id="URSA.Tools" version="$version$" />
+            </group>
         </dependencies>
-        <frameworkAssemblies>
-            <frameworkAssembly assemblyName="System.Configuration" />
-        </frameworkAssemblies>
     </metadata>
 </package>

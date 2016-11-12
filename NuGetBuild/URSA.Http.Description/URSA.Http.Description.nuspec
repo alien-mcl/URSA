@@ -1,13 +1,13 @@
 <?xml version="1.0"?>
 <package>
     <metadata>
-        <id>URSA.Http.CastleWindsor</id>
+        <id>URSA.Http.Description</id>
         <version>$version$-pre</version>
         <authors>alien-mcl</authors>
         <owners>alien-mcl</owners>
         <requireLicenseAcceptance>false</requireLicenseAcceptance>
-        <title>Ultimate ReSt Api over HTTP Castle Windsor integration</title>
-        <description>Ultimate ReSt Api over HTTP Castle Windsor integration.</description>
+        <title>Ultimate ReSt Api over HTTP description implementation</title>
+        <description>Ultimate ReSt Api over HTTP description facility implementation.</description>
         <releaseNotes>Initial release.</releaseNotes>
         <licenseUrl>http://opensource.org/licenses/BSD-3-Clause</licenseUrl>
         <iconUrl>http://alien-mcl.github.io/URSA/images/favicon.ico</iconUrl>
@@ -16,18 +16,18 @@
         <tags>hydra rest api rdf semanticweb semantic</tags>
         <dependencies>
             <group targetFramework="net45">
-                <dependency id="Castle.Core" version="3.3.3" />
-                <dependency id="Castle.Windsor" version="3.3.0" />
                 <dependency id="dotNetRDF" version="1.0.3" />
-                <dependency id="dotNetRDF.Data.Virtuoso" version="1.0.0.2473" />
                 <dependency id="HtmlAgilityPack" version="1.4.6" />
+                <dependency id="ImpromptuInterface" version="6.2.2" />
+                <dependency id="json-ld.net" version="1.0.5" />
                 <dependency id="Newtonsoft.Json" version="6.0.8" />
                 <dependency id="NLog" version="3.2.0.0" />
-                <dependency id="OpenLink.Data.Virtuoso" version="7.20.3214.1" />
                 <dependency id="Remotion.Linq" version="2.1.1" />
+                <dependency id="Tavis.UriTemplates" version="1.1.0" />
                 <dependency id="RomanticWeb" version="1.0.0" />
                 <dependency id="RomanticWeb.Contracts" version="1.0.0" />
                 <dependency id="RomanticWeb.dotNetRDF" version="1.0.0-pre" />
+                <dependency id="RomanticWeb.Mapping.Fluent" version="1.0.0" />
                 <dependency id="System.Collections" version="4.0.11" />
                 <dependency id="System.Diagnostics.Debug" version="4.0.11" />
                 <dependency id="System.Linq" version="4.1.0" />
@@ -41,10 +41,26 @@
                 <dependency id="System.Threading" version="4.0.11" />
                 <dependency id="VDS.Common" version="1.2.0" />
                 <dependency id="URSA.Core" version="$version$" />
-                <dependency id="URSA.CastleWindsor" version="$version$" />
                 <dependency id="URSA.Http" version="$version$" />
-                <dependency id="URSA.Http.Description" version="$version$" />
+                <dependency id="URSA.Tools" version="$version$" />
+            </group>
+            <group targetFramework="netstandard1.6">
+                <dependency id="json-ld.net" version="1.0.6" />
+                <dependency id="Microsoft.Extensions.Configuration" version="1.0.0" />
+                <dependency id="System.Dynamic.Runtime" version="4.0.11" />
+                <dependency id="System.Text.RegularExpressions" version="4.1.0" />
+                <dependency id="NETStandard.Library" version="1.6.0" />
+                <dependency id="RomanticWeb" version="1.0.0" />
+                <dependency id="RomanticWeb.Contracts" version="1.0.0" />
+                <dependency id="RomanticWeb.dotNetRDF" version="1.0.0-pre" />
+                <dependency id="Tavis.UriTemplates" version="1.1.0" />
+                <dependency id="URSA.Core" version="$version$" />
+                <dependency id="URSA.Http" version="$version$" />
+                <dependency id="URSA.Tools" version="$version$" />
             </group>
         </dependencies>
+        <frameworkAssemblies>
+            <frameworkAssembly assemblyName="System.Configuration" />
+        </frameworkAssemblies>
     </metadata>
 </package>

@@ -1,13 +1,13 @@
 <?xml version="1.0"?>
 <package>
     <metadata>
-        <id>URSA.CastleWindsor</id>
+        <id>URSA.AutoFac</id>
         <version>$version$</version>
         <authors>alien-mcl</authors>
         <owners>alien-mcl</owners>
         <requireLicenseAcceptance>false</requireLicenseAcceptance>
-        <title>Ultimate ReSt Api Castle Windsor integration</title>
-        <description>Ultimate ReSt Api Castle Windsor integration.</description>
+        <title>Ultimate ReSt Api Autofac integration</title>
+        <description>Ultimate ReSt Api Autofac integration.</description>
         <releaseNotes>Initial release.</releaseNotes>
         <licenseUrl>http://opensource.org/licenses/BSD-3-Clause</licenseUrl>
         <iconUrl>http://alien-mcl.github.io/URSA/images/favicon.ico</iconUrl>
@@ -16,10 +16,13 @@
         <tags>hydra rest api rdf semanticweb semantic</tags>
         <dependencies>
             <group targetFramework="net45">
-                <dependency id="Castle.Core" version="3.3.3" />
-                <dependency id="Castle.Windsor" version="3.3.0" />
+                <dependency id="Autofac" version="4.1.1" />
                 <dependency id="URSA.Core" version="$version$" />
-                <dependency id="URSA.Tools" version="$version$" />
+            </group>
+            <group targetFramework="netstandard1.6">
+                <dependency id="Autofac" version="4.1.1" />
+                <dependency id="NETStandard.Library" version="1.6.0" />
+                <dependency id="URSA.Core" version="$version$" />
             </group>
         </dependencies>
     </metadata>

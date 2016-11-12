@@ -32,11 +32,15 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{8F3DC0
 		.nuget\NuGet.Config = .nuget\NuGet.Config
 		.nuget\NuGet.exe = .nuget\NuGet.exe
 		.nuget\NuGet.targets = .nuget\NuGet.targets
+		NuGetBuild\URSA.AutoFac\URSA.AutoFac.nuspec = NuGetBuild\URSA.AutoFac\URSA.AutoFac.nuspec
 		NuGetBuild\URSA.CastleWindsor\URSA.CastleWindsor.nuspec = NuGetBuild\URSA.CastleWindsor\URSA.CastleWindsor.nuspec
+		NuGetBuild\URSA.Core\URSA.Core.nuspec = NuGetBuild\URSA.Core\URSA.Core.nuspec
+		NuGetBuild\URSA.Http.AutoFac\URSA.Http.AutoFac.nuspec = NuGetBuild\URSA.Http.AutoFac\URSA.Http.AutoFac.nuspec
 		NuGetBuild\URSA.Http.CastleWindsor\URSA.Http.CastleWindsor.nuspec = NuGetBuild\URSA.Http.CastleWindsor\URSA.Http.CastleWindsor.nuspec
+		NuGetBuild\URSA.Http.Description\URSA.Http.Description.nuspec = NuGetBuild\URSA.Http.Description\URSA.Http.Description.nuspec
 		NuGetBuild\URSA.Http\URSA.Http.nuspec = NuGetBuild\URSA.Http\URSA.Http.nuspec
-		NuGetBuild\URSA\URSA.nuspec = NuGetBuild\URSA\URSA.nuspec
 		NuGetBuild\URSA.Owin\URSA.Owin.nuspec = NuGetBuild\URSA.Owin\URSA.Owin.nuspec
+		NuGetBuild\URSA.Tools\URSA.Tools.nuspec = NuGetBuild\URSA.Tools\URSA.Tools.nuspec
 		NuGetBuild\URSA.Web\URSA.Web.nuspec = NuGetBuild\URSA.Web\URSA.Web.nuspec
 	EndProjectSection
 EndProject
@@ -45,7 +49,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".build", ".build", "{516055
 		after.URSA.sln.targets = after.URSA.sln.targets
 		before.URSA.sln.targets = before.URSA.sln.targets
 		.build\Make.bat = .build\Make.bat
-		NuGetBuild\NugetBuild.targets = NuGetBuild\NugetBuild.targets
+		.build\nuget.bat = .build\nuget.bat
 		OpenCover\OpenCover.UI.config = OpenCover\OpenCover.UI.config
 		.build\Version.bat = .build\Version.bat
 	EndProjectSection

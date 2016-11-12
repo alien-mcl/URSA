@@ -12,4 +12,5 @@ IF "%version%"=="" (
 ) ELSE (
     FOR /F "tokens=1" %%r IN ('git log %version%..HEAD --oneline') DO SET /A commit+=1
 )
-ECHO [assembly: System.Reflection.AssemblyVersion("%version%.%commit%.%build%")] > "%CD%\.build\VersionAssemblyInfo.cs""
+ECHO [assembly: System.Reflection.AssemblyVersion("%version%.%commit%.%build%")] > "%CD%\VersionAssemblyInfo.cs"
+SET PACKAGE_VERSION=%version%.%commit%.%build%

@@ -1,13 +1,13 @@
 <?xml version="1.0"?>
 <package>
     <metadata>
-        <id>URSA.Owin</id>
+        <id>URSA.Core</id>
         <version>$version$</version>
         <authors>alien-mcl</authors>
         <owners>alien-mcl</owners>
         <requireLicenseAcceptance>false</requireLicenseAcceptance>
-        <title>Ultimate ReSt Api over HTTP OWIN hosting suppor.</title>
-        <description>Ultimate ReSt Api over HTTP OWIN hosting support.</description>
+        <title>Ultimate ReSt Api</title>
+        <description>Ultimate ReSt Api core library.</description>
         <releaseNotes>Initial release.</releaseNotes>
         <licenseUrl>http://opensource.org/licenses/BSD-3-Clause</licenseUrl>
         <iconUrl>http://alien-mcl.github.io/URSA/images/favicon.ico</iconUrl>
@@ -16,22 +16,15 @@
         <tags>hydra rest api rdf semanticweb semantic</tags>
         <dependencies>
             <group targetFramework="net45">
-                <dependency id="Microsoft.Owin" version="3.0.1" />
-                <dependency id="Microsoft.Owin.Host.SystemWeb" version="3.0.1" />
-                <dependency id="Owin" version="1.0" />
-                <dependency id="RomanticWeb.Contracts" version="1.0.0" />
-                <dependency id="URSA.Core" version="$version$" />
-                <dependency id="URSA.Http" version="$version$" />
-                <dependency id="URSA.Http.Description" version="$version$" />
                 <dependency id="URSA.Tools" version="$version$" />
             </group>
             <group targetFramework="netstandard1.6">
-                <dependency id="Microsoft.AspNetCore.Owin" version="1.0.0" />
+                <dependency id="Microsoft.Extensions.DependencyModel" version="1.0.0" />
                 <dependency id="NETStandard.Library" version="1.6.0" />
                 <dependency id="RomanticWeb.Contracts" version="1.0.0" />
-                <dependency id="URSA.Core" version="$version$" />
-                <dependency id="URSA.Http" version="$version$" />
-                <dependency id="URSA.Http.Description" version="$version$" />
+                <dependency id="System.Runtime.Extensions" version="4.1.0" />
+                <dependency id="System.Runtime.Loader" version="4.0.0" />
+                <dependency id="System.Security.Claims" version="4.0.1" />
                 <dependency id="URSA.Tools" version="$version$" />
             </group>
         </dependencies>

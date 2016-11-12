@@ -1,18 +1,10 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-    <ItemGroup>
-        <NugetsToRemove Include="$(MSBuildProjectDirectory)\NuGetBuild\**\*.nupkg" />
-    </ItemGroup>
-
     <Target Name="Version setup" BeforeTargets="Build" Condition="'$(Configuration)' == 'Release'">
         <Exec Command='"$(MSBuildProjectDirectory)\.build\Version.bat" $(Build)'></Exec>
     </Target>
 
     <Target Name="Nuget restore" BeforeTargets="Build">
         <Exec Command='"$(MSBuildProjectDirectory)\.nuget\nuget.exe" restore "$(MSBuildProjectDirectory)\URSA.sln"'></Exec>
-    </Target>
-
-    <Target Name="Clean nuget artifacts" BeforeTargets="Build">
-        <Delete Files="@(NugetsToRemove)" ContinueOnError="true" />
     </Target>
 </Project>

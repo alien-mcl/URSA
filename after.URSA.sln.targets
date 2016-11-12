@@ -4,12 +4,7 @@
         <Exec Command='"$(MSBuildProjectDirectory)\.build\GitHubLink.exe" "$(MSBuildProjectDirectory)" -u https://github.com/alien-mcl/URSA' ContinueOnError="true" IgnoreExitCode="true"></Exec>
     </Target>
 
-    <Target Name="PepitaPackage" AfterTargets="GitHubLink" Condition="'$(Configuration)' == 'Release'">
-        <MSBuild Projects="$(MSBuildProjectDirectory)\NuGetBuild\NugetBuild.targets" Targets="CopyCoreBinaries;PackageCore" />
-        <MSBuild Projects="$(MSBuildProjectDirectory)\NuGetBuild\NugetBuild.targets" Targets="CopyHttpBinaries;PackageHttp" />
-        <MSBuild Projects="$(MSBuildProjectDirectory)\NuGetBuild\NugetBuild.targets" Targets="CopyCastleWindsorBinaries;PackageCastleWindsor" />
-        <MSBuild Projects="$(MSBuildProjectDirectory)\NuGetBuild\NugetBuild.targets" Targets="CopyHttpCastleWindsorBinaries;PackageHttpCastleWindsor" />
-        <MSBuild Projects="$(MSBuildProjectDirectory)\NuGetBuild\NugetBuild.targets" Targets="CopyWebBinaries;PackageWeb" />
-        <MSBuild Projects="$(MSBuildProjectDirectory)\NuGetBuild\NugetBuild.targets" Targets="CopyOwinBinaries;PackageOwin" />
+    <Target Name="Nuget packaging" AfterTargets="Build" Condition="'$(Configuration)' == 'Release'">
+        <Exec Command='"$(MSBuildProjectDirectory)\.build\Version.bat" $(Build)'></Exec>
     </Target>
 </Project>

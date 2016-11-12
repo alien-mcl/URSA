@@ -102,7 +102,7 @@ namespace URSA.Configuration
             set
             {
 #if CORE
-                this[HypermediaModeAttributeName] = (value != null ? value.ToString() : null);
+                this[HypermediaModeAttributeName] = value.ToString();
 #else
                 this[HypermediaModeAttributeName] = value;
 #endif

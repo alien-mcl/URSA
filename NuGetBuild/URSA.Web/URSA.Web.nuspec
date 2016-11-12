@@ -6,8 +6,8 @@
         <authors>alien-mcl</authors>
         <owners>alien-mcl</owners>
         <requireLicenseAcceptance>false</requireLicenseAcceptance>
-        <title>Ultimate ReSt Api over HTTP ASP.net/IIS hosting support.</title>
-        <description>$description$</description>
+        <title>Ultimate ReSt Api over HTTP ASP.net/IIS hosting support</title>
+        <description>Ultimate ReSt Api over HTTP ASP.net/IIS hosting support.</description>
         <releaseNotes>Initial release.</releaseNotes>
         <licenseUrl>http://opensource.org/licenses/BSD-3-Clause</licenseUrl>
         <iconUrl>http://alien-mcl.github.io/URSA/images/favicon.ico</iconUrl>
@@ -15,11 +15,28 @@
         <copyright>Copyright  © 2015</copyright>
         <tags>hydra rest api rdf semanticweb semantic</tags>
         <dependencies>
-            <dependency id="URSA.Http" version="$version$" />
+            <group targetFramework="net45">
+                <dependency id="NLog" version="3.2.0.0" />
+                <dependency id="Remotion.Linq" version="2.1.1" />
+                <dependency id="RomanticWeb" version="1.0.0" />
+                <dependency id="RomanticWeb.Contracts" version="1.0.0" />
+                <dependency id="System.Collections" version="4.0.11" />
+                <dependency id="System.Diagnostics.Debug" version="4.0.11" />
+                <dependency id="System.Linq" version="4.1.0" />
+                <dependency id="System.Linq.Expressions" version="4.1.0" />
+                <dependency id="System.Linq.Queryable" version="4.0.1" />
+                <dependency id="System.ObjectModel" version="4.0.12" />
+                <dependency id="System.Reflection" version="4.1.0" />
+                <dependency id="System.Reflection.Extensions" version="4.0.1" />
+                <dependency id="System.Runtime" version="4.1.0" />
+                <dependency id="System.Runtime.Extensions" version="4.1.0" />
+                <dependency id="System.Threading" version="4.0.11" />
+                <dependency id="Microsoft.Web.Infrastructure" version="1.0.0" />
+                <dependency id="URSA.Core" version="$version$" />
+                <dependency id="URSA.Http" version="$version$" />
+                <dependency id="URSA.Http.Description" version="$version$" />
+                <dependency id="URSA.Tools" version="$version$" />
+            </group>
         </dependencies>
-        <frameworkAssemblies>
-            <frameworkAssembly assemblyName="System.Configuration" />
-            <frameworkAssembly assemblyName="System.ConfiWebguration" />
-        </frameworkAssemblies>
     </metadata>
 </package>

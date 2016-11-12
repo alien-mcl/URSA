@@ -40,16 +40,16 @@
     <NugetBuild>true</NugetBuild>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Newtonsoft.Json">
-      <HintPath>..\packages\Newtonsoft.Json.6.0.8\lib\net45\Newtonsoft.Json.dll</HintPath>
-    </Reference>
     <Reference Include="RomanticWeb.Contracts">
       <HintPath>..\packages\RomanticWeb.Contracts.1.0.0\lib\net45\RomanticWeb.Contracts.dll</HintPath>
     </Reference>
     <Reference Include="Sprint.Filter.OData">
       <HintPath>..\packages\Sprint.Filter.OData.1.2.0.0\lib\net45-full\Sprint.Filter.OData.dll</HintPath>
     </Reference>
-    <Reference Include="System" />
+      <Reference Include="Sprint.Filter.OData">
+          <HintPath>..\packages\Newtonsoft.Json.6.0.8\lib\net45\Newtonsoft.Json.dll</HintPath>
+      </Reference>
+      <Reference Include="System" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
     <Reference Include="System.Runtime.Serialization" />

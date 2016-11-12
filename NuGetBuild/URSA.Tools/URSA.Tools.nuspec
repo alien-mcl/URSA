@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<package>
+    <metadata>
+        <id>URSA.Tools</id>
+        <version>$version$</version>
+        <authors>alien-mcl</authors>
+        <owners>alien-mcl</owners>
+        <requireLicenseAcceptance>false</requireLicenseAcceptance>
+        <title>Ultimate ReSt Api commons library</title>
+        <description>Ultimate ReSt Api commons library.</description>
+        <releaseNotes>Initial release.</releaseNotes>
+        <licenseUrl>http://opensource.org/licenses/BSD-3-Clause</licenseUrl>
+        <iconUrl>http://alien-mcl.github.io/URSA/images/favicon.ico</iconUrl>
+        <projectUrl>http://alien-mcl.github.io/URSA/</projectUrl>
+        <copyright>Copyright  © 2015</copyright>
+        <tags>hydra rest api rdf semanticweb semantic</tags>
+        <dependencies>
+            <group targetFramework="net45">
+            </group>
+            <group targetFramework="netstandard1.6">
+                <dependency id="Microsoft.Extensions.Configuration" version="1.0.0" />
+                <dependency id="Microsoft.Extensions.Configuration.Binder" version="1.0.0" />
+                <dependency id="Microsoft.Extensions.Configuration.Json" version="1.0.0" />
+                <dependency id="Microsoft.Extensions.DependencyModel" version="1.0.0" />
+                <dependency id="NETStandard.Library" version="1.6.0" />
+                <dependency id="System.Runtime.Extensions" version="4.1.0" />
+            </group>
+        </dependencies>
+    </metadata>
+</package>
