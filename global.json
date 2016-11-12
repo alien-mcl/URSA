@@ -1,6 +1,18 @@
 ﻿{
-  "projects": [ "src", "test" ],
-  "sdk": {
-    "version": "1.0.0-preview2-003121"
-  }
+    "projects": [
+        "URSA.Tools",
+        "URSA.Core",
+        "URSA.Http",
+        "URSA.Http.Description",
+        "URSA.AutoFac",
+        "URSA.Http.AutoFac",
+        "URSA.Owin",
+        "URSA.Core.Tests",
+        "URSA.Http.Tests",
+        "URSA.Http.Description.Tests",
+        "URSA.Example.OwinApplication"
+    ],
+    "sdk": {
+        "version": "1.0.0-preview2-003131"
+    }
 }
