@@ -1,11 +1,38 @@
 ﻿{
-  "frameworks": {
-    "net45": {}
-  },
-  "runtimes": {
-    "win": {}
-  },
-  "dependencies": {
-    "NUnit": "3.5.0"
-  }
+    "frameworks": {
+        "net45": {}
+    },
+    "runtimes": {
+        "win": {}
+    },
+    "dependencies": {
+        "dotNetRDF": "1.0.3",
+        "dotNetRDF.Data.Virtuoso": "1.0.0.2473",
+        "FluentAssertions": "3.3.0",
+        "HtmlAgilityPack": "1.4.6",
+        "json-ld.net": "1.0.5",
+        "Moq": "4.2.1502.0911",
+        "Newtonsoft.Json": "6.0.8",
+        "NLog": "3.2.0.0",
+        "OpenLink.Data.Virtuoso": "7.20.3214.1",
+        "Remotion.Linq": "2.1.1",
+        "RomanticWeb": "1.0.18.32-rc1",
+        "RomanticWeb.Contracts": "1.0.18.32-rc1",
+        "RomanticWeb.dotNetRDF": "1.0.18.32-rc1",
+        "StyleCop.Error.MSBuild": "1.0.0",
+        "StyleCop.MSBuild": "4.7.49.1",
+        "System.Collections": "4.0.11",
+        "System.Diagnostics.Debug": "4.0.11",
+        "System.Linq": "4.1.0",
+        "System.Linq.Expressions": "4.1.0",
+        "System.Linq.Queryable": "4.0.1",
+        "System.ObjectModel": "4.0.12",
+        "System.Reflection": "4.1.0",
+        "System.Reflection.Extensions": "4.0.1",
+        "System.Runtime": "4.1.0",
+        "System.Runtime.Extensions": "4.1.0",
+        "System.Threading": "4.0.11",
+        "VDS.Common": "1.2.0",
+        "NUnit": "3.5.0"
+    }
 }

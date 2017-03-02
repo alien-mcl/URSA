@@ -1,8 +1,16 @@
 ﻿{
-  "frameworks": {
-    "net45": {}
-  },
-  "runtimes": {
-    "win": {}
-  }
+    "frameworks": {
+        "net45": {}
+    },
+    "runtimes": {
+        "win": {}
+    },
+    "dependencies": {
+        "RomanticWeb.Contracts": "1.0.18.32-rc1",
+        "Sprint.Filter.OData": "1.2.0.0",
+        "StyleCop.Error.MSBuild": "1.0.0",
+        "StyleCop.MSBuild": "4.7.49.1",
+        "Tavis.UriTemplates": "1.1.0",
+        "Newtonsoft.Json": "6.0.8"
+    }
 }

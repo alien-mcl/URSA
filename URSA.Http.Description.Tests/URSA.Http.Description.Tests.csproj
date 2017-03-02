@@ -48,60 +48,9 @@
     <DocumentationFile>bin\Release\URSA.Http.Description.Tests.XML</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="dotNetRDF, Version=1.0.3.0, Culture=neutral, PublicKeyToken=6055ffe4c97cc780, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\dotNetRDF.1.0.3\lib\net40\dotNetRDF.dll</HintPath>
-    </Reference>
-    <Reference Include="dotNetRDF.Data.Virtuoso, Version=1.0.0.2473, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\dotNetRDF.Data.Virtuoso.1.0.0.2473\lib\net40\dotNetRDF.Data.Virtuoso.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="FluentAssertions, Version=3.3.0.0, Culture=neutral, PublicKeyToken=33f2691a05b67b6a, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\FluentAssertions.3.3.0\lib\net45\FluentAssertions.dll</HintPath>
-    </Reference>
     <Reference Include="FluentAssertions.Core, Version=3.3.0.0, Culture=neutral, PublicKeyToken=33f2691a05b67b6a, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\FluentAssertions.3.3.0\lib\net45\FluentAssertions.Core.dll</HintPath>
-    </Reference>
-    <Reference Include="HtmlAgilityPack, Version=1.4.6.0, Culture=neutral, PublicKeyToken=bd319b19eaf3b43a, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\HtmlAgilityPack.1.4.6\lib\Net45\HtmlAgilityPack.dll</HintPath>
-    </Reference>
-    <Reference Include="json-ld.net, Version=1.0.5.0, Culture=neutral, PublicKeyToken=f17fb428089df9bc, processorArchitecture=MSIL">
-      <HintPath>..\packages\json-ld.net.1.0.5\lib\net40-client\json-ld.net.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Moq, Version=4.2.1502.911, Culture=neutral, PublicKeyToken=69f491c39445e920, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Moq.4.2.1502.0911\lib\net40\Moq.dll</HintPath>
-    </Reference>
-    <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Newtonsoft.Json.6.0.8\lib\net45\Newtonsoft.Json.dll</HintPath>
-    </Reference>
-    <Reference Include="NLog">
-      <HintPath>..\packages\NLog.3.2.0.0\lib\net45\NLog.dll</HintPath>
-    </Reference>
-    <Reference Include="OpenLink.Data.Virtuoso, Version=6.2.3128.1, Culture=neutral, PublicKeyToken=6654f6917d07cb95, processorArchitecture=MSIL">
-      <HintPath>..\packages\dotNetRDF.Data.Virtuoso.1.0.0.2473\lib\net40\OpenLink.Data.Virtuoso.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Remotion.Linq, Version=2.1.0.0, Culture=neutral, PublicKeyToken=fee00910d6e5f53b, processorArchitecture=MSIL">
-      <HintPath>..\packages\Remotion.Linq.2.1.1\lib\net45\Remotion.Linq.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="RomanticWeb">
-      <HintPath>..\packages\RomanticWeb.1.0.0\lib\net45\RomanticWeb.dll</HintPath>
-    </Reference>
-    <Reference Include="RomanticWeb.Contracts">
-      <HintPath>..\packages\RomanticWeb.Contracts.1.0.0\lib\net45\RomanticWeb.Contracts.dll</HintPath>
-    </Reference>
-    <Reference Include="RomanticWeb.dotNetRDF">
-      <HintPath>..\packages\RomanticWeb.dotNetRDF.1.0.0-pre\lib\net45\RomanticWeb.dotNetRDF.dll</HintPath>
-    </Reference>
-    <Reference Include="RomanticWeb.Mapping.Fluent">
-      <HintPath>..\packages\RomanticWeb.Mapping.Fluent.1.0.0\lib\net45\RomanticWeb.Mapping.Fluent.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.Composition" />
@@ -109,10 +58,6 @@
     <Reference Include="System.Configuration" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
-    <Reference Include="VDS.Common, Version=1.2.0.0, Culture=neutral, PublicKeyToken=ab5f4eb908061bf0, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\VDS.Common.1.2.0\lib\net40-client\VDS.Common.dll</HintPath>
-    </Reference>
     <Reference Include="virtado4, Version=4.0.0.0, Culture=neutral, PublicKeyToken=391bf132017ae989, processorArchitecture=MSIL">
       <HintPath>..\packages\OpenLink.Data.Virtuoso.7.20.3214.1\lib\net40\virtado4.dll</HintPath>
       <Private>True</Private>
@@ -183,7 +128,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
-    <None Include="packages.config" />
+    <None Include="URSA.Http.Description.Tests.project.json" />
   </ItemGroup>
   <Choose>
     <When Condition="'$(VisualStudioVersion)' == '10.0' And '$(IsCodedUITest)' == 'True'">

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using System.Xml.Linq;
 
 namespace URSA.Web.Http.Description
@@ -192,7 +193,7 @@ namespace URSA.Web.Http.Description
 
             var possibleDocumentLocations = new[]
             {
-                assembly.Location.Replace(".dll", ".xml"),
+                Regex.Replace(assembly.Location, "\\.(dll|exe)", ".xml"),
                 Path.Combine(Directory.GetCurrentDirectory(), assembly.GetName().Name + ".xml"),
                 Path.Combine(ExecutionContext.GetPrimaryAssemblyDirectory(), assembly.GetName().Name + ".xml")
             };

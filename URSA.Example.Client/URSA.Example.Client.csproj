@@ -68,14 +68,21 @@
       <HintPath>..\packages\Remotion.Linq.2.1.1\lib\net45\Remotion.Linq.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="RomanticWeb">
-      <HintPath>..\packages\RomanticWeb.1.0.0\lib\net45\RomanticWeb.dll</HintPath>
+    <Reference Include="RomanticWeb, Version=1.0.18.32, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\RomanticWeb.1.0.18.32-rc1\lib\net45\RomanticWeb.dll</HintPath>
+      <Private>True</Private>
     </Reference>
-    <Reference Include="RomanticWeb.Contracts">
-      <HintPath>..\packages\RomanticWeb.Contracts.1.0.0\lib\net45\RomanticWeb.Contracts.dll</HintPath>
+    <Reference Include="RomanticWeb.Contracts, Version=1.0.18.32, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\RomanticWeb.Contracts.1.0.18.32-rc1\lib\net45\RomanticWeb.Contracts.dll</HintPath>
+      <Private>True</Private>
     </Reference>
-    <Reference Include="RomanticWeb.dotNetRDF">
-      <HintPath>..\packages\RomanticWeb.dotNetRDF.1.0.0-pre\lib\net45\RomanticWeb.dotNetRDF.dll</HintPath>
+    <Reference Include="RomanticWeb.dotNetRDF, Version=1.0.18.32, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\RomanticWeb.dotNetRDF.1.0.18.32-rc1\lib\net45\RomanticWeb.dotNetRDF.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="RomanticWeb.Mapping.Fluent, Version=1.0.18.32, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\RomanticWeb.1.0.18.32-rc1\lib\net45\RomanticWeb.Mapping.Fluent.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.Composition" />

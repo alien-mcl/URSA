@@ -4,5 +4,10 @@
     },
     "runtimes": {
         "win": {}
-    }
+    },
+    "dependencies": {
+        "Autofac": "4.1.1",
+        "StyleCop.Error.MSBuild": "1.0.0",
+        "StyleCop.MSBuild": "4.7.49.1"
+    } 
 }

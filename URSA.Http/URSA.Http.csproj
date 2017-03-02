@@ -40,16 +40,10 @@
     <NugetBuild>true</NugetBuild>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="RomanticWeb.Contracts">
-      <HintPath>..\packages\RomanticWeb.Contracts.1.0.0\lib\net45\RomanticWeb.Contracts.dll</HintPath>
-    </Reference>
     <Reference Include="Sprint.Filter.OData">
-      <HintPath>..\packages\Sprint.Filter.OData.1.2.0.0\lib\net45-full\Sprint.Filter.OData.dll</HintPath>
+      <HintPath>..\packages\Newtonsoft.Json.6.0.8\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
-      <Reference Include="Sprint.Filter.OData">
-          <HintPath>..\packages\Newtonsoft.Json.6.0.8\lib\net45\Newtonsoft.Json.dll</HintPath>
-      </Reference>
-      <Reference Include="System" />
+    <Reference Include="System" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
     <Reference Include="System.Runtime.Serialization" />
@@ -60,9 +54,6 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Serialization" />
-    <Reference Include="Tavis.UriTemplates">
-      <HintPath>..\packages\Tavis.UriTemplates.1.1.0\lib\Net45\Tavis.UriTemplates.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Client.cs" />
@@ -164,7 +155,6 @@
     <Compile Include="RequestMapping.cs" />
     <Compile Include="ResponseInfo.cs" />
     <Compile Include="Verb.cs" />
-    <None Include="URSA.Http.project.json" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\URSA.Core\URSA.Core.csproj">
@@ -178,7 +168,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
-    <None Include="packages.config" />
+    <None Include="URSA.Http.project.json" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />

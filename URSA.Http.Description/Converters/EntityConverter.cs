@@ -339,7 +339,7 @@ namespace URSA.Web.Http.Converters
                     break;
                 case ApplicationRdfXml:
                 case ApplicationOwlXml:
-                    result = new RdfXmlWriter();
+                    result = new RdfXmlWriter(0, false);
                     break;
                 case ApplicationLdJson:
                     result = new JsonLdWriter(Context);
