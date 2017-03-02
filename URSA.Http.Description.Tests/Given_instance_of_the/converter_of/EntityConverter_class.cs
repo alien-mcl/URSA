@@ -1,6 +1,5 @@
 ﻿#pragma warning disable 1591 
 using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using RomanticWeb;
 using RomanticWeb.Entities;
@@ -11,6 +10,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Text;
+using NUnit.Framework;
 using RomanticWeb.Configuration;
 using RomanticWeb.Mapping.Model;
 using RomanticWeb.NamedGraphs;
@@ -30,7 +30,7 @@ using Node = RomanticWeb.Model.Node;
 namespace Given_instance_of_the.converter_of
 {
     [ExcludeFromCodeCoverage]
-    [TestClass]
+    [TestFixture]
     public class EntityConverter_class : ConverterTest<EntityConverter, IOperation>
     {
         private const string ContentType = "application/ld+json";
@@ -60,119 +60,119 @@ namespace Given_instance_of_the.converter_of
 
         protected override IOperation[] MultipleEntities { get { return new[] { _entity1.Object, _entity2.Object }; } }
 
-        [TestMethod]
+        [Test]
         public override void it_should_not_acknowledge_the_converter_as_a_match_against_incompatible_type_when_serializing()
         {
             base.it_should_not_acknowledge_the_converter_as_a_match_against_incompatible_type_when_serializing();
         }
 
-        [TestMethod]
+        [Test]
         public override void it_should_throw_when_instance_being_serialized_mismatches_the_converter_supported_type()
         {
             base.it_should_throw_when_instance_being_serialized_mismatches_the_converter_supported_type();
         }
 
-        [TestMethod]
+        [Test]
         public override void it_should_do_nothing_if_the_instance_being_serialized_is_null()
         {
             base.it_should_do_nothing_if_the_instance_being_serialized_is_null();
         }
 
-        [TestMethod]
+        [Test]
         public override void it_should_not_acknowledge_the_converter_as_a_match_against_incompatible_type_when_deserializing()
         {
             base.it_should_not_acknowledge_the_converter_as_a_match_against_incompatible_type_when_deserializing();
         }
 
-        [TestMethod]
+        [Test]
         public override void it_should_test_deserialization_compatibility()
         {
             base.it_should_test_deserialization_compatibility();
         }
 
-        [TestMethod]
+        [Test]
         public override void it_should_throw_when_no_expected_type_is_provided_for_deserialization_compatibility_test()
         {
             base.it_should_throw_when_no_expected_type_is_provided_for_deserialization_compatibility_test();
         }
 
-        [TestMethod]
+        [Test]
         public override void it_should_throw_when_no_request_is_provided_for_deserialization_compatibility_test()
         {
             base.it_should_throw_when_no_request_is_provided_for_deserialization_compatibility_test();
         }
 
-        [TestMethod]
+        [Test]
         public override void it_should_throw_when_no_request_is_provided_for_deserialization()
         {
             base.it_should_throw_when_no_request_is_provided_for_deserialization();
         }
 
-        [TestMethod]
+        [Test]
         public override void it_should_throw_when_no_expected_type_is_provided_for_deserialization()
         {
             base.it_should_throw_when_no_expected_type_is_provided_for_deserialization();
         }
 
-        [TestMethod]
+        [Test]
         public override void it_should_deserialize_message_body_as_an_entity()
         {
         }
 
-        [TestMethod]
+        [Test]
         public override void it_should_deserialize_message_as_an_array_of_entities()
         {
             base.it_should_deserialize_message_as_an_array_of_entities();
         }
 
-        [TestMethod]
+        [Test]
         public override void it_should_serialize_array_of_entities_to_message()
         {
             base.it_should_serialize_array_of_entities_to_message();
         }
 
-        [TestMethod]
+        [Test]
         public override void it_should_test_serialization_compatibility()
         {
             base.it_should_test_serialization_compatibility();
         }
 
-        [TestMethod]
+        [Test]
         public override void it_should_throw_when_no_given_type_is_provided_for_serialization_compatibility_test()
         {
             base.it_should_throw_when_no_given_type_is_provided_for_serialization_compatibility_test();
         }
 
-        [TestMethod]
+        [Test]
         public override void it_should_throw_when_no_response_is_provided_for_serialization_compatibility_test()
         {
             base.it_should_throw_when_no_response_is_provided_for_serialization_compatibility_test();
         }
 
-        [TestMethod]
+        [Test]
         public override void it_should_throw_when_no_response_is_provided_for_serialization()
         {
             base.it_should_throw_when_no_response_is_provided_for_serialization();
         }
 
-        [TestMethod]
+        [Test]
         public override void it_should_throw_when_no_given_type_is_provided_for_serialization()
         {
             base.it_should_throw_when_no_given_type_is_provided_for_serialization();
         }
 
-        [TestMethod]
+        [Test]
         public override void it_should_deserialize_message_as_an_entity()
         {
             base.it_should_deserialize_message_as_an_entity();
         }
 
-        [TestMethod]
+        [Test]
         public override void it_should_deserialize_message_body_as_an_array_of_entities()
         {
         }
 
-        [TestMethod]
+        [Test]
         public override void it_should_serialize_an_entity_to_message()
         {
             var targetGraph = _tripleStore.Graphs.First(graph => !AbsoluteUriComparer.Default.Equals(graph.BaseUri, MetaGraphUri));
@@ -180,7 +180,7 @@ namespace Given_instance_of_the.converter_of
             base.it_should_serialize_an_entity_to_message();
         }
 
-        [TestMethod]
+        [Test]
         public override void it_should_throw_when_no_given_type_is_provided_for_string_deserialization()
         {
         }

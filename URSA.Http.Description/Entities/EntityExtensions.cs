@@ -20,6 +20,9 @@ namespace URSA.Web.Http.Description.Entities
     public static class EntityExtensions
     {
         internal static readonly MethodInfo AsEntityMethod = typeof(RomanticWeb.Entities.EntityExtensions).GetMethod("AsEntity");
+        private static readonly MethodInfo CopyT = typeof(EntityExtensions)
+            .GetMethods(BindingFlags.Static | BindingFlags.NonPublic)
+            .First(method => (method.Name == "Copy") && (method.IsGenericMethod));
 
         /// <summary>Updates the specified <paramref name="target" /> entity with values from <paramref name="source" /> entity.</summary>
         /// <remarks>This method won't update nested entities' properties if the source values are <b>null</b>.</remarks>
@@ -39,7 +42,7 @@ namespace URSA.Web.Http.Description.Entities
                 throw new ArgumentNullException("source");
             }
 
-            return target.Update(source, 0);
+            return target.Update(source, new HashSet<EntityId>(),  0);
         }
 
         /// <summary>Copies the specified entity to another context.</summary>
@@ -107,27 +110,9 @@ namespace URSA.Web.Http.Description.Entities
             return result;
         }
 
-        private static ITripleStore GetTripleStore(this IEntity entity)
+        private static object Copy(this IEntityContext entityContext, Type type, IEntity entity, KeyValuePair<EntityId, EntityId> id, ISet<EntityId> visited)
         {
-            var entitySourceField = entity.Context.GetType().GetField("_entitySource", BindingFlags.Instance | BindingFlags.NonPublic);
-            if (entitySourceField == null)
-            {
-                throw new InvalidOperationException("Unknown type of entity context encountered.");
-            }
-
-            var entitySource = (IEntitySource)entitySourceField.GetValue(entity.Context);
-            if (!(entitySource is TripleStoreAdapter))
-            {
-                throw new InvalidOperationException("Uknown entity source encountered.");
-            }
-
-            var store = (ITripleStore)entitySource.GetType().GetField("_store", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(entitySource);
-            if ((!(store is TripleStore)) && (!(store is ThreadSafeTripleStore)))
-            {
-                throw new InvalidOperationException("Uknown triple store encountered.");
-            }
-
-            return store;
+            return CopyT.MakeGenericMethod(type).Invoke(null, new object[] { entityContext, entity, id, visited });
         }
 
         private static T Copy<T>(this IEntityContext entityContext, T entity, KeyValuePair<EntityId, EntityId> id, ISet<EntityId> visited) where T : class, IEntity
@@ -196,7 +181,7 @@ namespace URSA.Web.Http.Description.Entities
             return result;
         }
 
-        private static T Update<T>(this T target, T source, int depth) where T : class, IEntity
+        private static T Update<T>(this T target, T source, ISet<EntityId> visited, int depth) where T : class, IEntity
         {
             if (target == null)
             {
@@ -228,7 +213,7 @@ namespace URSA.Web.Http.Description.Entities
 
                 if (property.ReturnType.GetTypeInfo().IsEnumerable())
                 {
-                    value = target.UpdateCollection(property, (IEnumerable)value, depth);
+                    value = target.UpdateCollection(property, (IEnumerable)value, visited, depth);
                 }
                 else if (value is IEntity)
                 {
@@ -246,23 +231,25 @@ namespace URSA.Web.Http.Description.Entities
             return target;
         }
 
-        private static object UpdateCollection<T>(this T target, IPropertyMapping property, IEnumerable source, int depth = 0) where T : class, IEntity
+        private static object UpdateCollection<T>(this T target, IPropertyMapping property, IEnumerable source, ISet<EntityId> visited, int depth = 0) where T : class, IEntity
         {
             int indexOf = -1;
             IEnumerable current = (IEnumerable)RomanticWeb.Entities.Proxies.DynamicExtensions.InvokeGet(target, property.Name);
             var collection = (current != null ? new AbstractCollectionWrapper(current) : new AbstractCollectionWrapper(new List<object>()) { IsReplaced = true });
+            var itemType = property.ReturnType.GetTypeInfo().GetItemType();
             foreach (var item in source)
             {
+                var itemEntity = item as IEntity;
                 var existing = collection
-                    .Where((element, index) => (item is IEntity ? ((IEntity)item).Id == ((IEntity)element).Id : Equals(element, item)) && ((indexOf = index) != -1))
+                    .Where((element, index) => (itemEntity != null ? itemEntity.Id == ((IEntity)element).Id : Equals(element, item)) && ((indexOf = index) != -1))
                     .FirstOrDefault();
                 if (existing == null)
                 {
-                    collection.Add(item);
+                    collection.Add(itemEntity != null ? target.Context.Copy(itemType, itemEntity, new KeyValuePair<EntityId, EntityId>(itemEntity.Id, itemEntity.Id), visited) : item);
                 }
-                else if (item is IEntity)
+                else if (itemEntity != null)
                 {
-                    ((IEntity)existing).Update((IEntity)item, depth + 1);
+                    ((IEntity)existing).Update(itemEntity, visited, depth + 1);
                 }
                 else if (collection.IsList)
                 {

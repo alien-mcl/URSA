@@ -3,13 +3,13 @@ using System.Collections;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Text;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
 using URSA.Web.Http.Testing;
 
 namespace Given_instance_of_the.converter_of
 {
     [ExcludeFromCodeCoverage]
-    [TestClass]
+    [TestFixture]
     public class XWwwUrlEncodedConverter_class : ComplexTypeConverterTest<URSA.Web.Http.Converters.XWwwUrlEncodedConverter>
     {
         private const string ContentType = "application/x-www-url-encoded";
@@ -20,12 +20,12 @@ namespace Given_instance_of_the.converter_of
 
         protected override bool SupportsMultipleInstances { get { return false; } }
 
-        [TestMethod]
+        [Test]
         public override void it_should_not_acknowledge_the_converter_as_a_match_against_incompatible_type_when_deserializing()
         {
         }
 
-        [TestMethod]
+        [Test]
         public override void it_should_not_acknowledge_the_converter_as_a_match_against_incompatible_type_when_serializing()
         {
         }

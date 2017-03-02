@@ -3,7 +3,7 @@
     "dependencies": {
         "Autofac": "4.1.1",
         "NETStandard.Library": "1.6.0",
-        "RomanticWeb.dotNetRDF": "1.0.0-pre",
+        "RomanticWeb.dotNetRDF": "1.0.18.32-rc1",
         "URSA.AutoFac": "1.0.0-*",
         "URSA.Core": "1.0.0-*",
         "URSA.Http": "1.0.0-*",

@@ -3,8 +3,8 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Reflection;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using NUnit.Framework;
 using RomanticWeb;
 using RomanticWeb.Entities;
 using RomanticWeb.Mapping;
@@ -20,14 +20,13 @@ using IResource = URSA.Web.Http.Description.Hydra.IResource;
 
 namespace Given_instance_of_the.HydraCompliantTypeDescriptionBuilder_class
 {
-    [TestClass]
     public class HydraCompliantTypeDescriptionBuilderTest<T>
     {
         protected IApiDocumentation ApiDocumentation { get; private set; }
 
         protected HydraCompliantTypeDescriptionBuilder Builder { get; private set; }
 
-        [TestInitialize]
+        [SetUp]
         public void Setup()
         {
             var xmlDocProvider = new Mock<IXmlDocProvider>(MockBehavior.Strict);
@@ -38,7 +37,7 @@ namespace Given_instance_of_the.HydraCompliantTypeDescriptionBuilder_class
             Builder = new HydraCompliantTypeDescriptionBuilder(xmlDocProvider.Object);
         }
 
-        [TestCleanup]
+        [TearDown]
         public void Teardown()
         {
             Builder = null;

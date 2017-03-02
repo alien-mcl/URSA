@@ -3,7 +3,7 @@
     "dependencies": {
         "Microsoft.AspNetCore.Owin": "1.0.0",
         "NETStandard.Library": "1.6.0",
-        "RomanticWeb.Contracts": "1.0.0",
+        "RomanticWeb.Contracts": "1.0.18.32-rc1",
         "URSA.Core": "1.0.0-*",
         "URSA.Http": "1.0.0-*",
         "URSA.Http.Description": "1.0.0-*",

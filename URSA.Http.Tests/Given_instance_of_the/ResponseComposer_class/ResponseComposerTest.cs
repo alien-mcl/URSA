@@ -1,9 +1,9 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
+﻿using Moq;
 using System;
 using System.IO;
 using System.Reflection;
 using System.Text;
+using NUnit.Framework;
 using URSA;
 using URSA.Security;
 using URSA.Web;
@@ -15,7 +15,6 @@ using URSA.Web.Mapping;
 
 namespace Given_instance_of_the.ResponseComposer_class
 {
-    [TestClass]
     public class ResponseComposerTest<T> where T : IController, new()
     {
         protected Mock<IConverter> Converter { get; private set; }
@@ -28,7 +27,7 @@ namespace Given_instance_of_the.ResponseComposer_class
 
         protected ResponseComposer Composer { get; private set; }
 
-        [TestInitialize]
+        [SetUp]
         public void Setup()
         {
             Converter = new Mock<IConverter>(MockBehavior.Strict);
@@ -43,7 +42,7 @@ namespace Given_instance_of_the.ResponseComposer_class
             Composer = new ResponseComposer(ConverterProvider.Object, new[] { ControllerDescriptionBuilder.Object });
         }
 
-        [TestCleanup]
+        [TearDown]
         public void Teardown()
         {
             Composer = null;

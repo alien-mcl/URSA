@@ -3,6 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Reflection;
 using System.Text.RegularExpressions;
+using URSA.Configuration;
 
 namespace URSA.Web.Http
 {
@@ -153,7 +154,7 @@ namespace URSA.Web.Http
                 double numericValue;
                 result.Value = (Double.TryParse(rest, AllowedNumberStyles, CultureInfo.InvariantCulture, out numericValue) ? 
                     numericValue :
-                    ExecutionContext.GetLoadedAssemblies().FindEnumValue(rest)) ?? rest;
+                    UrsaConfigurationSection.GetInstallerAssemblies().FindEnumValue(rest)) ?? rest;
             }
 
             return result;

@@ -1,11 +1,11 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
+﻿using Moq;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Reflection;
 using FluentAssertions;
+using NUnit.Framework;
 using URSA;
 using URSA.Security;
 using URSA.Web;
@@ -19,7 +19,7 @@ using URSA.Web.Tests;
 namespace Given_instance_of_the.binder
 {
     [ExcludeFromCodeCoverage]
-    [TestClass]
+    [TestFixture]
     public class FromUriArgumentBinder_class : ArgumentBinderTest<FromUrlArgumentBinder, FromUrlAttribute, int>
     {
         protected override HttpUrl RequestUrl { get { return (HttpUrl)UrlParser.Parse("http://temp.org/api/test/sub/1?operandB=1"); } }
@@ -28,7 +28,7 @@ namespace Given_instance_of_the.binder
 
         protected override string MethodName { get { return "Substract"; } }
 
-        [TestMethod]
+        [Test]
         public void it_should_not_call_converter_provider()
         {
             Binder.GetArgumentValue(GetContext());
@@ -36,7 +36,7 @@ namespace Given_instance_of_the.binder
             ConverterProvider.Verify(instance => instance.FindBestInputConverter(It.IsAny<Type>(), It.IsAny<IRequestInfo>(), true), Times.Never);
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_not_call_converter()
         {
             Binder.GetArgumentValue((ArgumentBindingContext)GetContext());
@@ -44,7 +44,7 @@ namespace Given_instance_of_the.binder
             Converter.Verify(instance => instance.ConvertTo(It.IsAny<Type>(), "1"), Times.Never);
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_throw_when_parameter_type_is_an_enumeration()
         {
             var method = typeof(TestController).GetTypeInfo().GetMethod("Collection");
@@ -59,7 +59,7 @@ namespace Given_instance_of_the.binder
             Binder.Invoking(instance => instance.GetArgumentValue(context)).ShouldThrow<InvalidOperationException>();
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_throw_when_no_binding_context_is_given()
         {
             Binder.Invoking(instance => instance.GetArgumentValue(null)).ShouldThrow<ArgumentNullException>().Which.ParamName.Should().Be("context");

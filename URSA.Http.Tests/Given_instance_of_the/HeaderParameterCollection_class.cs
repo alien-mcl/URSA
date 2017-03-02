@@ -1,14 +1,14 @@
 ﻿using System;
 using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
 using URSA.Web.Http;
 
 namespace Given_instance_of_the
 {
-    [TestClass]
+    [TestFixture]
     public class HeaderParameterCollection_class
     {
-        [TestMethod]
+        [Test]
         public void it_should_set_parameter_by_name()
         {
             var parameters = new HeaderParameterCollection();
@@ -19,7 +19,7 @@ namespace Given_instance_of_the
             parameters["some"].Value.Should().Be("test");
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_override_old_parameter_when_setting_by_name()
         {
             var parameters = new HeaderParameterCollection();
@@ -30,7 +30,7 @@ namespace Given_instance_of_the
             parameters["some"].Value.Should().Be("other");
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_add_parameter()
         {
             var parameters = new HeaderParameterCollection();
@@ -40,7 +40,7 @@ namespace Given_instance_of_the
             parameters["test"].Should().NotBeNull();
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_remove_parameter_by_name()
         {
             var parameters = new HeaderParameterCollection();
@@ -51,7 +51,7 @@ namespace Given_instance_of_the
             parameters["test"].Should().BeNull();
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_remove_parameter()
         {
             var parameters = new HeaderParameterCollection();
@@ -62,43 +62,43 @@ namespace Given_instance_of_the
             parameters["test"].Should().BeNull();
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_return_null_if_no_parameter_of_given_key_is_found()
         {
             new HeaderParameterCollection()["test"].Should().BeNull();
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_throw_when_setting_a_parameter_without_passing_a_name()
         {
             new HeaderParameterCollection().Invoking(parameters => parameters[null] = null).ShouldThrow<ArgumentNullException>().Which.ParamName.Should().Be("parameter");
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_throw_when_setting_a_parameter_with_an_empty_name()
         {
             new HeaderParameterCollection().Invoking(parameters => parameters[String.Empty] = null).ShouldThrow<ArgumentOutOfRangeException>().Which.ParamName.Should().Be("parameter");
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_throw_when_getting_a_parameter_without_passing_a_name()
         {
             new HeaderParameterCollection().Invoking(parameters => { var test = parameters[null]; }).ShouldThrow<ArgumentNullException>().Which.ParamName.Should().Be("parameter");
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_throw_when_adding_a_parametre_without_passing_a_name()
         {
             new HeaderParameterCollection().Invoking(parameters => parameters.Add((HeaderParameter)null)).ShouldThrow<ArgumentNullException>().Which.ParamName.Should().Be("parameter");
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_throw_when_removing_a_parametre_without_passing_a_name()
         {
             new HeaderParameterCollection().Invoking(parameters => parameters.Remove((HeaderParameter)null)).ShouldThrow<ArgumentNullException>().Which.ParamName.Should().Be("parameter");
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_throw_when_setting_parameter_with_incorrect_name()
         {
             new HeaderParameterCollection().Invoking(parameters => parameters["test"] = new HeaderParameter("some")).ShouldThrow<InvalidOperationException>();

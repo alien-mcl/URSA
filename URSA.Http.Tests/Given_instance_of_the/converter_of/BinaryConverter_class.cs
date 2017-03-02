@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
 using URSA.Web.Converters;
 using URSA.Web.Http.Converters;
 using URSA.Web.Http.Testing;
@@ -8,7 +8,7 @@ using URSA.Web.Http.Testing;
 namespace Given_instance_of_the.converter_of
 {
     [ExcludeFromCodeCoverage]
-    [TestClass]
+    [TestFixture]
     public class BinaryConverter_class : ConverterTest<BinaryConverter, byte>
     {
         private const string ContentType = "application/octet-stream";
@@ -25,7 +25,7 @@ namespace Given_instance_of_the.converter_of
 
         protected override string MultipleEntitiesBody { get { return System.Convert.ToBase64String(Entities); } }
 
-        [TestMethod]
+        [Test]
         public override void it_should_test_deserialization_compatibility()
         {
             var result = CanConvertTo<byte[]>("POST", OperationName, MultipleEntitiesContentType, MultipleEntitiesBody);
@@ -33,7 +33,7 @@ namespace Given_instance_of_the.converter_of
             result.Should().NotBe(CompatibilityLevel.None);
         }
 
-        [TestMethod]
+        [Test]
         public override void it_should_test_serialization_compatibility()
         {
             var result = CanConvertFrom("POST", OperationName, MultipleEntitiesContentType, MultipleEntities);
@@ -41,17 +41,17 @@ namespace Given_instance_of_the.converter_of
             result.Should().NotBe(CompatibilityLevel.None);
         }
 
-        [TestMethod]
+        [Test]
         public override void it_should_deserialize_message_as_an_entity()
         {
         }
 
-        [TestMethod]
+        [Test]
         public override void it_should_serialize_an_entity_to_message()
         {
         }
 
-        [TestMethod]
+        [Test]
         public override void it_should_deserialize_message_body_as_an_entity()
         {
         }

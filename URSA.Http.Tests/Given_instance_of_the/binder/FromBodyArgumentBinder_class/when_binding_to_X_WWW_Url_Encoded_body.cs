@@ -1,8 +1,8 @@
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using System;
 using System.Diagnostics.CodeAnalysis;
 using FluentAssertions;
+using NUnit.Framework;
 using URSA;
 using URSA.Web;
 using URSA.Web.Converters;
@@ -14,7 +14,7 @@ using URSA.Web.Mapping;
 namespace Given_instance_of_the.binder.FromBodyArgumentBinder_class
 {
     [ExcludeFromCodeCoverage]
-    [TestClass]
+    [TestFixture]
     public class when_binding_to_X_WWW_Url_Encoded_body : ArgumentBinderTest<FromBodyArgumentBinder, FromBodyAttribute, int>
     {
         private const string Body = "operandA=1&operandB=2";
@@ -25,7 +25,7 @@ namespace Given_instance_of_the.binder.FromBodyArgumentBinder_class
 
         protected override string MethodName { get { return "PostModulo"; } }
 
-        [TestMethod]
+        [Test]
         public void it_should_call_converter_provider()
         {
             Binder.GetArgumentValue(GetContext(Body, "POST", "application/x-www-url-encoded"));
@@ -33,7 +33,7 @@ namespace Given_instance_of_the.binder.FromBodyArgumentBinder_class
             ConverterProvider.Verify(instance => instance.FindBestInputConverter(It.IsAny<Type>(), It.IsAny<IRequestInfo>(), false), Times.Once);
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_not_call_converter()
         {
             Binder.GetArgumentValue((ArgumentBindingContext)GetContext(Body, "POST", "application/x-www-url-encoded"));
@@ -41,7 +41,7 @@ namespace Given_instance_of_the.binder.FromBodyArgumentBinder_class
             Converter.Verify(instance => instance.ConvertTo(It.IsAny<Type>(), It.IsAny<IRequestInfo>()), Times.Never);
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_provide_a_value()
         {
             var result = Binder.GetArgumentValue((ArgumentBindingContext)GetContext(Body, "POST", "application/x-www-url-encoded"));
@@ -49,7 +49,7 @@ namespace Given_instance_of_the.binder.FromBodyArgumentBinder_class
             result.Should().Be(1);
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_throw_when_no_binding_context_is_given()
         {
             Binder.Invoking(instance => instance.GetArgumentValue(null)).ShouldThrow<ArgumentNullException>().Which.ParamName.Should().Be("context");

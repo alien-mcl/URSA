@@ -1,16 +1,16 @@
 ﻿using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using NUnit.Framework;
 using URSA.Web;
 using URSA.Web.Converters;
 
 namespace Given_instance_of.DefaultConverterProvider_class
 {
     [ExcludeFromCodeCoverage]
-    [TestClass]
+    [TestFixture]
     public class when_returning_a_response
     {
         private IList<IConverter> _converters;
@@ -20,7 +20,7 @@ namespace Given_instance_of.DefaultConverterProvider_class
         private Mock<IConverter> _uriConverter;
         private IConverterProvider _provider;
 
-        [TestMethod]
+        [Test]
         public void it_should_provide_string_converter()
         {
             var match = _provider.FindBestOutputConverter<string>(_response.Object);
@@ -30,7 +30,7 @@ namespace Given_instance_of.DefaultConverterProvider_class
             _uriConverter.Verify(instance => instance.CanConvertFrom(typeof(string), _response.Object), Times.Once);
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_provide_Uri_converter()
         {
             var match = _provider.FindBestOutputConverter(typeof(Uri), _response.Object);
@@ -40,26 +40,26 @@ namespace Given_instance_of.DefaultConverterProvider_class
             _uriConverter.Verify(instance => instance.CanConvertFrom(typeof(Uri), _response.Object), Times.Once);
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_throw_when_not_initialized_and_trying_to_find_output_converter()
         {
             var provider = new DefaultConverterProvider();
             provider.Invoking(instance => instance.FindBestOutputConverter(typeof(string), new Mock<IResponseInfo>().Object)).ShouldThrow<InvalidOperationException>();
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_throw_when_looking_for_output_converter_without_specifying_target_type()
         {
             _provider.Invoking(instance => instance.FindBestOutputConverter(null, new Mock<IResponseInfo>().Object)).ShouldThrow<ArgumentNullException>();
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_throw_when_looking_for_output_converter_without_response_details()
         {
             _provider.Invoking(instance => instance.FindBestOutputConverter(typeof(string), null)).ShouldThrow<ArgumentNullException>();
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_provide_any_converter_when_request_expects_any_media_type()
         {
             _request.SetupGet(instance => instance.OutputNeutral).Returns(true);
@@ -75,7 +75,7 @@ namespace Given_instance_of.DefaultConverterProvider_class
             result.Should().Be(intConverter.Object);
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_not_provide_any_converter_when_not_matching_the_request_are_found()
         {
             _request.SetupGet(instance => instance.OutputNeutral).Returns(false);
@@ -87,7 +87,7 @@ namespace Given_instance_of.DefaultConverterProvider_class
             result.Should().BeNull();
         }
 
-        [TestInitialize]
+        [SetUp]
         public void Setup()
         {
             _request = new Mock<IRequestInfo>(MockBehavior.Strict);
@@ -104,7 +104,7 @@ namespace Given_instance_of.DefaultConverterProvider_class
             _provider.Initialize(() => _converters);
         }
 
-        [TestCleanup]
+        [TearDown]
         public void Teardown()
         {
             _request = null;

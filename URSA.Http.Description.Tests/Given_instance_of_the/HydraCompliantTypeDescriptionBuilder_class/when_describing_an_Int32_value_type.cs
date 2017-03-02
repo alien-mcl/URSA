@@ -1,16 +1,16 @@
 ﻿#pragma warning disable 1591
 using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
 using URSA.Web.Http.Description;
 using URSA.Web.Http.Description.Entities;
 using URSA.Web.Http.Description.Hydra;
 
 namespace Given_instance_of_the.HydraCompliantTypeDescriptionBuilder_class
 {
-    [TestClass]
+    [TestFixture]
     public class when_describing_an_Int32_value_type : HydraCompliantTypeDescriptionBuilderTest<int>
     {
-        [TestMethod]
+        [Test]
         public void it_should_create_a_resource_description()
         {
             var context = DescriptionContext.ForType(ApiDocumentation, typeof(int), Builder);
@@ -21,7 +21,7 @@ namespace Given_instance_of_the.HydraCompliantTypeDescriptionBuilder_class
             result.Should().BeAssignableTo<IClass>();
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_create_a_type_description()
         {
             var result = DescriptionContext.ForType(ApiDocumentation, typeof(int), Builder).BuildTypeDescription();

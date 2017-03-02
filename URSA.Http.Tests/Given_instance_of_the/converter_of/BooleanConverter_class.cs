@@ -1,12 +1,12 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System.Diagnostics.CodeAnalysis;
+﻿using System.Diagnostics.CodeAnalysis;
+using NUnit.Framework;
 using URSA.Web.Http.Converters;
 using URSA.Web.Http.Testing;
 
 namespace Given_instance_of_the.converter_of
 {
     [ExcludeFromCodeCoverage]
-    [TestClass]
+    [TestFixture]
     public class BooleanConverter_class : ConverterTest<BooleanConverter, bool>
     {
         private const bool Entity = false;

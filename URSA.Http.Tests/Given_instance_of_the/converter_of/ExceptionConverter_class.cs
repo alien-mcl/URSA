@@ -1,11 +1,11 @@
 ﻿using System;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Net;
 using FluentAssertions;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using NUnit.Framework;
 using URSA;
 using URSA.Security;
 using URSA.Web.Http;
@@ -14,12 +14,12 @@ using URSA.Web.Http.Converters;
 namespace Given_instance_of_the.converter_of
 {
     [ExcludeFromCodeCoverage]
-    [TestClass]
+    [TestFixture]
     public class ExceptionConverter_class
     {
         private ExceptionConverter _converter;
 
-        [TestMethod]
+        [Test]
         public void it_should_provide_problem_description()
         {
             var message = "Test exception";
@@ -36,37 +36,37 @@ namespace Given_instance_of_the.converter_of
             ((int)details.status).Should().Be((int)exception.Status);
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_throw_when_no_response_is_provided_for_serialization_compatibility_test()
         {
             _converter.Invoking(instance => instance.CanConvertFrom<Exception>(null)).ShouldThrow<ArgumentNullException>().Which.ParamName.Should().Be("response");
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_throw_when_no_given_type_is_provided_for_serialization()
         {
             _converter.Invoking(instance => instance.ConvertFrom(null, null, null)).ShouldThrow<ArgumentNullException>().Which.ParamName.Should().Be("givenType");
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_throw_when_the_instance_being_serialized_mismatches_a_given_type()
         {
             _converter.Invoking(instance => instance.ConvertFrom(typeof(Exception), DateTime.Now, null)).ShouldThrow<InvalidOperationException>();
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_do_nothing_if_the_instance_being_serialized_is_null()
         {
             _converter.Invoking(instance => instance.ConvertFrom(typeof(Exception), null, null)).ShouldNotThrow();
         }
 
-        [TestInitialize]
+        [SetUp]
         public void Setup()
         {
             _converter = new ExceptionConverter();
         }
 
-        [TestCleanup]
+        [TearDown]
         public void Teardown()
         {
             _converter = null;

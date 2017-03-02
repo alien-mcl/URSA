@@ -3,17 +3,17 @@ using System.Configuration;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
 using URSA.Configuration;
 using URSA.Web.Converters;
 
 namespace Given_instance_of
 {
     [ExcludeFromCodeCoverage]
-    [TestClass]
+    [TestFixture]
     public class UrsaConfigurationSection_class
     {
-        [TestMethod]
+        [Test]
         public void it_should_throw_when_no_provider_type_provided()
         {
             ArgumentNullException exception = null;
@@ -29,7 +29,7 @@ namespace Given_instance_of
             exception.Should().NotBeNull();
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_throw_when_provided_type_is_not_of_required_provider_base_type()
         {
             ArgumentOutOfRangeException exception = null;
@@ -45,7 +45,7 @@ namespace Given_instance_of
             exception.Should().NotBeNull();
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_throw_when_invalid_constructor_arguments_are_passed()
         {
             InvalidOperationException exception = null;
@@ -61,7 +61,7 @@ namespace Given_instance_of
             exception.Should().NotBeNull();
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_create_a_provider_of_given_type()
         {
             var providerType = typeof(DefaultConverterProvider);

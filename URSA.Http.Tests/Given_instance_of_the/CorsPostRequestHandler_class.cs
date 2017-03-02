@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Threading.Tasks;
 using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using NUnit.Framework;
 using URSA.Web;
 using URSA.Web.Http;
 using URSA.Web.Http.Security;
@@ -10,7 +10,7 @@ using URSA.Web.Http.Testing;
 
 namespace Given_instance_of_the
 {
-    [TestClass]
+    [TestFixture]
     public class CorsPostRequestHandler_class
     {
         private const string ExpectedHeader = "Allowed";
@@ -18,7 +18,7 @@ namespace Given_instance_of_the
 
         private IPostRequestHandler _postRequestHandler;
 
-        [TestMethod]
+        [Test]
         public async Task it_should_do_nothing_if_no_origin_provided_in_request()
         {
             var response = this.CreateResponse();
@@ -28,7 +28,7 @@ namespace Given_instance_of_the
             response.Headers.AccessControlAllowOrigin.Should().BeNullOrEmpty();
         }
 
-        [TestMethod]
+        [Test]
         public async Task it_should_allow_any_domain()
         {
             var response = this.CreateResponseWithOrigin(Origin);
@@ -38,7 +38,7 @@ namespace Given_instance_of_the
             response.Headers.AccessControlAllowOrigin.Should().Be(CorsPostRequestHandler.Any);
         }
 
-        [TestMethod]
+        [Test]
         public async Task it_should_allow_any_header_from_request()
         {
             var response = this.CreateResponseWithOrigin(Origin);
@@ -48,7 +48,7 @@ namespace Given_instance_of_the
             response.Headers.AccessControlAllowHeaders.Should().Contain("Content-Type");
         }
         
-        [TestMethod]
+        [Test]
         public async Task it_should_expose_any_header_from_request()
         {
             var response = this.CreateResponseWithOrigin(Origin, new Header("Accept-Ranges", "bytes"));
@@ -58,26 +58,26 @@ namespace Given_instance_of_the
             response.Headers.AccessControlExposeHeaders.Should().Contain("Content-Range");
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_throw_when_no_response_info_is_provided()
         {
             _postRequestHandler.Awaiting(instance => instance.Process(null)).ShouldThrow<ArgumentNullException>().Which.ParamName.Should().Be("responseInfo");
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_throw_when_the_response_info_provided_is_of_incorrect_type()
         {
             _postRequestHandler.Awaiting(instance => instance.Process(new Mock<IResponseInfo>(MockBehavior.Strict).Object))
                 .ShouldThrow<ArgumentOutOfRangeException>().Which.ParamName.Should().Be("responseInfo");
         }
 
-        [TestInitialize]
+        [SetUp]
         public void Setup()
         {
             _postRequestHandler = new CorsPostRequestHandler();
         }
 
-        [TestCleanup]
+        [TearDown]
         public void Teardown()
         {
             _postRequestHandler = null;

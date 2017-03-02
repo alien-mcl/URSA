@@ -1,8 +1,8 @@
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using System;
 using System.Diagnostics.CodeAnalysis;
 using FluentAssertions;
+using NUnit.Framework;
 using URSA;
 using URSA.Web;
 using URSA.Web.Http;
@@ -13,7 +13,7 @@ using URSA.Web.Mapping;
 namespace Given_instance_of_the.binder.FromBodyArgumentBinder_class
 {
     [ExcludeFromCodeCoverage]
-    [TestClass]
+    [TestFixture]
     public class when_binding_to_multipart_form_data_body : ArgumentBinderTest<FromBodyArgumentBinder, FromBodyAttribute, int>
     {
         private const string Boundary = "test";
@@ -27,7 +27,7 @@ namespace Given_instance_of_the.binder.FromBodyArgumentBinder_class
 
         protected override string MethodName { get { return "PostModulo"; } }
 
-        [TestMethod]
+        [Test]
         public void it_should_call_converter_provider()
         {
             Binder.GetArgumentValue(GetContext(Body, "POST", "multipart/form-data", Boundary));
@@ -35,7 +35,7 @@ namespace Given_instance_of_the.binder.FromBodyArgumentBinder_class
             ConverterProvider.Verify(instance => instance.FindBestInputConverter(It.IsAny<Type>(), It.IsAny<IRequestInfo>(), false), Times.Once);
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_call_converter()
         {
             Binder.GetArgumentValue((ArgumentBindingContext)GetContext(Body, "POST", "multipart/form-data", Boundary));

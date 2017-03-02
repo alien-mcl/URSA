@@ -1,18 +1,18 @@
 ﻿using System.Threading.Tasks;
 using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
 using URSA.Web;
 using URSA.Web.Http.Collections;
 
 namespace Given_instance_of_the
 {
-    [TestClass]
+    [TestFixture]
     public class DependencyTree_class
     {
         private IResponseModelTransformer[] _expected;
         private DependencyTree<IResponseModelTransformer> _dependencyTree;
 
-        [TestMethod]
+        [Test]
         public void it_should_enumerate_model_transformers_in_a_correct_order()
         {
             int index = 0;
@@ -23,7 +23,7 @@ namespace Given_instance_of_the
             }
         }
 
-        [TestInitialize]
+        [SetUp]
         public void Setup()
         {
             var modelTransformers = new IResponseModelTransformer[]
@@ -43,7 +43,7 @@ namespace Given_instance_of_the
                 };
         }
 
-        [TestCleanup]
+        [TearDown]
         public void Teardown()
         {
             _dependencyTree = null;

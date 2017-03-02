@@ -1,6 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using Microsoft.Extensions.Configuration;
 
@@ -8,6 +9,7 @@ namespace System.Configuration
 {
     public class ConfigurationManager
     {
+        private const string ConfigurationFileName = "appsettings.json";
         private static readonly IDictionary<string, Tuple<Type, Func<IConfigurationSection, object>>> ConfigSections;
         private static readonly IConfigurationRoot Configuration;
         private static readonly IDictionary<string, IConfigurationSection> Cache;
@@ -17,7 +19,7 @@ namespace System.Configuration
             ConfigSections = new ConcurrentDictionary<string, Tuple<Type, Func<IConfigurationSection, object>>>();
             Configuration = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
-                .AddJsonFile("appsettings.json", true, true).Build();
+                .AddJsonFile(DiscoverConfigurationFile(), true).Build();
             Cache = new ConcurrentDictionary<string, IConfigurationSection>();
         }
 
@@ -70,6 +72,19 @@ namespace System.Configuration
             configurationSection.Bind(targetInstance);
             Cache[sectionName] = result;
             return result;
+        }
+
+        private static string DiscoverConfigurationFile()
+        {
+            var path = Directory.GetCurrentDirectory();
+            if (!File.Exists(Path.Combine(path, ConfigurationFileName)))
+            {
+                return (from directory in Directory.GetDirectories(path)
+                    from file in Directory.GetFiles(directory, ConfigurationFileName)
+                    select file).FirstOrDefault() ?? Path.Combine(path, ConfigurationFileName);
+            }
+
+            return Path.Combine(path, ConfigurationFileName);
         }
     }
 }

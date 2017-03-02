@@ -1,17 +1,17 @@
 ﻿using System;
 using System.Security.Claims;
 using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
 using URSA.Security;
 
 namespace Given_instance_of
 {
-    [TestClass]
+    [TestFixture]
     public class SecuritySpecificationInfo_class
     {
         private SecuritySpecificationInfo _securitySpecification;
 
-        [TestMethod]
+        [Test]
         public void it_should_add_a_claim()
         {
             _securitySpecification.Add(ClaimTypes.Name);
@@ -19,7 +19,7 @@ namespace Given_instance_of
             _securitySpecification[ClaimTypes.Name].Should().BeEmpty();
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_add_a_claim_with_value()
         {
             var expected = "test";
@@ -29,7 +29,7 @@ namespace Given_instance_of
             _securitySpecification[ClaimTypes.Name].Should().Contain(expected);
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_remove_a_claim()
         {
             _securitySpecification.Add(ClaimTypes.Name);
@@ -38,7 +38,7 @@ namespace Given_instance_of
             _securitySpecification[ClaimTypes.Name].Should().BeNull();
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_remove_a_claims_with_value()
         {
             var expected = "test";
@@ -49,7 +49,7 @@ namespace Given_instance_of
             _securitySpecification[ClaimTypes.Name].Should().BeNull();
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_check_allowances_correctly()
         {
             _securitySpecification.Add(ClaimTypes.Name, "test");
@@ -57,31 +57,31 @@ namespace Given_instance_of
             _securitySpecification.Matches(new BasicClaimBasedIdentity("test")).Should().BeTrue();
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_throw_when_no_claim_type_is_passed_when_getting_claims()
         {
             _securitySpecification.Invoking(instance => { var test = instance[null]; }).ShouldThrow<ArgumentNullException>().Which.ParamName.Should().Be("claimType");
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_throw_when_no_claim_type_is_passed_when_adding_claims()
         {
             _securitySpecification.Invoking(instance => instance.Add(null)).ShouldThrow<ArgumentNullException>().Which.ParamName.Should().Be("claimType");
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_throw_when_no_claim_type_is_passed_when_removing_claims()
         {
             _securitySpecification.Invoking(instance => instance.Remove(null)).ShouldThrow<ArgumentNullException>().Which.ParamName.Should().Be("claimType");
         }
 
-        [TestInitialize]
+        [SetUp]
         public void Setup()
         {
             _securitySpecification = new SecuritySpecificationInfo();
         }
 
-        [TestCleanup]
+        [TearDown]
         public void Teardown()
         {
             _securitySpecification = null;

@@ -2,19 +2,19 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
 using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
 using URSA.Web.Http.Description.CodeGen;
 
 namespace Given_instance_of_the
 {
     [ExcludeFromCodeCoverage]
-    [TestClass]
+    [TestFixture]
     public class XsdUriParser_class
     {
         private static readonly Uri Uri = new Uri(XsdUriParser.Xsd + "string");
         private XsdUriParser _parser;
 
-        [TestMethod]
+        [Test]
         public void it_should_extract_namespace_from_XSD_uri()
         {
             string @namespace;
@@ -23,7 +23,7 @@ namespace Given_instance_of_the
             @namespace.Should().Be("System");
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_extract_name_from_XSD_uri()
         {
             string @namespace;
@@ -32,13 +32,13 @@ namespace Given_instance_of_the
             name.Should().Be("String");
         }
 
-        [TestInitialize]
+        [SetUp]
         public void Setup()
         {
             _parser = new XsdUriParser();
         }
 
-        [TestCleanup]
+        [TearDown]
         public void Teardown()
         {
             _parser = null;

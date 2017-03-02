@@ -34,7 +34,7 @@ namespace System
 #if CORE
             return new[] { Assembly.GetEntryAssembly() }.Concat
                 (from library in DependencyContext.Default.RuntimeLibraries
-                 where library.Name != Assembly.GetEntryAssembly().GetName().Name
+                 where library.NativeLibraryGroups.Count == 0 && library.Name != Assembly.GetEntryAssembly().GetName().Name
                  where (assemblyNameRegex == null) || (library.Assemblies.Any(assembly => assemblyNameRegex.IsMatch(assembly.Name.FullName)))
                  select Assembly.Load(new AssemblyName(library.Name)));
 #else

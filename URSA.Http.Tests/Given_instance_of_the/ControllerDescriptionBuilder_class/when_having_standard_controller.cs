@@ -4,10 +4,10 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using FluentAssertions;
 using FluentAssertions.Specialized;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using System.Linq;
 using System.Reflection;
+using NUnit.Framework;
 using URSA.Web.Description;
 using URSA.Web.Description.Http;
 using URSA.Web.Http;
@@ -17,12 +17,12 @@ using URSA.Web.Tests;
 namespace Given_instance_of_the.ControllerDescriptionBuilder_class
 {
     [ExcludeFromCodeCoverage]
-    [TestClass]
+    [TestFixture]
     public class when_having_standard_controller
     {
         private ControllerDescriptionBuilder<TestController> _builder;
 
-        [TestMethod]
+        [Test]
         public void it_should_describe_Add_method_correctly()
         {
             var method = typeof(TestController).GetMethod("Add");
@@ -42,7 +42,7 @@ namespace Given_instance_of_the.ControllerDescriptionBuilder_class
             details.Arguments.Last().VariableName.Should().Be("operandB");
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_describe_Substract_method_correctly()
         {
             var method = typeof(TestController).GetMethod("Substract");
@@ -62,7 +62,7 @@ namespace Given_instance_of_the.ControllerDescriptionBuilder_class
             details.Arguments.Last().VariableName.Should().Be("operandB");
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_describe_Multiply_method_correctly()
         {
             var method = typeof(TestController).GetMethod("Multiply");
@@ -82,7 +82,7 @@ namespace Given_instance_of_the.ControllerDescriptionBuilder_class
             details.Arguments.Last().VariableName.Should().Be("operandB");
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_describe_Divide_method_correctly()
         {
             var method = typeof(TestController).GetMethod("Divide");
@@ -102,7 +102,7 @@ namespace Given_instance_of_the.ControllerDescriptionBuilder_class
             details.Arguments.Last().VariableName.Should().Be(null);
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_describe_Modulo_method_correctly()
         {
             var method = typeof(TestController).GetMethod("PostModulo");
@@ -120,7 +120,7 @@ namespace Given_instance_of_the.ControllerDescriptionBuilder_class
             details.Arguments.Last().VariableName.Should().Be(null);
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_describe_Power_method_correctly()
         {
             var method = typeof(TestController).GetMethod("Power");
@@ -140,7 +140,7 @@ namespace Given_instance_of_the.ControllerDescriptionBuilder_class
             details.Arguments.Last().VariableName.Should().Be("operandB");
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_describe_Log_method_correctly()
         {
             var method = typeof(TestController).GetMethod("Log");
@@ -156,7 +156,7 @@ namespace Given_instance_of_the.ControllerDescriptionBuilder_class
             details.Arguments.First().VariableName.Should().Be("operands");
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_retrieve_methods_associated_HTTP_verb()
         {
             var result = _builder.GetMethodVerb(typeof(TestController).GetMethod("Log"));
@@ -164,19 +164,19 @@ namespace Given_instance_of_the.ControllerDescriptionBuilder_class
             result.Should().Be(Verb.GET);
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_throw_when_obtaining_associated_HTTP_verb_for_null_method()
         {
             _builder.Invoking(instance => instance.GetMethodVerb(null)).ShouldThrow<ArgumentNullException>();
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_throw_when_obtaining_associated_HTTP_verb_for_method_which_doesnt_belong_to_given_type()
         {
             _builder.Invoking(instance => instance.GetMethodVerb(typeof(object).GetMethod("ToString"))).ShouldThrow<ArgumentOutOfRangeException>();
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_retrieve_methods_Uri()
         {
             var method = typeof(TestController).GetMethod("Log");
@@ -188,21 +188,21 @@ namespace Given_instance_of_the.ControllerDescriptionBuilder_class
             mappings.First().Parameter.Should().Be(method.GetParameters()[0]);
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_throw_when_obtaining_operation_Uri_for_null_method()
         {
             IEnumerable<ArgumentInfo> mappings;
             _builder.Invoking(instance => instance.GetOperationUrlTemplate(null, out mappings)).ShouldThrow<ArgumentNullException>();
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_throw_when_obtaining_operation_Uri_for_method_which_doesnt_belong_to_given_type()
         {
             IEnumerable<ArgumentInfo> mappings;
             _builder.Invoking(instance => instance.GetOperationUrlTemplate(typeof(object).GetMethod("ToString"), out mappings)).ShouldThrow<ArgumentOutOfRangeException>();
         }
 
-        [TestInitialize]
+        [SetUp]
         public void Setup()
         {
             Mock<IDefaultValueRelationSelector> defaultSourceSelector = new Mock<IDefaultValueRelationSelector>(MockBehavior.Strict);
@@ -213,7 +213,7 @@ namespace Given_instance_of_the.ControllerDescriptionBuilder_class
             _builder = new ControllerDescriptionBuilder<TestController>(defaultSourceSelector.Object);
         }
 
-        [TestCleanup]
+        [TearDown]
         public void Teardown()
         {
             _builder = null;

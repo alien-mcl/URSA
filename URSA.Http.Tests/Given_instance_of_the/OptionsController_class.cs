@@ -7,7 +7,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
 using URSA;
 using URSA.Security;
 using URSA.Web.Http;
@@ -17,10 +17,10 @@ using URSA.Web.Tests;
 
 namespace Given_instance_of_the
 {
-    [TestClass]
+    [TestFixture]
     public class OptionsController_class
     {
-        [TestMethod]
+        [Test]
         public void it_should_create_an_instance_correctly()
         {
             var result = OptionsController.CreateOperationInfo(typeof(TestController).GetTypeInfo().GetMethod("Add").ToOperationInfo("/", Verb.GET));
@@ -28,7 +28,7 @@ namespace Given_instance_of_the
             result.ProtocolSpecificCommand.Should().Be(Verb.OPTIONS);
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_allow_methods()
         {
             var controller = new OptionsController(HttpStatusCode.MethodNotAllowed, "GET");
@@ -39,7 +39,7 @@ namespace Given_instance_of_the
             controller.Response.Headers["Allow"].Should().Be("GET");
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_allow_methods_in_CORS_request()
         {
             var controller = new OptionsController(HttpStatusCode.MethodNotAllowed, "GET");

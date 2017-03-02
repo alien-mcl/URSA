@@ -1,19 +1,19 @@
 ﻿using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
+using NUnit.Framework;
 using URSA.Web.Http;
 
 namespace Given_instance_of_the
 {
     [ExcludeFromCodeCoverage]
-    [TestClass]
+    [TestFixture]
     public class HeaderCollection_class
     {
-        [TestMethod]
+        [Test]
         public void it_should_set_a_header()
         {
             HeaderCollection headers = new HeaderCollection();
@@ -25,7 +25,7 @@ namespace Given_instance_of_the
             headers["Header1"].Values.First().Parameters.Count.Should().Be(0);
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_add_a_header()
         {
             HeaderCollection headers = new HeaderCollection();
@@ -37,7 +37,7 @@ namespace Given_instance_of_the
             headers["Header1"].Values.First().Parameters.Count.Should().Be(1);
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_remove_a_header()
         {
             HeaderCollection headers = new HeaderCollection();
@@ -47,7 +47,7 @@ namespace Given_instance_of_the
             headers.Count.Should().Be(0);
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_get_a_header_by_its_name()
         {
             HeaderCollection headers = new HeaderCollection();
@@ -59,7 +59,7 @@ namespace Given_instance_of_the
             header.Name.Should().Be("Header1");
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_serialize_the_headers_to_its_string_representation()
         {
             HeaderCollection headers = new HeaderCollection();
@@ -70,7 +70,7 @@ namespace Given_instance_of_the
             headers.ToString().Should().Be(expected);
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_try_and_parse_headers_correctly()
         {
             HeaderCollection headers;
@@ -119,31 +119,31 @@ namespace Given_instance_of_the
             acceptLanguage.Values.First().Value.Should().Be("pl");
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_throw_when_no_headers_to_be_parsed_are_passed()
         {
             ((HeaderCollection)null).Invoking(_ => HeaderCollection.Parse(null)).ShouldThrow<ArgumentNullException>().Which.ParamName.Should().Be("headers");
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_throw_when_headers_to_be_parsed_are_empty()
         {
             ((HeaderCollection)null).Invoking(_ => HeaderCollection.Parse(String.Empty)).ShouldThrow<ArgumentOutOfRangeException>().Which.ParamName.Should().Be("headers");
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_throw_when_no_header_is_being_added()
         {
             new HeaderCollection().Invoking(instance => instance.Add(null)).ShouldThrow<ArgumentNullException>().Which.ParamName.Should().Be("header");
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_throw_when_no_header_is_being_set()
         {
             new HeaderCollection().Invoking(instance => instance.Set(null)).ShouldThrow<ArgumentNullException>().Which.ParamName.Should().Be("header");
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_do_nothing_when_no_headers_is_being_merged()
         {
             var headers = new HeaderCollection();
@@ -153,7 +153,7 @@ namespace Given_instance_of_the
             headers.Should().HaveCount(0);
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_merge_headers()
         {
             var headers1 = new HeaderCollection(new Header("test1"));
@@ -164,7 +164,7 @@ namespace Given_instance_of_the
             headers1.Should().ContainKey("test2");
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_set_and_get_named_headers_correctly()
         {
             var collection = new HeaderCollection();

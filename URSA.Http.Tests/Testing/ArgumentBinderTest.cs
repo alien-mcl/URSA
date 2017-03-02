@@ -1,5 +1,4 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
+﻿using Moq;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -8,6 +7,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
+using NUnit.Framework;
 using URSA.Security;
 using URSA.Web.Converters;
 using URSA.Web.Description;
@@ -35,7 +35,7 @@ namespace URSA.Web.Http.Testing
 
         protected abstract string MethodName { get; }
 
-        [TestInitialize]
+        [SetUp]
         public void Setup()
         {
             SetupConverter(Converter = new Mock<IConverter>(MockBehavior.Strict));
@@ -43,7 +43,7 @@ namespace URSA.Web.Http.Testing
             Binder = CreateBinderInstance(ConverterProvider.Object);
         }
 
-        [TestCleanup]
+        [TearDown]
         public void Teardown()
         {
             Converter = null;

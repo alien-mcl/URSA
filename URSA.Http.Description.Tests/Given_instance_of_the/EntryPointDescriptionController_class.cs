@@ -1,7 +1,7 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using NUnit.Framework;
 using URSA;
 using URSA.Web.Description.Http;
 using URSA.Web.Http;
@@ -11,10 +11,10 @@ using URSA.Web.Http.Description.Entities;
 namespace Given_instance_of_the
 {
     [ExcludeFromCodeCoverage]
-    [TestClass]
+    [TestFixture]
     public class EntryPointDescriptionController_class
     {
-        [TestMethod]
+        [Test]
         public void it_should_provide_file_name_from_Url_fragment()
         {
             var expected = "name";
@@ -23,7 +23,7 @@ namespace Given_instance_of_the
             controller.FileName.Should().Be(expected);
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_provide_file_name_from_Urls_last_segment()
         {
             var expected = "name";

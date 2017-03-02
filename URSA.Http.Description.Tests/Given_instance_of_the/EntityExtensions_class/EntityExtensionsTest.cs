@@ -1,5 +1,4 @@
 ﻿using System;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using RomanticWeb;
 using RomanticWeb.Configuration;
 using RomanticWeb.DotNetRDF;
@@ -8,10 +7,11 @@ using URSA.Configuration;
 using URSA.Web.Http.Description.Tests.Data;
 using VDS.RDF;
 using System.Linq;
+using NUnit.Framework;
 
 namespace Given_instance_of_the.EntityExtensions_class
 {
-    [TestClass]
+    [TestFixture]
     public abstract class EntityExtensionsTest
     {
         protected ITripleStore SourceStore { get; private set; }
@@ -26,7 +26,7 @@ namespace Given_instance_of_the.EntityExtensions_class
 
         protected IProduct TargetInstance { get; set; }
 
-        [TestInitialize]
+        [SetUp]
         public virtual void Setup()
         {
             var metaGraphUri = ConfigurationSectionHandler.Default.Factories.Cast<FactoryElement>().First(factory => factory.Name == DescriptionConfigurationSection.Default.DefaultStoreFactoryName).MetaGraphUri;
@@ -37,6 +37,8 @@ namespace Given_instance_of_the.EntityExtensions_class
             TargetStore = store;
             SourceInstance = SourceEntityContext.Create<IProduct>(new EntityId("http://temp.uri/product/"));
             SourceInstance.Name = "Test";
+            SourceInstance.Price = 0;
+            SourceInstance.Key = Guid.NewGuid();
             SourceInstance.RelatedProduct = SourceEntityContext.Create<IProduct>(new EntityId("http://temp.uri/related-product/"));
             SourceInstance.Similar.Add(SourceEntityContext.Create<IProduct>(new EntityId("http://temp.uri/similar-product/")));
             SourceEntityContext.Commit();

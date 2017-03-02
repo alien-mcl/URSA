@@ -2,8 +2,8 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using NUnit.Framework;
 using URSA;
 using URSA.Web.Description;
 using URSA.Web.Description.Http;
@@ -14,13 +14,13 @@ using URSA.Web.Mapping;
 namespace Given_instance_of_the
 {
     [ExcludeFromCodeCoverage]
-    [TestClass]
+    [TestFixture]
     public class EntryPointControllerDescriptionBuilder_class
     {
         private static readonly HttpUrl EntryPoint = (HttpUrl)UrlParser.Parse("/test");
         private EntryPointControllerDescriptionBuilder _builder;
 
-        [TestMethod]
+        [Test]
         public void it_should_describe_Add_method_correctly()
         {
             var details = ((IControllerDescriptionBuilder)_builder).BuildDescriptor();
@@ -28,7 +28,7 @@ namespace Given_instance_of_the
             details.Arguments.Should().ContainKey("entryPoint").WhichValue.Should().Be(EntryPoint);
         }
 
-        [TestInitialize]
+        [SetUp]
         public void Setup()
         {
             Mock<IDefaultValueRelationSelector> defaultSourceSelector = new Mock<IDefaultValueRelationSelector>(MockBehavior.Strict);
@@ -39,7 +39,7 @@ namespace Given_instance_of_the
             _builder = new EntryPointControllerDescriptionBuilder(EntryPoint, defaultSourceSelector.Object);
         }
 
-        [TestCleanup]
+        [TearDown]
         public void Teardown()
         {
             _builder = null;

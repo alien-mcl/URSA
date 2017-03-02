@@ -2,19 +2,19 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
 using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
 using GenericUriParser = URSA.Web.Http.Description.CodeGen.GenericUriParser;
 
 namespace Given_instance_of_the
 {
     [ExcludeFromCodeCoverage]
-    [TestClass]
+    [TestFixture]
     public class GenericUriParser_class
     {
         private static readonly Uri Uri = new Uri("http://temp.uri/some/namespace/class");
         private GenericUriParser _parser;
 
-        [TestMethod]
+        [Test]
         public void it_should_extract_namespace_from_HTTP_uri()
         {
             string @namespace;
@@ -23,7 +23,7 @@ namespace Given_instance_of_the
             @namespace.Should().Be("Some.Namespace");
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_extract_name_from_HTTP_uri()
         {
             string @namespace;
@@ -32,13 +32,13 @@ namespace Given_instance_of_the
             name.Should().Be("Class");
         }
 
-        [TestInitialize]
+        [SetUp]
         public void Setup()
         {
             _parser = new GenericUriParser();
         }
 
-        [TestCleanup]
+        [TearDown]
         public void Teardown()
         {
             _parser = null;

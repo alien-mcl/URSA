@@ -5,8 +5,8 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using NUnit.Framework;
 using RomanticWeb;
 using RomanticWeb.Mapping;
 using RomanticWeb.Mapping.Model;
@@ -18,7 +18,7 @@ using URSA.Web.Http.Tests.Data;
 namespace Given_instance_of_the.converter_of
 {
     [ExcludeFromCodeCoverage]
-    [TestClass]
+    [TestFixture]
     public class ExpressionTreeConverter_class : ConverterTest<ExpressionTreeConverter, Expression<Func<IProduct, bool>>>
     {
         private const string EntityBody = "<http://temp.uri/vocab#price> eq 0";
@@ -37,7 +37,7 @@ namespace Given_instance_of_the.converter_of
 
         protected override bool SupportsSerialization { get { return false; } }
 
-        [TestMethod]
+        [Test]
         public virtual void it_should_deserialize_query_as_an_to_an_expression_tree()
         {
             Expression<Func<IProduct, bool>> expected = t => t.Price == 0.0;

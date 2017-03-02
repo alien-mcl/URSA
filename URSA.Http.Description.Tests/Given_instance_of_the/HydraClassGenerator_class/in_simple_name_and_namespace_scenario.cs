@@ -1,6 +1,5 @@
 ﻿#pragma warning disable 1591
 using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using RomanticWeb;
 using RomanticWeb.Entities;
@@ -8,6 +7,7 @@ using RomanticWeb.Mapping;
 using RomanticWeb.Mapping.Model;
 using System;
 using System.Diagnostics.CodeAnalysis;
+using NUnit.Framework;
 using RomanticWeb.Vocabularies;
 using URSA.CodeGen;
 using URSA.Web;
@@ -19,7 +19,7 @@ using URSA.Web.Http.Description.Hydra;
 namespace Given_instance_of_the.HydraClassGenerator_class
 {
     [ExcludeFromCodeCoverage]
-    [TestClass]
+    [TestFixture]
     public class in_simple_name_and_namespace_scenario
     {
         private const string Name = "Class";
@@ -29,7 +29,7 @@ namespace Given_instance_of_the.HydraClassGenerator_class
         private Mock<IResource> _resource;
         private IClassGenerator _generator;
 
-        [TestMethod]
+        [Test]
         public void it_should_extract_namespace_from_uri()
         {
             var @namespace = Namespace;
@@ -40,7 +40,7 @@ namespace Given_instance_of_the.HydraClassGenerator_class
             _uriParser.Verify(instance => instance.Parse(It.IsAny<Uri>(), out @namespace), Times.Once);
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_extract_name_from_uri()
         {
             var @namespace = Namespace;
@@ -51,7 +51,7 @@ namespace Given_instance_of_the.HydraClassGenerator_class
             _uriParser.Verify(instance => instance.Parse(It.IsAny<Uri>(), out @namespace), Times.Once);
         }
 
-        [TestInitialize]
+        [SetUp]
         public void Setup()
         {
             var uri = new Uri("some:uri");
@@ -74,7 +74,7 @@ namespace Given_instance_of_the.HydraClassGenerator_class
             _generator = new HydraClassGenerator(new IUriParser[] { _uriParser.Object });
         }
 
-        [TestCleanup]
+        [TearDown]
         public void Teardown()
         {
             _generator = null;

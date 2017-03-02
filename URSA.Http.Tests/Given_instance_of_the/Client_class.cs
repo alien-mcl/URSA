@@ -1,5 +1,4 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
+﻿using Moq;
 using System;
 using System.Collections.Generic;
 using System.Dynamic;
@@ -10,6 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using FluentAssertions;
 using FluentAssertions.Common;
+using NUnit.Framework;
 using URSA;
 using URSA.ComponentModel;
 using URSA.Configuration;
@@ -21,7 +21,7 @@ using URSA.Web.Http.Tests.Data;
 
 namespace Given_instance_of_the
 {
-    [TestClass]
+    [TestFixture]
     public class Client_class
     {
         private const string AuthenticationScheme = "Basic";
@@ -31,8 +31,8 @@ namespace Given_instance_of_the
 
         private dynamic _arguments;
         private Mock<IComponentProvider> _container;
-        private Mock<HttpWebResponse> _webResponse;
-        private Mock<HttpWebRequest> _webRequest;
+        private Mock<WebResponse> _webResponse;
+        private Mock<WebRequest> _webRequest;
         private Mock<IWebRequestProvider> _webRequestProvider;
         private Mock<IConverterProvider> _converterProvider;
         private Mock<IConverter> _converter;
@@ -48,17 +48,18 @@ namespace Given_instance_of_the
             MultipartBody
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_build_a_request_url()
         {
             _arguments.id = 1;
 
-            HttpUrl result = _client.BuildUrl(RelativeUri, _arguments);
+            Client client = _client;
+            HttpUrl result = client.BuildUrl(RelativeUri, (IDictionary<string, object>)_arguments);
 
             result.Should().Be((HttpUrl)CallUrl.AddSegments(RelativeUri.Replace("{id}", "1").Split('/')));
         }
 
-        [TestMethod]
+        [Test]
         public async Task it_should_create_a_request()
         {
             await Call();
@@ -67,7 +68,7 @@ namespace Given_instance_of_the
             _webRequestProvider.Verify(instance => instance.CreateRequest(It.IsAny<Uri>(), It.IsAny<IDictionary<string, string>>()), Times.Once);
         }
 
-        [TestMethod]
+        [Test]
         public async Task it_should_use_credentials_available_in_cache()
         {
             var expectedUserName = "userName";
@@ -84,7 +85,7 @@ namespace Given_instance_of_the
                 Times.Once);
         }
 
-        [TestMethod]
+        [Test]
         public async Task it_should_serialize_request_body()
         {
             await Call();
@@ -93,7 +94,7 @@ namespace Given_instance_of_the
             _converter.Verify(instance => instance.ConvertFrom(Person, It.IsAny<IResponseInfo>()), Times.Once);
         }
 
-        [TestMethod]
+        [Test]
         public async Task it_should_deserialize_response_body()
         {
             await Call();
@@ -101,7 +102,7 @@ namespace Given_instance_of_the
             _resultBinder.Verify(instance => instance.BindResults(typeof(Person), It.IsAny<RequestInfo>()), Times.Once);
         }
 
-        [TestMethod]
+        [Test]
         public async Task it_should_return_result()
         {
             var result = await Call();
@@ -109,7 +110,7 @@ namespace Given_instance_of_the
             result.Should().Be(Person);
         }
 
-        [TestMethod]
+        [Test]
         public async Task it_should_return_untyped_result()
         {
             await Call(With.NoResult);
@@ -117,7 +118,7 @@ namespace Given_instance_of_the
             _webRequest.Verify(instance => instance.GetResponseAsync(), Times.Once);
         }
 
-        [TestMethod]
+        [Test]
         public async Task it_should_parse_Content_Range_headers()
         {
             await Call();
@@ -125,7 +126,7 @@ namespace Given_instance_of_the
             ((int)_arguments.totalEntities).Should().Be(1);
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_throw_when_Content_Range_header_is_incorrectly_formatted()
         {
             _headers["Content-Range"] = "test";
@@ -133,7 +134,7 @@ namespace Given_instance_of_the
             ((Client)null).Awaiting(_ => Call()).ShouldThrow<FormatException>();
         }
 
-        [TestMethod]
+        [Test]
         public async Task it_should_deserialize_multipart_body_correctly()
         {
             await Call(With.MultipartBody);
@@ -142,7 +143,7 @@ namespace Given_instance_of_the
             Encoding.UTF8.GetString(_requestStream.ToArray()).Should().Contain("--");
         }
 
-        [TestInitialize]
+        [SetUp]
         public void Setup()
         {
             _arguments = new ExpandoObject();
@@ -150,11 +151,11 @@ namespace Given_instance_of_the
             _headers["Content-Type"] = "application/json";
             _headers["Content-Length"] = "0";
             _headers["Content-Range"] = " 0-0/1";
-            _webResponse = new Mock<HttpWebResponse>();
+            _webResponse = new Mock<WebResponse>();
             _webResponse.Setup(instance => instance.GetResponseStream()).Returns(new MemoryStream());
             _webResponse.SetupGet(instance => instance.Headers).Returns(_headers);
             var webHeaders = new WebHeaderCollection();
-            _webRequest = new Mock<HttpWebRequest>();
+            _webRequest = new Mock<WebRequest>();
             _webRequest.Setup(instance => instance.GetRequestStreamAsync()).ReturnsAsync(new UnclosableStream(_requestStream = new MemoryStream()));
             _webRequest.Setup(instance => instance.GetResponseAsync()).ReturnsAsync(_webResponse.Object);
             _webRequest.SetupSet(instance => instance.Credentials = It.IsAny<ICredentials>());
@@ -184,7 +185,7 @@ namespace Given_instance_of_the
             _client = new Client(CallUrl, AuthenticationScheme);
         }
 
-        [TestCleanup]
+        [TearDown]
         public void Teardown()
         {
             _arguments = null;
@@ -203,16 +204,16 @@ namespace Given_instance_of_the
             _arguments.id = 1;
             if (options == With.NoResult)
             {
-                _client.Call(Verb.PUT, RelativeUri, new[] { "application/json" }, new[] { "application/json" }, _arguments, Person);
+                await _client.Call(Verb.PUT, RelativeUri, new[] { "application/json" }, new[] { "application/json" }, (IDictionary<string, object>)_arguments, Person);
                 return null;
             }
 
             if (options == With.MultipartBody)
             {
-                return await _client.Call<Person>(Verb.PUT, RelativeUri, new[] { "application/json" }, new[] { "application/json" }, _arguments, Person, Person);
+                return await _client.Call<Person>(Verb.PUT, RelativeUri, new[] { "application/json" }, new[] { "application/json" }, (IDictionary<string, object>)_arguments, Person, Person);
             }
 
-            return await _client.Call<Person>(Verb.PUT, RelativeUri, new[] { "application/json" }, new[] { "application/json" }, _arguments, Person);
+            return await _client.Call<Person>(Verb.PUT, RelativeUri, new[] { "application/json" }, new[] { "application/json" }, (IDictionary<string, object>)_arguments, Person);
         }
 
         private bool Test(ICredentials credentials, HttpUrl url, string expectedUserName, string expectedPassword)

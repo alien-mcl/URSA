@@ -1,5 +1,4 @@
 ﻿using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using System;
 using System.Collections;
@@ -7,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Reflection;
+using NUnit.Framework;
 using URSA;
 using URSA.Web;
 using URSA.Web.Description;
@@ -17,10 +17,10 @@ using URSA.Web.Tests;
 
 namespace Given_instance_of_the.ResponseComposer_class
 {
-    [TestClass]
+    [TestFixture]
     public class when_dealing_with_CRUD_controller : ResponseComposerTest<CrudController>
     {
-        [TestMethod]
+        [Test]
         public void it_should_handle_List_request_correctly()
         {
             object[] arguments = { 1, 1, 2 };
@@ -37,7 +37,7 @@ namespace Given_instance_of_the.ResponseComposer_class
             Converter.Verify(instance => instance.ConvertFrom(It.Is<IEnumerable>(collection => collection.Cast<Person>().Contains(expected[0])), It.IsAny<IResponseInfo>()), Times.Once);
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_handle_Read_request_correctly()
         {
             object[] arguments = { 1 };
@@ -51,7 +51,7 @@ namespace Given_instance_of_the.ResponseComposer_class
             Converter.Verify(instance => instance.ConvertFrom(expected, It.IsAny<IResponseInfo>()), Times.Never);
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_return_404_not_found_when_reading_inexisting_resource()
         {
             object[] arguments = { 2 };
@@ -65,7 +65,7 @@ namespace Given_instance_of_the.ResponseComposer_class
             Converter.Verify(instance => instance.ConvertFrom(expected, It.IsAny<IResponseInfo>()), Times.Once);
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_handle_Create_request_correctly()
         {
             var person = new Person() { Key = 1 };
@@ -85,7 +85,7 @@ namespace Given_instance_of_the.ResponseComposer_class
             Converter.Verify(instance => instance.ConvertFrom(person.Key, It.IsAny<IResponseInfo>()), Times.Never);
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_handle_Update_request_correctly()
         {
             object[] arguments = { 1, new Person() { Key = 1 } };
@@ -99,7 +99,7 @@ namespace Given_instance_of_the.ResponseComposer_class
             Converter.Verify(instance => instance.ConvertFrom(expected, It.IsAny<IResponseInfo>()), Times.Never);
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_handle_Delete_request_correctly()
         {
             object[] arguments = { 1 };

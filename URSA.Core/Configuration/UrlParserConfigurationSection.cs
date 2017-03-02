@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 #if CORE
 using Microsoft.Extensions.Configuration;
 #else
@@ -25,13 +26,17 @@ namespace URSA.Configuration
         private const string ConfigurationSectionName = "urlParsers";
         private const string ConfigurationSection = UrsaConfigurationSection.ConfigurationSectionGroupName + ConfigurationPathSeparator + ConfigurationSectionName;
 
-        private readonly IDictionary<Type, IEnumerable<string>> _parsers = new ConcurrentDictionary<Type, IEnumerable<string>>();
-
 #if CORE
+        private readonly ICollection<TypeDescriptor> _urlParsers = new List<TypeDescriptor>();
+        private IDictionary<Type, IEnumerable<string>> _parsers;
+
         static UrlParserConfigurationSection()
         {
-            ConfigurationManager.Register<UrlParserConfigurationSection>(ConfigurationSection, instance => instance._parsers);
+            ConfigurationManager.Register<UrlParserConfigurationSection>(ConfigurationSection, instance => instance._urlParsers);
         }
+#else
+        private readonly IDictionary<Type, IEnumerable<string>> _parsers = new ConcurrentDictionary<Type, IEnumerable<string>>();
+#endif
 
         /// <summary>Gets the default configuration</summary>
         public static UrlParserConfigurationSection Default
@@ -42,6 +47,7 @@ namespace URSA.Configuration
             }
         }
 
+#if CORE
         /// <summary>Initializes a new instance of the <see cref="UrlParserConfigurationSection" /> class.</summary>
         public UrlParserConfigurationSection() : base(new ConfigurationRoot(new IConfigurationProvider[0]), ConfigurationSectionName)
         {
@@ -53,21 +59,36 @@ namespace URSA.Configuration
         public UrlParserConfigurationSection(ConfigurationRoot configurationRoot, string sectionName) : base(configurationRoot, sectionName)
         {
         }
-#else
-        /// <summary>Gets the default configuration</summary>
-        public static UrlParserConfigurationSection Default
+
+        /// <summary>Gets the registered parsers and their schemes.</summary>
+        public IEnumerable<KeyValuePair<Type, IEnumerable<string>>> Parsers
         {
             get
             {
-                return (UrlParserConfigurationSection)ConfigurationManager.GetSection(ConfigurationSection) ?? new UrlParserConfigurationSection();
+                if (_parsers ==null)
+                {
+                    lock (_urlParsers)
+                    {
+                        _parsers = _urlParsers.ToDictionary(item => Type.GetType(item.Type), item => (IEnumerable<string>)item.Schemas);
+                    }
+                }
+
+                return _parsers;
             }
         }
-#endif
 
+        internal class TypeDescriptor
+        {
+            private ICollection<string> _schemas = Array.Empty<string>();
+
+            public string Type { get; set; }
+
+            public ICollection<string> Schemas { get { return _schemas; } set { _schemas = value ?? Array.Empty<string>(); } }
+        }
+#else
         /// <summary>Gets the registered parsers and their schemes.</summary>
         public IEnumerable<KeyValuePair<Type, IEnumerable<string>>> Parsers { get { return _parsers; } }
 
-#if !CORE
         /// <inheritdoc />
         protected override void DeserializeElement(XmlReader reader, bool serializeCollectionKey)
         {

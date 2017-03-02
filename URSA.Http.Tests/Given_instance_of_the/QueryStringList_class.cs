@@ -1,16 +1,16 @@
 ﻿using System.Reflection;
 using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
 using URSA.Web.Description.Http;
 using URSA.Web.Mapping;
 using URSA.Web.Tests;
 
 namespace Given_instance_of_the
 {
-    [TestClass]
+    [TestFixture]
     public class QueryStringList_class
     {
-        [TestMethod]
+        [Test]
         public void it_should_build_uri_template_properly()
         {
             var segments = new UriTemplateBuilder.QueryStringList(null, false);
@@ -22,7 +22,7 @@ namespace Given_instance_of_the
             result.Should().Be("?id={id}{&person}");
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_build_uri_regex_properly()
         {
             var segments = new UriTemplateBuilder.QueryStringList(null, true);

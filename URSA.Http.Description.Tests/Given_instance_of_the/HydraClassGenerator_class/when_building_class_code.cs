@@ -1,6 +1,5 @@
 ﻿#pragma warning disable 1591
 using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using RomanticWeb;
 using RomanticWeb.Entities;
@@ -11,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using NUnit.Framework;
 using URSA.CodeGen;
 using URSA.Http.Description.Tests.FluentAssertions;
 using URSA.Web;
@@ -25,7 +25,7 @@ using IClass = URSA.Web.Http.Description.Hydra.IClass;
 namespace Given_instance_of_the.HydraClassGenerator_class
 {
     [ExcludeFromCodeCoverage]
-    [TestClass]
+    [TestFixture]
     public class when_building_class_code
     {
         private const string Name = "Type";
@@ -48,23 +48,23 @@ namespace Given_instance_of_the.HydraClassGenerator_class
         private Mock<IEntityStore> _store;
         private IClassGenerator _generator;
 
-        [TestMethod]
+        [Test]
         public void it_should_generate_entity_class_code()
         {
             var result = _generator.CreateCode(_class.Object);
 
-            result.First().Value.Should().BeEquivalentToStream("URSA.Http.Description.Tests.Testing.Templates.Type.cs");
+            result.First().Value.Should().BeEquivalentToStream("URSA.Http.Description.Tests.Testing.Templates.Type.cs_");
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_generate_client_class_code()
         {
             var result = _generator.CreateCode(_class.Object);
 
-            result.Last().Value.Should().BeEquivalentToStream("URSA.Http.Description.Tests.Testing.Templates.TypeClient.cs");
+            result.Last().Value.Should().BeEquivalentToStream("URSA.Http.Description.Tests.Testing.Templates.TypeClient.cs_");
         }
 
-        [TestInitialize]
+        [SetUp]
         public void Setup()
         {
             SetupUriParser();
@@ -74,7 +74,7 @@ namespace Given_instance_of_the.HydraClassGenerator_class
             _generator = new HydraClassGenerator(new IUriParser[] { _uriParser.Object });
         }
 
-        [TestCleanup]
+        [TearDown]
         public void Teardown()
         {
             _generator = null;

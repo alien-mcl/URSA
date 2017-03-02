@@ -3,19 +3,19 @@ using System;
 using System.Linq;
 using System.Reflection;
 using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
 using URSA.Web.Http.Description;
 using URSA.Web.Http.Description.Tests;
 using URSA.Web.Http.Description.Tests.Data;
 
 namespace Given_instance_of_the
 {
-    [TestClass]
+    [TestFixture]
     public class XmlDocProvider_class
     {
         private XmlDocProvider _provider;
 
-        [TestMethod]
+        [Test]
         public void it_should_extract_type_description()
         {
             var description = _provider.GetDescription(typeof(Person));
@@ -23,7 +23,7 @@ namespace Given_instance_of_the
             description.Should().Be("Describes a person.");
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_extract_property_description()
         {
             var description = _provider.GetDescription(typeof(Person).GetProperty("FirstName"));
@@ -31,7 +31,7 @@ namespace Given_instance_of_the
             description.Should().Be("Gets or sets the person firstname.");
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_extract_method_description()
         {
             var description = _provider.GetDescription(typeof(TestController).GetMethod("Create"));
@@ -39,7 +39,7 @@ namespace Given_instance_of_the
             description.Should().Be("Creates the specified person which identifier is returned when created.");
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_extract_method_exceptions_thrown()
         {
             var exceptions = _provider.GetExceptions(typeof(TestController).GetMethod("Delete"));
@@ -50,7 +50,7 @@ namespace Given_instance_of_the
             exceptions.Should().Contain("URSA.Web.AccessDeniedException");
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_extract_method_parameter_description()
         {
             var method = typeof(TestController).GetMethod("Create");
@@ -60,13 +60,13 @@ namespace Given_instance_of_the
             description.Should().Be("The person.");
         }
 
-        [TestInitialize]
+        [SetUp]
         public void Setup()
         {
             _provider = new XmlDocProvider();
         }
 
-        [TestCleanup]
+        [TearDown]
         public void Teardown()
         {
             _provider = null;

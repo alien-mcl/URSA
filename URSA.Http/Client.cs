@@ -152,7 +152,7 @@ namespace URSA.Web.Http
                 await FillRequestBody(verb, callUrl, request, contentType, accepted, bodyArguments);
             }
 
-            var response = (HttpWebResponse)(await request.GetResponseAsync());
+            var response = await request.GetResponseAsync();
             ParseContentRange(response, uriArguments);
             if (responseType == null)
             {
@@ -195,7 +195,7 @@ namespace URSA.Web.Http
             }
         }
 
-        private void ParseContentRange(HttpWebResponse response, IDictionary<string, object> uriArguments)
+        private void ParseContentRange(WebResponse response, IDictionary<string, object> uriArguments)
         {
             try
             {

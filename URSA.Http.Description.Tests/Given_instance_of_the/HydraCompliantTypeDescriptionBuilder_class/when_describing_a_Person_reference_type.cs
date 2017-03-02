@@ -2,7 +2,7 @@
 using System;
 using System.Linq;
 using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
 using RomanticWeb.Entities;
 using RomanticWeb.Vocabularies;
 using URSA.Web.Http.Converters;
@@ -15,10 +15,10 @@ using IClass = URSA.Web.Http.Description.Hydra.IClass;
 
 namespace Given_instance_of_the.HydraCompliantTypeDescriptionBuilder_class
 {
-    [TestClass]
+    [TestFixture]
     public class when_describing_a_Person_reference_type : HydraCompliantTypeDescriptionBuilderTest<Person>
     {
-        [TestMethod]
+        [Test]
         public void it_should_create_a_resource_description()
         {
             var context = DescriptionContext.ForType(ApiDocumentation, typeof(Person), Builder);
@@ -30,7 +30,7 @@ namespace Given_instance_of_the.HydraCompliantTypeDescriptionBuilder_class
             result.Should().BeAssignableTo<IClass>();
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_create_a_type_description()
         {
             var result = DescriptionContext.ForType(ApiDocumentation, typeof(Person), Builder).BuildTypeDescription();
@@ -40,7 +40,7 @@ namespace Given_instance_of_the.HydraCompliantTypeDescriptionBuilder_class
             result.SupportedProperties.Should().HaveCount(4);
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_create_an_Id_property_description()
         {
             var result = DescriptionContext.ForType(ApiDocumentation, typeof(Person), Builder).BuildTypeDescription();
@@ -60,7 +60,7 @@ namespace Given_instance_of_the.HydraCompliantTypeDescriptionBuilder_class
                 (restriction.MaxCardinality == 1)).Should().BeTrue();
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_create_a_FirstName_property_description()
         {
             var result = DescriptionContext.ForType(ApiDocumentation, typeof(Person), Builder).BuildTypeDescription();
@@ -80,7 +80,7 @@ namespace Given_instance_of_the.HydraCompliantTypeDescriptionBuilder_class
                 (restriction.MaxCardinality == 1)).Should().BeTrue();
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_create_a_LastName_property_description()
         {
             var result = DescriptionContext.ForType(ApiDocumentation, typeof(Person), Builder).BuildTypeDescription();
@@ -100,7 +100,7 @@ namespace Given_instance_of_the.HydraCompliantTypeDescriptionBuilder_class
                 (restriction.MaxCardinality == 1)).Should().BeTrue();
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_create_a_Roles_property_description()
         {
             var result = DescriptionContext.ForType(ApiDocumentation, typeof(Person), Builder).BuildTypeDescription();

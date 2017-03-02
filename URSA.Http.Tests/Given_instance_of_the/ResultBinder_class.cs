@@ -1,9 +1,9 @@
 ﻿using System;
 using System.IO;
 using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Newtonsoft.Json;
+using NUnit.Framework;
 using URSA;
 using URSA.Security;
 using URSA.Web.Converters;
@@ -13,14 +13,14 @@ using URSA.Web.Http.Tests.Data;
 
 namespace Given_instance_of_the
 {
-    [TestClass]
+    [TestFixture]
     public class ResultBinder_class
     {
         private Mock<IConverterProvider> _converterProvider;
         private Mock<IConverter> _converter;
         private IResultBinder _resultBinder;
 
-        [TestMethod]
+        [Test]
         public void it_should_bind_response_object()
         {
             var expected = new Person() { Key = 1, FirstName = "test", LastName = "test", Roles = new[] { "test" } };
@@ -37,7 +37,7 @@ namespace Given_instance_of_the
             result[0].Should().Be(expected);
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_bind_response_from_header()
         {
             var expected = Guid.NewGuid();
@@ -56,25 +56,25 @@ namespace Given_instance_of_the
             result[0].Should().Be(expected);
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_throw_when_no_converter_provider_is_passed()
         {
             ((ResultBinder)null).Invoking(_ => new ResultBinder(null)).ShouldThrow<ArgumentNullException>().Which.ParamName.Should().Be("converterProvider");
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_throw_when_no_primary_result_type_is_given()
         {
             ((ResultBinder)_resultBinder).Invoking(instance => instance.BindResults(null, null)).ShouldThrow<ArgumentNullException>().Which.ParamName.Should().Be("primaryResultType");
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_throw_when_no_request_is_given()
         {
             ((ResultBinder)_resultBinder).Invoking(instance => instance.BindResults(typeof(int), null)).ShouldThrow<ArgumentNullException>().Which.ParamName.Should().Be("requestInfo");
         }
 
-        [TestInitialize]
+        [SetUp]
         public void Setup()
         {
             _converterProvider = new Mock<IConverterProvider>(MockBehavior.Strict);
@@ -82,7 +82,7 @@ namespace Given_instance_of_the
             _resultBinder = new ResultBinder(_converterProvider.Object);
         }
 
-        [TestCleanup]
+        [TearDown]
         public void Teardown()
         {
             _converter = null;

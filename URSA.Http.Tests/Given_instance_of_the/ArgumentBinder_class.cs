@@ -1,5 +1,4 @@
 ﻿using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using System;
 using System.Collections.Generic;
@@ -8,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
+using NUnit.Framework;
 using URSA;
 using URSA.Security;
 using URSA.Web;
@@ -22,14 +22,14 @@ using URSA.Web.Tests;
 namespace Given_instance_of_the
 {
     [ExcludeFromCodeCoverage]
-    [TestClass]
+    [TestFixture]
     public class ArgumentBinder_class
     {
         private static readonly Type ControllerType = typeof(TestController);
         private Mock<IParameterSourceArgumentBinder<FromQueryStringAttribute>> _fromQueryStringBinder;
         private ArgumentBinder _binder;
 
-        [TestMethod]
+        [Test]
         public void it_should_bind_arguments_for_correctly_with_fallback_defaults()
         {
             _fromQueryStringBinder.Setup(instance => instance.GetArgumentValue(It.IsAny<ArgumentBindingContext>()))
@@ -42,7 +42,7 @@ namespace Given_instance_of_the
             arguments[1].Should().Be(0);
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_bind_arguments_for_Add_method_correctly()
         {
             _fromQueryStringBinder.Setup(instance => instance.GetArgumentValue(It.IsAny<ArgumentBindingContext>()))
@@ -55,7 +55,7 @@ namespace Given_instance_of_the
             arguments[1].Should().Be(2);
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_bind_arguments_for_Substract_method_correctly()
         {
             _fromQueryStringBinder.Setup(instance => instance.GetArgumentValue(It.IsAny<ArgumentBindingContext>()))
@@ -68,7 +68,7 @@ namespace Given_instance_of_the
             arguments[1].Should().Be(2);
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_bind_arguments_for_Multiply_method_correctly()
         {
             _fromQueryStringBinder.Setup(instance => instance.GetArgumentValue(It.IsAny<ArgumentBindingContext>()))
@@ -81,7 +81,7 @@ namespace Given_instance_of_the
             arguments[1].Should().Be(2);
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_bind_arguments_for_Divide_method_correctly()
         {
             _fromQueryStringBinder.Setup(instance => instance.GetArgumentValue(It.IsAny<ArgumentBindingContext>()))
@@ -94,7 +94,7 @@ namespace Given_instance_of_the
             arguments[1].Should().Be(2);
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_bind_arguments_for_Modulo_method_correctly()
         {
             _fromQueryStringBinder.Setup(instance => instance.GetArgumentValue(It.IsAny<ArgumentBindingContext>()))
@@ -113,7 +113,7 @@ namespace Given_instance_of_the
             arguments[1].Should().Be(2);
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_bind_arguments_for_Power_method_correctly()
         {
             _fromQueryStringBinder.Setup(instance => instance.GetArgumentValue(It.IsAny<ArgumentBindingContext>()))
@@ -126,7 +126,7 @@ namespace Given_instance_of_the
             arguments[1].Should().Be(2.0);
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_bind_arguments_for_Log_method_correctly()
         {
             _fromQueryStringBinder.Setup(instance => instance.GetArgumentValue(It.IsAny<ArgumentBindingContext>()))
@@ -138,7 +138,7 @@ namespace Given_instance_of_the
             ((double[])arguments[0]).Should().BeEquivalentTo(new[] { 1.0, 2.0 });
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_bind_arguments_for_Upload_method_correctly()
         {
             string fileName = "test.txt";
@@ -164,32 +164,32 @@ namespace Given_instance_of_the
             ((byte[])arguments[1]).Should().BeEquivalentTo(data);
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_throw_when_no_request_is_provided()
         {
             _binder.Invoking(instance => instance.BindArguments((IRequestInfo)null, null)).ShouldThrow<ArgumentNullException>().Which.ParamName.Should().Be("request");
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_throw_when_the_request_provided_is_of_not_a_correct_type()
         {
             _binder.Invoking(instance => instance.BindArguments(new Mock<IRequestInfo>(MockBehavior.Strict).Object, null)).ShouldThrow<InvalidOperationException>();
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_throw_when_no_request_info_is_provided()
         {
             _binder.Invoking(instance => instance.BindArguments(null, null)).ShouldThrow<ArgumentNullException>().Which.ParamName.Should().Be("request");
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_throw_when_no_request_mapping_is_provided()
         {
             var request = new RequestInfo(Verb.GET, (HttpUrl)UrlParser.Parse("/"), new MemoryStream(), new BasicClaimBasedIdentity());
             _binder.Invoking(instance => instance.BindArguments(request, null)).ShouldThrow<ArgumentNullException>().Which.ParamName.Should().Be("requestMapping");
         }
 
-        [TestInitialize]
+        [SetUp]
         public void Setup()
         {
             Mock<IConverter> converter = new Mock<IConverter>(MockBehavior.Strict);
@@ -202,7 +202,7 @@ namespace Given_instance_of_the
                 });
         }
 
-        [TestCleanup]
+        [TearDown]
         public void Teardown()
         {
             _binder = null;

@@ -1,15 +1,15 @@
 ﻿using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using NUnit.Framework;
 using URSA.Web.Http.Converters;
 using URSA.Web.Http.Testing;
 
 namespace Given_instance_of_the.converter_of
 {
     [ExcludeFromCodeCoverage]
-    [TestClass]
+    [TestFixture]
     public class UriConverter_class : ConverterTest<UriConverter, Uri>
     {
         private const string ContentType = "text/uri-list";

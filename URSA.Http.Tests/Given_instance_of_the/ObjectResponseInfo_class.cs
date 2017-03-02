@@ -1,10 +1,10 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
+﻿using Moq;
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Text;
 using FluentAssertions;
+using NUnit.Framework;
 using URSA;
 using URSA.Security;
 using URSA.Web;
@@ -14,7 +14,7 @@ using URSA.Web.Http;
 namespace Given_instance_of_the
 {
     [ExcludeFromCodeCoverage]
-    [TestClass]
+    [TestFixture]
     public class ObjectResponseInfo_class : IDisposable
     {
         private const string Body = "test";
@@ -23,41 +23,41 @@ namespace Given_instance_of_the
         private RequestInfo _request;
         private ObjectResponseInfo<string> _response;
 
-        [TestMethod]
+        [Test]
         public void it_should_throw_when_no_value_type_is_given()
         {
             ((ObjectResponseInfo<string>)null).Invoking(_ => ObjectResponseInfo<object>.CreateInstance(Encoding.UTF8, _request, null, null, null))
                 .ShouldThrow<ArgumentNullException>().Which.ParamName.Should().Be("valueType");
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_throw_when_given_value_mismatches_value_type()
         {
             ((ObjectResponseInfo<string>)null).Invoking(_ => ObjectResponseInfo<object>.CreateInstance(Encoding.UTF8, _request, typeof(string), 0, null))
                 .ShouldThrow<ArgumentOutOfRangeException>().Which.ParamName.Should().Be("value");
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_throw_when_no_value_type_is_given_even_with_headers_passed_as_collection()
         {
             ((ObjectResponseInfo<string>)null).Invoking(_ => ObjectResponseInfo<object>.CreateInstance(Encoding.UTF8, _request, null, null, null, new HeaderCollection()))
                 .ShouldThrow<ArgumentNullException>().Which.ParamName.Should().Be("valueType");
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_throw_when_given_value_mismatches_value_type_even_with_headers_passed_as_collection()
         {
             ((ObjectResponseInfo<string>)null).Invoking(_ => ObjectResponseInfo<object>.CreateInstance(Encoding.UTF8, _request, typeof(string), 0, null, new HeaderCollection()))
                 .ShouldThrow<ArgumentOutOfRangeException>().Which.ParamName.Should().Be("value");
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_throw_when_no_converter_provider_is_given()
         {
             ((ObjectResponseInfo<string>)null).Invoking(_ => new ObjectResponseInfo<string>(_request, String.Empty, null)).ShouldThrow<ArgumentNullException>().Which.ParamName.Should().Be("converterProvider");
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_create_an_instance_correctly_also_with_headers_passed_as_collection()
         {
             var result = ObjectResponseInfo<object>.CreateInstance(Encoding.UTF8, _request, Body, _converterProvider.Object, new HeaderCollection());
@@ -65,7 +65,7 @@ namespace Given_instance_of_the
             result.Should().BeOfType<ObjectResponseInfo<string>>().Which.Value.Should().Be(Body);
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_create_an_instance_correctly()
         {
             var result = ObjectResponseInfo<object>.CreateInstance(Encoding.UTF8, _request, Body, _converterProvider.Object);
@@ -73,7 +73,7 @@ namespace Given_instance_of_the
             result.Should().BeOfType<ObjectResponseInfo<string>>().Which.Value.Should().Be(Body);
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_throw_when_no_matching_converter_is_given()
         {
             _converterProvider.Setup(instance => instance.FindBestOutputConverter<int>(It.IsAny<IResponseInfo>())).Returns<IResponseInfo>(response => null);
@@ -81,25 +81,25 @@ namespace Given_instance_of_the
             ((ObjectResponseInfo<string>)null).Invoking(_ => new ObjectResponseInfo<int>(_request, 0, _converterProvider.Object)).ShouldThrow<InvalidOperationException>();
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_call_converter_provider()
         {
             _converterProvider.Verify(instance => instance.FindBestOutputConverter<string>(_response), Times.Once);
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_serialize_response()
         {
             _converter.Verify(instance => instance.ConvertFrom(Body, _response), Times.Once);
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_serialize_body()
         {
             new StreamReader(_response.Body).ReadToEnd().Should().Be(Body);
         }
 
-        [TestInitialize]
+        [SetUp]
         public void Setup()
         {
             (_converter = new Mock<IConverter>(MockBehavior.Strict)).Setup(instance => instance.CanConvertFrom<string>(It.IsAny<IResponseInfo>()))
@@ -119,7 +119,7 @@ namespace Given_instance_of_the
             _response = new ObjectResponseInfo<string>(_request, Body, _converterProvider.Object);
         }
 
-        [TestCleanup]
+        [TearDown]
         public void Teardown()
         {
             _converter = null;

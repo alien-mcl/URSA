@@ -2,19 +2,19 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
 using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
 using URSA.Web.Http.Description.CodeGen;
 
 namespace Given_instance_of_the
 {
     [ExcludeFromCodeCoverage]
-    [TestClass]
+    [TestFixture]
     public class OGuidUriParser_class
     {
         private static readonly Uri Uri = new Uri(OGuidUriParser.OGuid + "guid");
         private OGuidUriParser _parser;
 
-        [TestMethod]
+        [Test]
         public void it_should_extract_namespace_from_OpenGuid_uri()
         {
             string @namespace;
@@ -23,7 +23,7 @@ namespace Given_instance_of_the
             @namespace.Should().Be("System");
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_extract_name_from_OpenGuid_uri()
         {
             string @namespace;
@@ -32,13 +32,13 @@ namespace Given_instance_of_the
             name.Should().Be("Guid");
         }
 
-        [TestInitialize]
+        [SetUp]
         public void Setup()
         {
             _parser = new OGuidUriParser();
         }
 
-        [TestCleanup]
+        [TearDown]
         public void Teardown()
         {
             _parser = null;

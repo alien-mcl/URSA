@@ -1,33 +1,33 @@
 ﻿using System;
 using System.Collections.Generic;
 using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
 using URSA;
 using URSA.Web.Http;
 
 namespace Given_instance_of
 {
-    [TestClass]
+    [TestFixture]
     public class Url_class
     {
         private const string Scheme = "test";
         private const string Path = "location";
 
-        [TestMethod]
+        [Test]
         public void it_should_convert_null_Url_to_null_Uri()
         {
             Url url = null;
             ((Uri)url).Should().BeNull();
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_convert_null_Uri_to_null_Url()
         {
             Uri uri = null;
             ((Url)uri).Should().BeNull();
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_convert_Url_to_Uri()
         {
             var url = new FakeUrl();
@@ -37,7 +37,7 @@ namespace Given_instance_of
             result.Should().BeOfType<Uri>().Which.AbsoluteUri.Should().Be(Scheme + ":" + Path);
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_convert_Uri_to_Url()
         {
             var uri = new Uri(Scheme + ":" + Path);

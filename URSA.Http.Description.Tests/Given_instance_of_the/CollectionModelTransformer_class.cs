@@ -5,8 +5,8 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using NUnit.Framework;
 using RomanticWeb;
 using RomanticWeb.Entities;
 using URSA;
@@ -22,7 +22,7 @@ using URSA.Web.Http.Tests.Testing;
 
 namespace Given_instance_of_the
 {
-    [TestClass]
+    [TestFixture]
     public class CollectionModelTransformer_class
     {
         private static readonly HttpUrl RequestUrl = (HttpUrl)UrlParser.Parse("http://temp.uri/");
@@ -32,7 +32,7 @@ namespace Given_instance_of_the
         private Mock<IEntityContext> _entityContext;
         private IResponseModelTransformer _responseModelTransformer;
 
-        [TestMethod]
+        [Test]
         public async Task should_inject_hydra_Collection_details()
         {
             var result = new List<IProduct>() { new Mock<IProduct>(MockBehavior.Strict).Object };
@@ -46,7 +46,7 @@ namespace Given_instance_of_the
             collection.Object.Members.Should().HaveCount(result.Count);
         }
 
-        [TestMethod]
+        [Test]
         public async Task should_inject_hydra_PartialCollectionView_details()
         {
             var result = Enumerable.Range(0, 20).Select(index => new Mock<IProduct>(MockBehavior.Strict).Object).ToList();
@@ -62,7 +62,7 @@ namespace Given_instance_of_the
             collection.Object.Members.Should().HaveCount(result.Count);
         }
 
-        [TestInitialize]
+        [SetUp]
         public void Setup()
         {
             var argumentValueSources = new Dictionary<int, ArgumentValueSources>()
@@ -85,7 +85,7 @@ namespace Given_instance_of_the
             _responseModelTransformer = new CollectionResponseModelTransformer(entityContextProvider.Object/*, namedGraphSelectorFactory.Object*/);
         }
 
-        [TestCleanup]
+        [TearDown]
         public void Teardown()
         {
             _responseModelTransformer = null;

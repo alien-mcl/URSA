@@ -5,8 +5,8 @@ using System.IO;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using NUnit.Framework;
 using URSA;
 using URSA.Security;
 using URSA.Web;
@@ -19,12 +19,12 @@ using URSA.Web.Tests;
 namespace Given_instance_of_the.DelegateMapper_class
 {
     [ExcludeFromCodeCoverage]
-    [TestClass]
+    [TestFixture]
     public class when_mapping_a_request
     {
         private IDelegateMapper _mapper;
 
-        [TestMethod]
+        [Test]
         public void it_should_map_Add_method_correctly()
         {
             var mapping = _mapper.MapRequest(new RequestInfo(Verb.GET, (HttpUrl)UrlParser.Parse("http://temp.uri/api/test/add?operandA=1&operandB=2"), new MemoryStream(), new BasicClaimBasedIdentity()));
@@ -35,7 +35,7 @@ namespace Given_instance_of_the.DelegateMapper_class
             mapping.Operation.UnderlyingMethod.Should().BeSameAs(typeof(TestController).GetTypeInfo().GetMethod("Add"));
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_map_Add_method_correctly_with_reversed_query_string_parameters()
         {
             var mapping = _mapper.MapRequest(new RequestInfo(Verb.GET, (HttpUrl)UrlParser.Parse("http://temp.uri/api/test/add?operandB=2&operandA=1"), new MemoryStream(), new BasicClaimBasedIdentity()));
@@ -46,7 +46,7 @@ namespace Given_instance_of_the.DelegateMapper_class
             mapping.Operation.UnderlyingMethod.Should().BeSameAs(typeof(TestController).GetTypeInfo().GetMethod("Add"));
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_map_Add_method_correctly_with_additional_unneeded_parameters()
         {
             var mapping = _mapper.MapRequest(new RequestInfo(Verb.GET, (HttpUrl)UrlParser.Parse("http://temp.uri/api/test/add?random=1&operandB=2&_=whatever&operandA=1"), new MemoryStream(), new BasicClaimBasedIdentity()));
@@ -57,7 +57,7 @@ namespace Given_instance_of_the.DelegateMapper_class
             mapping.Operation.UnderlyingMethod.Should().BeSameAs(typeof(TestController).GetTypeInfo().GetMethod("Add"));
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_map_Options_request()
         {
             var mapping = _mapper.MapRequest(new RequestInfo(Verb.OPTIONS, (HttpUrl)UrlParser.Parse("http://temp.uri/api/test/add?random=1&operandB=2&_=whatever&operandA=1"), new MemoryStream(), new BasicClaimBasedIdentity()));
@@ -65,7 +65,7 @@ namespace Given_instance_of_the.DelegateMapper_class
             mapping.Should().BeOfType<OptionsRequestMapping>();
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_not_map_anything_if_no_matching_controller_is_found()
         {
             var mapping = _mapper.MapRequest(new RequestInfo(Verb.PUT, (HttpUrl)UrlParser.Parse("http://temp.uri/whatever"), new MemoryStream(), new BasicClaimBasedIdentity()));
@@ -73,7 +73,7 @@ namespace Given_instance_of_the.DelegateMapper_class
             mapping.Should().BeNull();
         }
 
-        [TestInitialize]
+        [SetUp]
         public void Setup()
         {
             var method = typeof(TestController).GetTypeInfo().GetMethod("Add");
@@ -95,7 +95,7 @@ namespace Given_instance_of_the.DelegateMapper_class
             _mapper = new DelegateMapper(new IHttpControllerDescriptionBuilder[] { builder.Object }, activator.Object);
         }
 
-        [TestCleanup]
+        [TearDown]
         public void Teardown()
         {
             _mapper = null;

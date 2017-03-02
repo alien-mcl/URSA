@@ -1,9 +1,9 @@
 ﻿using System;
 using System.IO;
 using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using System.Linq;
+using NUnit.Framework;
 using URSA;
 using URSA.Security;
 using URSA.Web;
@@ -12,16 +12,16 @@ using URSA.Web.Tests;
 
 namespace Given_instance_of_the.ResponseComposer_class
 {
-    [TestClass]
+    [TestFixture]
     public class when_dealing_with_normal_controller : ResponseComposerTest<TestController>
     {
-        [TestMethod]
+        [Test]
         public void it_should_throw_when_no_request_mapping_is_provided()
         {
             Composer.Invoking(instance => instance.ComposeResponse(null, null)).ShouldThrow<ArgumentNullException>().Which.ParamName.Should().Be("requestMapping");
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_merge_headers_if_the_output_is_already_a_response()
         {
             var expected = "http://temp.uri/";
@@ -37,7 +37,7 @@ namespace Given_instance_of_the.ResponseComposer_class
             result.Headers["Location"].Value.Should().Be(expected);
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_serialize_result_to_body()
         {
             object[] arguments = { 1, 2 };
@@ -50,7 +50,7 @@ namespace Given_instance_of_the.ResponseComposer_class
             Converter.Verify(instance => instance.ConvertFrom(expected, It.IsAny<IResponseInfo>()), Times.Once);
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_serialize_result_to_header()
         {
             object[] arguments = { 1, 2 };
@@ -63,7 +63,7 @@ namespace Given_instance_of_the.ResponseComposer_class
             result.Headers.Should().ContainKey("Pragma").WhichValue.Should().Be(expected.ToString());
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_serialize_result_to_both_header_and_body()
         {
             int expected = 3;

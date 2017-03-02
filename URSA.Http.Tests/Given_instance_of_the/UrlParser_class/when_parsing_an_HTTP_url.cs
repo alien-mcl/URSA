@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
 using URSA.Web.Http;
 using URSA.Web.Http.Tests.Testing;
 
 namespace Given_instance_of_the.UrlParser_class
 {
-    [TestClass]
+    [TestFixture]
     public class when_parsing_an_HTTP_url
     {
         private static readonly IDictionary<string, UrlScenario> ValidScenarios = new Dictionary<string, UrlScenario>()
@@ -54,7 +54,7 @@ namespace Given_instance_of_the.UrlParser_class
                 "http://temp.uri:/",
             };
 
-        [TestMethod]
+        [Test]
         public void it_should_parse_Url()
         {
             foreach (var scenario in ValidScenarios)
@@ -64,7 +64,7 @@ namespace Given_instance_of_the.UrlParser_class
             }
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_throw_on_invalid_Url()
         {
             foreach (var scenario in InvalidScenarios)

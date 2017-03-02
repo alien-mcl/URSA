@@ -3,8 +3,8 @@ using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using NUnit.Framework;
 using URSA.Security;
 using URSA.Web.Http;
 using URSA.Web.Http.Security;
@@ -12,13 +12,13 @@ using URSA.Web.Http.Testing;
 
 namespace Given_instance_of_the.BasicAuthenticationProvider_class
 {
-    [TestClass]
+    [TestFixture]
     public class when_acting_as_IAuthenticationProvider
     {
         private Mock<IIdentityProvider> _identityProvider;
         private BasicAuthenticationProvider _authenticationProvider;
 
-        [TestMethod]
+        [Test]
         public async Task it_should_authenticate_user()
         {
             var expectedUser = "user";
@@ -33,7 +33,7 @@ namespace Given_instance_of_the.BasicAuthenticationProvider_class
             request.Identity[ClaimTypes.Name].Should().Contain(expectedUser);
         }
 
-        [TestMethod]
+        [Test]
         public async Task it_should_call_the_authentication_service()
         {
             var expectedUser = "user";
@@ -47,7 +47,7 @@ namespace Given_instance_of_the.BasicAuthenticationProvider_class
             _identityProvider.Verify(instance => instance.ValidateCredentials(expectedUser, expectedPassword), Times.Once);
         }
 
-        [TestMethod]
+        [Test]
         public async Task it_should_not_authenticate_user_when_wrong_credentials_are_passed()
         {
             var expectedUser = "user";
@@ -61,7 +61,7 @@ namespace Given_instance_of_the.BasicAuthenticationProvider_class
             request.Identity.IsAuthenticated.Should().BeFalse();
         }
 
-        [TestMethod]
+        [Test]
         public async Task it_should_not_authenticate_user_when_the_Base64_token_is_broken()
         {
             var request = this.CreateRequest(new Header("Authorization", "Basic test"));
@@ -71,7 +71,7 @@ namespace Given_instance_of_the.BasicAuthenticationProvider_class
             request.Identity.IsAuthenticated.Should().BeFalse();
         }
 
-        [TestMethod]
+        [Test]
         public async Task it_should_not_authenticate_user_when_credentials_contains_more_than_user_name_and_password()
         {
             var request = this.CreateRequest(new Header("Authorization", "Basic " + Convert.ToBase64String(Encoding.UTF8.GetBytes("test:password:whatever"))));
@@ -81,7 +81,7 @@ namespace Given_instance_of_the.BasicAuthenticationProvider_class
             request.Identity.IsAuthenticated.Should().BeFalse();
         }
 
-        [TestMethod]
+        [Test]
         public async Task it_should_not_authenticate_user_when_user_name__is_empty()
         {
             var request = this.CreateRequest(new Header("Authorization", "Basic " + Convert.ToBase64String(Encoding.UTF8.GetBytes(":password"))));
@@ -91,7 +91,7 @@ namespace Given_instance_of_the.BasicAuthenticationProvider_class
             request.Identity.IsAuthenticated.Should().BeFalse();
         }
 
-        [TestMethod]
+        [Test]
         public async Task it_should_not_authenticate_user_when_password__is_empty()
         {
             var request = this.CreateRequest(new Header("Authorization", "Basic " + Convert.ToBase64String(Encoding.UTF8.GetBytes("test:"))));
@@ -101,7 +101,7 @@ namespace Given_instance_of_the.BasicAuthenticationProvider_class
             request.Identity.IsAuthenticated.Should().BeFalse();
         }
 
-        [TestMethod]
+        [Test]
         public async Task it_should_not_authenticate_user_when_no_authorization_header_is_present()
         {
             var request = this.CreateRequest();
@@ -111,7 +111,7 @@ namespace Given_instance_of_the.BasicAuthenticationProvider_class
             request.Identity.IsAuthenticated.Should().BeFalse();
         }
 
-        [TestMethod]
+        [Test]
         public async Task it_should_not_authenticate_user_when_the_authorization_header_is_of_a_different_scheme()
         {
             var request = this.CreateRequest(new Header("Authorization", "Bearer test"));
@@ -121,14 +121,14 @@ namespace Given_instance_of_the.BasicAuthenticationProvider_class
             request.Identity.IsAuthenticated.Should().BeFalse();
         }
 
-        [TestInitialize]
+        [SetUp]
         public void Setup()
         {
             _identityProvider = new Mock<IIdentityProvider>(MockBehavior.Strict);
             _authenticationProvider = new BasicAuthenticationProvider(_identityProvider.Object);
         }
 
-        [TestCleanup]
+        [TearDown]
         public void Teardown()
         {
             _identityProvider = null;

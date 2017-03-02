@@ -1,12 +1,12 @@
 ﻿using System.Diagnostics.CodeAnalysis;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
 using URSA.Web.Http.Converters;
 using URSA.Web.Http.Testing;
 
 namespace Given_instance_of_the.converter_of
 {
     [ExcludeFromCodeCoverage]
-    [TestClass]
+    [TestFixture]
     public class StringConverter_class : ConverterTest<StringConverter, string>
     {
         private const string Entity = "test string";

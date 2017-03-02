@@ -7,8 +7,8 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using NUnit.Framework;
 using URSA;
 using URSA.Security;
 using URSA.Web;
@@ -22,7 +22,7 @@ using URSA.Web.Tests;
 namespace Given_instance_of_the
 {
     [ExcludeFromCodeCoverage]
-    [TestClass]
+    [TestFixture]
     public class RequestHandler_class
     {
         private Mock<IDelegateMapper<RequestInfo>> _delegateMapper;
@@ -31,7 +31,7 @@ namespace Given_instance_of_the
         private Mock<IRequestMapping> _mapping;
         private Mock<IResponseComposer> _responseComposer;
 
-        [TestMethod]
+        [Test]
         public void it_should_use_a_response_composer_to_return_operation_result()
         {
             var handler = SetupEnvironment(1, true);
@@ -41,7 +41,7 @@ namespace Given_instance_of_the
             _responseComposer.Verify(instance => instance.ComposeResponse(It.IsAny<IRequestMapping>(), It.IsAny<object>(), It.IsAny<object[]>()), Times.Once);
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_use_argument_binder_to_prepare_input_parameters()
         {
             var handler = SetupEnvironment(1, true);
@@ -51,7 +51,7 @@ namespace Given_instance_of_the
             _argumentBinder.Verify(instance => instance.BindArguments(It.IsAny<RequestInfo>(), It.IsAny<IRequestMapping>()), Times.Once);
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_use_delegate_mapper_to_call_the_controller_method()
         {
             var handler = SetupEnvironment(1, true);
@@ -61,7 +61,7 @@ namespace Given_instance_of_the
             _delegateMapper.Verify(instance => instance.MapRequest(It.IsAny<RequestInfo>()), Times.Once);
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_unwrap_async_tasks_result()
         {
             var expected = 1;
@@ -73,7 +73,7 @@ namespace Given_instance_of_the
             ((ObjectResponseInfo<int>)result).Value.Should().Be(expected);
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_deny_access_to_secured_resourcefor_an_unauthenticated_identity()
         {
             var handler = SetupEnvironment((object)null, true, "Secured");
@@ -84,7 +84,7 @@ namespace Given_instance_of_the
             ((ExceptionResponseInfo)result).Value.Should().BeOfType<AccessDeniedException>();
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_deny_access_to_secured_resourcefor_an_authenticated_identity()
         {
             var handler = SetupEnvironment((object)null, true, "Secured");
@@ -95,7 +95,7 @@ namespace Given_instance_of_the
             ((ExceptionResponseInfo)result).Value.Should().BeOfType<AccessDeniedException>();
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_deny_access_for_unauthenticated_identity()
         {
             var defaultAuthenticationScheme = new Mock<IDefaultAuthenticationScheme>(MockBehavior.Strict);
@@ -109,17 +109,17 @@ namespace Given_instance_of_the
             defaultAuthenticationScheme.Verify(instance => instance.Process(It.IsAny<IResponseInfo>()), Times.Once);
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_allow_authenticated_identity_to_access_a_resource()
         {
             var handler = SetupEnvironment((object)null, true, "Authenticated");
 
             var result = handler.HandleRequest(new RequestInfo(Verb.GET, (HttpUrl)UrlParser.Parse("http://temp.uri/api/test"), new MemoryStream(), new BasicClaimBasedIdentity("test")));
 
-            result.Should().NotBeOfType<ExceptionResponseInfo>();
+            result.Should().BeNull();
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_process_pre_request_handlers()
         {
             var preRequestHandler = new Mock<IPreRequestHandler>(MockBehavior.Strict);
@@ -131,7 +131,7 @@ namespace Given_instance_of_the
             preRequestHandler.Verify(instance => instance.Process(It.IsAny<IRequestInfo>()), Times.Once);
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_process_model_transformers()
         {
             var modelTransformer = new Mock<IResponseModelTransformer>(MockBehavior.Strict);
@@ -144,7 +144,7 @@ namespace Given_instance_of_the
             modelTransformer.Verify(instance => instance.Transform(It.IsAny<IRequestMapping>(), It.IsAny<IRequestInfo>(), It.IsAny<object>(), It.IsAny<object[]>()), Times.Once);
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_process_post_request_handlers()
         {
             var postRequestHandler = new Mock<IPostRequestHandler>(MockBehavior.Strict);

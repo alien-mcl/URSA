@@ -1,9 +1,9 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using System.Linq;
 using System.Reflection;
+using NUnit.Framework;
 using URSA.Web.Description;
 using URSA.Web.Description.Http;
 using URSA.Web.Http;
@@ -13,12 +13,12 @@ using URSA.Web.Tests;
 namespace Given_instance_of_the.ControllerDescriptionBuilder_class
 {
     [ExcludeFromCodeCoverage]
-    [TestClass]
+    [TestFixture]
     public class when_having_dependent_route_controller
     {
         private ControllerDescriptionBuilder<AnotherTestController<TestController>> _builder;
 
-        [TestMethod]
+        [Test]
         public void it_should_describe_Some_method_correctly()
         {
             var method = typeof(AnotherTestController<TestController>).GetMethod("Some");
@@ -32,7 +32,7 @@ namespace Given_instance_of_the.ControllerDescriptionBuilder_class
             details.Arguments.Should().HaveCount(method.GetParameters().Length);
         }
 
-        [TestInitialize]
+        [SetUp]
         public void Setup()
         {
             Mock<IDefaultValueRelationSelector> defaultSourceSelector = new Mock<IDefaultValueRelationSelector>(MockBehavior.Strict);
@@ -43,7 +43,7 @@ namespace Given_instance_of_the.ControllerDescriptionBuilder_class
             _builder = new ControllerDescriptionBuilder<AnotherTestController<TestController>>(defaultSourceSelector.Object);
         }
 
-        [TestCleanup]
+        [TearDown]
         public void Teardown()
         {
             _builder = null;

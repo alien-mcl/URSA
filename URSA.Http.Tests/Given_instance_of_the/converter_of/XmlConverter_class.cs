@@ -1,17 +1,17 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.IO;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Text;
+using NUnit.Framework;
 using URSA.Web.Http.Converters;
 using URSA.Web.Http.Testing;
 
 namespace Given_instance_of_the.converter_of
 {
     [ExcludeFromCodeCoverage]
-    [TestClass]
+    [TestFixture]
     public class XmlConverter_class : ComplexTypeConverterTest<XmlConverter>
     {
         private const string ContentType = "application/xml";
@@ -20,12 +20,12 @@ namespace Given_instance_of_the.converter_of
 
         protected override string MultipleEntitiesContentType { get { return ContentType; } }
 
-        [TestMethod]
+        [Test]
         public override void it_should_not_acknowledge_the_converter_as_a_match_against_incompatible_type_when_deserializing()
         {
         }
 
-        [TestMethod]
+        [Test]
         public override void it_should_not_acknowledge_the_converter_as_a_match_against_incompatible_type_when_serializing()
         {
         }

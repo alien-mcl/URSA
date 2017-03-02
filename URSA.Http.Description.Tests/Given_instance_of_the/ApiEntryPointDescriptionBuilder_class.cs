@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using NUnit.Framework;
 using RomanticWeb;
 using RomanticWeb.Entities;
 using RomanticWeb.Mapping;
@@ -22,7 +22,7 @@ using URSA.Web.Tests;
 
 namespace Given_instance_of_the
 {
-    [TestClass]
+    [TestFixture]
     public class ApiEntryPointDescriptionBuilder_class
     {
         private static readonly EntryPointInfo EntryPoint = new EntryPointInfo(UrlParser.Parse("/api"));
@@ -35,7 +35,7 @@ namespace Given_instance_of_the
         private Mock<IApiDocumentation> _apiDocumentation;
         private IApiEntryPointDescriptionBuilder _descriptionBuilder;
 
-        [TestMethod]
+        [Test]
         public void it_should_create_an_entry_point_documentation()
         {
             _descriptionBuilder.BuildDescription(_apiDocumentation.Object, null);
@@ -43,7 +43,7 @@ namespace Given_instance_of_the
             _apiDescriptionBuilder.Verify(instance => instance.BuildDescription(_apiDocumentation.Object, null), Times.Once);
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_omit_irrelevant_controllers()
         {
             _descriptionBuilder.BuildDescription(_apiDocumentation.Object, null);
@@ -51,7 +51,7 @@ namespace Given_instance_of_the
             _irrelevantApiDescriptionBuilder.Verify(instance => instance.BuildDescription(_apiDocumentation.Object, null), Times.Never);
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_include_ApiDocumentation_supported_class()
         {
             _descriptionBuilder.BuildDescription(_apiDocumentation.Object, null);
@@ -59,7 +59,7 @@ namespace Given_instance_of_the
             _apiDocumentation.Object.SupportedClasses.Should().HaveCount(1);
         }
 
-        [TestInitialize]
+        [SetUp]
         public void Setup()
         {
             HttpUrl requestUrl = (HttpUrl)UrlParser.Parse("/test");
@@ -97,7 +97,7 @@ namespace Given_instance_of_the
             _descriptionBuilder.EntryPoint = EntryPoint;
         }
 
-        [TestCleanup]
+        [TearDown]
         public void Teardown()
         {
             _irrelevantApiDescriptionBuilder = null;

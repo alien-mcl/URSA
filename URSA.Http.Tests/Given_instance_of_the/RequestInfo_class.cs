@@ -4,14 +4,14 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
 using URSA;
 using URSA.Web.Http;
 
 namespace Given_instance_of_the
 {
     [ExcludeFromCodeCoverage]
-    [TestClass]
+    [TestFixture]
     public class RequestInfo_class
     {
         private const string Body = "some body";
@@ -31,43 +31,43 @@ namespace Given_instance_of_the
 
         private RequestInfo _request;
 
-        [TestMethod]
+        [Test]
         public void it_should_throw_when_no_method_is_passed_for_parsing()
         {
             ((RequestInfo)null).Invoking(_ => RequestInfo.Parse(null, null, null)).ShouldThrow<ArgumentNullException>().Which.ParamName.Should().Be("method");
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_throw_when_no_url_is_passed_for_parsing()
         {
             ((RequestInfo)null).Invoking(_ => RequestInfo.Parse(Verb.GET, null, null)).ShouldThrow<ArgumentNullException>().Which.ParamName.Should().Be("url");
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_throw_when_an_url_passed_for_parsing_is_not_absolute()
         {
             ((RequestInfo)null).Invoking(_ => RequestInfo.Parse(Verb.GET, (HttpUrl)UrlParser.Parse("/"), null)).ShouldThrow<ArgumentOutOfRangeException>().Which.ParamName.Should().Be("url");
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_throw_when_no_message_is_passed_for_parsing()
         {
             ((RequestInfo)null).Invoking(_ => RequestInfo.Parse(Verb.GET, (HttpUrl)UrlParser.Parse("http://temp.uri/"), null)).ShouldThrow<ArgumentNullException>().Which.ParamName.Should().Be("message");
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_throw_when_message_passed_for_parsing_is_empty()
         {
             ((RequestInfo)null).Invoking(_ => RequestInfo.Parse(Verb.GET, (HttpUrl)UrlParser.Parse("http://temp.uri/"), String.Empty)).ShouldThrow<ArgumentOutOfRangeException>().Which.ParamName.Should().Be("message");
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_parse_request()
         {
             _request.Should().NotBeNull();
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_parse_request_headers()
         {
             _request.Headers.Should().HaveCount(Headers.Count);
@@ -82,19 +82,19 @@ namespace Given_instance_of_the
             _request.Headers[Headers.Last().Key].Values.First().Value.Should().Be(Headers.Last().Value);
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_parse_request_body()
         {
             new StreamReader(_request.Body).ReadToEnd().Should().Be(Body);
         }
 
-        [TestInitialize]
+        [SetUp]
         public void Setup()
         {
             _request = RequestInfo.Parse(Verb.GET, Url, Message);
         }
 
-        [TestCleanup]
+        [TearDown]
         public void Teardown()
         {
             _request = null;

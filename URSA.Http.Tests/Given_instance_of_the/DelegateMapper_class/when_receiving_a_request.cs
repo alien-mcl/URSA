@@ -6,8 +6,8 @@ using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using NUnit.Framework;
 using URSA;
 using URSA.Security;
 using URSA.Web;
@@ -21,14 +21,14 @@ using URSA.Web.Tests;
 namespace Given_instance_of_the.DelegateMapper_class
 {
     [ExcludeFromCodeCoverage]
-    [TestClass]
+    [TestFixture]
     public class when_receiving_a_request
     {
         private IController _controller;
         private OperationInfo _operation; 
         private IDelegateMapper _delegateMapper;
 
-        [TestMethod]
+        [Test]
         public void it_should_map_request()
         {
             var result = _delegateMapper.MapRequest(new RequestInfo(Verb.GET, (HttpUrl)UrlParser.Parse("http://temp.uri/api/test/add?operandA=1&operandB=2"), new MemoryStream(), new BasicClaimBasedIdentity()));
@@ -39,7 +39,7 @@ namespace Given_instance_of_the.DelegateMapper_class
             result.MethodRoute.Should().Be(_operation.Url);
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_map_OPTIONS_request()
         {
             var result = _delegateMapper.MapRequest(new RequestInfo(Verb.OPTIONS, (HttpUrl)UrlParser.Parse("http://temp.uri/api/test/add?operandA=1&operandB=2"), new MemoryStream(), new BasicClaimBasedIdentity()));
@@ -50,7 +50,7 @@ namespace Given_instance_of_the.DelegateMapper_class
             result.MethodRoute.Should().Be(_operation.Url);
         }
 
-        [TestInitialize]
+        [SetUp]
         public void Setup()
         {
             var method = typeof(TestController).GetTypeInfo().GetMethod("Add");
@@ -70,7 +70,7 @@ namespace Given_instance_of_the.DelegateMapper_class
             _delegateMapper = new DelegateMapper(new[] { controllerDescriptionBuilder.Object }, controllerActivator.Object);
         }
 
-        [TestCleanup]
+        [TearDown]
         public void Teardown()
         {
             _controller = null;

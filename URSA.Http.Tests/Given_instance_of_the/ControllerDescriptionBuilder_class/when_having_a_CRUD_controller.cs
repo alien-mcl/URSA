@@ -2,8 +2,8 @@
 using System.Linq;
 using System.Reflection;
 using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using NUnit.Framework;
 using URSA.Web.Description;
 using URSA.Web.Description.Http;
 using URSA.Web.Http;
@@ -12,12 +12,12 @@ using URSA.Web.Tests;
 
 namespace Given_instance_of_the.ControllerDescriptionBuilder_class
 {
-    [TestClass]
+    [TestFixture]
     public class when_having_a_CRUD_controller
     {
         private ControllerDescriptionBuilder<CrudController> _builder;
 
-        [TestMethod]
+        [Test]
         public void it_should_build_a_hierarchical_path()
         {
             var method = typeof(CrudController).GetMethod("SetRoles");
@@ -27,7 +27,7 @@ namespace Given_instance_of_the.ControllerDescriptionBuilder_class
             details.ProtocolSpecificCommand.Should().Be(Verb.POST);
         }
 
-        [TestInitialize]
+        [SetUp]
         public void Setup()
         {
             Mock<IDefaultValueRelationSelector> defaultSourceSelector = new Mock<IDefaultValueRelationSelector>(MockBehavior.Strict);
@@ -39,7 +39,7 @@ namespace Given_instance_of_the.ControllerDescriptionBuilder_class
             _builder = new ControllerDescriptionBuilder<CrudController>(defaultSourceSelector.Object);
         }
 
-        [TestCleanup]
+        [TearDown]
         public void Teardown()
         {
             _builder = null;

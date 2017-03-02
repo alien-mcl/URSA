@@ -8,8 +8,8 @@ using System.Net;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using NUnit.Framework;
 using RomanticWeb;
 using RomanticWeb.Entities;
 using RomanticWeb.Mapping;
@@ -36,7 +36,7 @@ using IClass = URSA.Web.Http.Description.Hydra.IClass;
 namespace Given_instance_of_the
 {
     [ExcludeFromCodeCoverage]
-    [TestClass]
+    [TestFixture]
     public class ApiDescriptionBuilder_class
     {
         private static readonly Uri TemplatedLinkUri = new Uri(EntityConverter.Hydra + "TemplatedLink");
@@ -47,7 +47,7 @@ namespace Given_instance_of_the
         private Mock<INamedGraphSelector> _namedGraphSelector;
         private IHttpControllerDescriptionBuilder<TestController> _descriptionBuilder;
 
-        [TestMethod]
+        [Test]
         public void it_should_build_the_api_documentation()
         {
             var apiDescriptionBuilder = new ApiDescriptionBuilder<TestController>(
@@ -65,7 +65,7 @@ namespace Given_instance_of_the
             _apiDocumentation.Object.SupportedClasses.First().SupportedOperations.First().Method.First().Should().Be("POST");
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_build_the_api_documentation_using_a_Hydra_profile()
         {
             Mock<ITypeDescriptionBuilder> shaclTypeDescriptionBuilder = SetupTypeDescriptionBuilder(_entityContext, EntityConverter.Shacl);
@@ -82,7 +82,7 @@ namespace Given_instance_of_the
             shaclTypeDescriptionBuilder.Verify(instance => instance.BuildTypeDescription(It.IsAny<DescriptionContext>()), Times.Never);
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_build_the_api_documentation_using_a_Shacl_profile()
         {
             Mock<ITypeDescriptionBuilder> shaclTypeDescriptionBuilder = SetupTypeDescriptionBuilder(_entityContext, EntityConverter.Shacl);
@@ -99,7 +99,7 @@ namespace Given_instance_of_the
             _typeDescriptionBuilder.Verify(instance => instance.BuildTypeDescription(It.IsAny<DescriptionContext>()), Times.Never);
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_determine_property_owning_an_operation()
         {
             var apiDescriptionBuilder = new ApiDescriptionBuilder<TestController>(
@@ -118,7 +118,7 @@ namespace Given_instance_of_the
             operationOwner.Id.ToString().Should().Be("urn:hydra:" + typeof(Person).FullName + ".Roles");
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_list_possible_status_codes()
         {
             var apiDescriptionBuilder = new ApiDescriptionBuilder<TestController>(
@@ -137,7 +137,7 @@ namespace Given_instance_of_the
             statusCodes.Should().Contain((int)HttpStatusCode.Forbidden);
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_acknowledge_restricted_resource()
         {
             var apiDescriptionBuilder = new ApiDescriptionBuilder<TestController>(
@@ -153,7 +153,7 @@ namespace Given_instance_of_the
             statusCodes.Should().Contain((int)HttpStatusCode.Unauthorized);
         }
 
-        [TestInitialize]
+        [SetUp]
         public void Setup()
         {
             Uri baseUri = new Uri("http://temp.org/");
@@ -170,7 +170,7 @@ namespace Given_instance_of_the
             _descriptionBuilder = SetupHttpControllerDescriptionBuilder();
         }
 
-        [TestCleanup]
+        [TearDown]
         public void Teardown()
         {
             _apiDocumentation = null;

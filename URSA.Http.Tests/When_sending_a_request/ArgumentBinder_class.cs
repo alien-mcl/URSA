@@ -1,9 +1,9 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
+﻿using Moq;
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Reflection;
+using NUnit.Framework;
 using URSA.Web;
 using URSA.Web.Converters;
 using URSA.Web.Http;
@@ -18,7 +18,8 @@ using URSA.Web.Tests;
 namespace Given_instance_of_the.binder.FromBodyArgumentBinder_class
 {
     [ExcludeFromCodeCoverage]
-    [TestClass]
+    [TestFixture]
+    [Ignore("This test needs to be finished.")]
     public class ArgumentBinder_class
     {
         private const string Boundary = "---------------------------7e02b3393b06a6";
@@ -28,13 +29,13 @@ namespace Given_instance_of_the.binder.FromBodyArgumentBinder_class
         private Mock<IRequestMapping> _requestMapping;
         private ArgumentBinder _argumentBinder;
 
-        [TestMethod]
+        [Test]
         public void it_should()
         {
             _argumentBinder.BindArguments(_request.Object, _requestMapping.Object);
         }
 
-        [TestInitialize]
+        [SetUp]
         public void Setup()
         {
             var converterProvider = new DefaultConverterProvider();
@@ -43,10 +44,11 @@ namespace Given_instance_of_the.binder.FromBodyArgumentBinder_class
             _requestMapping = new Mock<IRequestMapping>(MockBehavior.Strict);
             _requestMapping.SetupGet(instance => instance.Target).Returns(new TestController());
             _requestMapping.SetupGet(instance => instance.Operation).Returns(typeof(TestController).GetTypeInfo().GetMethod("Upload").ToOperationInfo("api/", Verb.POST));
+            _request = new Mock<IRequestInfo>();
             _request.SetupGet(instance => instance.Body).Returns(new MemoryStream(Request));
         }
 
-        [TestCleanup]
+        [TearDown]
         public void Teardown()
         {
             _requestMapping = null;

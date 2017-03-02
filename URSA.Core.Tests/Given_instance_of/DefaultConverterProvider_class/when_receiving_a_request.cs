@@ -1,16 +1,16 @@
 ﻿using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using NUnit.Framework;
 using URSA.Web;
 using URSA.Web.Converters;
 
 namespace Given_instance_of.DefaultConverterProvider_class
 {
     [ExcludeFromCodeCoverage]
-    [TestClass]
+    [TestFixture]
     public class when_receiving_a_request
     {
         private IList<IConverter> _converters;
@@ -19,7 +19,7 @@ namespace Given_instance_of.DefaultConverterProvider_class
         private Mock<IConverter> _uriConverter;
         private IConverterProvider _provider;
 
-        [TestMethod]
+        [Test]
         public void it_should_provide_all_supported_media_types()
         {
             _stringConverter.SetupGet(instance => instance.SupportedMediaTypes).Returns(new[] { "string" });
@@ -27,7 +27,7 @@ namespace Given_instance_of.DefaultConverterProvider_class
             _provider.SupportedMediaTypes.Should().BeEquivalentTo("string", "uri");
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_provide_string_converter()
         {
             var match = _provider.FindBestInputConverter<string>(_request.Object);
@@ -37,7 +37,7 @@ namespace Given_instance_of.DefaultConverterProvider_class
             _uriConverter.Verify(instance => instance.CanConvertTo(typeof(string), _request.Object), Times.Once);
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_provide_Uri_converter()
         {
             var match = _provider.FindBestInputConverter(typeof(Uri), _request.Object);
@@ -47,7 +47,7 @@ namespace Given_instance_of.DefaultConverterProvider_class
             _uriConverter.Verify(instance => instance.CanConvertTo(typeof(Uri), _request.Object), Times.Once);
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_throw_when_initializing_without_converters()
         {
             ArgumentNullException exception = null;
@@ -63,7 +63,7 @@ namespace Given_instance_of.DefaultConverterProvider_class
             exception.Should().NotBeNull();
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_throw_when_not_initialized_and_trying_to_find_input_conveter()
         {
             InvalidOperationException exception = null;
@@ -79,19 +79,19 @@ namespace Given_instance_of.DefaultConverterProvider_class
             exception.Should().NotBeNull();
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_throw_when_looking_for_input_converter_without_specifying_target_type()
         {
             _provider.Invoking(instance => instance.FindBestInputConverter(null, _request.Object)).ShouldThrow<ArgumentNullException>();
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_throw_when_looking_for_input_converter_without_request_details()
         {
             _provider.Invoking(instance => instance.FindBestInputConverter(typeof(string), null)).ShouldThrow<ArgumentNullException>();
         }
 
-        [TestInitialize]
+        [SetUp]
         public void Setup()
         {
             _request = new Mock<IRequestInfo>(MockBehavior.Strict);
@@ -106,7 +106,7 @@ namespace Given_instance_of.DefaultConverterProvider_class
             _provider.Initialize(() => _converters);
         }
 
-        [TestCleanup]
+        [TearDown]
         public void Teardown()
         {
             _request = null;

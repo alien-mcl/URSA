@@ -190,8 +190,15 @@ namespace URSA.Web.Http.Description
                 return;
             }
 
-            var documentPath = Path.Combine(ExecutionContext.GetPrimaryAssemblyDirectory(), assembly.GetName().Name + ".xml");
-            if (!File.Exists(documentPath))
+            var possibleDocumentLocations = new[]
+            {
+                assembly.Location.Replace(".dll", ".xml"),
+                Path.Combine(Directory.GetCurrentDirectory(), assembly.GetName().Name + ".xml"),
+                Path.Combine(ExecutionContext.GetPrimaryAssemblyDirectory(), assembly.GetName().Name + ".xml")
+            };
+
+            var documentPath = possibleDocumentLocations.FirstOrDefault(path => File.Exists(path));
+            if (documentPath == null)
             {
                 AssemblyCache[assembly] = new XDocument();
                 return;

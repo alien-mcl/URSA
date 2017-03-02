@@ -1,10 +1,10 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
+﻿using Moq;
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Text;
 using FluentAssertions;
+using NUnit.Framework;
 using URSA;
 using URSA.Security;
 using URSA.Web;
@@ -14,7 +14,7 @@ using URSA.Web.Http;
 namespace Given_instance_of_the
 {
     [ExcludeFromCodeCoverage]
-    [TestClass]
+    [TestFixture]
     public class MultiObjectResponseInfo_class : IDisposable
     {
         private const string StringBody = "test";
@@ -27,27 +27,27 @@ namespace Given_instance_of_the
         private RequestInfo _request;
         private MultiObjectResponseInfo _response;
 
-        [TestMethod]
+        [Test]
         public void it_should_call_converter_provider()
         {
             _converterProvider.Verify(instance => instance.FindBestOutputConverter<string>(It.IsAny<ObjectResponseInfo<string>>()), Times.Once);
             _converterProvider.Verify(instance => instance.FindBestOutputConverter<int>(It.IsAny<ObjectResponseInfo<int>>()), Times.Once);
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_serialize_responses()
         {
             _converter.Verify(instance => instance.ConvertFrom(StringBody, It.IsAny<ObjectResponseInfo<string>>()), Times.Once);
             _converter.Verify(instance => instance.ConvertFrom(NumericBody, It.IsAny<ObjectResponseInfo<int>>()), Times.Once);
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_serialize_bodies()
         {
             new StreamReader(_response.Body).ReadToEnd().Should().MatchRegex(MessageTemplate);
         }
 
-        [TestInitialize]
+        [SetUp]
         public void Setup()
         {
             (_converterProvider = new Mock<IConverterProvider>(MockBehavior.Strict)).Setup(instance => instance.FindBestOutputConverter<string>(It.IsAny<IResponseInfo>()))
@@ -80,7 +80,7 @@ namespace Given_instance_of_the
             _response = new MultiObjectResponseInfo(_request, new object[] { StringBody, NumericBody }, _converterProvider.Object);
         }
 
-        [TestCleanup]
+        [TearDown]
         public void Teardown()
         {
             _converter = null;

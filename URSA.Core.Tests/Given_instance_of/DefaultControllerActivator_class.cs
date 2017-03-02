@@ -2,21 +2,21 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using NUnit.Framework;
 using URSA.ComponentModel;
 using URSA.Web;
 
 namespace Given_instance_of
 {
     [ExcludeFromCodeCoverage]
-    [TestClass]
+    [TestFixture]
     public class DefaultControllerActivator_class
     {
         private Mock<IComponentProvider> _container;
         private DefaultControllerActivator _activator;
 
-        [TestMethod]
+        [Test]
         public void it_should_create_basic_controller_instance()
         {
             var controller = new BasicController();
@@ -30,7 +30,7 @@ namespace Given_instance_of
             _container.Verify(instance => instance.Resolve(typeof(BasicController), null));
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_create_generic_type_controller_instance()
         {
             var controller = new DescriptionController<BasicController>();
@@ -46,7 +46,7 @@ namespace Given_instance_of
             _container.Verify(instance => instance.Resolve(typeof(DescriptionController<>), null));
         }
 
-        [TestMethod]
+        [Test]
         public void it_should_create_complex_controller_instance()
         {
             var controller = new BasicController();
@@ -60,14 +60,14 @@ namespace Given_instance_of
             _container.Verify(instance => instance.Resolve(typeof(IController), null));
         }
 
-        [TestInitialize]
+        [SetUp]
         public void Setup()
         {
             _container = new Mock<IComponentProvider>(MockBehavior.Strict);
             _activator = new DefaultControllerActivator(_container.Object);
         }
 
-        [TestCleanup]
+        [TearDown]
         public void Teardown()
         {
             _container = null;
