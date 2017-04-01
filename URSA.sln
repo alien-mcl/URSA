@@ -87,6 +87,9 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "URSA.Http.AutoFac", "URSA.Http.AutoFac\URSA.Http.AutoFac.csproj", "{58881913-A756-4321-87DC-21420C7A48D9}"
 EndProject
 Global
+	GlobalSection(Performance) = preSolution
+		HasPerformanceSessions = true
+	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU

@@ -1,10 +1,19 @@
 ﻿<?xml version="1.0" encoding="utf-8" standalone="no"?>
 <Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <PropertyGroup Condition="'$(NuGetPackageRoot)' == ''">
-    <NuGetPackageRoot>$(UserProfile)\.nuget\packages\</NuGetPackageRoot>
+  <PropertyGroup Condition=" '$(ExcludeRestorePackageImports)' != 'true' ">
+    <RestoreSuccess Condition=" '$(RestoreSuccess)' == '' ">False</RestoreSuccess>
+    <RestoreTool Condition=" '$(RestoreTool)' == '' ">NuGet</RestoreTool>
+    <ProjectAssetsFile Condition=" '$(ProjectAssetsFile)' == '' ">D:\Users\Karol\Documents\Visual Studio 2017\Projects\URSA\URSA.Http.Tests\URSA.Http.Tests.project.lock.json</ProjectAssetsFile>
+    <NuGetPackageRoot Condition=" '$(NuGetPackageRoot)' == '' ">$(UserProfile)\.nuget\packages\</NuGetPackageRoot>
+    <NuGetPackageFolders Condition=" '$(NuGetPackageFolders)' == '' ">C:\Users\Karol\.nuget\packages\</NuGetPackageFolders>
+    <NuGetProjectStyle Condition=" '$(NuGetProjectStyle)' == '' ">ProjectJson</NuGetProjectStyle>
+    <NuGetToolVersion Condition=" '$(NuGetToolVersion)' == '' ">4.0.0</NuGetToolVersion>
   </PropertyGroup>
-  <ImportGroup>
-    <Import Project="$(NuGetPackageRoot)\StyleCop.Error.MSBuild\1.0.0\build\StyleCop.Error.MSBuild.Targets" Condition="Exists('$(NuGetPackageRoot)\StyleCop.Error.MSBuild\1.0.0\build\StyleCop.Error.MSBuild.Targets')" />
-    <Import Project="$(NuGetPackageRoot)\StyleCop.MSBuild\4.7.49.1\build\StyleCop.MSBuild.Targets" Condition="Exists('$(NuGetPackageRoot)\StyleCop.MSBuild\4.7.49.1\build\StyleCop.MSBuild.Targets')" />
+  <PropertyGroup>
+    <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+  </PropertyGroup>
+  <ImportGroup Condition=" '$(ExcludeRestorePackageImports)' != 'true' ">
+    <Import Project="$(NuGetPackageRoot)stylecop.msbuild\4.7.49.1\build\StyleCop.MSBuild.Targets" Condition="Exists('$(NuGetPackageRoot)stylecop.msbuild\4.7.49.1\build\StyleCop.MSBuild.Targets')" />
+    <Import Project="$(NuGetPackageRoot)stylecop.error.msbuild\1.0.0\build\StyleCop.Error.MSBuild.Targets" Condition="Exists('$(NuGetPackageRoot)stylecop.error.msbuild\1.0.0\build\StyleCop.Error.MSBuild.Targets')" />
   </ImportGroup>
 </Project>
