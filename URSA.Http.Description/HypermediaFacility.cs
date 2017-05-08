@@ -2,8 +2,10 @@
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using RDeF.Entities;
 using URSA.Web.Description;
 using URSA.Web.Description.Http;
+using URSA.Web.Http.Configuration;
 using URSA.Web.Http.Description.Entities;
 
 namespace URSA.Web.Http.Description
@@ -12,29 +14,32 @@ namespace URSA.Web.Http.Description
     public class HypermediaFacility : IHypermediaFacility
     {
         private readonly IController _controller;
-        private readonly IEntityContextProvider _entityContextProvider;
+        private readonly IEntityContext _entityContext;
         private readonly IHttpControllerDescriptionBuilder _controllerDescriptionBuilder;
         private readonly IApiDescriptionBuilder _apiDescriptionBuilder;
+        private readonly IHttpServerConfiguration _httpServerConfiguration;
 
         /// <summary>Initializes a new instance of the <see cref="HypermediaFacility" /> class.</summary>
         /// <param name="controller">Owning controller.</param>
-        /// <param name="entityContextProvider">Entity context provider.</param>
+        /// <param name="entityContext">Entity context.</param>
         /// <param name="controllerDescriptionBuilder">Controller description builder.</param>
         /// <param name="apiDescriptionBuilder">API description builder.</param>
+        /// <param name="httpServerConfiguration">HTTP server configuration with base Uri.</param>
         public HypermediaFacility(
             IController controller,
-            IEntityContextProvider entityContextProvider,
+            IEntityContext entityContext,
             IHttpControllerDescriptionBuilder controllerDescriptionBuilder,
-            IApiDescriptionBuilder apiDescriptionBuilder)
+            IApiDescriptionBuilder apiDescriptionBuilder,
+            IHttpServerConfiguration httpServerConfiguration)
         {
             if (controller == null)
             {
                 throw new ArgumentNullException("controller");
             }
 
-            if (entityContextProvider == null)
+            if (entityContext == null)
             {
-                throw new ArgumentNullException("entityContextProvider");
+                throw new ArgumentNullException("entityContext");
             }
 
             if (controllerDescriptionBuilder == null)
@@ -47,10 +52,16 @@ namespace URSA.Web.Http.Description
                 throw new ArgumentNullException("apiDescriptionBuilder");
             }
 
+            if (httpServerConfiguration == null)
+            {
+                throw new ArgumentNullException("httpServerConfiguration");
+            }
+
             _controller = controller;
-            _entityContextProvider = entityContextProvider;
+            _entityContext = entityContext;
             _controllerDescriptionBuilder = controllerDescriptionBuilder;
             _apiDescriptionBuilder = apiDescriptionBuilder;
+            _httpServerConfiguration = httpServerConfiguration;
         }
 
         /// <summary>Instructs the framework to inject that a given <paramref name="operation" /> should be injected into the payload</summary>
@@ -73,7 +84,8 @@ namespace URSA.Web.Http.Description
                 HypermediaControlRules.Include,
                 (OperationInfo<Verb>)_controllerDescriptionBuilder.BuildDescriptor().Operations.First(operation => operation.UnderlyingMethod == methodInfo),
                 _apiDescriptionBuilder,
-                _entityContextProvider);
+                _entityContext,
+                _httpServerConfiguration);
             _controller.Response.Request.HypermediaControls.Add(hypermediaControls);
         }
 

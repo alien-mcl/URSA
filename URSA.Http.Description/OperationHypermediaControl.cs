@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Threading.Tasks;
-using RomanticWeb.Entities;
+using RDeF.Entities;
 using URSA.Web.Description;
+using URSA.Web.Http.Configuration;
 using URSA.Web.Http.Description.Entities;
 
 namespace URSA.Web.Http.Description
@@ -10,35 +11,38 @@ namespace URSA.Web.Http.Description
     public class OperationHypermediaControl : HypermediaControl
     {
         private readonly OperationInfo<Verb> _operationInfo;
-        private readonly IEntityContextProvider _entityContextProvider;
+        private readonly IEntityContext _entityContext;
         private readonly IApiDescriptionBuilder _apiDescriptionBuilder;
+        private readonly IHttpServerConfiguration _httpServerConfiguration;
 
         internal OperationHypermediaControl(
             HypermediaControlRules rule,
             OperationInfo<Verb> operationInfo,
             IApiDescriptionBuilder apiDescriptionBuilder,
-            IEntityContextProvider entityContextProvider) : base(rule)
+            IEntityContext entityContext,
+            IHttpServerConfiguration httpServerConfiguration) : base(rule)
         {
             _operationInfo = operationInfo;
             _apiDescriptionBuilder = apiDescriptionBuilder;
-            _entityContextProvider = entityContextProvider;
+            _entityContext = entityContext;
+            _httpServerConfiguration = httpServerConfiguration;
         }
 
         /// <inheritdoc />
         public override Task<object> Transform(IRequestMapping requestMapping, IRequestInfo request, object result, object[] arguments)
         {
-            var hook = _entityContextProvider.EntityContext.Create<IEntity>(new EntityId((Uri)request.Url));
+            var hook = _entityContext.Create<IEntity>(new Iri((Uri)request.Url));
             if (Rule == HypermediaControlRules.Include)
             {
                 _apiDescriptionBuilder.BuildOperationDescription(hook, _operationInfo, request.GetRequestedMediaTypeProfiles());
             }
             else
             {
-                var existingId = _operationInfo.CreateId(_entityContextProvider.EntityContext.BaseUriSelector.SelectBaseUri(new EntityId(new Uri("/", UriKind.Relative))));
-                _entityContextProvider.EntityContext.Delete(existingId);
+                var existingId = _operationInfo.CreateId(_httpServerConfiguration.BaseUri);
+                _entityContext.Delete(existingId);
             }
 
-            _entityContextProvider.EntityContext.Commit();
+            _entityContext.Commit();
             return Task.FromResult(result);
         }
     }

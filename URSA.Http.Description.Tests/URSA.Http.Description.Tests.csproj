@@ -8,7 +8,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>URSA.Http.Description.Tests</RootNamespace>
     <AssemblyName>URSA.Http.Description.Tests</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{3AC096D0-A1C2-E12C-1390-A8335801FDAB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
@@ -24,6 +24,7 @@
     <SccProvider>SAK</SccProvider>
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -48,10 +49,6 @@
     <DocumentationFile>bin\Release\URSA.Http.Description.Tests.XML</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="FluentAssertions.Core, Version=3.3.0.0, Culture=neutral, PublicKeyToken=33f2691a05b67b6a, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\FluentAssertions.3.3.0\lib\net45\FluentAssertions.Core.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
@@ -92,7 +89,6 @@
     <Compile Include="Given_instance_of_the\ApiEntryPointDescriptionBuilder_class.cs" />
     <Compile Include="Given_instance_of_the\EntryPointControllerDescriptionBuilder_class.cs" />
     <Compile Include="Given_instance_of_the\EntryPointDescriptionController_class.cs" />
-    <Compile Include="Given_instance_of_the\EntityExtensions_class\when_copying_between_entity_contexts.cs" />
     <Compile Include="Given_instance_of_the\CollectionModelTransformer_class.cs" />
     <Compile Include="Given_instance_of_the\XmlDocProvider_class.cs" />
     <Compile Include="Given_instance_of_the\XsdUriParser_class.cs" />

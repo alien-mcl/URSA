@@ -6,8 +6,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text.RegularExpressions;
-using RomanticWeb;
-using RomanticWeb.Entities;
+using RDeF.Entities;
 using URSA.Web.Converters;
 using URSA.Web.Http.Description.CodeGen;
 
@@ -159,7 +158,7 @@ namespace URSA.Web.Http.Converters
 
         private string GetPropertyMapping(Uri uri)
         {
-            var mapping = _entityContextFactory.Mappings.MappingForProperty(uri);
+            var mapping = _entityContextFactory.Mappings.FindPropertyMappingFor(uri);
             if (mapping == null)
             {
                 throw new ArgumentException(String.Format("Unknown property mapped with URI '{0}'.", uri));

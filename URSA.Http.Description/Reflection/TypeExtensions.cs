@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using RomanticWeb.Entities;
+using RDeF.Entities;
 using URSA.Web;
 using URSA.Web.Http.Description.Reflection;
 
@@ -12,6 +12,14 @@ namespace URSA.Reflection
     {
         internal const string HydraSymbol = "hydra";
         internal const string JavascriptSymbol = "javascript";
+
+        internal static bool IsAssignableFromSpecificGeneric(this Type type, Type instanceType)
+        {
+            return (type != null) && (instanceType != null) && (instanceType != typeof(object)) &&
+                   (((instanceType.GetTypeInfo().IsGenericType) && (instanceType.GetGenericTypeDefinition() == type)) ||
+                    (type.IsAssignableFromSpecificGeneric(instanceType.GetTypeInfo().BaseType)) ||
+                    instanceType.GetTypeInfo().GetInterfaces().Any(type.IsAssignableFromSpecificGeneric));
+        }
 
         internal static Uri MakeUri(this Type type)
         {

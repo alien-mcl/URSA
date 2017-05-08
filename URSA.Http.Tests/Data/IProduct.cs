@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using RomanticWeb.Entities;
+using RDeF.Entities;
 
 namespace URSA.Web.Http.Tests.Data
 {

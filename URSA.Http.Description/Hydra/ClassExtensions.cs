@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using RomanticWeb;
+using System.Runtime.Serialization;
+using RDeF.Entities;
 using URSA.Web.Http.Description.Model;
 
 namespace URSA.Web.Http.Description.Hydra
@@ -16,12 +17,12 @@ namespace URSA.Web.Http.Description.Hydra
             return (from operation in @class.SupportedOperations
                     select new LinkedOperation(operation, null))
                 .Union(
-                    from quad in @class.Context.Store.Quads.ToList()
-                    where (quad.Subject.IsUri) && (quad.Object.IsUri) && (AbsoluteUriComparer.Default.Equals(quad.Subject.Uri, @class.Id.Uri)) &&
-                        (quad.PredicateIs(@class.Context, @class.Context.Mappings.MappingFor<ITemplatedLink>().Classes.First().Uri))
-                    let templatedLink = @class.Context.Load<ITemplatedLink>(quad.Predicate.ToEntityId())
+                    from quad in ((ISerializableEntitySource)@class.Context.EntitySource).Statements
+                    where (quad.Object != null) && (quad.Subject == @class.Iri) &&
+                        (quad.PredicateIs(@class.Context, @class.Context.Mappings.FindEntityMappingFor<ITemplatedLink>().Classes.First().Term))
+                    let templatedLink = @class.Context.Load<ITemplatedLink>(quad.Predicate)
                     from operation in templatedLink.SupportedOperations
-                    select new LinkedOperation(operation, @class.Context.Load<IIriTemplate>(quad.Object.ToEntityId())));
+                    select new LinkedOperation(operation, @class.Context.Load<IIriTemplate>(quad.Object)));
         }
     }
 }

@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
-using RomanticWeb.Entities;
-using RomanticWeb.Mapping.Attributes;
+using RDeF.Entities;
+using RDeF.Mapping.Attributes;
 using URSA.Web.Http.Description.Rdfs;
 
 namespace URSA.Web.Http.Description.Shacl

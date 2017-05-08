@@ -1,7 +1,9 @@
 ﻿using System.Reflection;
+using RDeF.Entities;
 using URSA.ComponentModel;
 using URSA.Web.Converters;
 using URSA.Web.Description.Http;
+using URSA.Web.Http.Configuration;
 using URSA.Web.Http.Description.Entities;
 
 namespace URSA.Web.Http.Description
@@ -14,9 +16,10 @@ namespace URSA.Web.Http.Description
         {
             componentComposer.Register<IHypermediaFacilityFactory, HypermediaFacilityFactory>(
                 context => new HypermediaFacilityFactory(
-                    () => context.Resolve<IEntityContextProvider>(),
+                    () => context.Resolve<IEntityContext>(),
                     type => (IHttpControllerDescriptionBuilder)context.Resolve(type),
-                    type => (IApiDescriptionBuilder)context.Resolve(type)));
+                    type => (IApiDescriptionBuilder)context.Resolve(type),
+                    () => context.Resolve<IHttpServerConfiguration>()));
             componentComposer.RegisterAll<IConverter>(new[] { GetType().GetTypeInfo().Assembly }, Lifestyles.Scoped);
         }
     }

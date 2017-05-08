@@ -6,13 +6,12 @@ using System.Text.RegularExpressions;
 using FluentAssertions;
 using FluentAssertions.Execution;
 using FluentAssertions.Primitives;
-using VDS.RDF;
 
 namespace URSA.Http.Description.Tests.FluentAssertions
 {
     public static class CustomExtensions
     {
-        /// <summary>Determines whether the subject is an equivalent to <paramref name="anotherGraph" />.</summary>
+        /*/// <summary>Determines whether the subject is an equivalent to <paramref name="anotherGraph" />.</summary>
         /// <param name="subject">Subject graph.</param>
         /// <param name="anotherGraph">Another graph.</param>
         /// <param name="because">
@@ -34,7 +33,7 @@ namespace URSA.Http.Description.Tests.FluentAssertions
                 .BecauseOf(because, reasonArgs)
                 .FailWith("Expected both graphs to have same statements, but {0} differed.", Math.Abs(subject.Which.Triples.Count - sameStatements));
             return subject;
-        }
+        }*/
 
         /// <summary>Tests a givent <paramref name="subject" /> string wether it equals to a string taken from the <paramref name="streamName" /> stream.</summary>
         /// <remarks>This method replaces all carriage-return/new-line-feeds to new-line-feeds.</remarks>

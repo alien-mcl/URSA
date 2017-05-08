@@ -5,7 +5,8 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
-using RomanticWeb.Entities;
+using RDeF.Entities;
+using RollerCaster;
 using URSA.Configuration;
 using URSA.Web.Http.Converters;
 using URSA.Web.Http.Description.Entities;
@@ -17,20 +18,19 @@ namespace URSA.Web.Http.Description
     /// <summary>Provides a <![CDATA[hydra:Collection]]> injection mechanism.</summary>
     public class CollectionResponseModelTransformer : IResponseModelTransformer<RdfPayloadModelTransformer>
     {
-        private readonly IEntityContextProvider _entityContextProvider;
+        private readonly IEntityContext _entityContext;
 
         /// <summary>Initializes a new instance of the <see cref="CollectionResponseModelTransformer"/> class.</summary>
-        /// <param name="entityContextProvider">The entity context provider.</param>
-        //// <param name="namedGraphSelectorFactory">Named graph selector factory.</param>
+        /// <param name="entityContext">The entity context.</param>
         [ExcludeFromCodeCoverage]
-        public CollectionResponseModelTransformer(IEntityContextProvider entityContextProvider)
+        public CollectionResponseModelTransformer(IEntityContext entityContext)
         {
-            if (entityContextProvider == null)
+            if (entityContext == null)
             {
-                throw new ArgumentNullException("entityContextProvider");
+                throw new ArgumentNullException("entityContext");
             }
 
-            _entityContextProvider = entityContextProvider;
+            _entityContext = entityContext;
         }
 
         /// <inheritdoc />
@@ -79,13 +79,13 @@ namespace URSA.Web.Http.Description
 
         private object TransformCollection(object result, HttpUrl requestUri, int totalItems, int skip, int take)
         {
-            var entityContext = _entityContextProvider.EntityContext;
+            var entityContext = _entityContext;
             var collection = entityContext.Load<ICollection>((Uri)requestUri);
             collection.TotalItems = totalItems;
             collection.Members.Clear();
             foreach (IEntity entity in (IEnumerable)result)
             {
-                collection.Members.Add(entity.AsEntity<IResource>());
+                collection.Members.Add(entity.ActLike<IResource>());
             }
 
             if ((skip <= 0) && (take <= 0))
@@ -94,7 +94,7 @@ namespace URSA.Web.Http.Description
                 return result;
             }
 
-            var viewId = collection.Id.Uri.AddFragment("view");
+            var viewId = ((Uri)collection.Iri).AddFragment("view");
             var view = entityContext.Load<IPartialCollectionView>(viewId);
             collection.View = view;
             view.ItemsPerPage = (take > 0 ? take : totalItems);

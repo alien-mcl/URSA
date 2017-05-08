@@ -1,7 +1,7 @@
-﻿using RomanticWeb.Entities;
-using System;
+﻿using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using RDeF.Entities;
 using URSA.Web.Http.Converters;
 using URSA.Web.Http.Description.Entities;
 using URSA.Web.Http.Description.Hydra;
@@ -38,17 +38,17 @@ namespace URSA.Web.Http.Description
         /// <summary>Defines a '<![CDATA[application/xml]]>' media type.</summary>
         private const string ApplicationXml = "application/xml";
 
-        private readonly IEntityContextProvider _entityContextProvider;
+        private readonly IEntityContext _entityContext;
         private readonly IApiDescriptionBuilder _apiDescriptionBuilder;
 
         /// <summary>Initializes a new instance of the <see cref="DescriptionController" /> class.</summary>
-        /// <param name="entityContextProvider">Entity context provider.</param>
+        /// <param name="entityContext">Entity context.</param>
         /// <param name="apiDescriptionBuilder">API description builder.</param>
-        protected DescriptionController(IEntityContextProvider entityContextProvider, IApiDescriptionBuilder apiDescriptionBuilder)
+        protected DescriptionController(IEntityContext entityContext, IApiDescriptionBuilder apiDescriptionBuilder)
         {
-            if (entityContextProvider == null)
+            if (entityContext == null)
             {
-                throw new ArgumentNullException("entityContextProvider");
+                throw new ArgumentNullException("entityContext");
             }
 
             if (apiDescriptionBuilder == null)
@@ -56,7 +56,7 @@ namespace URSA.Web.Http.Description
                 throw new ArgumentNullException("apiDescriptionBuilder");
             }
 
-            _entityContextProvider = entityContextProvider;
+            _entityContext = entityContext;
             _apiDescriptionBuilder = apiDescriptionBuilder;
         }
 
@@ -70,7 +70,7 @@ namespace URSA.Web.Http.Description
         protected IApiDescriptionBuilder ApiDescriptionBuilder { get { return _apiDescriptionBuilder; } }
 
         /// <summary>Gets the entity context provider.</summary>
-        protected IEntityContextProvider EntityContextProvider { get { return _entityContextProvider; } }
+        protected IEntityContext EntityContext { get { return _entityContext; } }
 
         /// <summary>Gets the API documentation.</summary>
         /// <param name="format">Optional output format.</param>
@@ -99,9 +99,9 @@ namespace URSA.Web.Http.Description
         private IApiDocumentation BuildApiDocumentation(string fileExtension, Uri entityId)
         {
             ((ResponseInfo)Response).Headers.ContentDisposition = String.Format("inline; filename=\"{0}.{1}\"", FileName, fileExtension);
-            IApiDocumentation result = _entityContextProvider.EntityContext.Create<IApiDocumentation>(new EntityId(entityId));
+            IApiDocumentation result = _entityContext.Create<IApiDocumentation>(new Iri(entityId));
             _apiDescriptionBuilder.BuildDescription(result, this.GetRequestedMediaTypeProfiles());
-            _entityContextProvider.EntityContext.Commit();
+            _entityContext.Commit();
             return result;
         }
 
@@ -147,10 +147,10 @@ namespace URSA.Web.Http.Description
     public class DescriptionController<T> : DescriptionController where T : IController
     {
         /// <summary>Initializes a new instance of the <see cref="DescriptionController{T}" /> class.</summary>
-        /// <param name="entityContextProvider">Entity context provider.</param>
+        /// <param name="entityContext">Entity context.</param>
         /// <param name="apiDescriptionBuilder">API description builder.</param>
-        public DescriptionController(IEntityContextProvider entityContextProvider, IApiDescriptionBuilder<T> apiDescriptionBuilder)
-            : base(entityContextProvider, apiDescriptionBuilder)
+        public DescriptionController(IEntityContext entityContext, IApiDescriptionBuilder<T> apiDescriptionBuilder)
+            : base(entityContext, apiDescriptionBuilder)
         {
         }
 

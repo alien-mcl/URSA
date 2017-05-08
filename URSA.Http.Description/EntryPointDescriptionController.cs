@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
-using RomanticWeb.Entities;
+using RDeF.Entities;
 using URSA.Reflection;
 using URSA.Web.Description;
 using URSA.Web.Description.Http;
+using URSA.Web.Http.Configuration;
 using URSA.Web.Http.Description.Entities;
 using URSA.Web.Http.Mapping;
 using URSA.Web.Mapping;
@@ -16,27 +17,31 @@ namespace URSA.Web.Http.Description
     /// <summary>Generates an API entry point description.</summary>
     public class EntryPointDescriptionController : DescriptionController
     {
+        private readonly IHttpServerConfiguration _httpServerConfiguration;
         private readonly IEnumerable<IHttpControllerDescriptionBuilder> _httpControllerDescriptionBuilders;
         private readonly IApiEntryPointDescriptionBuilder _apiDescriptionBuilder;
 
         /// <summary>Initializes a new instance of the <see cref="EntryPointDescriptionController"/> class.</summary>
         /// <param name="entryPoint">Entry point URL.</param>
-        /// <param name="entityContextProvider">Entity context provider.</param>
+        /// <param name="entityContext">Entity context.</param>
         /// <param name="apiDescriptionBuilder">API description builder.</param>
+        /// <param name="httpServerConfiguration">HTTP server configuration with base Uri.</param>
         /// <param name="httpControllerDescriptionBuilders">HTTP Controller description builders.</param>
         [ExcludeFromCodeCoverage]
         public EntryPointDescriptionController(
             Url entryPoint,
-            IEntityContextProvider entityContextProvider,
+            IEntityContext entityContext,
             IApiEntryPointDescriptionBuilder apiDescriptionBuilder,
+            IHttpServerConfiguration httpServerConfiguration,
             IEnumerable<IHttpControllerDescriptionBuilder> httpControllerDescriptionBuilders) :
-            base(entityContextProvider, apiDescriptionBuilder)
+            base(entityContext, apiDescriptionBuilder)
         {
             if (entryPoint == null)
             {
                 throw new ArgumentNullException("entryPoint");
             }
 
+            _httpServerConfiguration = httpServerConfiguration;
             _httpControllerDescriptionBuilders = httpControllerDescriptionBuilders;
             (_apiDescriptionBuilder = apiDescriptionBuilder).EntryPoint = entryPoint;
         }
@@ -78,12 +83,13 @@ namespace URSA.Web.Http.Description
                         HypermediaControlRules.Include,
                         (OperationInfo<Verb>)controllerInfo.Operations.First(operation => operation.UnderlyingMethod == methodInfo),
                         _apiDescriptionBuilder,
-                        EntityContextProvider);
+                        EntityContext,
+                        _httpServerConfiguration);
                     Response.Request.HypermediaControls.Add(hypermediaControls);
                 }
             }
 
-            return EntityContextProvider.EntityContext.Load<IEntity>(new EntityId((Uri)Response.Request.Url));
+            return EntityContext.Load<IEntity>(new Iri((Uri)Response.Request.Url));
         }
     }
 }

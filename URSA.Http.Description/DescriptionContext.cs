@@ -4,8 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using RomanticWeb;
-using RomanticWeb.Entities;
+using RDeF.Entities;
 using URSA.Web.Http.Description.Hydra;
 
 namespace URSA.Web.Http.Description

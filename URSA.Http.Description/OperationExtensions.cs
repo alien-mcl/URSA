@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Reflection;
-using RomanticWeb.Entities;
+using RDeF.Entities;
 using URSA.Web.Description;
 using URSA.Web.Http.Description.Hydra;
 
@@ -16,22 +16,22 @@ namespace URSA.Web.Http.Description
                 (operation.UnderlyingMethod.DeclaringType.GetTypeInfo().GetRuntimeInterfaceMap(type).TargetMethods.Contains(operation.UnderlyingMethod)));
         }
 
-        internal static EntityId CreateId<T>(this OperationInfo<T> operation, Uri baseUri)
+        internal static Iri CreateId<T>(this OperationInfo<T> operation, Uri baseUri)
         {
             HttpUrl url = (HttpUrl)baseUri + (HttpUrl)operation.Url;
             if (!operation.Arguments.Any())
             {
-                return new EntityId((Uri)url);
+                return new Iri((Uri)url);
             }
 
             var fragment = String.Join("And", operation.Arguments.Select(argument => (argument.VariableName ?? argument.Parameter.Name).ToUpperCamelCase()));
             url = url.WithFragment(String.Format("{0}{1}", operation.ProtocolSpecificCommand, fragment));
-            return new EntityId((Uri)url);
+            return new Iri((Uri)url);
         }
 
-        internal static IOperation AsOperation<T>(this OperationInfo<T> operation, IEntity entryPointEntity, EntityId id = null)
+        internal static IOperation AsOperation<T>(this OperationInfo<T> operation, Uri baseUri, IEntity entryPointEntity, Iri id = null)
         {
-            var methodId = id ?? operation.CreateId(entryPointEntity.Context.BaseUriSelector.SelectBaseUri(new EntityId(new Uri("/", UriKind.Relative))));
+            var methodId = id ?? operation.CreateId(baseUri);
             if (operation.IsWriteControllerOperation())
             {
                 switch (operation.UnderlyingMethod.Name)

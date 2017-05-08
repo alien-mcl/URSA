@@ -7,8 +7,8 @@ using System.Threading.Tasks;
 using FluentAssertions;
 using Moq;
 using NUnit.Framework;
-using RomanticWeb;
-using RomanticWeb.Entities;
+using RDeF.Entities;
+using RollerCaster;
 using URSA;
 using URSA.Security;
 using URSA.Web;
@@ -35,7 +35,7 @@ namespace Given_instance_of_the
         [Test]
         public async Task should_inject_hydra_Collection_details()
         {
-            var result = new List<IProduct>() { new Mock<IProduct>(MockBehavior.Strict).Object };
+            var result = new List<IProduct>() { new Mock<MulticastObject>(MockBehavior.Strict).Object.ActLike<IProduct>() };
             var arguments = new[] { 1, 0, 0, (object)null };
             var collection = SetupCollection(result.Count);
             _entityContext.Setup(instance => instance.Load<ICollection>((Uri)RequestUrl)).Returns(collection.Object);
@@ -49,12 +49,12 @@ namespace Given_instance_of_the
         [Test]
         public async Task should_inject_hydra_PartialCollectionView_details()
         {
-            var result = Enumerable.Range(0, 20).Select(index => new Mock<IProduct>(MockBehavior.Strict).Object).ToList();
+            var result = Enumerable.Range(0, 20).Select(index => new Mock<MulticastObject>(MockBehavior.Strict).Object.ActLike<IProduct>()).ToList();
             var arguments = new[] { 20, 0, 10, (object)null };
             var view = new Mock<IPartialCollectionView>(MockBehavior.Strict);
             var collection = SetupCollection(result.Count, 10, view);
             _entityContext.Setup(instance => instance.Load<ICollection>((Uri)RequestUrl)).Returns(collection.Object);
-            _entityContext.Setup(instance => instance.Load<IPartialCollectionView>(It.IsAny<EntityId>())).Returns(view.Object);
+            _entityContext.Setup(instance => instance.Load<IPartialCollectionView>(It.IsAny<Iri>())).Returns(view.Object);
 
             await _responseModelTransformer.Transform(_mapping.Object, Request, result, arguments);
 
@@ -76,13 +76,8 @@ namespace Given_instance_of_the
             _mapping.SetupGet(instance => instance.Target).Returns(new TestController());
             _mapping.SetupGet(instance => instance.ArgumentSources).Returns(argumentValueSources);
             _entityContext = new Mock<IEntityContext>(MockBehavior.Strict);
-            var blankNodeIdGenerator = new Mock<IBlankNodeIdGenerator>(MockBehavior.Strict);
-            blankNodeIdGenerator.Setup(instance => instance.Generate()).Returns("bnode001");
-            _entityContext.SetupGet(instance => instance.BlankIdGenerator).Returns(blankNodeIdGenerator.Object);
             _entityContext.Setup(instance => instance.Commit());
-            var entityContextProvider = new Mock<IEntityContextProvider>(MockBehavior.Strict);
-            entityContextProvider.SetupGet(instance => instance.EntityContext).Returns(_entityContext.Object);
-            _responseModelTransformer = new CollectionResponseModelTransformer(entityContextProvider.Object/*, namedGraphSelectorFactory.Object*/);
+            _responseModelTransformer = new CollectionResponseModelTransformer(_entityContext.Object);
         }
 
         [TearDown]
@@ -96,7 +91,7 @@ namespace Given_instance_of_the
         private Mock<ICollection> SetupCollection(int totalItems, int take = 0, Mock<IPartialCollectionView> view = null)
         {
             var collection = new Mock<ICollection>(MockBehavior.Strict);
-            collection.SetupGet(instance => instance.Id).Returns(new EntityId((Uri)RequestUrl));
+            collection.SetupGet(instance => instance.Iri).Returns(new Iri((Uri)RequestUrl));
             collection.SetupSet(instance => instance.TotalItems = totalItems);
             var members = new List<IResource>();
             collection.SetupGet(instance => instance.Members).Returns(members);

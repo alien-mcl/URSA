@@ -1,7 +1,4 @@
-﻿using System;
-using System.Diagnostics.CodeAnalysis;
-using RomanticWeb;
-using RomanticWeb.Entities;
+﻿using System.Diagnostics.CodeAnalysis;
 
 namespace URSA.Web.Http.Tests.Data
 {

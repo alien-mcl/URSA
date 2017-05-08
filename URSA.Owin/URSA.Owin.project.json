@@ -1,14 +1,13 @@
 ﻿{
-    "frameworks": {
-        "net45": {}
-    },
-    "runtimes": {
-        "win": {}
-    },
-    "dependencies": {
-        "Microsoft.Owin": "3.0.1",
-        "Microsoft.Owin.Host.SystemWeb": "3.0.1",
-        "Owin": "1.0",
-        "RomanticWeb.Contracts": "1.0.18.32-rc1"
-    }
+  "frameworks": {
+    "net45": {}
+  },
+  "runtimes": {
+    "win": {}
+  },
+  "dependencies": {
+    "Microsoft.Owin": "3.0.1",
+    "Microsoft.Owin.Host.SystemWeb": "3.0.1",
+    "Owin": "1.0"
+  }
 }

@@ -1,5 +1,4 @@
-﻿using RomanticWeb.Entities;
-using RomanticWeb.Mapping.Attributes;
+﻿using RDeF.Mapping.Attributes;
 using System.Collections.Generic;
 
 namespace URSA.Web.Http.Description.Owl

@@ -44,24 +44,6 @@
     <Reference Include="Microsoft.Web.Infrastructure, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.Web.Infrastructure.1.0.0.0\lib\net40\Microsoft.Web.Infrastructure.dll</HintPath>
     </Reference>
-    <Reference Include="NLog, Version=3.2.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c, processorArchitecture=MSIL">
-      <HintPath>..\packages\NLog.3.2.0.0\lib\net45\NLog.dll</HintPath>
-    </Reference>
-    <Reference Include="Remotion.Linq, Version=2.1.0.0, Culture=neutral, PublicKeyToken=fee00910d6e5f53b, processorArchitecture=MSIL">
-      <HintPath>..\packages\Remotion.Linq.2.1.1\lib\net45\Remotion.Linq.dll</HintPath>
-    </Reference>
-    <Reference Include="RomanticWeb, Version=1.0.18.32, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\RomanticWeb.1.0.18.32-rc1\lib\net45\RomanticWeb.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="RomanticWeb.Contracts, Version=1.0.18.32, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\RomanticWeb.Contracts.1.0.18.32-rc1\lib\net45\RomanticWeb.Contracts.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="RomanticWeb.Mapping.Fluent, Version=1.0.18.32, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\RomanticWeb.1.0.18.32-rc1\lib\net45\RomanticWeb.Mapping.Fluent.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Configuration" />

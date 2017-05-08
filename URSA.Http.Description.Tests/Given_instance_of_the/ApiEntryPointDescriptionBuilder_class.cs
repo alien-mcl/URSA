@@ -5,14 +5,13 @@ using System.Reflection;
 using FluentAssertions;
 using Moq;
 using NUnit.Framework;
-using RomanticWeb;
-using RomanticWeb.Entities;
-using RomanticWeb.Mapping;
-using RomanticWeb.Mapping.Model;
+using RDeF.Entities;
+using RDeF.Mapping;
 using URSA;
 using URSA.Web.Description;
 using URSA.Web.Description.Http;
 using URSA.Web.Http;
+using URSA.Web.Http.Configuration;
 using URSA.Web.Http.Converters;
 using URSA.Web.Http.Description;
 using URSA.Web.Http.Description.Hydra;
@@ -66,12 +65,11 @@ namespace Given_instance_of_the
             var mappingsRepository = new Mock<IMappingsRepository>(MockBehavior.Strict);
             mappingsRepository.SetupMapping<IApiDocumentation>(EntityConverter.Hydra);
             var classEntity = new Mock<IClass>(MockBehavior.Strict);
-            var baseUriSelector = new Mock<IBaseUriSelectionPolicy>(MockBehavior.Strict);
-            baseUriSelector.Setup(instance => instance.SelectBaseUri(It.IsAny<EntityId>())).Returns(new Uri("http://temp.uri/"));
+            var httpServerConfiguration = new Mock<IHttpServerConfiguration>(MockBehavior.Strict);
+            httpServerConfiguration.SetupGet(instance => instance.BaseUri).Returns(new Uri("http://temp.uri/"));
             var context = new Mock<IEntityContext>(MockBehavior.Strict);
-            context.SetupGet(instance => instance.BaseUriSelector).Returns(baseUriSelector.Object);
             context.SetupGet(instance => instance.Mappings).Returns(mappingsRepository.Object);
-            context.Setup(instance => instance.Create<IClass>(It.IsAny<EntityId>())).Returns(classEntity.Object);
+            context.Setup(instance => instance.Create<IClass>(It.IsAny<Iri>())).Returns(classEntity.Object);
             _apiDocumentation = new Mock<IApiDocumentation>(MockBehavior.Strict);
             _apiDocumentation.SetupGet(instance => instance.Context).Returns(context.Object);
             _apiDocumentation.SetupGet(instance => instance.SupportedClasses).Returns(new List<IClass>());
@@ -92,6 +90,7 @@ namespace Given_instance_of_the
             _entryPointControllerDescriptionBuilder = new Mock<IHttpControllerDescriptionBuilder<EntryPointDescriptionController>>(MockBehavior.Strict);
             _entryPointControllerDescriptionBuilder.As<IHttpControllerDescriptionBuilder>().Setup(instance => instance.BuildDescriptor()).Returns(entryPointControllerDescription);
             _descriptionBuilder = new ApiEntryPointDescriptionBuilder(
+                httpServerConfiguration.Object,
                 _apiDescriptionBuilderFactory.Object,
                 new[] { _controllerDescriptionBuilder.Object, _irrelevantControllerDescriptionBuilder.Object, _entryPointControllerDescriptionBuilder.Object });
             _descriptionBuilder.EntryPoint = EntryPoint;

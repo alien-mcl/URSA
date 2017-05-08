@@ -5,11 +5,10 @@ using System.ComponentModel.DataAnnotations;
 using System.Reflection;
 using Moq;
 using NUnit.Framework;
-using RomanticWeb;
-using RomanticWeb.Entities;
-using RomanticWeb.Mapping;
-using RomanticWeb.Mapping.Model;
-using RomanticWeb.Vocabularies;
+using RDeF.Entities;
+using RDeF.Mapping;
+using RDeF.Vocabularies;
+using RollerCaster;
 using URSA.Web.Http.Converters;
 using URSA.Web.Http.Description;
 using URSA.Web.Http.Description.Hydra;
@@ -46,32 +45,51 @@ namespace Given_instance_of_the.HydraCompliantTypeDescriptionBuilder_class
 
         private static IApiDocumentation CreateApiDocumentation()
         {
-            var blankIdGenerator = new Mock<IBlankNodeIdGenerator>(MockBehavior.Strict);
-            blankIdGenerator.Setup(instance => instance.Generate()).Returns("bnode" + new Random().Next());
-            var collectionClassMapping = new Mock<IClassMapping>(MockBehavior.Strict);
-            collectionClassMapping.SetupGet(instance => instance.Uri).Returns(new Uri(EntityConverter.Hydra.AbsoluteUri + "Collection"));
-            var managesMapping = new Mock<IPropertyMapping>(MockBehavior.Strict);
-            managesMapping.SetupGet(instance => instance.Uri).Returns(new Uri(EntityConverter.Hydra.AbsoluteUri + "member"));
-            var collectionMapping = new Mock<IEntityMapping>(MockBehavior.Strict);
-            collectionMapping.SetupGet(instance => instance.Classes).Returns(new[] { collectionClassMapping.Object });
-            collectionMapping.Setup(instance => instance.PropertyFor("Members")).Returns(managesMapping.Object);
             var mappings = new Mock<IMappingsRepository>(MockBehavior.Strict);
-            mappings.Setup(instance => instance.MappingFor<ICollection>()).Returns(collectionMapping.Object);
+            SetupEntityMapping<IClass>(mappings, new Iri(EntityConverter.Hydra.AbsoluteUri + "Class"));
+            SetupEntityMapping<ICollection>(mappings, new Iri(EntityConverter.Hydra.AbsoluteUri + "Collection"), new Dictionary<string, Iri>() { { "Members", new Iri(EntityConverter.Hydra.AbsoluteUri + "member") } });
+            SetupEntityMapping<IRestriction>(mappings, owl.Restriction);
             var entityContext = new Mock<IEntityContext>(MockBehavior.Strict);
-            entityContext.SetupGet(instance => instance.BlankIdGenerator).Returns(blankIdGenerator.Object);
             entityContext.SetupGet(instance => instance.Mappings).Returns(mappings.Object);
-            entityContext.Setup(instance => instance.Create<IClass>(It.IsAny<EntityId>())).Returns<EntityId>(id => CreateClass(entityContext.Object, id));
-            entityContext.Setup(instance => instance.Create<ISupportedProperty>(It.IsAny<EntityId>())).Returns<EntityId>(id => CreateSupportedProperty(entityContext.Object, id));
-            entityContext.Setup(instance => instance.Create<IProperty>(It.IsAny<EntityId>())).Returns<EntityId>(id => CreateProperty<IProperty>(entityContext.Object, id));
-            entityContext.Setup(instance => instance.Create<IInverseFunctionalProperty>(It.IsAny<EntityId>())).Returns<EntityId>(id => CreateProperty<IInverseFunctionalProperty>(entityContext.Object, id));
-            entityContext.Setup(instance => instance.Create<IRestriction>(It.IsAny<EntityId>())).Returns<EntityId>(id => CreateRestriction(entityContext.Object, id));
+            entityContext.Setup(instance => instance.Create<IClass>(It.IsAny<Iri>())).Returns<Iri>(id => CreateClass(entityContext.Object, id));
+            entityContext.Setup(instance => instance.Create<ISupportedProperty>(It.IsAny<Iri>())).Returns<Iri>(id => CreateSupportedProperty(entityContext.Object, id));
+            entityContext.Setup(instance => instance.Create<IProperty>(It.IsAny<Iri>())).Returns<Iri>(id => CreateProperty<IProperty>(entityContext.Object, id));
+            entityContext.Setup(instance => instance.Create<IInverseFunctionalProperty>(It.IsAny<Iri>())).Returns<Iri>(id => CreateProperty<IInverseFunctionalProperty>(entityContext.Object, id));
+            entityContext.Setup(instance => instance.Create<IRestriction>(It.IsAny<Iri>())).Returns<Iri>(id => CreateRestriction(entityContext.Object, id));
             var result = new Mock<IApiDocumentation>(MockBehavior.Strict);
-            result.SetupGet(instance => instance.Id).Returns(new EntityId("http://temp.uri/api"));
+            result.SetupGet(instance => instance.Iri).Returns(new Iri("http://temp.uri/api"));
             result.SetupGet(instance => instance.Context).Returns(entityContext.Object);
             return result.Object;
         }
 
-        private static IResource CreateResource(IEntityContext entityContext, EntityId id)
+        private static void SetupEntityMapping<T>(Mock<IMappingsRepository> mappingsRepository, Iri term, IDictionary<string, Iri> properties = null) where T : IEntity
+        {
+            var statmentMappings = new List<IStatementMapping>();
+            var statementMapping = new Mock<IStatementMapping>(MockBehavior.Strict);
+            statementMapping.SetupGet(instance => instance.Term).Returns(term);
+            statmentMappings.Add(statementMapping.Object);
+
+            var propertyMappings = new List<IPropertyMapping>();
+            if (properties != null)
+            {
+                foreach (var property in properties)
+                {
+                    var propertyMapping = new Mock<IPropertyMapping>(MockBehavior.Strict);
+                    propertyMapping.SetupGet(instance => instance.Term).Returns(property.Value);
+                    propertyMapping.SetupGet(instance => instance.Name).Returns(property.Key);
+                    propertyMappings.Add(propertyMapping.Object);
+                }
+            }
+
+            var entityMapping = new Mock<IEntityMapping>(MockBehavior.Strict);
+            entityMapping.SetupGet(instance => instance.Type).Returns(typeof(IClass));
+            entityMapping.SetupGet(instance => instance.Classes).Returns(statmentMappings);
+            entityMapping.SetupGet(instance => instance.Properties).Returns(propertyMappings);
+            mappingsRepository.Setup(instance => instance.FindEntityMappingFor<T>()).Returns(entityMapping.Object);
+            mappingsRepository.Setup(instance => instance.FindEntityMappingFor(typeof(T))).Returns(entityMapping.Object);
+        }
+
+        private static IResource CreateResource(IEntityContext entityContext, Iri id)
         {
             var result = new Mock<IResource>(MockBehavior.Strict);
             string label = null;
@@ -79,22 +97,23 @@ namespace Given_instance_of_the.HydraCompliantTypeDescriptionBuilder_class
             result.SetupSet(instance => instance.Label = It.IsAny<string>()).Callback<string>(value => label = value);
             result.SetupSet(instance => instance.Description = It.IsAny<string>()).Callback<string>(value => description = value);
             result.SetupGet(instance => instance.Context).Returns(entityContext);
-            result.SetupGet(instance => instance.Id).Returns(id);
+            result.SetupGet(instance => instance.Iri).Returns(id);
             result.SetupGet(instance => instance.Label).Returns(() => label);
             result.SetupGet(instance => instance.Description).Returns(() => description);
             return result.Object;
         }
 
-        private static IClass CreateClass(IEntityContext entityContext, EntityId id)
+        private static IClass CreateClass(IEntityContext entityContext, Iri id)
         {
-            var result = new Mock<IClass>(MockBehavior.Strict);
-            result.As<ITypedEntity>().SetupGet(instance => instance.Types).Returns(new[] { new EntityId(Rdfs.Class), new EntityId(new Uri(EntityConverter.Hydra.AbsoluteUri + "Class")),  });
+            var entityMock = new Mock<MulticastObject>(MockBehavior.Strict);
+            var result = entityMock.As<IClass>();
+            entityMock.SetupGet(instance => instance.CastedTypes).Returns(new[] { typeof(IClass) });
             string label = null;
             string description = null;
             result.SetupSet(instance => instance.Label = It.IsAny<string>()).Callback<string>(value => label = value);
             result.SetupSet(instance => instance.Description = It.IsAny<string>()).Callback<string>(value => description = value);
             result.SetupGet(instance => instance.Context).Returns(entityContext);
-            result.SetupGet(instance => instance.Id).Returns(id);
+            result.SetupGet(instance => instance.Iri).Returns(id);
             result.SetupGet(instance => instance.Label).Returns(() => label);
             result.SetupGet(instance => instance.Description).Returns(() => description);
             result.SetupGet(instance => instance.SupportedProperties).Returns(new List<ISupportedProperty>());
@@ -102,9 +121,9 @@ namespace Given_instance_of_the.HydraCompliantTypeDescriptionBuilder_class
             return result.Object;
         }
 
-        private static ISupportedProperty CreateSupportedProperty(IEntityContext entityContext, EntityId id)
+        private static ISupportedProperty CreateSupportedProperty(IEntityContext entityContext, Iri id)
         {
-            var propertyFullName = id.Uri.AbsoluteUri.Substring(id.Uri.AbsoluteUri.LastIndexOf(':') + 1);
+            var propertyFullName = id.ToString().Substring(id.ToString().LastIndexOf(':') + 1);
             var declaringTypeName = propertyFullName.Substring(0, propertyFullName.LastIndexOf('.'));
             var propertyName = propertyFullName.Substring(declaringTypeName.Length + 1);
             var propertyInfo = Type.GetType(declaringTypeName).GetProperty(propertyName);
@@ -116,9 +135,9 @@ namespace Given_instance_of_the.HydraCompliantTypeDescriptionBuilder_class
             result.SetupSet(instance => instance.Readable = It.Is<bool>(value => value == readOnly));
             result.SetupSet(instance => instance.Writeable = It.Is<bool>(value => value == writeOnly));
             result.SetupSet(instance => instance.Required = It.Is<bool>(value => value == required));
-            result.SetupSet(instance => instance.Property = It.Is<IProperty>(value => value.Id.Uri.AbsoluteUri.Contains(propertyFullName))).Callback<IProperty>(value => property = value);
+            result.SetupSet(instance => instance.Property = It.Is<IProperty>(value => value.Iri.ToString().Contains(propertyFullName))).Callback<IProperty>(value => property = value);
             result.SetupGet(instance => instance.Context).Returns(entityContext);
-            result.SetupGet(instance => instance.Id).Returns(id);
+            result.SetupGet(instance => instance.Iri).Returns(id);
             result.SetupGet(instance => instance.Readable).Returns(readOnly);
             result.SetupGet(instance => instance.Writeable).Returns(writeOnly);
             result.SetupGet(instance => instance.Required).Returns(required);
@@ -126,11 +145,11 @@ namespace Given_instance_of_the.HydraCompliantTypeDescriptionBuilder_class
             return result.Object;
         }
 
-        private static TProperty CreateProperty<TProperty>(IEntityContext entityContext, EntityId id) where TProperty : class, IProperty
+        private static TProperty CreateProperty<TProperty>(IEntityContext entityContext, Iri id) where TProperty : class, IProperty
         {
-            string propertyFullName = (id.Uri.AbsoluteUri == EntityConverter.Hydra.AbsoluteUri + "member" ? 
+            string propertyFullName = (id == EntityConverter.Hydra.AbsoluteUri + "member" ? 
                 String.Format("{0}.Members", typeof(ICollection).FullName) : 
-                id.Uri.AbsoluteUri.Substring(id.Uri.AbsoluteUri.LastIndexOf(':') + 1));
+                id.ToString().Substring(id.ToString().LastIndexOf(':') + 1));
             var declaringTypeName = propertyFullName.Substring(0, propertyFullName.LastIndexOf('.'));
             var propertyName = propertyFullName.Substring(declaringTypeName.Length + 1);
             var propertyInfo = (propertyName == "Members" ? typeof(ICollection) : Type.GetType(declaringTypeName)).GetProperty(propertyName);
@@ -140,7 +159,7 @@ namespace Given_instance_of_the.HydraCompliantTypeDescriptionBuilder_class
             result.SetupSet(instance => instance.Label = propertyInfo.Name).Callback<string>(value => label = value);
             result.SetupSet(instance => instance.Description = propertyFullName).Callback<string>(value => description = value);
             result.SetupGet(instance => instance.Context).Returns(entityContext);
-            result.SetupGet(instance => instance.Id).Returns(id);
+            result.SetupGet(instance => instance.Iri).Returns(id);
             result.SetupGet(instance => instance.Label).Returns(() => label);
             result.SetupGet(instance => instance.Description).Returns(() => description);
             result.SetupGet(instance => instance.Domain).Returns(new List<URSA.Web.Http.Description.Rdfs.IClass>());
@@ -148,10 +167,11 @@ namespace Given_instance_of_the.HydraCompliantTypeDescriptionBuilder_class
             return result.Object;
         }
 
-        private static IRestriction CreateRestriction(IEntityContext entityContext, EntityId id)
+        private static IRestriction CreateRestriction(IEntityContext entityContext, Iri id)
         {
-            var result = new Mock<IRestriction>(MockBehavior.Strict);
-            result.As<ITypedEntity>().SetupGet(instance => instance.Types).Returns(new[] { new EntityId(Owl.Restriction) });
+            var entityMock = new Mock<MulticastObject>(MockBehavior.Strict);
+            var result = entityMock.As<IRestriction>();
+            entityMock.SetupGet(instance => instance.CastedTypes).Returns(new[] { typeof(IRestriction) });
             IProperty property = null;
             IEntity allValuesFrom = null;
             uint maxCardinality = 0;
@@ -160,7 +180,7 @@ namespace Given_instance_of_the.HydraCompliantTypeDescriptionBuilder_class
             result.SetupSet(instance => instance.AllValuesFrom = It.IsAny<IEntity>()).Callback<IEntity>(value => allValuesFrom = value);
             result.SetupGet(instance => instance.AllValuesFrom).Returns(() => allValuesFrom);
             result.SetupGet(instance => instance.Context).Returns(entityContext);
-            result.SetupGet(instance => instance.Id).Returns(id);
+            result.SetupGet(instance => instance.Iri).Returns(id);
             result.SetupGet(instance => instance.MaxCardinality).Returns(() => maxCardinality);
             result.SetupGet(instance => instance.OnProperty).Returns(() => property);
             result.SetupGet(instance => instance.SubClassOf).Returns(new List<URSA.Web.Http.Description.Rdfs.IClass>());

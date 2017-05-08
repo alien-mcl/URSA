@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using RomanticWeb.Entities;
+using RDeF.Entities;
 using URSA.Web.Description;
 using URSA.Web.Http.Description.Hydra;
 

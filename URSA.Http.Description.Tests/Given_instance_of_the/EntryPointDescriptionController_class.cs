@@ -2,9 +2,11 @@
 using FluentAssertions;
 using Moq;
 using NUnit.Framework;
+using RDeF.Entities;
 using URSA;
 using URSA.Web.Description.Http;
 using URSA.Web.Http;
+using URSA.Web.Http.Configuration;
 using URSA.Web.Http.Description;
 using URSA.Web.Http.Description.Entities;
 
@@ -40,8 +42,9 @@ namespace Given_instance_of_the
             builder.SetupGet(instance => instance.EntryPoint).Returns(entryPoint);
             return new EntryPointDescriptionController(
                 entryPoint,
-                new Mock<IEntityContextProvider>(MockBehavior.Strict).Object,
+                new Mock<IEntityContext>(MockBehavior.Strict).Object,
                 builder.Object,
+                new Mock<IHttpServerConfiguration>(MockBehavior.Strict).Object,
                 new[] { new Mock<IHttpControllerDescriptionBuilder>(MockBehavior.Strict).Object });
         }
     }

@@ -1,13 +1,14 @@
-﻿using RomanticWeb.Entities;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
+using RDeF.Entities;
 using Tavis.UriTemplates;
 using URSA.Reflection;
 using URSA.Web.Description;
 using URSA.Web.Description.Http;
+using URSA.Web.Http.Configuration;
 using URSA.Web.Http.Description.Hydra;
 
 namespace URSA.Web.Http.Description
@@ -15,17 +16,25 @@ namespace URSA.Web.Http.Description
     /// <summary>Provides an API entry point description.</summary>
     public class ApiEntryPointDescriptionBuilder : IApiEntryPointDescriptionBuilder
     {
+        private readonly IHttpServerConfiguration _httpServerConfiguration;
         private readonly IApiDescriptionBuilderFactory _apiDescriptionBuilderFactory;
         private readonly IEnumerable<IHttpControllerDescriptionBuilder> _controllerDescriptionBuilders;
 
         /// <summary>Initializes a new instance of the <see cref="ApiEntryPointDescriptionBuilder"/> class.</summary>
+        /// <param name="httpServerConfiguration">HTTP server configuration with base Url.</param>
         /// <param name="apiDescriptionBuilderFactory">The API description builder factory.</param>
         /// <param name="controllerDescriptionBuilders">The controller description builders.</param>
         [ExcludeFromCodeCoverage]
         public ApiEntryPointDescriptionBuilder(
+            IHttpServerConfiguration httpServerConfiguration,
             IApiDescriptionBuilderFactory apiDescriptionBuilderFactory,
             IEnumerable<IHttpControllerDescriptionBuilder> controllerDescriptionBuilders)
         {
+            if (httpServerConfiguration == null)
+            {
+                throw new ArgumentNullException("httpServerConfiguration");
+            }
+
             if (apiDescriptionBuilderFactory == null)
             {
                 throw new ArgumentNullException("apiDescriptionBuilderFactory");
@@ -41,6 +50,7 @@ namespace URSA.Web.Http.Description
                 throw new ArgumentOutOfRangeException("controllerDescriptionBuilders");
             }
 
+            _httpServerConfiguration = httpServerConfiguration;
             _apiDescriptionBuilderFactory = apiDescriptionBuilderFactory;
             _controllerDescriptionBuilders = controllerDescriptionBuilders;
         }
@@ -129,26 +139,25 @@ namespace URSA.Web.Http.Description
 
         private void BuildEntryPointDescription(IApiDocumentation apiDocumentation, ControllerInfo entryPointControllerInfo)
         {
-            var classUri = apiDocumentation.Context.Mappings.MappingFor(typeof(IApiDocumentation)).Classes.Select(item => item.Uri).FirstOrDefault();
+            var classUri = apiDocumentation.Context.Mappings.FindEntityMappingFor<IApiDocumentation>().Classes.Select(item => item.Term).FirstOrDefault();
             var apiDocumentationClass = apiDocumentation.Context.Create<IClass>(classUri);
-            var baseUri = apiDocumentation.Context.BaseUriSelector.SelectBaseUri(new EntityId(new Uri("/", UriKind.Relative)));
             foreach (OperationInfo<Verb> operation in entryPointControllerInfo.Operations)
             {
                 var url = (Uri)operation.Url;
                 if (operation.UrlTemplate != null)
                 {
-                    var template = new UriTemplate(baseUri + operation.UrlTemplate.TrimStart('/'));
+                    var template = new UriTemplate(_httpServerConfiguration.BaseUri + operation.UrlTemplate.TrimStart('/'));
                     var variables = operation.UnderlyingMethod.GetParameters().ToDictionary(parameter => parameter.Name, parameter => (object)parameter.DefaultValue.ToString());
                     template.AddParameters(variables);
                     url = new Uri(template.Resolve());
                 }
 
-                var operationId = new EntityId((Uri)((HttpUrl)baseUri + url.ToString()));
-                var supportedOperation = operation.AsOperation(apiDocumentation, operationId);
+                var operationId = new Iri((Uri)((HttpUrl)_httpServerConfiguration.BaseUri + url.ToString()));
+                var supportedOperation = operation.AsOperation(_httpServerConfiguration.BaseUri, apiDocumentation, operationId);
                 supportedOperation.MediaTypes.AddRange(ApiDescriptionBuilder.RdfMediaTypes);
                 supportedOperation.Label = operation.UnderlyingMethod.Name;
                 supportedOperation.Method.Add(operation.ProtocolSpecificCommand.ToString());
-                var returned = apiDocumentation.Context.Create<IClass>(apiDocumentation.CreateBlankId());
+                var returned = apiDocumentation.Context.Create<IClass>(new Iri());
                 returned.SubClassOf.Add(apiDocumentationClass);
                 supportedOperation.Returns.Add(returned);
                 apiDocumentationClass.SupportedOperations.Add(supportedOperation);

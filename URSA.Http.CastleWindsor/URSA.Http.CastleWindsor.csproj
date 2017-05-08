@@ -49,48 +49,8 @@
       <HintPath>..\packages\Castle.Windsor.3.3.0\lib\net45\Castle.Windsor.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="dotNetRDF, Version=1.0.3.0, Culture=neutral, PublicKeyToken=6055ffe4c97cc780, processorArchitecture=MSIL">
-      <HintPath>..\packages\dotNetRDF.1.0.3\lib\net40\dotNetRDF.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="dotNetRDF.Data.Virtuoso, Version=1.0.0.2473, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\dotNetRDF.Data.Virtuoso.1.0.0.2473\lib\net40\dotNetRDF.Data.Virtuoso.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="HtmlAgilityPack, Version=1.4.6.0, Culture=neutral, PublicKeyToken=bd319b19eaf3b43a, processorArchitecture=MSIL">
-      <HintPath>..\packages\HtmlAgilityPack.1.4.6\lib\Net45\HtmlAgilityPack.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
     <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\packages\Newtonsoft.Json.6.0.8\lib\net45\Newtonsoft.Json.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="NLog, Version=3.2.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c, processorArchitecture=MSIL">
-      <HintPath>..\packages\NLog.3.2.0.0\lib\net45\NLog.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="OpenLink.Data.Virtuoso, Version=6.2.3128.1, Culture=neutral, PublicKeyToken=6654f6917d07cb95, processorArchitecture=MSIL">
-      <HintPath>..\packages\dotNetRDF.Data.Virtuoso.1.0.0.2473\lib\net40\OpenLink.Data.Virtuoso.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Remotion.Linq, Version=2.1.0.0, Culture=neutral, PublicKeyToken=fee00910d6e5f53b, processorArchitecture=MSIL">
-      <HintPath>..\packages\Remotion.Linq.2.1.1\lib\net45\Remotion.Linq.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="RomanticWeb, Version=1.0.18.32, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\RomanticWeb.1.0.18.32-rc1\lib\net45\RomanticWeb.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="RomanticWeb.Contracts, Version=1.0.18.32, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\RomanticWeb.Contracts.1.0.18.32-rc1\lib\net45\RomanticWeb.Contracts.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="RomanticWeb.dotNetRDF, Version=1.0.18.32, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\RomanticWeb.dotNetRDF.1.0.18.32-rc1\lib\net45\RomanticWeb.dotNetRDF.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="RomanticWeb.Mapping.Fluent, Version=1.0.18.32, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\RomanticWeb.1.0.18.32-rc1\lib\net45\RomanticWeb.Mapping.Fluent.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
@@ -102,14 +62,6 @@
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
-    <Reference Include="VDS.Common, Version=1.2.0.0, Culture=neutral, PublicKeyToken=ab5f4eb908061bf0, processorArchitecture=MSIL">
-      <HintPath>..\packages\VDS.Common.1.2.0\lib\net40-client\VDS.Common.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="virtado4, Version=4.0.0.0, Culture=neutral, PublicKeyToken=391bf132017ae989, processorArchitecture=MSIL">
-      <HintPath>..\packages\OpenLink.Data.Virtuoso.7.20.3214.1\lib\net40\virtado4.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ComponentModel\UrsaCustomTypedFactory.cs" />

@@ -6,12 +6,13 @@ using System.Linq;
 using System.Net;
 using System.Reflection;
 using System.Security.Claims;
-using RomanticWeb.Entities;
-using RomanticWeb.Model;
-using RomanticWeb.NamedGraphs;
+using RDeF.Entities;
+using RDeF.Mapping.Entities;
+using RollerCaster;
 using URSA.Reflection;
 using URSA.Web.Description;
 using URSA.Web.Description.Http;
+using URSA.Web.Http.Configuration;
 using URSA.Web.Http.Converters;
 using URSA.Web.Http.Description.Hydra;
 using URSA.Web.Http.Description.Mapping;
@@ -27,25 +28,30 @@ namespace URSA.Web.Http.Description
         internal static readonly string[] RdfMediaTypes = EntityConverter.MediaTypes;
         internal static readonly string[] NonRdfMediaTypes = { JsonConverter.ApplicationJson, XmlConverter.ApplicationXml, XmlConverter.TextXml };
 
+        private readonly IHttpServerConfiguration _httpServerConfiguration;
         private readonly IHttpControllerDescriptionBuilder _descriptionBuilder;
         private readonly IXmlDocProvider _xmlDocProvider;
         private readonly IEnumerable<ITypeDescriptionBuilder> _typeDescriptionBuilders;
         private readonly IEnumerable<IServerBehaviorAttributeVisitor> _serverBehaviorAttributeVisitors;
-        private readonly INamedGraphSelector _namedGraphSelector;
 
         /// <summary>Initializes a new instance of the <see cref="ApiDescriptionBuilder" /> class.</summary>
+        /// <param name="httpServerConfiguration">HTTP server configuration with base Uri.</param>
         /// <param name="descriptionBuilder">Description builder.</param>
         /// <param name="xmlDocProvider">The XML documentation provider.</param>
         /// <param name="typeDescriptionBuilders">Type description builders.</param>
         /// <param name="serverBehaviorAttributeVisitors">Server behavior attribute visitors.</param>
-        /// <param name="namedGraphSelector">Named graph selector.</param>
         protected ApiDescriptionBuilder(
+            IHttpServerConfiguration httpServerConfiguration,
             IHttpControllerDescriptionBuilder descriptionBuilder,
             IXmlDocProvider xmlDocProvider,
             IEnumerable<ITypeDescriptionBuilder> typeDescriptionBuilders,
-            IEnumerable<IServerBehaviorAttributeVisitor> serverBehaviorAttributeVisitors,
-            INamedGraphSelector namedGraphSelector)
+            IEnumerable<IServerBehaviorAttributeVisitor> serverBehaviorAttributeVisitors)
         {
+            if (httpServerConfiguration == null)
+            {
+                throw new ArgumentNullException("httpServerConfiguration");
+            }
+
             if (descriptionBuilder == null)
             {
                 throw new ArgumentNullException("descriptionBuilder");
@@ -66,16 +72,11 @@ namespace URSA.Web.Http.Description
                 throw new ArgumentOutOfRangeException("typeDescriptionBuilders");
             }
 
-            if (namedGraphSelector == null)
-            {
-                throw new ArgumentNullException("namedGraphSelector");
-            }
-
+            _httpServerConfiguration = httpServerConfiguration;
             _descriptionBuilder = descriptionBuilder;
             _xmlDocProvider = xmlDocProvider;
             _typeDescriptionBuilders = typeDescriptionBuilders;
             _serverBehaviorAttributeVisitors = serverBehaviorAttributeVisitors ?? new IServerBehaviorAttributeVisitor[0];
-            _namedGraphSelector = namedGraphSelector;
         }
 
         /// <inheritdoc />
@@ -158,8 +159,8 @@ namespace URSA.Web.Http.Description
                     parameterType = (context.ContainsType(parameter.ParameterType) ? context[parameter.ParameterType] : context.BuildTypeDescription());
                 }
 
-                if (supportedProperty.Property.Range.Any(range => (range.Id == parameterType.Id) ||
-                    ((range is IClass) && (((IClass)range).SubClassOf.Any(subClass => subClass.Id == parameterType.Id)))))
+                if (supportedProperty.Property.Range.Any(range => (range.Iri == parameterType.Iri) ||
+                    ((range is IClass) && (((IClass)range).SubClassOf.Any(subClass => subClass.Iri == parameterType.Iri)))))
                 {
                     resultCandidate = supportedProperty.Property;
                 }
@@ -191,9 +192,9 @@ namespace URSA.Web.Http.Description
 
         private void BuildDescription(DescriptionContext context, IClass specializationType)
         {
-            if (context.Entity.Is(context.Entity.Context.Mappings.MappingFor<IApiDocumentation>().Classes.Select(@class => @class.Uri)))
+            if (context.Entity.Is(context.Entity.Context.Mappings.FindEntityMappingFor<IApiDocumentation>().Classes.Select(@class => @class.Term)))
             {
-                context.Entity.AsEntity<IApiDocumentation>().SupportedClasses.Add(specializationType);
+                context.Entity.ActLike<IApiDocumentation>().SupportedClasses.Add(specializationType);
             }
 
             var description = _descriptionBuilder.BuildDescriptor();
@@ -205,20 +206,17 @@ namespace URSA.Web.Http.Description
 
         private void BuildOperationDescription(DescriptionContext context, OperationInfo<Verb> operation, IClass specializationType)
         {
-            Uri graphUri = _namedGraphSelector.SelectGraph(specializationType.Id, null, null);
             IIriTemplate template;
             var operationDefinition = BuildOperation(context, operation, out template);
             IResource operationOwner = DetermineOperationOwner(operation, context, specializationType);
             if (template != null)
             {
-                ITemplatedLink templatedLink = context.Entity.Context.Create<ITemplatedLink>(template.Id.Uri.AbsoluteUri.Replace("#template", "#withTemplate"));
+                ITemplatedLink templatedLink = context.Entity.Context.Create<ITemplatedLink>(new Iri(((Uri)template.Iri).AbsoluteUri.Replace("#template", "#withTemplate")));
                 templatedLink.SupportedOperations.Add(operationDefinition);
-                context.Entity.Context.Store.ReplacePredicateValues(
-                    operationOwner.Id,
-                    Node.ForUri(templatedLink.Id.Uri),
-                    () => new[] { Node.ForUri(template.Id.Uri) },
-                    graphUri,
-                    CultureInfo.InvariantCulture);
+                var templatedOperation = context.Entity.Context.Load<ITemplatedOperation>(
+                    operationOwner.Iri,
+                    entity => entity.WithProperty(instance => instance.TemplatedLink).MappedTo(templatedLink.Iri).WithDefaultConverter());
+                templatedOperation.TemplatedLink = context.Entity.Context.Load<IEntity>(template.Iri);
             }
             else
             {
@@ -228,7 +226,7 @@ namespace URSA.Web.Http.Description
 
         private IOperation BuildOperation(DescriptionContext context, OperationInfo<Verb> operation, out IIriTemplate template)
         {
-            IOperation result = operation.AsOperation(context.Entity);
+            IOperation result = operation.AsOperation(_httpServerConfiguration.BaseUri, context.Entity);
             result.Label = operation.UnderlyingMethod.Name;
             result.Description = _xmlDocProvider.GetDescription(operation.UnderlyingMethod);
             result.Method.Add(operation.ProtocolSpecificCommand.ToString());
@@ -294,7 +292,7 @@ namespace URSA.Web.Http.Description
             }
 
             IIriTemplate template = null;
-            var templateUri = operationDocumentation.Id.Uri.AddFragment("template");
+            var templateUri = ((Uri)operationDocumentation.Iri).AddFragment("template");
             var templateMappings = from mapping in parameterMapping where !(mapping.Source is FromBodyAttribute) select BuildTemplateMapping(context, templateUri, operation, mapping);
             foreach (var templateMapping in templateMappings)
             {
@@ -341,18 +339,18 @@ namespace URSA.Web.Http.Description
         private Type _specializationType;
 
         /// <summary>Initializes a new instance of the <see cref="ApiDescriptionBuilder{T}" /> class.</summary>
+        /// <param name="httpServerConfiguration">HTTP server configuration with base Uri.</param>
         /// <param name="descriptionBuilder">Description builder.</param>
         /// <param name="xmlDocProvider">The XML documentation provider.</param>
         /// <param name="typeDescriptionBuilders">Type description builders.</param>
         /// <param name="serverBehaviorAttributeVisitors">Server behavior attribute visitors.</param>
-        /// <param name="namedGraphSelector">Named graph selector.</param>
         public ApiDescriptionBuilder(
+            IHttpServerConfiguration httpServerConfiguration,
             IHttpControllerDescriptionBuilder<T> descriptionBuilder, 
             IXmlDocProvider xmlDocProvider, 
             IEnumerable<ITypeDescriptionBuilder> typeDescriptionBuilders, 
-            IEnumerable<IServerBehaviorAttributeVisitor> serverBehaviorAttributeVisitors,
-            INamedGraphSelector namedGraphSelector) :
-            base(descriptionBuilder, xmlDocProvider, typeDescriptionBuilders, serverBehaviorAttributeVisitors, namedGraphSelector)
+            IEnumerable<IServerBehaviorAttributeVisitor> serverBehaviorAttributeVisitors) :
+            base(httpServerConfiguration, descriptionBuilder, xmlDocProvider, typeDescriptionBuilders, serverBehaviorAttributeVisitors)
         {
         }
 

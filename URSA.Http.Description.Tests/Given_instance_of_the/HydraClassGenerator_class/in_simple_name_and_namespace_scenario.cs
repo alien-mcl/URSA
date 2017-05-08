@@ -1,14 +1,13 @@
 ﻿#pragma warning disable 1591
 using FluentAssertions;
 using Moq;
-using RomanticWeb;
-using RomanticWeb.Entities;
-using RomanticWeb.Mapping;
-using RomanticWeb.Mapping.Model;
 using System;
 using System.Diagnostics.CodeAnalysis;
 using NUnit.Framework;
-using RomanticWeb.Vocabularies;
+using RDeF.Entities;
+using RDeF.Mapping;
+using RDeF.Vocabularies;
+using RollerCaster;
 using URSA.CodeGen;
 using URSA.Web;
 using URSA.Web.Http.Converters;
@@ -54,22 +53,23 @@ namespace Given_instance_of_the.HydraClassGenerator_class
         [SetUp]
         public void Setup()
         {
-            var uri = new Uri("some:uri");
+            var uri = new Iri(new Uri("some:uri"));
             var @namespace = Namespace;
             _uriParser = new Mock<IUriParser>(MockBehavior.Strict);
             _uriParser.Setup(instance => instance.IsApplicable(It.IsAny<Uri>())).Returns(UriParserCompatibility.ExactMatch);
             _uriParser.Setup(instance => instance.Parse(It.IsAny<Uri>(), out @namespace)).Returns<Uri, string>((id, ns) => Name);
-            var classMapping = new Mock<IClassMapping>(MockBehavior.Strict);
-            classMapping.SetupGet(instance => instance.Uri).Returns(Rdfs.Class);
+            var classMapping = new Mock<IStatementMapping>(MockBehavior.Strict);
+            classMapping.SetupGet(instance => instance.Term).Returns(rdfs.Class);
             var rdfsClassMapping = new Mock<IEntityMapping>(MockBehavior.Strict);
             rdfsClassMapping.SetupGet(instance => instance.Classes).Returns(new[] { classMapping.Object });
             var mappings = new Mock<IMappingsRepository>(MockBehavior.Strict);
-            mappings.Setup(instance => instance.MappingFor<URSA.Web.Http.Description.Rdfs.IClass>()).Returns(rdfsClassMapping.Object);
+            mappings.Setup(instance => instance.FindEntityMappingFor<URSA.Web.Http.Description.Rdfs.IClass>()).Returns(rdfsClassMapping.Object);
             var context = new Mock<IEntityContext>(MockBehavior.Strict);
             context.SetupGet(instance => instance.Mappings).Returns(mappings.Object);
-            _resource = new Mock<IResource>(MockBehavior.Strict);
-            _resource.SetupGet(instance => instance.Id).Returns(uri);
-            _resource.As<ITypedEntity>().SetupGet(instance => instance.Types).Returns(new EntityId[0]);
+            var entityMock = new Mock<MulticastObject>(MockBehavior.Strict);
+            _resource = entityMock.As<IResource>();
+            _resource.SetupGet(instance => instance.Iri).Returns(uri);
+            entityMock.SetupGet(instance => instance.CastedTypes).Returns(Type.EmptyTypes);
             _resource.As<IEntity>().SetupGet(instance => instance.Context).Returns(context.Object);
             _generator = new HydraClassGenerator(new IUriParser[] { _uriParser.Object });
         }

@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using RomanticWeb.Mapping.Attributes;
+using RDeF.Mapping.Attributes;
 
 namespace URSA.Web.Http.Description.Hydra
 {

@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
-using RomanticWeb.Entities;
-using RomanticWeb.Mapping.Attributes;
+using RDeF.Entities;
+using RDeF.Mapping.Attributes;
 using URSA.Web.Http.Description.Rdfs;
 
 namespace URSA.Web.Http.Description.Shacl
@@ -85,9 +85,9 @@ namespace URSA.Web.Http.Description.Shacl
         [Property("shacl", "maxLength")]
         int? MaxLength { get; set; }
 
-        /// <summary>Gets or sets the kind of the node.</summary>
-        [Property("shacl", "nodeKind")]
-        INodeKind NodeKind { get; set; }
+        //// <summary>Gets or sets the kind of the node.</summary>
+        //// [Property("shacl", "nodeKind")]
+        //// INodeKind NodeKind { get; set; }
 
         /// <summary>Gets or sets the pattern.</summary>
         [Property("shacl", "pattern")]

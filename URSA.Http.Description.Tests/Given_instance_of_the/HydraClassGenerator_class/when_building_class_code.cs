@@ -1,16 +1,15 @@
 ﻿#pragma warning disable 1591
 using FluentAssertions;
 using Moq;
-using RomanticWeb;
-using RomanticWeb.Entities;
-using RomanticWeb.Mapping;
-using RomanticWeb.Model;
-using RomanticWeb.Vocabularies;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using NUnit.Framework;
+using RDeF.Entities;
+using RDeF.Mapping;
+using RDeF.Vocabularies;
+using RollerCaster;
 using URSA.CodeGen;
 using URSA.Http.Description.Tests.FluentAssertions;
 using URSA.Web;
@@ -32,20 +31,20 @@ namespace Given_instance_of_the.HydraClassGenerator_class
         private const string Namespace = "Test";
         private const string HttpMethod = "GET";
         private static readonly Uri ClassUri = new Uri(String.Format("javascript:{0}.{1}", Namespace, Name));
-        private static readonly EntityId ClassId = new EntityId(ClassUri);
+        private static readonly Iri ClassId = new Iri(ClassUri);
         private static readonly Uri HydraSupportedOperation = new Uri(EntityConverter.Hydra.AbsoluteUri + "supportedOperation");
         private static readonly Uri HydraIriTemplate = new Uri(EntityConverter.Hydra.AbsoluteUri + "IriTemplate");
         private static readonly Uri HydraTemplatedLink = new Uri(EntityConverter.Hydra.AbsoluteUri + "TemplatedLink");
         private static readonly Uri UrsaDatatypeDefinition = new Uri(DescriptionController<IController>.VocabularyBaseUri + "DatatypeDefinition");
         private static readonly Uri ReadOperationUri = new Uri("http://temp.uri/type/#GET");
 
-        private IList<EntityQuad> _quads; 
+        private IList<Statement> _statements; 
         private Mock<IMappingsRepository> _mappingsRepository;
         private Mock<IEntityContext> _context;
         private Mock<IUriParser> _uriParser;
         private Mock<URSA.Web.Http.Description.Rdfs.IProperty> _property;
         private Mock<IClass> _class;
-        private Mock<IEntityStore> _store;
+        private Mock<ISerializableEntitySource> _entitySource;
         private IClassGenerator _generator;
 
         [Test]
@@ -83,8 +82,8 @@ namespace Given_instance_of_the.HydraClassGenerator_class
             _class = null;
             _mappingsRepository = null;
             _context = null;
-            _store = null;
-            _quads = null;
+            _entitySource = null;
+            _statements = null;
         }
 
         private void SetupUriParser()
@@ -94,16 +93,16 @@ namespace Given_instance_of_the.HydraClassGenerator_class
             var @namespace = Namespace;
             _uriParser.Setup(instance => instance.Parse(ClassUri, out @namespace)).Returns<Uri, string>((id, ns) => Name);
             var @systemNamespace = "System";
-            _uriParser.Setup(instance => instance.Parse(Xsd.Int, out @systemNamespace)).Returns<Uri, string>((id, ns) => typeof(int).Name);
+            _uriParser.Setup(instance => instance.Parse(xsd.@int, out @systemNamespace)).Returns<Uri, string>((id, ns) => typeof(int).Name);
         }
 
         private void SetupStore()
         {
-            _quads = new List<EntityQuad>();
-            _store = new Mock<IEntityStore>(MockBehavior.Strict);
-            _store.SetupGet(instance => instance.Quads).Returns(_quads);
-            _store.Setup(instance => instance.GetEntityQuads(It.IsAny<EntityId>())).Returns<EntityId>(id => _quads.Where(quad => quad.EntityId == id));
-            _context.SetupGet(instance => instance.Store).Returns(_store.Object);
+            _statements = new List<Statement>();
+            _entitySource = new Mock<ISerializableEntitySource>(MockBehavior.Strict);
+            _entitySource.SetupGet(instance => instance.Statements).Returns(_statements);
+            _entitySource.Setup(instance => instance.Load(It.IsAny<Iri>())).Returns<Iri>(id => _statements.Where(statement => statement.Subject == id));
+            _context.SetupGet(instance => instance.EntitySource).Returns(_entitySource.Object);
         }
 
         private Mock<IApiDocumentation> SetupContex()
@@ -111,9 +110,9 @@ namespace Given_instance_of_the.HydraClassGenerator_class
             _context = new Mock<IEntityContext>(MockBehavior.Strict);
             SetupStore();
             _mappingsRepository = new Mock<IMappingsRepository>(MockBehavior.Strict);
-            _mappingsRepository.SetupMapping<IInverseFunctionalProperty>(new Uri(Owl.BaseUri));
-            _mappingsRepository.SetupMapping<ICreateResourceOperation>(new Uri(EntityConverter.Hydra.AbsoluteUri + "CreateResourceOperation"));
-            _mappingsRepository.SetupMapping<ICollection>(new Uri(EntityConverter.Hydra.AbsoluteUri + "Collection"));
+            _mappingsRepository.SetupMapping<IInverseFunctionalProperty>(owl.Namespace);
+            _mappingsRepository.SetupMapping<ICreateResourceOperation>(new Iri(EntityConverter.Hydra.AbsoluteUri + "CreateResourceOperation"));
+            _mappingsRepository.SetupMapping<ICollection>(new Iri(EntityConverter.Hydra.AbsoluteUri + "Collection"));
             var apiDocumentation = new Mock<IApiDocumentation>(MockBehavior.Strict);
             _context.SetupGet(instance => instance.Mappings).Returns(_mappingsRepository.Object);
             _context.Setup(instance => instance.AsQueryable<IApiDocumentation>()).Returns(new[] { apiDocumentation.Object }.AsQueryable());
@@ -122,16 +121,18 @@ namespace Given_instance_of_the.HydraClassGenerator_class
 
         private void SetupClass()
         {
-            var range = new Mock<IClass>(MockBehavior.Strict);
-            range.SetupGet(instance => instance.Id).Returns(new EntityId(Xsd.Int));
+            var entityMock = new Mock<MulticastObject>(MockBehavior.Strict);
+            var range = entityMock.As<IClass>();
+            range.SetupGet(instance => instance.Iri).Returns(xsd.@int);
             range.SetupGet(instance => instance.Context).Returns(_context.Object);
             range.SetupGet(instance => instance.SubClassOf).Returns(new URSA.Web.Http.Description.Rdfs.IClass[0]);
-            range.As<ITypedEntity>().SetupGet(instance => instance.Types).Returns(new[] { new EntityId(UrsaDatatypeDefinition) });
-            _property = new Mock<URSA.Web.Http.Description.Rdfs.IProperty>(MockBehavior.Strict);
-            _property.SetupGet(instance => instance.Id).Returns(new EntityId(new Uri(ClassUri.AbsoluteUri + ".Id")));
+            entityMock.SetupGet(instance => instance.CastedTypes).Returns(new[] { typeof(IClass) });
+            entityMock = new Mock<MulticastObject>(MockBehavior.Strict);
+            _property = entityMock.As<URSA.Web.Http.Description.Rdfs.IProperty>();
+            _property.SetupGet(instance => instance.Iri).Returns(new Iri(new Uri(ClassUri.AbsoluteUri + ".Id")));
             _property.SetupGet(instance => instance.Label).Returns("Id");
             _property.SetupGet(instance => instance.Range).Returns(new[] { range.Object });
-            _property.As<ITypedEntity>().SetupGet(instance => instance.Types).Returns(new[] { new EntityId(Owl.InverseFunctionalProperty) });
+            entityMock.SetupGet(instance => instance.CastedTypes).Returns(new[] { typeof(URSA.Web.Http.Description.Rdfs.IProperty) });
 
             var supportedProperty = new Mock<ISupportedProperty>(MockBehavior.Strict);
             supportedProperty.SetupGet(instance => instance.Property).Returns(_property.Object);
@@ -139,28 +140,30 @@ namespace Given_instance_of_the.HydraClassGenerator_class
             supportedProperty.SetupGet(instance => instance.Readable).Returns(true);
 
             var restriction = new Mock<IRestriction>(MockBehavior.Strict);
-            restriction.SetupGet(instance => instance.Id).Returns(new EntityId(new Uri("urn:guid:" + Guid.NewGuid())));
+            restriction.SetupGet(instance => instance.Iri).Returns(new Iri(new Uri("urn:guid:" + Guid.NewGuid())));
             restriction.SetupGet(instance => instance.OnProperty).Returns(_property.Object);
             restriction.SetupGet(instance => instance.MaxCardinality).Returns(1);
             restriction.SetupGet(instance => instance.SubClassOf).Returns(new URSA.Web.Http.Description.Rdfs.IClass[0]);
 
-            _class = new Mock<IClass>(MockBehavior.Strict);
+            entityMock = new Mock<MulticastObject>(MockBehavior.Strict);
+            _class = entityMock.As<IClass>();
             _class.SetupGet(instance => instance.Context).Returns(_context.Object);
-            _class.SetupGet(instance => instance.Id).Returns(ClassId);
+            _class.SetupGet(instance => instance.Iri).Returns(ClassId);
             _class.SetupGet(instance => instance.Label).Returns("Type");
             _class.SetupGet(instance => instance.SupportedProperties).Returns(new[] { supportedProperty.Object });
             _class.SetupGet(instance => instance.SubClassOf).Returns(new[] { restriction.Object });
-            _class.As<ITypedEntity>().SetupGet(instance => instance.Types).Returns(new EntityId[0]);
+            entityMock.SetupGet(instance => instance.CastedTypes).Returns(Type.EmptyTypes);
             SetupSupportedOperation();
             SetupTemplatedOperation();
         }
 
         private void SetupSupportedOperation()
         {
-            var readOperationId = new EntityId(ReadOperationUri);
-            var readOperation = new Mock<IOperation>(MockBehavior.Strict);
-            readOperation.As<ITypedEntity>().SetupGet(instance => instance.Types).Returns(new EntityId[0]);
-            readOperation.SetupGet(instance => instance.Id).Returns(readOperationId);
+            var readOperationId = new Iri(ReadOperationUri);
+            var entityMock = new Mock<MulticastObject>(MockBehavior.Strict);
+            var readOperation = entityMock.As<IOperation>();
+            entityMock.SetupGet(instance => instance.CastedTypes).Returns(Type.EmptyTypes);
+            readOperation.SetupGet(instance => instance.Iri).Returns(readOperationId);
             readOperation.SetupGet(instance => instance.Label).Returns("List");
             readOperation.SetupGet(instance => instance.Method).Returns(new string[] { HttpMethod });
             readOperation.SetupGet(instance => instance.Expects).Returns(new IClass[0]);
@@ -168,7 +171,7 @@ namespace Given_instance_of_the.HydraClassGenerator_class
             readOperation.SetupGet(instance => instance.MediaTypes).Returns(new string[0]);
             _context.Setup(instance => instance.Load<IOperation>(readOperationId)).Returns(readOperation.Object);
             _class.SetupGet(instance => instance.SupportedOperations).Returns(new[] { readOperation.Object });
-            _quads.Add(new EntityQuad(ClassId, Node.ForUri(ClassUri), Node.ForUri(HydraSupportedOperation), Node.ForUri(ReadOperationUri)));
+            _statements.Add(new Statement(ClassUri, HydraSupportedOperation, ReadOperationUri));
         }
 
         private void SetupTemplatedOperation()
@@ -177,10 +180,11 @@ namespace Given_instance_of_the.HydraClassGenerator_class
             var baseUri = new Uri("http://temp.uri/type/GETId#");
 
             var getOperationUri = new Uri(baseUri.AbsoluteUri);
-            var getOperationId = new EntityId(getOperationUri);
-            var getOperation = new Mock<IOperation>(MockBehavior.Strict);
-            getOperation.As<ITypedEntity>().SetupGet(instance => instance.Types).Returns(new EntityId[0]);
-            getOperation.SetupGet(instance => instance.Id).Returns(getOperationId);
+            var getOperationId = new Iri(getOperationUri);
+            var entityMock = new Mock<MulticastObject>(MockBehavior.Strict);
+            var getOperation = entityMock.As<IOperation>();
+            entityMock.SetupGet(instance => instance.CastedTypes).Returns(Type.EmptyTypes);
+            getOperation.SetupGet(instance => instance.Iri).Returns(getOperationId);
             getOperation.SetupGet(instance => instance.Label).Returns("Get");
             getOperation.SetupGet(instance => instance.Method).Returns(new string[] { HttpMethod });
             getOperation.SetupGet(instance => instance.Expects).Returns(new IClass[0]);
@@ -193,21 +197,24 @@ namespace Given_instance_of_the.HydraClassGenerator_class
             mapping.SetupGet(instance => instance.Context).Returns(_context.Object);
 
             var templatedLinkUri = new Uri(baseUri.AbsoluteUri + "withTemplate");
-            var templatedLinkId = new EntityId(templatedLinkUri);
-            var templatedLink = new Mock<ITemplatedLink>(MockBehavior.Strict);
-            templatedLink.SetupGet(instance => instance.Id).Returns(templatedLinkId);
+            var templatedLinkId = new Iri(templatedLinkUri);
+            entityMock = new Mock<MulticastObject>(MockBehavior.Strict);
+            var templatedLink = entityMock.As<ITemplatedLink>();
+            templatedLink.SetupGet(instance => instance.Context).Returns(_context.Object);
+            templatedLink.SetupGet(instance => instance.Iri).Returns(templatedLinkId);
             templatedLink.SetupGet(instance => instance.SupportedOperations).Returns(new[] { getOperation.Object });
-            templatedLink.As<ITypedEntity>().SetupGet(instance => instance.Types).Returns(new[] { new EntityId(HydraTemplatedLink) });
+            entityMock.SetupGet(instance => instance.CastedTypes).Returns(new[] { typeof(ITemplatedLink) });
 
             var iriTemplateUri = new Uri(baseUri.AbsoluteUri + "template");
-            var iriTemplateId = new EntityId(iriTemplateUri);
-            var iriTemplate = new Mock<IIriTemplate>(MockBehavior.Strict);
-            iriTemplate.SetupGet(instance => instance.Id).Returns(iriTemplateId);
+            var iriTemplateId = new Iri(iriTemplateUri);
+            entityMock = new Mock<MulticastObject>(MockBehavior.Strict);
+            var iriTemplate = entityMock.As<IIriTemplate>();
+            iriTemplate.SetupGet(instance => instance.Iri).Returns(iriTemplateId);
             iriTemplate.SetupGet(instance => instance.Mappings).Returns(new[] { mapping.Object });
             iriTemplate.SetupGet(instance => instance.Template).Returns("/type/id/{?id}");
-            iriTemplate.As<ITypedEntity>().SetupGet(instance => instance.Types).Returns(new[] { new EntityId(HydraIriTemplate) });
+            entityMock.SetupGet(instance => instance.CastedTypes).Returns(new[] { typeof(IIriTemplate) });
 
-            _quads.Add(new EntityQuad(ClassId, Node.ForUri(ClassUri), Node.ForUri(templatedLinkUri), Node.ForUri(iriTemplateUri)));
+            _statements.Add(new Statement(ClassUri, templatedLinkUri, iriTemplateUri));
 
             _context.Setup(instance => instance.Load<IOperation>(getOperationId)).Returns(getOperation.Object);
             _context.Setup(instance => instance.Load<IIriTemplate>(iriTemplateId)).Returns(iriTemplate.Object);

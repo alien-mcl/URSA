@@ -7,9 +7,9 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
-using RomanticWeb;
-using RomanticWeb.Entities;
-using RomanticWeb.Vocabularies;
+using RDeF.Entities;
+using RDeF.Vocabularies;
+using RollerCaster;
 using URSA.Web.Http.Converters;
 using URSA.Web.Http.Description;
 using URSA.Web.Http.Description.CodeGen;
@@ -64,9 +64,9 @@ namespace URSA.CodeGen
             var properties = AnalyzeProperties(supportedClass).Replace("\r\n        \r\n", "\r\n");
             var operations = AnalyzeOperations(supportedClass, result);
             var mapping = String.Empty;
-            if ((_hydraUriParser != null) && (_hydraUriParser.IsApplicable(supportedClass.Id.Uri) == UriParserCompatibility.None))
+            if ((_hydraUriParser != null) && (_hydraUriParser.IsApplicable(supportedClass.Iri) == UriParserCompatibility.None))
             {
-                mapping = String.Format("\r\n    [RomanticWeb.Mapping.Attributes.Class(\"{0}\")]", supportedClass.Id);
+                mapping = String.Format("\r\n    [RDeF.Mapping.Attributes.Class(\"{0}\")]", supportedClass.Iri);
             }
 
             var classProperties = Regex.Replace(properties.Replace("public new ", "public "), "\\[[^\\]]+\\]\r\n        ", String.Empty);
@@ -103,9 +103,9 @@ namespace URSA.CodeGen
                 return result;
             }
 
-            if (resource.Is(resource.Context.Mappings.MappingFor<Web.Http.Description.Rdfs.IClass>().Classes.First().Uri))
+            if (resource.Is(resource.Context.Mappings.FindEntityMappingFor<Web.Http.Description.Rdfs.IClass>().Classes.First().Term))
             {
-                CreateName(resource.AsEntity<IClass>());
+                CreateName(resource.ActLike<IClass>());
             }
 
             ParseUri(resource);
@@ -116,12 +116,12 @@ namespace URSA.CodeGen
         {
             IRestriction itemTypeRestriction;
             IEntity itemType = null;
-            @class.SuperClasses().Any(restriction => (restriction.Is(Owl.Restriction)) && ((itemTypeRestriction = restriction.AsEntity<IRestriction>()).OnProperty != null) &&
-                (itemTypeRestriction.OnProperty.Id == Rdf.first) && ((itemType = itemTypeRestriction.AllValuesFrom) != null));
+            @class.SuperClasses().Any(restriction => (restriction.Is(owl.Restriction)) && ((itemTypeRestriction = restriction.ActLike<IRestriction>()).OnProperty != null) &&
+                (itemTypeRestriction.OnProperty.Iri == rdf.first) && ((itemType = itemTypeRestriction.AllValuesFrom) != null));
             if (itemType != null)
             {
                 Namespaces[@class] = typeof(IList<>).Namespace;
-                var itemClass = itemType.AsEntity<IClass>();
+                var itemClass = itemType.ActLike<IClass>();
                 var name = CreateName(itemClass, interfaceName);
                 return Names[@class] = String.Format("IList<{0}.{1}>", Namespaces[itemClass], name);
             }
@@ -134,13 +134,13 @@ namespace URSA.CodeGen
         {
             IRestriction itemTypeRestriction;
             IEntity itemType = null;
-            @class.SuperClasses().Any(restriction => (restriction.Is(Owl.Restriction)) && ((itemTypeRestriction = restriction.AsEntity<IRestriction>()).OnProperty != null) &&
-                (AbsoluteUriComparer.Default.Equals(itemTypeRestriction.OnProperty.Id.Uri, @class.Context.Mappings.MappingFor<ICollection>().PropertyFor("Members").Uri)) && 
+            @class.SuperClasses().Any(restriction => (restriction.Is(owl.Restriction)) && ((itemTypeRestriction = restriction.ActLike<IRestriction>()).OnProperty != null) &&
+                (itemTypeRestriction.OnProperty.Iri == @class.Context.Mappings.FindEntityMappingFor<ICollection>().Properties.First(property => property.Name == "Members").Term) && 
                 ((itemType = itemTypeRestriction.AllValuesFrom) != null));
             if (itemType != null)
             {
                 Namespaces[@class] = typeof(IEnumerable<>).Namespace;
-                var itemClass = itemType.AsEntity<IClass>();
+                var itemClass = itemType.ActLike<IClass>();
                 var name = CreateName(itemClass, interfaceName);
                 return Names[@class] = String.Format("ICollection<{0}.{1}>", Namespaces[itemClass], name);
             }
@@ -157,22 +157,22 @@ namespace URSA.CodeGen
                 return names[@class];
             }
 
-            if (@class.IsClass(Rdf.List))
+            if (@class.IsClass(rdf.List))
             {
                 return CreateListName(@class, interfaceName);
             }
 
-            if (@class.IsClass(@class.Context.Mappings.MappingFor<ICollection>().Classes.First().Uri))
+            if (@class.IsClass(@class.Context.Mappings.FindEntityMappingFor<ICollection>().Classes.First().Term))
             {
                 return CreateCollectionName(@class, interfaceName);
             }
 
-            if (@class.Id is BlankId)
+            if (@class.Iri.IsBlank)
             {
                 foreach (var superClass in @class.SubClassOf)
                 {
-                    var result = names[@class] = CreateName(superClass.AsEntity<IClass>(), interfaceName);
-                    Namespaces[@class] = CreateNamespace(superClass.AsEntity<IClass>());
+                    var result = names[@class] = CreateName(superClass.ActLike<IClass>(), interfaceName);
+                    Namespaces[@class] = CreateNamespace(superClass.ActLike<IClass>());
                     return result;
                 }
             }
@@ -201,19 +201,19 @@ namespace URSA.CodeGen
         private void ParseUri(IResource resource, bool interfaceName = false)
         {
             var uriParser = (from parser in _uriParsers
-                             orderby parser.IsApplicable(resource.Id.Uri) descending
+                             orderby parser.IsApplicable(resource.Iri) descending
                              select parser).FirstOrDefault();
 
             if (uriParser == null)
             {
-                throw new InvalidOperationException(String.Format("Cannot find a suitable parser for resource uri '{0}'.", resource.Id.Uri));
+                throw new InvalidOperationException(String.Format("Cannot find a suitable parser for resource uri '{0}'.", resource.Iri));
             }
 
             var names = (interfaceName ? InterfaceNames : Names);
             string @namespace;
-            string name = uriParser.Parse(resource.Id.Uri, out @namespace);
+            string name = uriParser.Parse(resource.Iri, out @namespace);
             if ((interfaceName) && ((name.Length == 1) || ((name.Length > 1) && ((name[0] != 'I') || (!Char.IsUpper(name[1]))))) &&
-                (resource.Context.AsQueryable<IApiDocumentation>().First().SupportedClasses.Any(@class => @class.Id == resource.Id)))
+                (resource.Context.AsQueryable<IApiDocumentation>().First().SupportedClasses.Any(@class => @class.Iri == resource.Iri)))
             {
                 name = "I" + name;
             }
@@ -246,7 +246,7 @@ namespace URSA.CodeGen
 
         private string AnalyzeProperty(IClass supportedClass, ISupportedProperty property, out string typeName, out string getter, out string attributes)
         {
-            var propertyName = (!String.IsNullOrEmpty(property.Property.Label) ? property.Property.Label : CreateName(property.Property.AsEntity<IResource>()));
+            var propertyName = (!String.IsNullOrEmpty(property.Property.Label) ? property.Property.Label : CreateName(property.Property.ActLike<IResource>()));
             typeName = AnalyzePropertyType(property);
             attributes = String.Empty;
             bool singleValue = typeName.IndexOf("<") == -1;
@@ -259,9 +259,9 @@ namespace URSA.CodeGen
                 attributes = String.Format("private {0} _{1} = new {2}();{3}{3}        ", typeName, propertyName.ToLowerCamelCase(), targetType, Environment.NewLine);
             }
 
-            if ((_hydraUriParser != null) && (_hydraUriParser.IsApplicable(property.Property.Id.Uri) == UriParserCompatibility.None))
+            if ((_hydraUriParser != null) && (_hydraUriParser.IsApplicable(property.Property.Iri) == UriParserCompatibility.None))
             {
-                attributes += String.Format("[RomanticWeb.Mapping.Attributes.{0}(\"{1}\")]", (singleValue ? "Property" : "Collection"), property.Property.Id);
+                attributes += String.Format("[RDeF.Mapping.Attributes.{0}(\"{1}\")]", (singleValue ? "Property" : "Collection"), property.Property.Iri);
             }
 
             getter = ((!property.Writeable) && (!singleValue) ?
@@ -279,7 +279,7 @@ namespace URSA.CodeGen
                 return String.Format("{0}.{1}", propertyTypeNamespace, propertyTypeName);
             }
 
-            IClass propertyType = property.Property.Range.First().AsEntity<IClass>();
+            IClass propertyType = property.Property.Range.First().ActLike<IClass>();
             propertyTypeName = CreateName(propertyType, true);
             propertyTypeNamespace = CreateNamespace(propertyType);
             return String.Format("{0}.{1}", propertyTypeNamespace, propertyTypeName);
@@ -309,7 +309,7 @@ namespace URSA.CodeGen
                 var contentType = new StringBuilder(256);
                 var returns = "void";
                 var operationName = CreateName(operation, method);
-                var uri = operation.Id.Uri.ToRelativeUri().ToString();
+                var uri = ((Uri)operation.Iri).ToRelativeUri().ToString();
                 var returnedType = String.Empty;
                 var isReturns = AsyncInvocation;
                 var isResult = ").Wait()";
@@ -379,12 +379,12 @@ namespace URSA.CodeGen
                 IClass expected = null;
                 if (mapping.Property != null)
                 {
-                    expectContentRangeHeader |= (mapping.Property.Id.Uri.ToString() == DescriptionBuildingServerBahaviorAttributeVisitor<PropertyInfo>.OData + "$skip") ||
-                        (mapping.Property.Id.Uri.ToString() == DescriptionBuildingServerBahaviorAttributeVisitor<PropertyInfo>.OData + "$take");
-                    if ((mapping.Property.Range.Any()) && ((expected = mapping.Property.Range.First().AsEntity<IClass>()) != null) && 
-                        (expected.Id is BlankId) && (expected.SubClassOf.Any()))
+                    expectContentRangeHeader |= (mapping.Property.Iri.ToString() == DescriptionBuildingServerBahaviorAttributeVisitor<PropertyInfo>.OData + "$skip") ||
+                        (mapping.Property.Iri.ToString() == DescriptionBuildingServerBahaviorAttributeVisitor<PropertyInfo>.OData + "$take");
+                    if ((mapping.Property.Range.Any()) && ((expected = mapping.Property.Range.First().ActLike<IClass>()) != null) && 
+                        (expected.Iri.IsBlank) && (expected.SubClassOf.Any()))
                     {
-                        expected = expected.SubClassOf.First().AsEntity<IClass>();
+                        expected = expected.SubClassOf.First().ActLike<IClass>();
                     }
                 }
 

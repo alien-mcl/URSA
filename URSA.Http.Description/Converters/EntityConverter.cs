@@ -1,22 +1,17 @@
-﻿using RomanticWeb;
-using RomanticWeb.Entities;
-using RomanticWeb.Vocabularies;
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Xml;
-using RomanticWeb.NamedGraphs;
+using RDeF.Entities;
+using RDeF.Serialization;
+using RDeF.Vocabularies;
+using RollerCaster.Reflection;
 using URSA.Web.Converters;
 using URSA.Web.Http.Description;
 using URSA.Web.Http.Description.Entities;
-using URSA.Web.Http.Description.VDS.RDF;
-using VDS.RDF;
-using VDS.RDF.Parsing;
-using VDS.RDF.Writing;
-using EntityExtensions = RomanticWeb.Entities.EntityExtensions;
 
 namespace URSA.Web.Http.Converters
 {
@@ -84,11 +79,10 @@ namespace URSA.Web.Http.Converters
                 ""expects"": ""hydra:expects"",
                 ""returns"": ""hydra:returns""
             }}",
-            Rdfs.BaseUri,
+            rdfs.ns,
             Hydra);
 
-        private readonly IEntityContextProvider _entityContextProvider;
-        private readonly INamedGraphSelector _namedGraphSelector;
+        private readonly IEntityContext _entityContext;
 
         static EntityConverter()
         {
@@ -99,22 +93,15 @@ namespace URSA.Web.Http.Converters
         }
 
         /// <summary>Initializes a new instance of the <see cref="EntityConverter" /> class.</summary>
-        /// <param name="entityContextProvider">Entity context provider.</param>
-        /// <param name="namedGraphSelector">Named graph selector.</param>
-        public EntityConverter(IEntityContextProvider entityContextProvider, INamedGraphSelector namedGraphSelector)
+        /// <param name="entityContext">Entity context.</param>
+        public EntityConverter(IEntityContext entityContext)
         {
-            if (entityContextProvider == null)
+            if (entityContext == null)
             {
-                throw new ArgumentNullException("entityContextProvider");
+                throw new ArgumentNullException("entityContext");
             }
 
-            if (namedGraphSelector == null)
-            {
-                throw new ArgumentNullException("namedGraphSelector");
-            }
-
-            _entityContextProvider = entityContextProvider;
-            _namedGraphSelector = namedGraphSelector;
+            _entityContext = entityContext;
         }
 
         /// <inheritdoc />
@@ -139,7 +126,7 @@ namespace URSA.Web.Http.Converters
                 throw new ArgumentNullException("request");
             }
 
-            var actualExpectedType = expectedType.FindItemType();
+            var actualExpectedType = expectedType.GetItemType();
             if (!typeof(IEntity).GetTypeInfo().IsAssignableFrom(actualExpectedType))
             {
                 return CompatibilityLevel.None;
@@ -165,12 +152,14 @@ namespace URSA.Web.Http.Converters
         /// <inheritdoc />
         public object ConvertTo(Type expectedType, IRequestInfo request)
         {
-            if (expectedType == null)
+            throw new NotImplementedException();
+            //// TODO: Implement readers.
+            /*if (expectedType == null)
             {
                 throw new ArgumentNullException("expectedType");
             }
 
-            var itemType = expectedType.FindItemType();
+            var itemType = expectedType.GetItemType();
             if (!typeof(IEntity).GetTypeInfo().IsAssignableFrom(itemType))
             {
                 throw new ArgumentOutOfRangeException("expectedType");
@@ -186,31 +175,29 @@ namespace URSA.Web.Http.Converters
             var mediaType = (contentType != null ? contentType.Values.Join(MediaTypes, outer => outer.Value, inner => inner, (outer, inner) => outer.Value).First() : TextTurtle);
             var reader = CreateReader(mediaType);
             var entityId = (Uri)requestInfo.Url.WithFragment(null);
-            var graphUri = _namedGraphSelector.SelectGraph(new EntityId(entityId), null, null);
-            var graph = _entityContextProvider.TripleStore.FindOrCreate(graphUri);
+            var graph = _entityContext.TripleStore.FindOrCreate(graphUri);
             graph.Clear();
             using (var textReader = new StreamReader(requestInfo.Body))
             {
                 reader.Load(graph, textReader);
             }
 
-            _entityContextProvider.TripleStore.MapToMetaGraph(graph.BaseUri);
             if (itemType == expectedType)
             {
-                return _entityContextProvider.EntityContext.GetType().GetTypeInfo().GetRuntimeInterfaceMap(typeof(IEntityContext))
+                return _entityContext.EntityContext.GetType().GetTypeInfo().GetRuntimeInterfaceMap(typeof(IEntityContext))
                     .TargetMethods
                     .First(method => method.Name == "Load")
                     .MakeGenericMethod(itemType)
-                    .Invoke(_entityContextProvider.EntityContext, new object[] { new EntityId(entityId) });
+                    .Invoke(_entityContext.EntityContext, new object[] { new Iri(entityId) });
             }
 
-            var result = _entityContextProvider.EntityContext.GetType().GetTypeInfo().GetRuntimeInterfaceMap(typeof(IEntityContext))
+            var result = _entityContext.EntityContext.GetType().GetTypeInfo().GetRuntimeInterfaceMap(typeof(IEntityContext))
                 .TargetMethods
                 .First(method => (method.Name == "AsQueryable") && (method.IsGenericMethod))
                 .MakeGenericMethod(itemType)
-                .Invoke(_entityContextProvider.EntityContext, null);
+                .Invoke(_entityContext.EntityContext, null);
             result = typeof(Enumerable).GetMethod("ToList", BindingFlags.Static | BindingFlags.Public).MakeGenericMethod(itemType).Invoke(null, new[] { result });
-            return (expectedType.IsArray ? result.GetType().GetMethod("ToArray").Invoke(result, null) : result);
+            return (expectedType.IsArray ? result.GetType().GetMethod("ToArray").Invoke(result, null) : result);*/
         }
 
         /// <inheritdoc />
@@ -244,7 +231,7 @@ namespace URSA.Web.Http.Converters
                 throw new ArgumentNullException("response");
             }
 
-            var actualGivenType = givenType.FindItemType();
+            var actualGivenType = givenType.GetItemType();
             if (!typeof(IEntity).GetTypeInfo().IsAssignableFrom(actualGivenType))
             {
                 return CompatibilityLevel.None;
@@ -300,14 +287,13 @@ namespace URSA.Web.Http.Converters
             }
 
             //// TODO: Add support for graph based serializations.
-            var graphs = _entityContextProvider.TripleStore.Graphs.Where(graph => !AbsoluteUriComparer.Default.Equals(graph.BaseUri, _entityContextProvider.MetaGraph));
-            if (graphs.Any())
+            using (var textWriter = new StreamWriter(response.Body))
             {
-                WriteResponseBody(graphs, mediaType, response);
+                ((ISerializableEntitySource)_entityContext.EntitySource).Write(textWriter, CreateWriter(mediaType));
             }
         }
 
-        private static IRdfReader CreateReader(string mediaType)
+        /*private static IRdfReader CreateReader(string mediaType)
         {
             IRdfReader result = null;
             switch (mediaType)
@@ -327,42 +313,41 @@ namespace URSA.Web.Http.Converters
             }
 
             return result;
-        }
+        }*/
 
         private static IRdfWriter CreateWriter(string mediaType)
         {
             IRdfWriter result;
             switch (mediaType)
             {
-                case TextTurtle:
-                    result = new CompressingTurtleWriter();
-                    break;
+                ////case TextTurtle:
+                ////    result = new CompressingTurtleWriter();
+                ////    break;
                 case ApplicationRdfXml:
                 case ApplicationOwlXml:
-                    result = new RdfXmlWriter(0, false);
+                    result = new RdfXmlWriter();
                     break;
                 case ApplicationLdJson:
-                    result = new JsonLdWriter(Context);
+                    result = new JsonLdWriter();
                     break;
                 default:
                     throw new InvalidOperationException(String.Format("Media type '{0}' is not supported.", mediaType));
             }
 
-            if (!(result is INamespaceWriter))
-            {
-                return result;
-            }
+            ////if (!(result is INamespaceWriter))
+            ////{
+            ////    return result;
+            ////}
 
-            var namespaceWriter = (INamespaceWriter)result;
-            namespaceWriter.DefaultNamespaces.AddNamespace("owl", new Uri(Owl.BaseUri));
-            namespaceWriter.DefaultNamespaces.AddNamespace("hydra", Hydra);
-            namespaceWriter.DefaultNamespaces.AddNamespace("ursa", DescriptionController<IController>.VocabularyBaseUri);
+            ////var namespaceWriter = (INamespaceWriter)result;
+            ////namespaceWriter.DefaultNamespaces.AddNamespace("owl", new Uri(Owl.BaseUri));
+            ////namespaceWriter.DefaultNamespaces.AddNamespace("hydra", Hydra);
+            ////namespaceWriter.DefaultNamespaces.AddNamespace("ursa", DescriptionController<IController>.VocabularyBaseUri);
             return result;
         }
 
-        private void WriteResponseBody(IEnumerable<IGraph> graphs, string mediaType, IResponseInfo response)
+        /*private void WriteResponseBody(IEnumerable<KeyValuePair<Iri, IEnumerable<Statement>>> statements, string mediaType, IResponseInfo response)
         {
-            var graph = new UnionGraph(graphs.First(), graphs.Skip(1));
             var writer = CreateWriter(mediaType);
             if (writer is RdfXmlWriter)
             {
@@ -370,7 +355,7 @@ namespace URSA.Web.Http.Converters
                 buffer = new UnclosableStream(buffer);
                 using (var textWriter = new StreamWriter(buffer))
                 {
-                    writer.Save(graph, textWriter);
+                    writer.Write(textWriter, statements);
                 }
 
                 buffer.Seek(0, SeekOrigin.Begin);
@@ -385,9 +370,9 @@ namespace URSA.Web.Http.Converters
             {
                 using (var textWriter = new StreamWriter(response.Body))
                 {
-                    writer.Save(graph, textWriter);
+                    writer.Write(textWriter, statements);
                 }
             }
-        }
+        }*/
     }
 }

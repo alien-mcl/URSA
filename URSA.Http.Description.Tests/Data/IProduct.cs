@@ -1,33 +1,33 @@
 ﻿using System;
 using System.Collections.Generic;
-using RomanticWeb.Entities;
-using RomanticWeb.Mapping.Attributes;
-using RomanticWeb.Mapping.Fluent;
+using RDeF.Entities;
+using RDeF.Mapping.Attributes;
+using RDeF.Mapping.Mapping.Fluent;
 
 namespace URSA.Web.Http.Description.Tests.Data
 {
     /// <summary>Describes a person.</summary>
-    [Class("http://temp.uri/vocab#Product")]
+    [Class(Iri = "http://temp.uri/vocab#Product")]
     public interface IProduct : IEntity, IControlledEntity<Guid>
     {
         /// <summary> Gets or sets the product's name.</summary>
-        [Property("http://temp.uri/vocab#name")]
+        [Property(Iri = "http://temp.uri/vocab#name")]
         string Name { get; set; }
 
         /// <summary> Gets or sets the products's price.</summary>
-        [Property("http://temp.uri/vocab#price")]
+        [Property(Iri = "http://temp.uri/vocab#price")]
         float Price { get; set; }
 
         /// <summary> Gets or sets the products's features.</summary>
-        [Collection("http://temp.uri/vocab#feature")]
+        [Collection(Iri = "http://temp.uri/vocab#feature")]
         ICollection<string> Features { get; set; }
 
         /// <summary>Gets or sets the related product.</summary>
-        [Property("http://temp.uri/vocab#related")]
+        [Property(Iri = "http://temp.uri/vocab#related")]
         IProduct RelatedProduct { get; set; }
 
         /// <summary>Gets or sets similar products.</summary>
-        [Collection("http://temp.uri/vocab#similar")]
+        [Collection(Iri = "http://temp.uri/vocab#similar")]
         ICollection<IProduct> Similar { get; set; } 
     }
 
@@ -37,7 +37,7 @@ namespace URSA.Web.Http.Description.Tests.Data
         /// <summary>Initializes a new instance of the <see cref="ProductMap"/> class.</summary>
         public ProductMap()
         {
-            Property(instance => instance.Key).Term.Is(new Uri("http://temp.uri/vocab#key"));
+            WithProperty(instance => instance.Key).MappedTo(new Uri("http://temp.uri/vocab#key"));
         }
     }
 }

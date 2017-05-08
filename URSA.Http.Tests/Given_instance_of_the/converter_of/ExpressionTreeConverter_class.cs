@@ -7,9 +7,8 @@ using System.Text.RegularExpressions;
 using FluentAssertions;
 using Moq;
 using NUnit.Framework;
-using RomanticWeb;
-using RomanticWeb.Mapping;
-using RomanticWeb.Mapping.Model;
+using RDeF.Entities;
+using RDeF.Mapping;
 using URSA.Web.Http.Converters;
 using URSA.Web.Http.Description.CodeGen;
 using URSA.Web.Http.Testing;
@@ -57,11 +56,11 @@ namespace Given_instance_of_the.converter_of
             Func<PropertyInfo, Uri, bool> attributeMatch = (property, uri) => uri.Fragment.Contains(Regex.Replace(property.Name, "s$", String.Empty).ToLower());
             Func<Uri, string> propertyMatch = uri => typeof(IProduct).GetProperties().First(property => attributeMatch(property, uri)).Name;
             var mappingsRepository = new Mock<IMappingsRepository>(MockBehavior.Strict);
-            mappingsRepository.Setup(instance => instance.MappingForProperty(It.IsAny<Uri>()))
-                .Returns<Uri>(uri =>
+            mappingsRepository.Setup(instance => instance.FindPropertyMappingFor(It.IsAny<Iri>(), null))
+                .Returns<Iri, Iri>((iri, graph) =>
                     {
                         var result = new Mock<IPropertyMapping>(MockBehavior.Strict);
-                        result.SetupGet(instance => instance.Name).Returns(propertyMatch(uri));
+                        result.SetupGet(instance => instance.Name).Returns(propertyMatch(iri));
                         return result.Object;
                     });
             var entityContextFactory = new Mock<IEntityContextFactory>(MockBehavior.Strict);

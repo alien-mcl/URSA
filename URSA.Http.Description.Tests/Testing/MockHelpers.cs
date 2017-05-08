@@ -1,6 +1,4 @@
 ﻿using Moq;
-using RomanticWeb;
-using RomanticWeb.Entities;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -8,8 +6,9 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using RomanticWeb.Mapping;
-using RomanticWeb.Mapping.Model;
+using RDeF.Entities;
+using RDeF.Mapping;
+using RollerCaster;
 
 namespace URSA.Web.Http.Description.Testing
 {
@@ -22,10 +21,23 @@ namespace URSA.Web.Http.Description.Testing
         /// <param name="context">Mock of an entity context to pass to the entity.</param>
         /// <param name="id">Identifier of the entity.</param>
         /// <returns>Mock of the type of the <typeparamref name="T" /> entity.</returns>
-        public static Mock<T> MockEntity<T>(this Mock<IEntityContext> context, EntityId id) where T : class, IEntity
+        public static Mock<T> MockEntity<T>(this Mock<IEntityContext> context, Iri id) where T : class, IEntity
         {
-            Mock<T> result = new Mock<T>() { DefaultValue = DefaultValue.Mock };
-            result.SetupGet(instance => instance.Id).Returns(id);
+            Mock<MulticastObject> entityMock;
+            return context.MockEntity<T>(id, out entityMock);
+        }
+
+        /// <summary>Creates an <see cref="IEntity" /> mock.</summary>
+        /// <typeparam name="T">Type of the entity to mock.</typeparam>
+        /// <param name="context">Mock of an entity context to pass to the entity.</param>
+        /// <param name="id">Identifier of the entity.</param>
+        /// <param name="entityMock">Mock of the orignal entity.</param>
+        /// <returns>Mock of the type of the <typeparamref name="T" /> entity.</returns>
+        public static Mock<T> MockEntity<T>(this Mock<IEntityContext> context, Iri id, out Mock<MulticastObject> entityMock) where T : class, IEntity
+        {
+            entityMock = new Mock<MulticastObject>() { DefaultValue = DefaultValue.Mock };
+            var result = entityMock.As<T>();
+            result.SetupGet(instance => instance.Iri).Returns(id);
             result.SetupGet(instance => instance.Context).Returns(context.Object);
             var collections = from @interface in new Type[] { typeof(T) }.Concat(typeof(T).GetInterfaces())
                               from property in @interface.GetProperties(BindingFlags.Public | BindingFlags.Instance)
@@ -65,12 +77,12 @@ namespace URSA.Web.Http.Description.Testing
         /// <param name="baseUri">The base URI.</param>
         public static void SetupMapping<T>(this Mock<IMappingsRepository> mappingsRepository, Uri baseUri) where T : IEntity
         {
-            var classMapping = new Mock<IClassMapping>(MockBehavior.Strict);
-            classMapping.SetupGet(instance => instance.Uri).Returns(new Uri(baseUri.AbsoluteUri + typeof(T).Name.Substring(1)));
+            var classMapping = new Mock<IStatementMapping>(MockBehavior.Strict);
+            classMapping.SetupGet(instance => instance.Term).Returns(new Uri(baseUri.AbsoluteUri + typeof(T).Name.Substring(1)));
             var mapping = new Mock<IEntityMapping>(MockBehavior.Strict);
             mapping.SetupGet(instance => instance.Classes).Returns(new[] { classMapping.Object });
-            mappingsRepository.Setup(instance => instance.MappingFor<T>()).Returns(mapping.Object);
-            mappingsRepository.Setup(instance => instance.MappingFor(typeof(T))).Returns(mapping.Object);
+            mappingsRepository.Setup(instance => instance.FindEntityMappingFor<T>()).Returns(mapping.Object);
+            mappingsRepository.Setup(instance => instance.FindEntityMappingFor(typeof(T))).Returns(mapping.Object);
         }
     }
 }

@@ -3,8 +3,8 @@ using System;
 using System.Linq;
 using FluentAssertions;
 using NUnit.Framework;
-using RomanticWeb.Entities;
-using RomanticWeb.Vocabularies;
+using RDeF.Entities;
+using RDeF.Vocabularies;
 using URSA.Web.Http.Converters;
 using URSA.Web.Http.Description;
 using URSA.Web.Http.Description.CodeGen;
@@ -52,11 +52,11 @@ namespace Given_instance_of_the.HydraCompliantTypeDescriptionBuilder_class
             property.Writeable.Should().BeTrue();
             property.Required.Should().BeTrue();
             property.Property.Description.Should().Be(typeof(Person) + ".Key");
-            property.Property.Domain.Should().Contain(@class => @class.Id.Uri.AbsoluteUri.Contains(typeof(Person).FullName));
+            property.Property.Domain.Should().Contain(@class => @class.Iri.ToString().Contains(typeof(Person).FullName));
             property.Property.Range.Should().HaveCount(1);
             property.Property.Range.First().Should().BeAssignableTo<IClass>();
-            OGuidUriParser.Types.Values.Any(iri => iri.AbsoluteUri == ((IClass)property.Property.Range.First()).Id.Uri.AbsoluteUri).Should().BeTrue();
-            result.SubClassOf.OfType<IRestriction>().Any(restriction => (restriction.OnProperty.Id.Uri.AbsoluteUri == property.Property.Id.Uri.AbsoluteUri) &&
+            OGuidUriParser.Types.Values.Any(iri => iri.AbsoluteUri == ((IClass)property.Property.Range.First()).Iri.ToString()).Should().BeTrue();
+            result.SubClassOf.OfType<IRestriction>().Any(restriction => (restriction.OnProperty.Iri == property.Property.Iri) &&
                 (restriction.MaxCardinality == 1)).Should().BeTrue();
         }
 
@@ -72,11 +72,11 @@ namespace Given_instance_of_the.HydraCompliantTypeDescriptionBuilder_class
             property.Writeable.Should().BeTrue();
             property.Required.Should().BeFalse();
             property.Property.Description.Should().Be(typeof(Person) + ".FirstName");
-            property.Property.Domain.Should().Contain(@class => @class.Id.Uri.AbsoluteUri.Contains(typeof(Person).FullName));
+            property.Property.Domain.Should().Contain(@class => @class.Iri.ToString().Contains(typeof(Person).FullName));
             property.Property.Range.Should().HaveCount(1);
             property.Property.Range.First().Should().BeAssignableTo<IClass>();
-            XsdUriParser.Types.Values.Any(iri => iri.AbsoluteUri == ((IClass)property.Property.Range.First()).Id.Uri.AbsoluteUri).Should().BeTrue();
-            result.SubClassOf.OfType<IRestriction>().Any(restriction => (restriction.OnProperty.Id.Uri.AbsoluteUri == property.Property.Id.Uri.AbsoluteUri) &&
+            XsdUriParser.Types.Values.Any(iri => iri.AbsoluteUri == ((IClass)property.Property.Range.First()).Iri.ToString()).Should().BeTrue();
+            result.SubClassOf.OfType<IRestriction>().Any(restriction => (restriction.OnProperty.Iri == property.Property.Iri) &&
                 (restriction.MaxCardinality == 1)).Should().BeTrue();
         }
 
@@ -92,11 +92,11 @@ namespace Given_instance_of_the.HydraCompliantTypeDescriptionBuilder_class
             property.Writeable.Should().BeTrue();
             property.Required.Should().BeFalse();
             property.Property.Description.Should().Be(typeof(Person) + ".LastName");
-            property.Property.Domain.Should().Contain(@class => @class.Id.Uri.AbsoluteUri.Contains(typeof(Person).FullName));
+            property.Property.Domain.Should().Contain(@class => @class.Iri.ToString().Contains(typeof(Person).FullName));
             property.Property.Range.Should().HaveCount(1);
             property.Property.Range.First().Should().BeAssignableTo<IClass>();
-            XsdUriParser.Types.Values.Any(iri => iri.AbsoluteUri == ((IClass)property.Property.Range.First()).Id.Uri.AbsoluteUri).Should().BeTrue();
-            result.SubClassOf.OfType<IRestriction>().Any(restriction => (restriction.OnProperty.Id.Uri.AbsoluteUri == property.Property.Id.Uri.AbsoluteUri) &&
+            XsdUriParser.Types.Values.Any(iri => iri.AbsoluteUri == ((IClass)property.Property.Range.First()).Iri.ToString()).Should().BeTrue();
+            result.SubClassOf.OfType<IRestriction>().Any(restriction => (restriction.OnProperty.Iri == property.Property.Iri) &&
                 (restriction.MaxCardinality == 1)).Should().BeTrue();
         }
 
@@ -112,15 +112,15 @@ namespace Given_instance_of_the.HydraCompliantTypeDescriptionBuilder_class
             property.Writeable.Should().BeTrue();
             property.Required.Should().BeFalse();
             property.Property.Description.Should().Be(typeof(Person) + ".Roles");
-            property.Property.Domain.Should().Contain(@class => @class.Id.Uri.AbsoluteUri.Contains(typeof(Person).FullName));
+            property.Property.Domain.Should().Contain(@class => @class.Iri.ToString().Contains(typeof(Person).FullName));
             property.Property.Range.Should().HaveCount(1);
             property.Property.Range.First().Should().BeAssignableTo<IClass>();
             var range = (IClass)property.Property.Range.First();
             range.SubClassOf.FirstOrDefault(item => item.IsClass(new Uri(EntityConverter.Hydra.AbsoluteUri + "Collection"))).Should().NotBeNull();
-            var restriction = range.SubClassOf.Where(item => item.Is(Owl.Restriction)).Cast<IRestriction>().FirstOrDefault();
+            var restriction = range.SubClassOf.Where(item => item.Is(owl.Restriction)).Cast<IRestriction>().FirstOrDefault();
             restriction.Should().NotBeNull();
-            XsdUriParser.Types.Values.Any(iri => iri.AbsoluteUri == restriction.AllValuesFrom.Id.Uri.AbsoluteUri).Should().BeTrue();
-            restriction.OnProperty.Id.Uri.AbsoluteUri.Should().Be(EntityConverter.Hydra.AbsoluteUri + "member");
+            XsdUriParser.Types.Values.Any(iri => iri.AbsoluteUri == restriction.AllValuesFrom.Iri.ToString()).Should().BeTrue();
+            restriction.OnProperty.Iri.ToString().Should().Be(EntityConverter.Hydra.AbsoluteUri + "member");
             restriction.MaxCardinality.Should().NotBe(1);
         }
     }

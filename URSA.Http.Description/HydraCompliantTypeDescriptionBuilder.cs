@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Reflection;
-using RomanticWeb.Entities;
-using RomanticWeb.Vocabularies;
+using RDeF.Entities;
+using RDeF.Vocabularies;
 using URSA.Reflection;
 using URSA.Web.Http.Converters;
 using URSA.Web.Http.Description.CodeGen;
@@ -84,14 +84,14 @@ namespace URSA.Web.Http.Description
             var classUri = itemType.MakeUri();
             if (typeof(IEntity).IsAssignableFrom(itemType))
             {
-                classUri = context.Entity.Context.Mappings.MappingFor(itemType).Classes.Select(item => item.Uri).FirstOrDefault() ?? classUri;
+                classUri = context.Entity.Context.Mappings.FindEntityMappingFor(itemType).Classes.Select(item => item.Term).FirstOrDefault() ?? classUri;
                 requiresRdf = true;
             }
 
             IClass result = context.Entity.Context.Create<IClass>(classUri);
             result.Label = itemType.MakeTypeName(false, true);
             result.Description = _xmlDocProvider.GetDescription(itemType);
-            if (typeof(EntityId).IsAssignableFrom(itemType))
+            if (typeof(Iri).IsAssignableFrom(itemType))
             {
                 context.Describe(result, requiresRdf);
                 return result;
@@ -104,14 +104,14 @@ namespace URSA.Web.Http.Description
         }
 
         /// <inheritdoc />
-        public EntityId GetSupportedPropertyId(PropertyInfo property, Type declaringType = null)
+        public Iri GetSupportedPropertyId(PropertyInfo property, Type declaringType = null)
         {
             if (property == null)
             {
                 throw new ArgumentNullException("property");
             }
 
-            return new EntityId(property.MakeUri(declaringType ?? property.DeclaringType));
+            return new Iri(property.MakeUri(declaringType ?? property.DeclaringType));
         }
 
         /// <inheritdoc />
@@ -127,14 +127,14 @@ namespace URSA.Web.Http.Description
                 throw new ArgumentNullException("class");
             }
 
-            IClass result = context.Entity.Context.Create<IClass>(@class.CreateBlankId());
+            IClass result = context.Entity.Context.Create<IClass>(new Iri());
             result.SubClassOf.Add(@class);
             return result;
         }
 
         private static IClass BuildDatatypeDescription(DescriptionContext context, Uri uri)
         {
-            var definition = context.Entity.Context.Create<IClass>(new EntityId(uri));
+            var definition = context.Entity.Context.Create<IClass>(new Iri(uri));
             definition.Label = (uri.Fragment.Length > 1 ? uri.Fragment.Substring(1) : uri.Segments.Last());
             return definition;
         }
@@ -173,9 +173,9 @@ namespace URSA.Web.Http.Description
             }
 
             var memberType = (context.ContainsType(itemType) ? context[itemType] : BuildTypeDescription(context.ForType(itemType), out requiresRdf));
-            result.SubClassOf.Add(context.Entity.Context.Create<IClass>(Rdf.List));
-            result.SubClassOf.Add(result.CreateRestriction(Rdf.first, memberType));
-            result.SubClassOf.Add(result.CreateRestriction(Rdf.rest, result));
+            result.SubClassOf.Add(context.Entity.Context.Create<IClass>(rdf.List));
+            result.SubClassOf.Add(result.CreateRestriction(rdf.first, memberType));
+            result.SubClassOf.Add(result.CreateRestriction(rdf.rest, result));
             return result;
         }
 
@@ -187,14 +187,14 @@ namespace URSA.Web.Http.Description
 
         private IClass CreateCollectionDefinition(DescriptionContext context, out bool requiresRdf, out Type itemType, bool isGeneric = true)
         {
-            var result = CreateEnumerableDefinition(context, context.Entity.Context.Mappings.MappingFor<ICollection>().Classes.First().Uri, out requiresRdf, out itemType, isGeneric);
+            var result = CreateEnumerableDefinition(context, context.Entity.Context.Mappings.FindEntityMappingFor<ICollection>().Classes.First().Term, out requiresRdf, out itemType, isGeneric);
             if (!isGeneric)
             {
                 return result;
             }
 
             var memberType = (context.ContainsType(itemType) ? context[itemType] : BuildTypeDescription(context.ForType(itemType), out requiresRdf));
-            result.SubClassOf.Add(result.CreateRestriction(context.Entity.Context.Mappings.MappingFor<ICollection>().PropertyFor("Members").Uri, memberType));
+            result.SubClassOf.Add(result.CreateRestriction(context.Entity.Context.Mappings.FindEntityMappingFor<ICollection>().Properties.First(property => property.Name == "Members").Term, memberType));
             return result;
         }
 
@@ -220,8 +220,8 @@ namespace URSA.Web.Http.Description
         private ISupportedProperty BuildSupportedProperty(DescriptionContext context, IClass @class, Type declaringType, PropertyInfo property)
         {
             var propertyId = GetSupportedPropertyId(property, declaringType);
-            var propertyUri = (!typeof(IEntity).IsAssignableFrom(context.Type) ? @class.Id.Uri.AddName(property.Name) :
-                context.Entity.Context.Mappings.MappingFor(context.Type).PropertyFor(property.Name).Uri);
+            var propertyUri = !typeof(IEntity).IsAssignableFrom(context.Type) ? new Iri(((Uri)@class.Iri).AddName(property.Name)) :
+                context.Entity.Context.Mappings.FindEntityMappingFor(context.Type).Properties.First(item => item.Name == property.Name).Term;
             var result = context.Entity.Context.Create<ISupportedProperty>(propertyId);
             result.Readable = property.CanRead;
             result.Writeable = property.CanWrite;
