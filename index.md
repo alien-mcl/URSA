@@ -7,7 +7,7 @@ weight: 1
 Welcome to the home site of the URSA project. Here you can find documentation pieces that would allow you to get started with creating your ReSTful APIs easily.
 
 ### Why URSA?
-I've worked with several ReSTful implementations written in C# and none of tchem felt ... ReSTful.
+I've worked with several ReSTful implementations written in C# and none of them felt ... ReSTful.
 There is WCF or Web API, Nancy FX, but I had an impression that the only difference from SOAP was a nice looking Url, JSON instead of an XML and sometimes HTTP POST instead of a HTTP GET.
 
 If you wanted to treat i.e. errors the ReSTful way you had to spend some extra time implementing various extensions.
