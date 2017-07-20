@@ -103,7 +103,7 @@ namespace URSA.Example.WebApplication.Data
                 }
             }
         }
-        
+
         /// <inheritdoc />
         public void Create(TEntity entity)
         {

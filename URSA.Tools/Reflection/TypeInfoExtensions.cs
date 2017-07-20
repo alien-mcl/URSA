@@ -65,10 +65,10 @@ namespace System.Reflection
                 (type.ImplementedInterfaces.Any(@interface => (@interface.GetTypeInfo().IsGenericType) && (collectionTypeInfo.IsAssignableFrom(@interface.GetGenericTypeDefinition())))));
         }
 
-        /// <summary>Checks if the type can be assigned to the <see cref="IEnumerable" /> interface.</summary> 
-        /// <remarks>This method will return false for type <see cref="System.String" />.</remarks> 
-        /// <param name="type">Type to be checked.</param> 
-        /// <returns><b>true</b> if the type is <see cref="System.Array" /> or is assignable to <see cref="IEnumerable" /> (except <see cref="System.String" />); otherwise <b>false</b>.</returns> 
+        /// <summary>Checks if the type can be assigned to the <see cref="IEnumerable" /> interface.</summary>
+        /// <remarks>This method will return false for type <see cref="System.String" />.</remarks>
+        /// <param name="type">Type to be checked.</param>
+        /// <returns><b>true</b> if the type is <see cref="System.Array" /> or is assignable to <see cref="IEnumerable" /> (except <see cref="System.String" />); otherwise <b>false</b>.</returns>
         public static bool IsEnumerable(this TypeInfo type)
         {
             if (type == null)
@@ -77,7 +77,7 @@ namespace System.Reflection
             }
 
             return ((type.IsArray) || ((typeof(IEnumerable).GetTypeInfo().IsAssignableFrom(type)) && (type.AsType() != typeof(string)))) || (type.IsGenericEnumerable());
-        } 
+        }
 
         /// <summary>Checks if a given type is of type <see cref="IEnumerable{T}" />.</summary>
         /// <param name="type">Type to check.</param>
@@ -113,7 +113,7 @@ namespace System.Reflection
             {
                 return type.GetGenericArguments().First();
             }
-            
+
             if ((typeof(IEnumerable).GetTypeInfo().IsAssignableFrom(type)) && (type.AsType() != typeof(string)))
             {
                 return (type.IsGenericType ? type.GenericTypeArguments.First() : typeof(object));

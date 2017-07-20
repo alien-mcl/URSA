@@ -240,7 +240,7 @@ namespace URSA.Web.Http
                 expectedToken = Expected.Host;
                 return index + 1;
             }
-            
+
             if ((expectedToken & Expected.UserName) == Expected.UserName)
             {
                 UserName = actualUrl.ToString(lastDelimiter, index - lastDelimiter);
@@ -259,14 +259,14 @@ namespace URSA.Web.Http
                 expectedToken = Expected.Password;
                 return index + 1;
             }
-            
+
             if ((expectedToken & Expected.Host) == Expected.Host)
             {
                 Host = actualUrl.ToString(lastDelimiter, index - lastDelimiter).ToLowerInvariant();
                 expectedToken = Expected.Port;
                 return index + 1;
             }
-            
+
             throw new ArgumentOutOfRangeException("url", "Passed url is malfored.");
         }
 

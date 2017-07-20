@@ -55,13 +55,13 @@ namespace Given_instance_of_the
         [Test]
         public void it_should_detect_that_verbs_are_equal()
         {
-            (Verb.GET == new Verb("GET")).Should().BeTrue();
+            (new Verb("GET") == Verb.GET).Should().BeTrue();
         }
 
         [Test]
         public void it_should_detect_that_verbs_are_unequal()
         {
-            (Verb.GET != new Verb("POST")).Should().BeTrue();
+            (new Verb("POST") != Verb.GET).Should().BeTrue();
         }
     }
 }

@@ -25,7 +25,7 @@ namespace Given_instance_of_the.DelegateMapper_class
     public class when_receiving_a_request
     {
         private IController _controller;
-        private OperationInfo _operation; 
+        private OperationInfo _operation;
         private IDelegateMapper _delegateMapper;
 
         [Test]

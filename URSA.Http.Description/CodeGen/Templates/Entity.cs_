@@ -13,17 +13,17 @@ using URSA.Web.Http;
 namespace {0}
 {{
     [System.CodeDom.Compiler.GeneratedCode("URSA HTTP client proxy generation tool", "1.0")]{4}
-    public interface I{1} : RomanticWeb.Entities.IEntity
+    public interface I{1} : RDeF.Entities.IEntity
     {{{3}
     }}
 
     [System.CodeDom.Compiler.GeneratedCode("URSA HTTP client proxy generation tool", "1.0")]
     public partial class {1} : I{1}
     {{
-        private RomanticWeb.Entities.EntityId _id = new RomanticWeb.Entities.EntityId(new System.Uri("urn:guid:" + System.Guid.NewGuid()));
+        private RDeF.Entities.Iri _iri = new RDeF.Entities.Iri("urn:guid:" + System.Guid.NewGuid());
 
-        RomanticWeb.IEntityContext RomanticWeb.Entities.IEntity.Context {{ get {{ return null; }} }}
+        RDeF.Entities.IEntityContext RDeF.Entities.IEntity.Context {{ get {{ return null; }} }}
 
-        RomanticWeb.Entities.EntityId RomanticWeb.Entities.IEntity.Id {{ get {{ return _id; }} }}{2}
+        RDeF.Entities.Iri RDeF.Entities.IEntity.Iri {{ get {{ return _iri; }} }}{2}
     }}
 }}

@@ -5,7 +5,7 @@ using RDeF.Entities;
 using URSA.Web.Http.Description.Hydra;
 
 namespace URSA.Web.Http.Description
-{    
+{
     /// <summary>Provides a description of the facility for type description builders.</summary>
     public interface ITypeDescriptionBuilder
     {

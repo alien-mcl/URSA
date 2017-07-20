@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using RomanticWeb;
-using RomanticWeb.Entities;
 using URSA.Web;
 
 namespace URSA.Example.WebApplication.Data

@@ -35,7 +35,7 @@ namespace URSA.Web.Http.Tests.Testing
         public static OperationInfo<T> ToOperationInfo<T>(this MethodInfo method, string baseUri, T verb, out string callUri, params object[] values)
         {
             var methodUri = method.GetCustomAttributes<RouteAttribute>().Select(attribute => attribute.Url.ToString()).FirstOrDefault() ?? method.Name.ToLower();
-            if ((methodUri == "list") || (methodUri == "get") || (methodUri == "create") || (methodUri == "post") || 
+            if ((methodUri == "list") || (methodUri == "get") || (methodUri == "create") || (methodUri == "post") ||
                 (methodUri == "update") || (methodUri == "put") || (methodUri == "delete"))
             {
                 methodUri = String.Empty;

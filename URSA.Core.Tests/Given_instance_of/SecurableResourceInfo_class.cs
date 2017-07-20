@@ -70,8 +70,8 @@ namespace Given_instance_of
 
         private class FakeOperationInfo : OperationInfo
         {
-            internal FakeOperationInfo(MethodInfo underlyingMethod, Url url, string urlTemplate, Regex regexTemplate, params ValueInfo[] values) :
-                base(underlyingMethod, url, urlTemplate, regexTemplate, values)
+            internal FakeOperationInfo(MethodInfo underlyingMethod, Url url, string urlTemplate, Regex regexTemplate, params ValueInfo[] values)
+                : base(underlyingMethod, url, urlTemplate, regexTemplate, values)
             {
             }
         }

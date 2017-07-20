@@ -1,8 +1,8 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using FluentAssertions;
 using Moq;
-using System.Linq;
 using NUnit.Framework;
 using URSA;
 using URSA.Security;

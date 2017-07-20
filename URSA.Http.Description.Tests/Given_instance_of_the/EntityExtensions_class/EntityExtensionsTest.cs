@@ -1,9 +1,7 @@
 ﻿using System;
-using URSA.Configuration;
-using URSA.Web.Http.Description.Tests.Data;
-using System.Linq;
 using NUnit.Framework;
 using RDeF.Entities;
+using URSA.Web.Http.Description.Tests.Data;
 
 namespace Given_instance_of_the.EntityExtensions_class
 {

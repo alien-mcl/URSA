@@ -1,12 +1,12 @@
-﻿using Castle.MicroKernel.Context;
-using Castle.MicroKernel.Handlers;
-using System;
+﻿using System;
 using System.Linq;
+using Castle.MicroKernel.Context;
+using Castle.MicroKernel.Handlers;
 using URSA.ComponentModel;
 
 namespace URSA.CastleWindsor.ComponentModel
 {
-    internal class DefaultGenericImplementationMatchingStrategy : IGenericImplementationMatchingStrategy 
+    internal class DefaultGenericImplementationMatchingStrategy : IGenericImplementationMatchingStrategy
     {
         private readonly WindsorComponentProvider _container;
 
@@ -26,8 +26,8 @@ namespace URSA.CastleWindsor.ComponentModel
 
             if ((arguments = model.Implementation.GetGenericArguments()).Length > 0)
             {
-                return arguments.SelectMany(argument => 
-                    argument.GetGenericParameterConstraints().SelectMany(constrain => 
+                return arguments.SelectMany(argument =>
+                    argument.GetGenericParameterConstraints().SelectMany(constrain =>
                         _container.ResolveAllTypes(constrain))).ToArray();
             }
 

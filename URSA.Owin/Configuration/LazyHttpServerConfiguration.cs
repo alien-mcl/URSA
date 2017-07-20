@@ -7,9 +7,9 @@ namespace URSA.Web.Http.Configuration
     [ExcludeFromCodeCoverage]
     public class LazyHttpServerConfiguration : IHttpServerConfiguration
     {
-        internal static Uri HostingUri { get; set; }
-
         /// <inheritdoc />
         public Uri BaseUri { get { return HostingUri; } }
+
+        internal static Uri HostingUri { get; set; }
     }
 }

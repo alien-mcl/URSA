@@ -62,7 +62,7 @@ namespace Given_instance_of_the.HydraCompliantTypeDescriptionBuilder_class
             return result.Object;
         }
 
-        private static void SetupEntityMapping<T>(Mock<IMappingsRepository> mappingsRepository, Iri term, IDictionary<string, Iri> properties = null) where T : IEntity
+        private static void SetupEntityMapping<TEntity>(Mock<IMappingsRepository> mappingsRepository, Iri term, IDictionary<string, Iri> properties = null) where TEntity : IEntity
         {
             var statmentMappings = new List<IStatementMapping>();
             var statementMapping = new Mock<IStatementMapping>(MockBehavior.Strict);
@@ -85,8 +85,8 @@ namespace Given_instance_of_the.HydraCompliantTypeDescriptionBuilder_class
             entityMapping.SetupGet(instance => instance.Type).Returns(typeof(IClass));
             entityMapping.SetupGet(instance => instance.Classes).Returns(statmentMappings);
             entityMapping.SetupGet(instance => instance.Properties).Returns(propertyMappings);
-            mappingsRepository.Setup(instance => instance.FindEntityMappingFor<T>()).Returns(entityMapping.Object);
-            mappingsRepository.Setup(instance => instance.FindEntityMappingFor(typeof(T))).Returns(entityMapping.Object);
+            mappingsRepository.Setup(instance => instance.FindEntityMappingFor<TEntity>()).Returns(entityMapping.Object);
+            mappingsRepository.Setup(instance => instance.FindEntityMappingFor(typeof(TEntity))).Returns(entityMapping.Object);
         }
 
         private static IResource CreateResource(IEntityContext entityContext, Iri id)
@@ -147,8 +147,8 @@ namespace Given_instance_of_the.HydraCompliantTypeDescriptionBuilder_class
 
         private static TProperty CreateProperty<TProperty>(IEntityContext entityContext, Iri id) where TProperty : class, IProperty
         {
-            string propertyFullName = (id == EntityConverter.Hydra.AbsoluteUri + "member" ? 
-                String.Format("{0}.Members", typeof(ICollection).FullName) : 
+            string propertyFullName = (id == EntityConverter.Hydra.AbsoluteUri + "member" ?
+                String.Format("{0}.Members", typeof(ICollection).FullName) :
                 id.ToString().Substring(id.ToString().LastIndexOf(':') + 1));
             var declaringTypeName = propertyFullName.Substring(0, propertyFullName.LastIndexOf('.'));
             var propertyName = propertyFullName.Substring(declaringTypeName.Length + 1);

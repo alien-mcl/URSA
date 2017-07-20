@@ -4,14 +4,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Xml;
 using RDeF.Entities;
 using RDeF.Serialization;
 using RDeF.Vocabularies;
 using RollerCaster.Reflection;
 using URSA.Web.Converters;
-using URSA.Web.Http.Description;
-using URSA.Web.Http.Description.Entities;
 
 namespace URSA.Web.Http.Converters
 {
@@ -40,7 +37,7 @@ namespace URSA.Web.Http.Converters
         public const string ApplicationLdJson = "application/ld+json";
 
         /// <summary>Defines the supported media types.</summary>
-        public static readonly string[] MediaTypes = { TextTurtle, ApplicationRdfXml, ApplicationOwlXml, ApplicationLdJson };
+        public static readonly string[] MediaTypes = { /*TextTurtle,*/ ApplicationRdfXml, ApplicationOwlXml, ApplicationLdJson };
 
         /// <summary>Gets the media type file format mapping.</summary>
         public static readonly IDictionary<string, string> MediaTypeFileFormats = new ConcurrentDictionary<string, string>();
@@ -105,7 +102,7 @@ namespace URSA.Web.Http.Converters
         }
 
         /// <inheritdoc />
-        public IEnumerable<string> SupportedMediaTypes { get { return MediaTypes; } } 
+        public IEnumerable<string> SupportedMediaTypes { get { return MediaTypes; } }
 
         /// <inheritdoc />
         public CompatibilityLevel CanConvertTo<T>(IRequestInfo request)
@@ -152,9 +149,7 @@ namespace URSA.Web.Http.Converters
         /// <inheritdoc />
         public object ConvertTo(Type expectedType, IRequestInfo request)
         {
-            throw new NotImplementedException();
-            //// TODO: Implement readers.
-            /*if (expectedType == null)
+            if (expectedType == null)
             {
                 throw new ArgumentNullException("expectedType");
             }
@@ -175,29 +170,27 @@ namespace URSA.Web.Http.Converters
             var mediaType = (contentType != null ? contentType.Values.Join(MediaTypes, outer => outer.Value, inner => inner, (outer, inner) => outer.Value).First() : TextTurtle);
             var reader = CreateReader(mediaType);
             var entityId = (Uri)requestInfo.Url.WithFragment(null);
-            var graph = _entityContext.TripleStore.FindOrCreate(graphUri);
-            graph.Clear();
             using (var textReader = new StreamReader(requestInfo.Body))
             {
-                reader.Load(graph, textReader);
+                ((ISerializableEntitySource)_entityContext.EntitySource).Read(textReader, reader);
             }
 
             if (itemType == expectedType)
             {
-                return _entityContext.EntityContext.GetType().GetTypeInfo().GetRuntimeInterfaceMap(typeof(IEntityContext))
+                return _entityContext.GetType().GetTypeInfo().GetRuntimeInterfaceMap(typeof(IEntityContext))
                     .TargetMethods
                     .First(method => method.Name == "Load")
                     .MakeGenericMethod(itemType)
-                    .Invoke(_entityContext.EntityContext, new object[] { new Iri(entityId) });
+                    .Invoke(_entityContext, new object[] { new Iri(entityId) });
             }
 
-            var result = _entityContext.EntityContext.GetType().GetTypeInfo().GetRuntimeInterfaceMap(typeof(IEntityContext))
+            var result = _entityContext.GetType().GetTypeInfo().GetRuntimeInterfaceMap(typeof(IEntityContext))
                 .TargetMethods
                 .First(method => (method.Name == "AsQueryable") && (method.IsGenericMethod))
                 .MakeGenericMethod(itemType)
-                .Invoke(_entityContext.EntityContext, null);
+                .Invoke(_entityContext, null);
             result = typeof(Enumerable).GetMethod("ToList", BindingFlags.Static | BindingFlags.Public).MakeGenericMethod(itemType).Invoke(null, new[] { result });
-            return (expectedType.IsArray ? result.GetType().GetMethod("ToArray").Invoke(result, null) : result);*/
+            return (expectedType.IsArray ? result.GetType().GetMethod("ToArray").Invoke(result, null) : result);
         }
 
         /// <inheritdoc />
@@ -293,38 +286,40 @@ namespace URSA.Web.Http.Converters
             }
         }
 
-        /*private static IRdfReader CreateReader(string mediaType)
+        private static IRdfReader CreateReader(string mediaType)
         {
-            IRdfReader result = null;
+            IRdfReader result;
             switch (mediaType)
             {
-                case TextTurtle:
-                    result = new TurtleParser();
-                    break;
+                ////case TextTurtle:
+                ////    result = new TurtleParser();
+                ////    break;
                 case ApplicationRdfXml:
                 case ApplicationOwlXml:
-                    result = new RdfXmlParser();
+                    result = new RdfXmlReader();
                     break;
                 case ApplicationLdJson:
-                    result = new JsonLdParser();
+                    result = new JsonLdReader();
                     break;
                 default:
                     throw new InvalidOperationException(String.Format("Media type '{0}' is not supported.", mediaType));
             }
 
             return result;
-        }*/
+        }
 
         private static IRdfWriter CreateWriter(string mediaType)
         {
             IRdfWriter result;
             switch (mediaType)
             {
+                //// TODO: Add support for Turtle
                 ////case TextTurtle:
                 ////    result = new CompressingTurtleWriter();
                 ////    break;
                 case ApplicationRdfXml:
                 case ApplicationOwlXml:
+                //// TODO: Add support for XSD injection
                     result = new RdfXmlWriter();
                     break;
                 case ApplicationLdJson:
@@ -334,6 +329,7 @@ namespace URSA.Web.Http.Converters
                     throw new InvalidOperationException(String.Format("Media type '{0}' is not supported.", mediaType));
             }
 
+            //// TODO: Add support for explicit namespaces.
             ////if (!(result is INamespaceWriter))
             ////{
             ////    return result;
@@ -345,34 +341,5 @@ namespace URSA.Web.Http.Converters
             ////namespaceWriter.DefaultNamespaces.AddNamespace("ursa", DescriptionController<IController>.VocabularyBaseUri);
             return result;
         }
-
-        /*private void WriteResponseBody(IEnumerable<KeyValuePair<Iri, IEnumerable<Statement>>> statements, string mediaType, IResponseInfo response)
-        {
-            var writer = CreateWriter(mediaType);
-            if (writer is RdfXmlWriter)
-            {
-                Stream buffer = new MemoryStream();
-                buffer = new UnclosableStream(buffer);
-                using (var textWriter = new StreamWriter(buffer))
-                {
-                    writer.Write(textWriter, statements);
-                }
-
-                buffer.Seek(0, SeekOrigin.Begin);
-                XmlDocument document = new XmlDocument();
-                document.Load(buffer);
-                document.InsertAfter(
-                    document.CreateProcessingInstruction("xml-stylesheet", "type=\"text/xsl\" href=\"" + DocumentationStylesheet + "\""),
-                    document.FirstChild);
-                document.Save(response.Body);
-            }
-            else
-            {
-                using (var textWriter = new StreamWriter(response.Body))
-                {
-                    writer.Write(textWriter, statements);
-                }
-            }
-        }*/
     }
 }

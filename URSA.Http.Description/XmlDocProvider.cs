@@ -13,7 +13,7 @@ namespace URSA.Web.Http.Description
     public class XmlDocProvider : IXmlDocProvider
     {
         private static readonly IDictionary<Assembly, XDocument> AssemblyCache = new ConcurrentDictionary<Assembly, XDocument>();
-        private static readonly Func<XElement, bool> DefaultAuxPredicate = element => element.Name == "summary"; 
+        private static readonly Func<XElement, bool> DefaultAuxPredicate = element => element.Name == "summary";
 
         /// <inheritdoc />
         public string GetDescription(Type type)
@@ -62,7 +62,7 @@ namespace URSA.Web.Http.Description
             return GetText(
                 AssemblyCache[method.DeclaringType.GetTypeInfo().Assembly],
                 element => (element.Attribute("name") != null) && (element.Attribute("name").Value == memberName),
-                element => (element.Name.LocalName == targetNode) && ((targetNode == "returns") || 
+                element => (element.Name.LocalName == targetNode) && ((targetNode == "returns") ||
                     ((element.Attribute("name") != null) && (element.Attribute("name").Value == parameter.Name))));
         }
 

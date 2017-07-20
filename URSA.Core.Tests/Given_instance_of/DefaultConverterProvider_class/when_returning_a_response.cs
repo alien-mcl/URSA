@@ -1,8 +1,8 @@
-﻿using FluentAssertions;
-using Moq;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using FluentAssertions;
+using Moq;
 using NUnit.Framework;
 using URSA.Web;
 using URSA.Web.Converters;
@@ -69,7 +69,7 @@ namespace Given_instance_of.DefaultConverterProvider_class
             intConverter.Setup(instance => instance.CanConvertFrom(It.IsAny<Type>(), _response.Object)).Returns(CompatibilityLevel.None);
             intConverter.Setup(instance => instance.CanConvertTo(typeof(int), _request.Object)).Returns(CompatibilityLevel.TypeMatch);
             _converters.Add(intConverter.Object);
-            
+
             var result = _provider.FindBestOutputConverter(typeof(int), _response.Object);
 
             result.Should().Be(intConverter.Object);

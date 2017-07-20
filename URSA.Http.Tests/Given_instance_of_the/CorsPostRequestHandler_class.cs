@@ -47,7 +47,7 @@ namespace Given_instance_of_the
 
             response.Headers.AccessControlAllowHeaders.Should().Contain("Content-Type");
         }
-        
+
         [Test]
         public async Task it_should_expose_any_header_from_request()
         {

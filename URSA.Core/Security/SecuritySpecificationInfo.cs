@@ -33,7 +33,7 @@ namespace URSA.Security
         }
 
         /// <inheritdoc />
-        IEnumerator<string> IEnumerable<string>.GetEnumerator()
+        public IEnumerator<string> GetEnumerator()
         {
             return _claimValues.Keys.GetEnumerator();
         }

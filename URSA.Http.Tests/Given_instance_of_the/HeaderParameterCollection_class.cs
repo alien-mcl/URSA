@@ -12,7 +12,7 @@ namespace Given_instance_of_the
         public void it_should_set_parameter_by_name()
         {
             var parameters = new HeaderParameterCollection();
-            
+
             parameters["some"] = new HeaderParameter("some", "test");
 
             parameters["some"].Should().NotBeNull();

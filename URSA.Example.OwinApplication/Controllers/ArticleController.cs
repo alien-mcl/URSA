@@ -2,11 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using RomanticWeb;
-using RomanticWeb.Entities;
+using RDeF.Entities;
 using URSA.Example.WebApplication.Data;
 using URSA.Web;
-using URSA.Web.Http.Description;
 using URSA.Web.Http.Description.Entities;
 using URSA.Web.Http.Description.Mapping;
 using URSA.Web.Mapping;
@@ -92,7 +90,7 @@ namespace URSA.Example.WebApplication.Controllers
         public Guid Create(IArticle article)
         {
             Guid id = Guid.NewGuid();
-            article = _entityContext.Copy(article, new EntityId(article.Id.Uri + (article.Id.Uri.AbsoluteUri.EndsWith("/") ? String.Empty : "/") + id));
+            article = _entityContext.Copy(article, new Iri(article.Iri + (article.Iri.ToString().EndsWith("/") ? String.Empty : "/") + id));
             article.Key = id;
             _entityContext.Commit();
             return article.Key;
@@ -112,7 +110,7 @@ namespace URSA.Example.WebApplication.Controllers
         public void Delete(Guid id)
         {
             var article = GetInternal(id);
-            _entityContext.Delete(article.Id, DeleteBehaviour.DeleteChildren);
+            _entityContext.Delete(article.Iri);
             _entityContext.Commit();
         }
 

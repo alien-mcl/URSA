@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+# Visual Studio 15
+VisualStudioVersion = 15.0.26430.12
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "URSA.Core", "URSA.Core\URSA.Core.csproj", "{643795DC-2CE4-4AA6-A480-92B92023DA25}"
 EndProject
@@ -48,10 +48,12 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".build", ".build", "{516055
 	ProjectSection(SolutionItems) = preProject
 		after.URSA.sln.targets = after.URSA.sln.targets
 		before.URSA.sln.targets = before.URSA.sln.targets
+		.build\CommonAssemblyInfo.cs = .build\CommonAssemblyInfo.cs
 		.build\Make.bat = .build\Make.bat
 		.build\nuget.bat = .build\nuget.bat
 		OpenCover\OpenCover.UI.config = OpenCover\OpenCover.UI.config
 		.build\Version.bat = .build\Version.bat
+		.build\VersionAssemblyInfo.cs = .build\VersionAssemblyInfo.cs
 	EndProjectSection
 EndProject
 Project("{E24C65DC-7377-472B-9ABA-BC803B73C61A}") = "URSA.Client", "http://localhost:49639", "{96C34881-396A-4F51-AEF0-F0B5F96545FB}"
@@ -86,10 +88,15 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "URSA.AutoFac", "URSA.AutoFa
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "URSA.Http.AutoFac", "URSA.Http.AutoFac\URSA.Http.AutoFac.csproj", "{58881913-A756-4321-87DC-21420C7A48D9}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".config", ".config", "{1E3D011C-3B64-4C9E-8386-4ACFFC1F990A}"
+	ProjectSection(SolutionItems) = preProject
+		Settings.StyleCop = Settings.StyleCop
+		TestSettings.StyleCop = TestSettings.StyleCop
+		URSA.ruleset = URSA.ruleset
+		URSA.Tests.ruleset = URSA.Tests.ruleset
+	EndProjectSection
+EndProject
 Global
-	GlobalSection(Performance) = preSolution
-		HasPerformanceSessions = true
-	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
@@ -168,5 +175,8 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(Performance) = preSolution
+		HasPerformanceSessions = true
 	EndGlobalSection
 EndGlobal

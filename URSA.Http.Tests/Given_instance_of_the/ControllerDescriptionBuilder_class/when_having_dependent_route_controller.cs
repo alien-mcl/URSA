@@ -1,8 +1,8 @@
 ﻿using System.Diagnostics.CodeAnalysis;
-using FluentAssertions;
-using Moq;
 using System.Linq;
 using System.Reflection;
+using FluentAssertions;
+using Moq;
 using NUnit.Framework;
 using URSA.Web.Description;
 using URSA.Web.Description.Http;

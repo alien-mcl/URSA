@@ -1,7 +1,5 @@
 ﻿using System.Diagnostics.CodeAnalysis;
-using FluentAssertions;
 using System.IO;
-using System.Linq;
 using System.Runtime.Serialization;
 using System.Text;
 using NUnit.Framework;

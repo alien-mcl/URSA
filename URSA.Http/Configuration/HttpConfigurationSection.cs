@@ -41,6 +41,7 @@ namespace URSA.Configuration
         {
         }
 #endif
+
         /// <summary>Gets or sets the default parameter source selector type.</summary>
         public Type DefaultValueRelationSelectorType
         {

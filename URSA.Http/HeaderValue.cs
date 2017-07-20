@@ -54,6 +54,25 @@ namespace URSA.Web.Http
         /// <summary>Gets the parameters string.</summary>
         public string Parameter { get { return Parameters.ToString(); } }
 
+        /// <summary>Checks if the given header value equals a literal.</summary>
+        /// <param name="value">Header value.</param>
+        /// <param name="someValue">Literal to be checked against.</param>
+        /// <returns><b>true</b> if both arguments are <b>null</b> or <see cref="HeaderValue.Value" /> property of the <paramref name="value" /> equals <paramref name="someValue" />; otherwise <b>false</b>.</returns>
+        public static bool operator ==(HeaderValue value, string someValue)
+        {
+            return ((Object.Equals(value, null)) && (Object.Equals(someValue, null))) ||
+                ((!Object.Equals(value, null)) && (!Object.Equals(someValue, null)) && (value.Equals(Parse(someValue))));
+        }
+
+        /// <summary>Checks if the given header value is not equal a literal.</summary>
+        /// <param name="value">Header value.</param>
+        /// <param name="someValue">Literal to be checked against.</param>
+        /// <returns><b>false</b> if both arguments are <b>null</b> or <see cref="HeaderValue.Value" /> property of the <paramref name="value" /> equals <paramref name="someValue" />; otherwise <b>true</b>.</returns>
+        public static bool operator !=(HeaderValue value, string someValue)
+        {
+            return !(value == someValue);
+        }
+
         /// <summary>Tries to parse a given string as an <see cref="HeaderValue" />.</summary>
         /// <param name="value">String to be parsed.</param>
         /// <param name="headerValue">Resulting header value if parsing was successful; otherwise <b>null</b>.</param>
@@ -80,25 +99,6 @@ namespace URSA.Web.Http
         public static HeaderValue Parse(string value)
         {
             return ParseInternal(null, value);
-        }
-
-        /// <summary>Checks if the given header value equals a literal.</summary>
-        /// <param name="value">Header value.</param>
-        /// <param name="someValue">Literal to be checked against.</param>
-        /// <returns><b>true</b> if both arguments are <b>null</b> or <see cref="HeaderValue.Value" /> property of the <paramref name="value" /> equals <paramref name="someValue" />; otherwise <b>false</b>.</returns>
-        public static bool operator ==(HeaderValue value, string someValue)
-        {
-            return ((Object.Equals(value, null)) && (Object.Equals(someValue, null))) ||
-                ((!Object.Equals(value, null)) && (!Object.Equals(someValue, null)) && (value.Equals(Parse(someValue))));
-        }
-
-        /// <summary>Checks if the given header value is not equal a literal.</summary>
-        /// <param name="value">Header value.</param>
-        /// <param name="someValue">Literal to be checked against.</param>
-        /// <returns><b>false</b> if both arguments are <b>null</b> or <see cref="HeaderValue.Value" /> property of the <paramref name="value" /> equals <paramref name="someValue" />; otherwise <b>true</b>.</returns>
-        public static bool operator !=(HeaderValue value, string someValue)
-        {
-            return !(value == someValue);
         }
 
         /// <inheritdoc />

@@ -11,7 +11,7 @@ namespace URSA.Web.Converters
         private Lazy<IEnumerable<IConverter>> _converters;
 
         /// <inheritdoc />
-        public IEnumerable<string> SupportedMediaTypes { get { return _converters.Value.SelectMany(item => item.SupportedMediaTypes); } } 
+        public IEnumerable<string> SupportedMediaTypes { get { return _converters.Value.SelectMany(item => item.SupportedMediaTypes); } }
 
         /// <inheritdoc />
         public void Initialize(Func<IEnumerable<IConverter>> convertersFactory)
@@ -53,7 +53,7 @@ namespace URSA.Web.Converters
             foreach (var item in _converters.Value)
             {
                 var level = item.CanConvertTo(expectedType, request);
-                if (((!ignoreProtocol) && ((level & CompatibilityLevel.ProtocolMatch) != CompatibilityLevel.ProtocolMatch)) || 
+                if (((!ignoreProtocol) && ((level & CompatibilityLevel.ProtocolMatch) != CompatibilityLevel.ProtocolMatch)) ||
                     ((level & CompatibilityLevel.TypeMatch) != CompatibilityLevel.TypeMatch))
                 {
                     continue;

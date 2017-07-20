@@ -4,7 +4,6 @@ using URSA.ComponentModel;
 using URSA.Web.Converters;
 using URSA.Web.Description.Http;
 using URSA.Web.Http.Configuration;
-using URSA.Web.Http.Description.Entities;
 
 namespace URSA.Web.Http.Description
 {

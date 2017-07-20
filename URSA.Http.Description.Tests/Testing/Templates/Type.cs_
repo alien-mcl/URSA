@@ -13,7 +13,7 @@ using URSA.Web.Http;
 namespace Test
 {
     [System.CodeDom.Compiler.GeneratedCode("URSA HTTP client proxy generation tool", "1.0")]
-    public interface IType : RomanticWeb.Entities.IEntity
+    public interface IType : RDeF.Entities.IEntity
     {
         new System.Int32 Id { get; set; }
     }
@@ -21,11 +21,11 @@ namespace Test
     [System.CodeDom.Compiler.GeneratedCode("URSA HTTP client proxy generation tool", "1.0")]
     public partial class Type : IType
     {
-        private RomanticWeb.Entities.EntityId _id = new RomanticWeb.Entities.EntityId(new System.Uri("urn:guid:" + System.Guid.NewGuid()));
+        private RDeF.Entities.Iri _iri = new RDeF.Entities.Iri("urn:guid:" + System.Guid.NewGuid());
 
-        RomanticWeb.IEntityContext RomanticWeb.Entities.IEntity.Context { get { return null; } }
+        RDeF.Entities.IEntityContext RDeF.Entities.IEntity.Context { get { return null; } }
 
-        RomanticWeb.Entities.EntityId RomanticWeb.Entities.IEntity.Id { get { return _id; } }
+        RDeF.Entities.Iri RDeF.Entities.IEntity.Iri { get { return _iri; } }
 
         public System.Int32 Id { get; set; }
     }

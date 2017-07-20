@@ -1,29 +1,20 @@
-﻿using RomanticWeb;
-using RomanticWeb.DotNetRDF;
-using System;
+﻿using System;
 using System.Configuration;
-using System.Linq;
 using System.Reflection;
 using Autofac;
-using RomanticWeb.Configuration;
-using RomanticWeb.NamedGraphs;
+using RDeF.Entities;
 using URSA.CodeGen;
 using URSA.Configuration;
 using URSA.Http.AutoFac.Description;
-using URSA.Http.AutoFac.Entities;
 using URSA.Web;
 using URSA.Web.Description.Http;
 using URSA.Web.Http;
-using URSA.Web.Http.Configuration;
 using URSA.Web.Http.Converters;
 using URSA.Web.Http.Description;
 using URSA.Web.Http.Description.CodeGen;
-using URSA.Web.Http.Description.Entities;
 using URSA.Web.Http.Description.Mapping;
-using URSA.Web.Http.Description.NamedGraphs;
 using URSA.Web.Http.Mapping;
 using URSA.Web.Mapping;
-using VDS.RDF;
 using GenericUriParser = URSA.Web.Http.Description.CodeGen.GenericUriParser;
 
 namespace URSA.AutoFac
@@ -31,21 +22,6 @@ namespace URSA.AutoFac
     /// <summary>Installs HTTP components.</summary>
     public class HttpInstaller : Autofac.Module
     {
-        private static readonly Uri MetaGraphUri = ConfigurationSectionHandler.Default.Factories.Cast<FactoryElement>()
-            .First(factory => factory.Name == DescriptionConfigurationSection.Default.DefaultStoreFactoryName).MetaGraphUri;
-
-        private readonly Lazy<EntityContextFactory> _entityContextFactory;
-        private readonly INamedGraphSelector _namedGraphSelector;
-        private readonly object _lock = new object();
-        private bool _isBaseUriInitialized;
-
-        /// <summary>Initializes a new instance of the <see cref="HttpInstaller" /> class.</summary>
-        public HttpInstaller()
-        {
-            _entityContextFactory = new Lazy<EntityContextFactory>(CreateEntityContextFactory, true);
-            _namedGraphSelector = new FixedNamedGraphSelector();
-        }
-
         /// <inheritdoc />
         protected override void Load(ContainerBuilder builder)
         {
@@ -85,17 +61,11 @@ namespace URSA.AutoFac
 
         private void InstallRdfDependencies(ContainerBuilder builder)
         {
-            builder.RegisterInstance(MetaGraphUri).Named<Uri>("InMemoryMetaGraph").SingleInstance();
-            builder.RegisterInstance(_namedGraphSelector).As<INamedGraphSelector>().SingleInstance();
-            builder.RegisterInstance(_entityContextFactory.Value).Named<IEntityContextFactory>("InMemoryEntityContextFactory").SingleInstance();
-            builder.Register(CreateTripleStore).Named<ITripleStore>("InMemoryTripleStore").InstancePerLifetimeScope();
-            builder.Register(CreateEntityContext).Named<IEntityContext>("InMemoryEntityContext").InstancePerLifetimeScope();
-            builder.Register(context => new DefaultEntityContextProvider(
-                context.ResolveNamed<IEntityContext>("InMemoryEntityContext"),
-                context.ResolveNamed<ITripleStore>("InMemoryTripleStore"),
-                context.ResolveNamed<Uri>("InMemoryMetaGraph"))).As<IEntityContextProvider>().InstancePerLifetimeScope();
+            builder.RegisterType<DefaultEntityContextFactory>().Named<IEntityContextFactory>("InMemoryEntityContextFactory").SingleInstance();
+            builder.Register(context => context.ResolveNamed<IEntityContextFactory>("InMemoryEntityContextFactory").Create())
+                .Named<IEntityContext>("InMemoryEntityContext").InstancePerLifetimeScope();
         }
-        
+
         private void InstallDescriptionDependencies(ContainerBuilder builder)
         {
             builder.RegisterType(typeof(DescriptionController<>)).As(typeof(DescriptionController<>)).As<IController>().InstancePerDependency();
@@ -118,74 +88,6 @@ namespace URSA.AutoFac
             builder.RegisterType<XsdUriParser>().As<IUriParser>().Named<IUriParser>(typeof(XsdUriParser).FullName).SingleInstance();
             builder.RegisterType<OGuidUriParser>().As<IUriParser>().Named<IUriParser>(typeof(OGuidUriParser).FullName).SingleInstance();
             builder.RegisterType<XmlDocProvider>().As<IXmlDocProvider>().SingleInstance();
-        }
-
-        private IEntityContext CreateEntityContext(IComponentContext context)
-        {
-            IEntityContext result = null;
-            lock (_lock)
-            {
-                EntityContextFactory entityContextFactory = _entityContextFactory.Value;
-                if (!_isBaseUriInitialized)
-                {
-                    if (context.IsRegistered<IHttpServerConfiguration>())
-                    {
-                        var baseUri = context.Resolve<IHttpServerConfiguration>().BaseUri;
-                        if (baseUri != null)
-                        {
-                            _isBaseUriInitialized = true;
-                            result = CreateThreadSafeEntityContext(
-                                entityContextFactory.WithBaseUri(policy => policy.Default.Is(baseUri)),
-                                context.ResolveNamed<ITripleStore>("InMemoryTripleStore"));
-                        }
-                    }
-                    else
-                    {
-                        _isBaseUriInitialized = true;
-                    }
-                }
-
-                if (result == null)
-                {
-                    result = CreateThreadSafeEntityContext(entityContextFactory, context.ResolveNamed<ITripleStore>("InMemoryTripleStore"));
-                }
-            }
-
-            return result;
-        }
-
-        private IEntityContext CreateThreadSafeEntityContext(IEntityContextFactory entityContextFactory, ITripleStore tripleStore)
-        {
-            var metaGraphUri = tripleStore.Graphs.First().BaseUri;
-            var sparqlCommandFactory = (ISparqlCommandFactory)typeof(TripleStoreAdapter).GetTypeInfo().Assembly
-                .GetType("RomanticWeb.DotNetRDF.DefaultSparqlCommandFactory")
-                .GetConstructor(new[] { typeof(Uri) })
-                .Invoke(new object[] { metaGraphUri });
-            var sparqlCommandExecutionStrategyFactory = (ISparqlCommandExecutionStrategyFactory)typeof(TripleStoreAdapter).GetTypeInfo().Assembly
-                .GetType("RomanticWeb.DotNetRDF.DefaultSparqlCommandExecutionStrategyFactory")
-                .GetConstructor(Type.EmptyTypes)
-                .Invoke(null);
-            var tripleStoreAdapter = new TripleStoreAdapter(tripleStore, sparqlCommandFactory, sparqlCommandExecutionStrategyFactory) { MetaGraphUri = metaGraphUri };
-            var result = entityContextFactory.CreateContext();
-            result.GetType().GetField("_entitySource", BindingFlags.NonPublic | BindingFlags.Instance).SetValue(result, tripleStoreAdapter);
-            return result;
-        }
-
-        private ITripleStore CreateTripleStore(IComponentContext context)
-        {
-            var store = new ThreadSafeTripleStore();
-            var metaGraph = new ThreadSafeGraph() { BaseUri = MetaGraphUri };
-            store.Add(metaGraph);
-            return store;
-        }
-
-        private EntityContextFactory CreateEntityContextFactory()
-        {
-            return EntityContextFactory
-                .FromConfiguration(DescriptionConfigurationSection.Default.DefaultStoreFactoryName)
-                .WithDefaultOntologies()
-                .WithNamedGraphSelector(_namedGraphSelector)
-                .WithDotNetRDF(new TripleStore());
         }
     }
 }

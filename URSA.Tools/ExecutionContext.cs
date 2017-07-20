@@ -13,8 +13,8 @@ namespace System
     /// <summary>Provides useful code execution context methods.</summary>
     public static class ExecutionContext
     {
-        /// <summary>Gets a primary path storing assemblies for given application.</summary> 
-        /// <returns>Primary place where assemblies for given application domain are stored.</returns> 
+        /// <summary>Gets a primary path storing assemblies for given application.</summary>
+        /// <returns>Primary place where assemblies for given application domain are stored.</returns>
         public static string GetPrimaryAssemblyDirectory()
         {
 #if CORE

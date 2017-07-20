@@ -1,23 +1,23 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
-using RomanticWeb.Entities;
-using RomanticWeb.Mapping.Attributes;
-using RomanticWeb.Mapping.Fluent;
+using RDeF.Entities;
+using RDeF.Mapping.Attributes;
+using RDeF.Mapping.Mapping.Fluent;
 using URSA.Web;
 
 namespace URSA.Example.WebApplication.Data
 {
     /// <summary>Describes a person.</summary>
-    [Class("http://temp.uri/vocab#Article")]
+    [Class(Iri = "http://temp.uri/vocab#Article")]
     public interface IArticle : IEntity, IControlledEntity<Guid>
     {
         /// <summary> Gets or sets the articles's title.</summary>
         [Required]
-        [Property("http://temp.uri/vocab#title")]
+        [Property(Iri = "http://temp.uri/vocab#title")]
         string Title { get; set; }
 
         /// <summary> Gets or sets the articles's body.</summary>
-        [Property("http://temp.uri/vocab#body")]
+        [Property(Iri = "http://temp.uri/vocab#body")]
         string Body { get; set; }
     }
 
@@ -27,7 +27,7 @@ namespace URSA.Example.WebApplication.Data
         /// <summary>Initializes a new instance of the <see cref="ArticleMap"/> class.</summary>
         public ArticleMap()
         {
-            Property(instance => instance.Key).Term.Is(new Uri("http://temp.uri/vocab#key"));
+            WithProperty(instance => instance.Key).MappedTo(new Iri("http://temp.uri/vocab#key"));
         }
     }
 }

@@ -30,6 +30,6 @@ namespace URSA.Example.OwinApplication
                 .WithIdentityProvider<BasicIdentityProvider>()
                 .WithBasicAuthentication()
                 .RegisterApis();
-        } 
+        }
     }
 }

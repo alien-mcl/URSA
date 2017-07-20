@@ -1,12 +1,10 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using FluentAssertions;
-using FluentAssertions.Specialized;
-using Moq;
 using System.Linq;
 using System.Reflection;
+using FluentAssertions;
+using Moq;
 using NUnit.Framework;
 using URSA.Web.Description;
 using URSA.Web.Description.Http;

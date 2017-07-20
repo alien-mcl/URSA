@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using RDeF.Entities;
-using URSA.Web;
 using URSA.Web.Http.Description.Reflection;
 
 namespace URSA.Reflection
@@ -86,7 +85,7 @@ namespace URSA.Reflection
         {
             return (from parameter in method.GetParameters()
                     from property in targetType.GetProperties(typeof(IEntity))
-                    where ((parameter.ParameterType == property.PropertyType) || (parameter.ParameterType.IsAssignableFrom(property.PropertyType))) && 
+                    where ((parameter.ParameterType == property.PropertyType) || (parameter.ParameterType.IsAssignableFrom(property.PropertyType))) &&
                         (StringComparer.OrdinalIgnoreCase.Equals(parameter.Name, property.Name.ToLower())) &&
                         (!exceptNamedProperty.Contains(property.Name, StringComparer.OrdinalIgnoreCase))
                     select property).FirstOrDefault();

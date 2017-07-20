@@ -9,7 +9,6 @@ using RDeF.Entities;
 using RollerCaster;
 using URSA.Configuration;
 using URSA.Web.Http.Converters;
-using URSA.Web.Http.Description.Entities;
 using URSA.Web.Http.Description.Hydra;
 using ICollection = URSA.Web.Http.Description.Hydra.ICollection;
 
@@ -107,9 +106,9 @@ namespace URSA.Web.Http.Description
             var matchingMediaTypes = from accepted in requestInfo.Headers[Header.Accept].Values
                                      join supportedMediaType in EntityConverter.MediaTypes.Concat(new[] { "*/*" }) on accepted.Value equals supportedMediaType
                                      select supportedMediaType;
-            return 
-                ((DescriptionConfigurationSection.Default.HypermediaMode == HypermediaModes.SameGraph) && 
-                (returnType.GetTypeInfo().IsEnumerable()) && 
+            return
+                ((DescriptionConfigurationSection.Default.HypermediaMode == HypermediaModes.SameGraph) &&
+                (returnType.GetTypeInfo().IsEnumerable()) &&
                 (requestInfo != null) && ((requestInfo.Headers[Header.Accept] != null) && (matchingMediaTypes.Any())));
         }
     }

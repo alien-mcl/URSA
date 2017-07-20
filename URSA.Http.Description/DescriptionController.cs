@@ -3,7 +3,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using RDeF.Entities;
 using URSA.Web.Http.Converters;
-using URSA.Web.Http.Description.Entities;
 using URSA.Web.Http.Description.Hydra;
 using URSA.Web.Http.Mapping;
 using URSA.Web.Mapping;
@@ -15,7 +14,7 @@ namespace URSA.Web.Http.Description
     {
         /// <summary>Turtle format.</summary>
         Turtle,
-        
+
         /// <summary>RDF/XML format.</summary>
         Rdf,
 

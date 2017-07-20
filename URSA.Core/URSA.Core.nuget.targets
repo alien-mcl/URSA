@@ -13,7 +13,7 @@
     <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
   </PropertyGroup>
   <ImportGroup Condition=" '$(ExcludeRestorePackageImports)' != 'true' ">
-    <Import Project="$(NuGetPackageRoot)stylecop.msbuild\4.7.49.1\build\StyleCop.MSBuild.Targets" Condition="Exists('$(NuGetPackageRoot)stylecop.msbuild\4.7.49.1\build\StyleCop.MSBuild.Targets')" />
+    <Import Project="$(NuGetPackageRoot)stylecop.msbuild\5.0.0-beta02\build\StyleCop.MSBuild.targets" Condition="Exists('$(NuGetPackageRoot)stylecop.msbuild\5.0.0-beta02\build\StyleCop.MSBuild.targets')" />
     <Import Project="$(NuGetPackageRoot)stylecop.error.msbuild\1.0.0\build\StyleCop.Error.MSBuild.Targets" Condition="Exists('$(NuGetPackageRoot)stylecop.error.msbuild\1.0.0\build\StyleCop.Error.MSBuild.Targets')" />
   </ImportGroup>
 </Project>

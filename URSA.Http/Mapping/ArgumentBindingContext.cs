@@ -41,13 +41,13 @@ namespace URSA.Web.Http.Mapping
         }
 
         internal RequestInfo Request { get; private set; }
-            
+
         internal RequestMapping RequestMapping { get; private set; }
-        
+
         internal ParameterInfo Parameter { get; private set; }
-        
+
         internal int Index { get; private set; }
-        
+
         internal IDictionary<RequestInfo, RequestInfo[]> MultipartBodies { get; private set; }
 
         internal bool Success { get; set; }
@@ -60,8 +60,14 @@ namespace URSA.Web.Http.Mapping
     [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "Internal infrastructure carrying data - not a subject for testing.")]
     public class ArgumentBindingContext<T> : ArgumentBindingContext where T : ParameterSourceAttribute
     {
-        internal ArgumentBindingContext(RequestInfo request, RequestMapping requestMapping, ParameterInfo parameter, int index, T parameterSource, IDictionary<RequestInfo, RequestInfo[]> multipartBodies) :
-            base(request, requestMapping, parameter, index, multipartBodies)
+        internal ArgumentBindingContext(
+            RequestInfo request,
+            RequestMapping requestMapping,
+            ParameterInfo parameter,
+            int index,
+            T parameterSource,
+            IDictionary<RequestInfo, RequestInfo[]> multipartBodies)
+            : base(request, requestMapping, parameter, index, multipartBodies)
         {
             if (parameterSource == null)
             {

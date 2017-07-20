@@ -16,7 +16,8 @@ namespace Given_instance_of_the.converter_of
     {
         private Mock<IConverterProvider> _converterProvider;
 
-        [Test] public void it_should_return_null_when_no_value_to_be_deserialized_is_provided()
+        [Test]
+        public void it_should_return_null_when_no_value_to_be_deserialized_is_provided()
         {
             _converterProvider.Object.ConvertTo(null, typeof(string)).Should().BeNull();
         }

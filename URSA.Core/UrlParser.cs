@@ -57,7 +57,7 @@ namespace URSA
 
         /// <summary>Defines chars allowed in host.</summary>
         public static readonly char[] HostAllowed = AlphaDigit.Concat(new[] { '-', '.' }).ToArray();
-        
+
         private static readonly IDictionary<string, Type> UrlParsers = new ConcurrentDictionary<string, Type>();
 
         static UrlParser()

@@ -1,10 +1,10 @@
 ﻿#pragma warning disable 1591
-using FluentAssertions;
-using Moq;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using FluentAssertions;
+using Moq;
 using NUnit.Framework;
 using RDeF.Entities;
 using RDeF.Mapping;
@@ -38,7 +38,7 @@ namespace Given_instance_of_the.HydraClassGenerator_class
         private static readonly Uri UrsaDatatypeDefinition = new Uri(DescriptionController<IController>.VocabularyBaseUri + "DatatypeDefinition");
         private static readonly Uri ReadOperationUri = new Uri("http://temp.uri/type/#GET");
 
-        private IList<Statement> _statements; 
+        private IList<Statement> _statements;
         private Mock<IMappingsRepository> _mappingsRepository;
         private Mock<IEntityContext> _context;
         private Mock<IUriParser> _uriParser;
@@ -70,7 +70,7 @@ namespace Given_instance_of_the.HydraClassGenerator_class
             var apiDocumentation = SetupContex();
             SetupClass();
             apiDocumentation.SetupGet(instance => instance.SupportedClasses).Returns(new[] { _class.Object });
-            _generator = new HydraClassGenerator(new IUriParser[] { _uriParser.Object });
+            _generator = new HydraClassGenerator(new[] { _uriParser.Object });
         }
 
         [TearDown]

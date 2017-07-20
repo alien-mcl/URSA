@@ -8,7 +8,6 @@ using URSA.Reflection;
 using URSA.Web.Description;
 using URSA.Web.Description.Http;
 using URSA.Web.Http.Configuration;
-using URSA.Web.Http.Description.Entities;
 using URSA.Web.Http.Mapping;
 using URSA.Web.Mapping;
 
@@ -33,8 +32,8 @@ namespace URSA.Web.Http.Description
             IEntityContext entityContext,
             IApiEntryPointDescriptionBuilder apiDescriptionBuilder,
             IHttpServerConfiguration httpServerConfiguration,
-            IEnumerable<IHttpControllerDescriptionBuilder> httpControllerDescriptionBuilders) :
-            base(entityContext, apiDescriptionBuilder)
+            IEnumerable<IHttpControllerDescriptionBuilder> httpControllerDescriptionBuilders)
+            : base(entityContext, apiDescriptionBuilder)
         {
             if (entryPoint == null)
             {
@@ -60,7 +59,7 @@ namespace URSA.Web.Http.Description
                 return (position != -1 ? entryPoint.Substring(position + 1) : entryPoint.Split('/').Last());
             }
         }
-        
+
         /// <summary>Gets the hypermedia enabled controller list operations.</summary>
         /// <returns>Returns entry point details.</returns>
         [OnGet]

@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
-using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using URSA.Security;
@@ -25,8 +24,8 @@ namespace URSA.Web.Http
         /// <param name="headers">Headers of the request.</param>
         [ExcludeFromCodeCoverage]
         [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
-        public RequestInfo(Verb method, HttpUrl url, Stream body, IClaimBasedIdentity identity, params Header[] headers) :
-            this(method, url, body, identity, new HeaderCollection(headers))
+        public RequestInfo(Verb method, HttpUrl url, Stream body, IClaimBasedIdentity identity, params Header[] headers)
+            : this(method, url, body, identity, new HeaderCollection(headers))
         {
         }
 

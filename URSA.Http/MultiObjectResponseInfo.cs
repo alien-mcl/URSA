@@ -20,8 +20,8 @@ namespace URSA.Web.Http
         /// <param name="headers">Headers of the response.</param>
         [ExcludeFromCodeCoverage]
         [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
-        public MultiObjectResponseInfo(RequestInfo request, IEnumerable<object> values, IConverterProvider converterProvider, params Header[] headers) :
-            this(Encoding.UTF8, request, values, converterProvider, headers)
+        public MultiObjectResponseInfo(RequestInfo request, IEnumerable<object> values, IConverterProvider converterProvider, params Header[] headers)
+            : this(Encoding.UTF8, request, values, converterProvider, headers)
         {
         }
 
@@ -33,8 +33,8 @@ namespace URSA.Web.Http
         /// <param name="headers">Headers of the response.</param>
         [ExcludeFromCodeCoverage]
         [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
-        public MultiObjectResponseInfo(Encoding encoding, RequestInfo request, IEnumerable<object> values, IConverterProvider converterProvider, params Header[] headers) :
-            base(encoding, request, headers)
+        public MultiObjectResponseInfo(Encoding encoding, RequestInfo request, IEnumerable<object> values, IConverterProvider converterProvider, params Header[] headers)
+            : base(encoding, request, headers)
         {
             Initialize(encoding, request, values, converterProvider);
         }
@@ -46,8 +46,8 @@ namespace URSA.Web.Http
         /// <param name="headers">Headers of the response.</param>
         [ExcludeFromCodeCoverage]
         [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
-        public MultiObjectResponseInfo(RequestInfo request, IEnumerable<object> values, IConverterProvider converterProvider, HeaderCollection headers) :
-            this(Encoding.UTF8, request, values, converterProvider, headers)
+        public MultiObjectResponseInfo(RequestInfo request, IEnumerable<object> values, IConverterProvider converterProvider, HeaderCollection headers)
+            : this(Encoding.UTF8, request, values, converterProvider, headers)
         {
         }
 
@@ -59,8 +59,8 @@ namespace URSA.Web.Http
         /// <param name="headers">Headers of the response.</param>
         [ExcludeFromCodeCoverage]
         [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
-        public MultiObjectResponseInfo(Encoding encoding, RequestInfo request, IEnumerable<object> values, IConverterProvider converterProvider, HeaderCollection headers) :
-            base(encoding, request, headers)
+        public MultiObjectResponseInfo(Encoding encoding, RequestInfo request, IEnumerable<object> values, IConverterProvider converterProvider, HeaderCollection headers)
+            : base(encoding, request, headers)
         {
             Initialize(encoding, request, values, converterProvider);
         }
@@ -69,7 +69,7 @@ namespace URSA.Web.Http
         public IEnumerable<ResponseInfo> ObjectResponses { get; private set; }
 
         /// <summary>Gets the values.</summary>
-        public IEnumerable<object> Values { get { return ObjectResponses.Select(item => ((ObjectResponseInfo)item).Object); } } 
+        public IEnumerable<object> Values { get { return ObjectResponses.Select(item => ((ObjectResponseInfo)item).Object); } }
 
         /// <inheritdoc />
         public sealed override Stream Body { get; protected set; }

@@ -28,8 +28,8 @@ namespace URSA.Web.Http.Description.Mapping
         public static void Accept(
             this IEnumerable<ServerBehaviorAttribute> attributes,
             Type memberType,
-            IServerBehaviorAttributeVisitor visitor, 
-            IIriTemplateMapping templateMapping, 
+            IServerBehaviorAttributeVisitor visitor,
+            IIriTemplateMapping templateMapping,
             DescriptionContext descriptionContext)
         {
             foreach (var attribute in attributes)

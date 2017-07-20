@@ -12,7 +12,6 @@ using URSA.Web.Http.Description.Entities;
 using URSA.Web.Http.Description.Hydra;
 using URSA.Web.Http.Description.Owl;
 using URSA.Web.Http.Description.Rdfs;
-using URSA.Web.Http.Description.Reflection;
 using IClass = URSA.Web.Http.Description.Hydra.IClass;
 
 namespace URSA.Web.Http.Description

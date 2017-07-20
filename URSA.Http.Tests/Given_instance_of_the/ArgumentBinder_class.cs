@@ -1,19 +1,18 @@
-﻿using FluentAssertions;
-using Moq;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
+using FluentAssertions;
+using Moq;
 using NUnit.Framework;
 using URSA;
 using URSA.Security;
 using URSA.Web;
 using URSA.Web.Converters;
 using URSA.Web.Description;
-using URSA.Web.Description.Http;
 using URSA.Web.Http;
 using URSA.Web.Http.Mapping;
 using URSA.Web.Mapping;
@@ -260,7 +259,7 @@ namespace Given_instance_of_the
             {
                 return System.Convert.FromBase64String(body);
             }
-            
+
             return body;
         }
 

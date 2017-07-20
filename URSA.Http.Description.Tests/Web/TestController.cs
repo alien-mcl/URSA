@@ -38,6 +38,7 @@ namespace URSA.Web.Http.Description.Tests
 
         /// <summary>Creates the specified person which identifier is returned when created.</summary>
         /// <param name="person">The person.</param>
+        /// <returns>Identifier of a newly create person.</returns>
         public Guid Create(Person person)
         {
             return Guid.Empty;

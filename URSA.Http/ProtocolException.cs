@@ -37,7 +37,7 @@ namespace URSA.Web.Http
         {
             Status = status;
         }
-        
+
         /// <summary>Initializes a new instance of the <see cref="ProtocolException" /> class.</summary>
         /// <param name="status">An associated HTTP status code of this exception</param>
         /// <param name="message">Message of the exception.</param>

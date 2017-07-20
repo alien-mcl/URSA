@@ -4,7 +4,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Net;
 using System.Reflection;
-using System.Threading;
 using System.Threading.Tasks;
 #if CORE
 using URSA.AspNetCore.Http;
@@ -15,7 +14,6 @@ using Microsoft.Owin;
 using URSA.Owin.Security;
 using URSA.Web;
 using URSA.Web.Http;
-using URSA.Web.Http.Configuration;
 using URSA.Web.Http.Converters;
 using URSA.Web.Http.Description;
 
@@ -94,6 +92,7 @@ namespace URSA.Owin.Handlers
                 (((ExceptionResponseInfo)response).Value is NoMatchingRouteFoundException));
         }
 
+#pragma warning disable SA1115 // Parameter must follow comma
         private static async Task HandleEmbeddedResource(
 #if CORE
             HttpContext context,
@@ -102,6 +101,7 @@ namespace URSA.Owin.Handlers
 #endif
             string fileName,
             string mediaType)
+#pragma warning restore SA1115 // Parameter must follow comma
         {
             context.Response.ContentType = mediaType;
             if (!String.IsNullOrEmpty(context.Request.Headers[Header.Origin]))

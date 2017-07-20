@@ -16,7 +16,7 @@ namespace URSA.Security
         /// <returns>The securable resource filled with security details.</returns>
         public static T WithSecurityDetailsFrom<T>(this T securableResource, ICustomAttributeProvider member) where T : SecurableResourceInfo
         {
-            var customAttributes = (member is MemberInfo ? 
+            var customAttributes = (member is MemberInfo ?
                 ((MemberInfo)member).GetCustomAttributes<ClaimBasedSecurityConstraintAttribute>() :
                 ((Assembly)member).GetCustomAttributes<ClaimBasedSecurityConstraintAttribute>());
             foreach (var claimSpecification in customAttributes)
@@ -51,7 +51,7 @@ namespace URSA.Security
             }
 
             var securityRequirements = securableResource.UnifiedSecurityRequirements;
-            return (!securityRequirements.Denied.Matches(identity)) && 
+            return (!securityRequirements.Denied.Matches(identity)) &&
                 ((!securityRequirements.Allowed.Any()) || (securityRequirements.Allowed.Matches(identity)));
         }
 

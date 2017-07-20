@@ -27,7 +27,7 @@ namespace FluentAssertions
         /// <param name="reasonArgs">Justification text arguments.</param>
         /// <returns>Further <see cref="Url" /> assertions.</returns>
         public AndConstraint<HttpUrlAssertions> ComplyWith(UrlScenario scenario, string because = "", params object[] reasonArgs)
-        { 
+        {
             if (Subject == null)
             {
                 return new AndConstraint<HttpUrlAssertions>(this);

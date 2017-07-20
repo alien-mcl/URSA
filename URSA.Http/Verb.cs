@@ -49,6 +49,28 @@ namespace URSA.Web.Http
             _verb = verb;
         }
 
+        /// <summary>Checks for equality of two <see cref="Verb" />s.</summary>
+        /// <param name="operandA">Left operand.</param>
+        /// <param name="operandB">Right operand.</param>
+        /// <returns><b>true</b> if both operands are <b>null</b> or both represents the same verb; otherwise <b>false</b>.</returns>
+        public static bool operator ==(Verb operandA, Verb operandB)
+        {
+            return ((Object.Equals(operandA, null)) && (Object.Equals(operandB, null))) ||
+                ((!Object.Equals(operandA, null)) && (!Object.Equals(operandB, null)) &&
+                (operandA._verb.GetHashCode() == operandB._verb.GetHashCode()));
+        }
+
+        /// <summary>Checks for inequality of two <see cref="Verb" />s.</summary>
+        /// <param name="operandA">Left operand.</param>
+        /// <param name="operandB">Right operand.</param>
+        /// <returns><b>false</b> if both operands are <b>null</b> or both represents the same verb; otherwise <b>true</b>.</returns>
+        public static bool operator !=(Verb operandA, Verb operandB)
+        {
+            return ((Object.Equals(operandA, null)) && (!Object.Equals(operandB, null))) ||
+                ((!Object.Equals(operandA, null)) && (Object.Equals(operandB, null))) ||
+                ((!Object.Equals(operandA, null)) && (!Object.Equals(operandB, null)) && (operandA._verb.GetHashCode() != operandB._verb.GetHashCode()));
+        }
+
         /// <summary>Parses a given string into an instance of the <see cref="Verb" /> class.</summary>
         /// <param name="detectedVerb">Verb string to be parsed.</param>
         /// <returns>Instance of the <see cref="Verb" /> class if the parsing was successful; otherwise <b>null</b>.</returns>
@@ -65,31 +87,9 @@ namespace URSA.Web.Http
             }
 
             return (from field in typeof(Verb).GetFields(BindingFlags.Public | BindingFlags.Static)
-                    where (field.IsInitOnly) && (field.FieldType == typeof(Verb)) && 
+                    where (field.IsInitOnly) && (field.FieldType == typeof(Verb)) &&
                         (StringComparer.OrdinalIgnoreCase.Equals(field.Name, detectedVerb))
                     select (Verb)field.GetValue(null)).FirstOrDefault();
-        }
-
-        /// <summary>Checks for equality of two <see cref="Verb" />s.</summary>
-        /// <param name="operandA">Left operand.</param>
-        /// <param name="operandB">Right operand.</param>
-        /// <returns><b>true</b> if both operands are <b>null</b> or both represents the same verb; otherwise <b>false</b>.</returns>
-        public static bool operator ==(Verb operandA, Verb operandB)
-        {
-            return ((Object.Equals(operandA, null)) && (Object.Equals(operandB, null))) ||
-                ((!Object.Equals(operandA, null)) && (!Object.Equals(operandB, null)) && 
-                (operandA._verb.GetHashCode() == operandB._verb.GetHashCode()));
-        }
-
-        /// <summary>Checks for inequality of two <see cref="Verb" />s.</summary>
-        /// <param name="operandA">Left operand.</param>
-        /// <param name="operandB">Right operand.</param>
-        /// <returns><b>false</b> if both operands are <b>null</b> or both represents the same verb; otherwise <b>true</b>.</returns>
-        public static bool operator !=(Verb operandA, Verb operandB)
-        {
-            return ((Object.Equals(operandA, null)) && (!Object.Equals(operandB, null))) ||
-                ((!Object.Equals(operandA, null)) && (Object.Equals(operandB, null))) ||
-                ((!Object.Equals(operandA, null)) && (!Object.Equals(operandB, null)) && (operandA._verb.GetHashCode() != operandB._verb.GetHashCode()));
         }
 
         /// <inheritdoc />

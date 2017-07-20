@@ -28,7 +28,7 @@ namespace URSA.Web.Http.Description.Tests.Data
 
         /// <summary>Gets or sets similar products.</summary>
         [Collection(Iri = "http://temp.uri/vocab#similar")]
-        ICollection<IProduct> Similar { get; set; } 
+        ICollection<IProduct> Similar { get; set; }
     }
 
     /// <summary>Provides additional mappings for the <see cref="IProduct" />.</summary>

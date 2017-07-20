@@ -1,6 +1,5 @@
-﻿using RDeF.Mapping.Attributes;
-using System.Collections.Generic;
-using RDeF.Entities;
+﻿using RDeF.Entities;
+using RDeF.Mapping.Attributes;
 
 namespace URSA.Web.Http.Description.Rdfs
 {

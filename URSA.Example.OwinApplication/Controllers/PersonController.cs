@@ -31,13 +31,13 @@ namespace URSA.Example.WebApplication.Controllers
         /// <inheritdoc />
         public IResponseInfo Response { get; set; }
 
-        //// TODO: Take these parameter attributes to interface.
         /// <summary>Gets all persons.</summary>
         /// <param name="totalItems">Number of total items in the collection if <paramref name="skip" /> and <paramref name="take" /> are used.</param>
         /// <param name="skip">Skips top <paramref name="skip" /> elements of the collection.</param>
         /// <param name="take">Takes top <paramref name="take" /> elements of the collection. Use 0 for all of the entities.</param>
         /// <param name="filter">Expression to be used for entity filtering.</param>
         /// <returns>Collection of entities.</returns>
+        //// TODO: Take these parameter attributes to interface.
         public IEnumerable<Person> List(
             out int totalItems,
             [LinqServerBehavior(LinqOperations.Skip), FromQueryString("{?$skip}")] int skip = 0,

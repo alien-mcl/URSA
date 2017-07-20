@@ -1,8 +1,8 @@
-using System.Reflection;
+ï»¿using System.Reflection;
 
 [assembly: AssemblyProduct("URSA")]
-[assembly: AssemblyCompany("Karol Szczepañski")]
-[assembly: AssemblyCopyright("Copyright © 2014 - 2015")]
+[assembly: AssemblyCompany("Karol SzczepaÅ„ski")]
+[assembly: AssemblyCopyright("Copyright Â© 2014 - 2015")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 [assembly: AssemblyConfiguration("")]

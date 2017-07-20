@@ -333,9 +333,8 @@ namespace URSA.Web.Http
         /// <summary>Initializes a new instance of the <see cref="Header{T}" /> class.</summary>
         /// <param name="name">Name of the header.</param>
         /// <param name="values">Value of the header.</param>
-        public Header(string name, IEnumerable<HeaderValue<T>> values) : base(
-            name, 
-            ((typeof(T).GetTypeInfo().IsValueType) && (!values.Any()) ? new[] { new HeaderValue<T>(default(T)) } : values))
+        public Header(string name, IEnumerable<HeaderValue<T>> values)
+            : base(name, ((typeof(T).GetTypeInfo().IsValueType) && (!values.Any()) ? new[] { new HeaderValue<T>(default(T)) } : values))
         {
             (_parsedValues = new ObservableCollection<HeaderValue<T>>()).AddRange(values);
             _parsedValues.CollectionChanged += OnParsedValuesCollectionChanged;

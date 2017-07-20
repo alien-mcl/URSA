@@ -1,22 +1,22 @@
-﻿using Castle.MicroKernel;
-using Castle.MicroKernel.Context;
-using Castle.MicroKernel.Handlers;
-using Castle.MicroKernel.Registration;
-using Castle.MicroKernel.Resolvers.SpecializedResolvers;
-using Castle.Windsor;
-using Castle.Windsor.Installer;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Castle.Core;
+using Castle.MicroKernel;
+using Castle.MicroKernel.Context;
+using Castle.MicroKernel.Handlers;
 using Castle.MicroKernel.Lifestyle;
+using Castle.MicroKernel.Registration;
+using Castle.MicroKernel.Resolvers.SpecializedResolvers;
+using Castle.Windsor;
+using Castle.Windsor.Installer;
 using URSA.CastleWindsor.ComponentModel;
 
 namespace URSA.ComponentModel
 {
     /// <summary>Provides a Castle Windsor based implementation of the <see cref="IServiceProvider"/> interface.</summary>
-    public sealed class WindsorComponentProvider : IComponentProvider, IDisposable
+    public sealed class WindsorComponentProvider : IComponentProvider
     {
         private readonly IGenericImplementationMatchingStrategy _genericImplementationMatchingStrategy;
         private readonly IDisposable _scope;
@@ -255,7 +255,7 @@ namespace URSA.ComponentModel
                 else if (handler.ComponentModel.Implementation.IsGenericTypeDefinition)
                 {
                     var candidates = handler.ComponentModel.Implementation.GetGenericArguments().First()
-                        .GetGenericParameterConstraints().SelectMany(constrain => 
+                        .GetGenericParameterConstraints().SelectMany(constrain =>
                             _container.Kernel.GetAssignableHandlers(constrain).Where(item => item.CurrentState == HandlerState.Valid).Select(item => item.ComponentModel.Implementation));
                     foreach (var type in candidates)
                     {

@@ -107,7 +107,7 @@ namespace URSA.Web.Http
                    where operation.TemplateRegex.IsMatch(relativeUrl.Path)
                    let httpOperation = (OperationInfo<Verb>)operation
                    let rank = GetMatchRank(controller, httpOperation, queryString, request.Method)
-                   orderby rank.MatchingMethod descending, rank.Specialization descending, rank.MatchingRequiredParameters descending, rank.MatchingOptionalParameters descending 
+                   orderby rank.MatchingMethod descending, rank.Specialization descending, rank.MatchingRequiredParameters descending, rank.MatchingOptionalParameters descending
                    select new KeyValuePair<ControllerInfo, OperationInfo<Verb>>(controller, httpOperation);
         }
 

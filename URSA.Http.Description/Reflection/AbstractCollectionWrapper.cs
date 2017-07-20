@@ -32,7 +32,7 @@ namespace URSA.Web.Http.Description.Reflection
                         _isList = isCollectionInitialized = Initialize(collectionType, @interface, out _add, out _remove, out _contains, true, out _setAt, out _getAt, out _indexOf);
                         break;
                     }
-                    
+
                     if (genericType == typeof(ICollection<>))
                     {
                         isCollectionInitialized = Initialize(collectionType, @interface, out _add, out _remove, out _contains, false, out _setAt, out _getAt, out _indexOf);
@@ -147,7 +147,7 @@ namespace URSA.Web.Http.Description.Reflection
             Type @interface,
             out Action<object> add,
             out Func<object, bool> remove,
-            out Func<object, bool> contains, 
+            out Func<object, bool> contains,
             bool includeList,
             out Action<object, int> setAt,
             out Func<int, object> getAt,

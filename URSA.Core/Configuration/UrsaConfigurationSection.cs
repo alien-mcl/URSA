@@ -38,6 +38,7 @@ namespace URSA.Configuration
         private const string ServiceProviderTypeNameAttribute = "serviceProviderType";
         private const string ConverterProviderTypeNameAttribute = "converterProviderType";
         private const string ControllerActivatorTypeNameAttribute = "controllerActivatorType";
+        private static IEnumerable<Assembly> _installerAssemblies;
 
 #if CORE
         static UrsaConfigurationSection()
@@ -230,6 +231,11 @@ namespace URSA.Configuration
         [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "Method uses local file system, which may proove to be diffucult for testing.")]
         private static IEnumerable<Assembly> GetInstallerAssemblies(string mask)
         {
+            if (_installerAssemblies != null)
+            {
+                return _installerAssemblies;
+            }
+
             var loadedAssemblies = ExecutionContext.GetLoadedAssemblies(new Regex(Regex.Escape(mask).Replace("\\*", ".*").Replace("\\?", ".")));
             var loadedAssemblyFiles = loadedAssemblies.Select(assembly => System.IO.Path.GetFileNameWithoutExtension(assembly.CodeBase));
 #if CORE
@@ -242,7 +248,7 @@ namespace URSA.Configuration
                 let fileName = System.IO.Path.GetFileNameWithoutExtension(filePath)
                 where !loadedAssemblyFiles.Contains(fileName, StringComparer.OrdinalIgnoreCase)
                 select assemblyLoader(filePath);
-            return loadedAssemblies.Concat(fileAssemblies).Distinct();
+            return _installerAssemblies = loadedAssemblies.Concat(fileAssemblies).Distinct();
         }
     }
 }

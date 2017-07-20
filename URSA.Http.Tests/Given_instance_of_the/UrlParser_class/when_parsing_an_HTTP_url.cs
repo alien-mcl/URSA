@@ -42,7 +42,7 @@ namespace Given_instance_of_the.UrlParser_class
                 { "http://temp.uri/test/whatever?url=http://test.com/path?query#fragment?http://test.com/path?query#fragment", new UrlScenario() { Scheme = "http", Host = "temp.uri", Path = "/test/whatever", Parameters = new[] { new KeyValuePair<string, string>("url", "http://test.com/path?query") }, Fragment = "fragment?http://test.com/path?query#fragment", AsString = "http://temp.uri/test/whatever?url=http:%2F%2Ftest.com%2Fpath%3Fquery#fragment%3Fhttp:%2F%2Ftest.com%2Fpath%3Fquery%23fragment" } }
             };
 
-        private static readonly string[] InvalidScenarios = 
+        private static readonly string[] InvalidScenarios =
             {
                 "http://",
                 "http://userName:/",

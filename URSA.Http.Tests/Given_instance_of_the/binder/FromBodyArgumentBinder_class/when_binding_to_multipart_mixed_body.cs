@@ -1,7 +1,6 @@
-﻿using Moq;
-using System;
+﻿using System;
 using System.Diagnostics.CodeAnalysis;
-using FluentAssertions;
+using Moq;
 using NUnit.Framework;
 using URSA;
 using URSA.Web;

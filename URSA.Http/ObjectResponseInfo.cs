@@ -52,7 +52,7 @@ namespace URSA.Web.Http
             : this(Encoding.UTF8, request, value, converterProvider, headers)
         {
         }
-        
+
         /// <summary>Initializes a new instance of the <see cref="ObjectResponseInfo{T}" /> class.</summary>
         /// <param name="encoding">Text encoding of the response.</param>
         /// <param name="request">Corresponding request.</param>
@@ -78,7 +78,7 @@ namespace URSA.Web.Http
             : this(Encoding.UTF8, request, value, converterProvider, headers)
         {
         }
-        
+
         /// <summary>Initializes a new instance of the <see cref="ObjectResponseInfo{T}" /> class.</summary>
         /// <param name="encoding">Text encoding of the response.</param>
         /// <param name="request">Corresponding request.</param>

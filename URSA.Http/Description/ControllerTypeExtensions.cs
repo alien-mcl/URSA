@@ -9,7 +9,7 @@ namespace URSA.Web.Http.Description
 {
     internal static class ControllerTypeExtensions
     {
-        private static readonly IEnumerable<HttpStatusCode> DefaultStatusCodes = new HttpStatusCode[0]; 
+        private static readonly IEnumerable<HttpStatusCode> DefaultStatusCodes = new HttpStatusCode[0];
         private static readonly IDictionary<Type, IDictionary<Verb, MethodInfo>> ControllerCrudMethodsCache = new ConcurrentDictionary<Type, IDictionary<Verb, MethodInfo>>();
 
         private static readonly IDictionary<Verb, IEnumerable<HttpStatusCode>> ControllerCrudMethodStatusCodes = new Dictionary<Verb, IEnumerable<HttpStatusCode>>()

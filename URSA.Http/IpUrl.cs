@@ -33,16 +33,16 @@ namespace URSA.Web.Http
             _port = port;
         }
 
-        /// <inheritdoc />
+        /// <summary>Gets a value indicating whether the URL is an absolute one.</summary>
         public virtual bool IsAbsolute { get { return true; } }
 
         /// <inheritdoc />
         public override string Scheme { get { return _scheme; } }
 
-        /// <inheritdoc />
+        /// <summary>Gets the user name.</summary>
         public string UserName { get { return _userName; } }
 
-        /// <inheritdoc />
+        /// <summary>Gets the password.</summary>
         public string Password { get { return _password; } }
 
         /// <inheritdoc />
@@ -51,19 +51,19 @@ namespace URSA.Web.Http
         /// <inheritdoc />
         public override ushort Port { get { return _port; } }
 
-        /// <inheritdoc />
+        /// <summary>Gets the path part.</summary>
         public virtual string Path { get { return "/"; } }
 
         /// <summary>Gets the authority of this URL.</summary>
         public abstract string Authority { get; }
 
-        /// <inheritdoc />
+        /// <summary>Gets the parameters.</summary>
         public abstract ParametersCollection Parameters { get; }
 
         /// <summary>Gets a value indicating whether this instance has a query.</summary>
         public bool HasParameters { get { return Parameters != null; } }
 
-        /// <inheritdoc />
+        /// <summary>Gets the segments.</summary>
         public abstract IEnumerable<string> Segments { get; }
 
         /// <inheritdoc />
@@ -164,8 +164,8 @@ namespace URSA.Web.Http
             }
 
             int count = Segments.Count();
-            return (count == 0 ? this : CreateInstance(predicate == null ? 
-                Segments.TakeWhile((segment, index) => index < count - 1) : 
+            return (count == 0 ? this : CreateInstance(predicate == null ?
+                Segments.TakeWhile((segment, index) => index < count - 1) :
                 Segments.Where((segment, index) => !predicate(segment, index))));
         }
 

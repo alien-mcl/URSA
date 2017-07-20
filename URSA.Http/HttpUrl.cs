@@ -93,13 +93,13 @@ namespace URSA.Web.Http
         /// <inheritdoc />
         public override ParametersCollection Parameters { get { return _query; } }
 
-        /// <inheritdoc />
+        /// <summary>Gets the query string parameters.</summary>
         public ParametersCollection Query { get { return _query; } }
 
         /// <summary>Gets a value indicating whether this instance has a query.</summary>
         public bool HasQuery { get { return _query != null; } }
 
-        /// <inheritdoc />
+        /// <summary>Gets the fragment (a.k.a. hash).</summary>
         public string Fragment { get { return _fragment; } }
 
         /// <summary>Gets a value indicating whether this instance has fragment.</summary>
@@ -107,6 +107,61 @@ namespace URSA.Web.Http
 
         /// <inheritdoc />
         public override IEnumerable<string> Segments { get { return _segments; } }
+
+        /// <summary>Converts a given <paramref name="uri" /> into an HTTP URL.</summary>
+        /// <param name="uri">The Uri to be converted.</param>
+        /// <returns>HTTP URL or <b>null</b> if the passed <paramref name="uri" /> was also null.</returns>
+        public static explicit operator HttpUrl(Uri uri)
+        {
+            if (Equals(uri, null))
+            {
+                return null;
+            }
+
+            ParametersCollection query = null;
+            if (uri.IsAbsoluteUri)
+            {
+                if (!HttpUrlParser.Schemes.Contains(uri.Scheme))
+                {
+                    throw new InvalidOperationException(String.Format("Cannot convert Uri of scheme '{0}' to HTTP URL.", uri.Scheme));
+                }
+
+                query = (uri.Query.Length > 0 ? ParseQueryString(uri.Query) : null);
+                return new HttpUrl(true, uri.ToString(), uri.Scheme, uri.Host, (ushort)uri.Port, uri.AbsolutePath, query, (uri.Fragment.Length > 0 ? uri.Fragment : null));
+            }
+
+            string url = uri.ToString();
+            string path = url;
+            string queryString = null;
+            string fragment = null;
+            int indexOf;
+            if ((indexOf = url.IndexOf('?')) != -1)
+            {
+                path = url.Substring(0, indexOf);
+                if ((indexOf = (queryString = url.Substring(indexOf)).IndexOf('#')) != -1)
+                {
+                    fragment = queryString.Substring(indexOf);
+                    queryString = queryString.Substring(0, indexOf);
+                }
+            }
+            else if ((indexOf = url.IndexOf('#')) != -1)
+            {
+                path = url.Substring(0, indexOf);
+                fragment = url.Substring(indexOf);
+            }
+
+            if (fragment == "#")
+            {
+                fragment = String.Empty;
+            }
+
+            if (queryString != null)
+            {
+                query = ParseQueryString(queryString);
+            }
+
+            return new HttpUrl(false, url, null, null, 0, path, query, fragment);
+        }
 
         /// <summary>Adds two URLs.</summary>
         /// <remarks>One of the operands should be a relative URL.</remarks>
@@ -191,61 +246,6 @@ namespace URSA.Web.Http
             }
 
             return leftOperand + relativeUrl;
-        }
-
-        /// <summary>Converts a given <paramref name="uri" /> into an HTTP URL.</summary>
-        /// <param name="uri">The Uri to be converted.</param>
-        /// <returns>HTTP URL or <b>null</b> if the passed <paramref name="uri" /> was also null.</returns>
-        public static explicit operator HttpUrl(Uri uri)
-        {
-            if (Equals(uri, null))
-            {
-                return null;
-            }
-
-            ParametersCollection query = null;
-            if (uri.IsAbsoluteUri)
-            {
-                if (!HttpUrlParser.Schemes.Contains(uri.Scheme))
-                {
-                    throw new InvalidOperationException(String.Format("Cannot convert Uri of scheme '{0}' to HTTP URL.", uri.Scheme));
-                }
-
-                query = (uri.Query.Length > 0 ? ParseQueryString(uri.Query) : null);
-                return new HttpUrl(true, uri.ToString(), uri.Scheme, uri.Host, (ushort)uri.Port, uri.AbsolutePath, query, (uri.Fragment.Length > 0 ? uri.Fragment : null));
-            }
-
-            string url = uri.ToString();
-            string path = url;
-            string queryString = null;
-            string fragment = null;
-            int indexOf;
-            if ((indexOf = url.IndexOf('?')) != -1)
-            {
-                path = url.Substring(0, indexOf);
-                if ((indexOf = (queryString = url.Substring(indexOf)).IndexOf('#')) != -1)
-                {
-                    fragment = queryString.Substring(indexOf);
-                    queryString = queryString.Substring(0, indexOf);
-                }
-            }
-            else if ((indexOf = url.IndexOf('#')) != -1)
-            {
-                path = url.Substring(0, indexOf);
-                fragment = url.Substring(indexOf);
-            }
-
-            if (fragment == "#")
-            {
-                fragment = String.Empty;
-            }
-
-            if (queryString != null)
-            {
-                query = ParseQueryString(queryString);
-            }
-
-            return new HttpUrl(false, url, null, null, 0, path, query, fragment);
         }
 
         /// <inheritdoc />

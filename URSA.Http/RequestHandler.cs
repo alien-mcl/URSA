@@ -64,7 +64,7 @@ namespace URSA.Web.Http
             _postRequestHandlers = new List<IPostRequestHandler>();
             _authenticationProviders = new List<IPreRequestHandler>();
             _defaultAuthenticationScheme = InitializeRequestHandlers(preRequestHandlers, postRequestHandlers);
-            _modelTransformers = ((modelTransformers == null) || (!modelTransformers.Any()) ? (IEnumerable<IResponseModelTransformer>)new IResponseModelTransformer[0] : 
+            _modelTransformers = ((modelTransformers == null) || (!modelTransformers.Any()) ? (IEnumerable<IResponseModelTransformer>)new IResponseModelTransformer[0] :
                 new DependencyTree<IResponseModelTransformer>(modelTransformers, typeof(IResponseModelTransformer<>)));
         }
 

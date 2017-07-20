@@ -1,4 +1,4 @@
-﻿#pragma warning disable 1591 
+﻿#pragma warning disable 1591
 using System;
 using URSA.Example.WebApplication.Security;
 using URSA.Web;
@@ -40,3 +40,4 @@ namespace URSA.Example.WebApplication
         }
     }
 }
+#pragma warning restore 1591

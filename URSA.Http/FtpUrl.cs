@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 
 namespace URSA.Web.Http
-{    
+{
     /// <summary>Represents an FTP/FTPS and SSH url.</summary>
     public class FtpUrl : IpUrl
     {
@@ -99,8 +99,8 @@ namespace URSA.Web.Http
 
         private static string ToAbsoluteString(string scheme, string userName, string password, string host, uint port, string path = null, ParametersCollection parameters = null)
         {
-            string portString = ((scheme == FtpUrlParser.Ssh) && (port == FtpUrlParser.SshPort)) || 
-                ((scheme == FtpUrlParser.Ftps) && (port == FtpUrlParser.FtpsPort)) || 
+            string portString = ((scheme == FtpUrlParser.Ssh) && (port == FtpUrlParser.SshPort)) ||
+                ((scheme == FtpUrlParser.Ftps) && (port == FtpUrlParser.FtpsPort)) ||
                 (port == FtpUrlParser.FtpPort) ? String.Empty : ":" + port;
             string passwordString = (!String.IsNullOrEmpty(password) ? String.Format(":{0}@", password) : (!String.IsNullOrEmpty(userName) ? "@" : String.Empty));
             if (path == null)

@@ -179,7 +179,7 @@ namespace Given_instance_of_the
         {
             var operation = CreateOperation(methodName);
             _arguments = operation.UnderlyingMethod.GetParameters().Select(parameter =>
-                (useDefaultArguments ? Activator.CreateInstance(parameter.ParameterType) : null)).ToArray(); 
+                (useDefaultArguments ? Activator.CreateInstance(parameter.ParameterType) : null)).ToArray();
 
             ResponseInfo response = null;
             Mock<IController> controller = new Mock<IController>(MockBehavior.Strict);

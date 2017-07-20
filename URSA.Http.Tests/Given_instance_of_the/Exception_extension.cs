@@ -27,6 +27,7 @@ namespace Given_instance_of_the
 
             exception.AsHttpException().Should().Be(exception);
         }
+
 #if !CORE
         [Test]
         public void it_should_use_a_status_code_from_an_HttpException()
@@ -34,6 +35,7 @@ namespace Given_instance_of_the
             new HttpException((int)HttpStatusCode.Conflict, "test").AsHttpException().Status.Should().Be(HttpStatusCode.Conflict);
         }
 #endif
+
         [Test]
         public void it_should_throw_when_no_exception_is_passed_for_status_code_conversion()
         {

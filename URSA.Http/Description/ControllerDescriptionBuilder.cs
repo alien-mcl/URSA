@@ -209,7 +209,7 @@ namespace URSA.Web.Description.Http
 
             if (templatedParameterSource != null)
             {
-                if ((!(parameterUrlTemplate = templatedParameterSource.Template).StartsWith("&")) && 
+                if ((!(parameterUrlTemplate = templatedParameterSource.Template).StartsWith("&")) &&
                     (parameterSource is FromQueryStringAttribute) && (!parameterUrlTemplate.StartsWith("{")))
                 {
                     parameterUrlTemplate = "&" + parameterUrlTemplate;

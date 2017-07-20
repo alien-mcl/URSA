@@ -1,17 +1,14 @@
 ﻿#pragma warning disable 1591
-using FluentAssertions;
-using Moq;
 using System;
 using System.Diagnostics.CodeAnalysis;
+using FluentAssertions;
+using Moq;
 using NUnit.Framework;
 using RDeF.Entities;
 using RDeF.Mapping;
 using RDeF.Vocabularies;
 using RollerCaster;
 using URSA.CodeGen;
-using URSA.Web;
-using URSA.Web.Http.Converters;
-using URSA.Web.Http.Description;
 using URSA.Web.Http.Description.CodeGen;
 using URSA.Web.Http.Description.Hydra;
 

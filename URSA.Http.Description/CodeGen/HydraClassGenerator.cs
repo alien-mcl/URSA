@@ -10,8 +10,6 @@ using System.Text.RegularExpressions;
 using RDeF.Entities;
 using RDeF.Vocabularies;
 using RollerCaster;
-using URSA.Web.Http.Converters;
-using URSA.Web.Http.Description;
 using URSA.Web.Http.Description.CodeGen;
 using URSA.Web.Http.Description.Entities;
 using URSA.Web.Http.Description.Hydra;
@@ -66,7 +64,7 @@ namespace URSA.CodeGen
             var mapping = String.Empty;
             if ((_hydraUriParser != null) && (_hydraUriParser.IsApplicable(supportedClass.Iri) == UriParserCompatibility.None))
             {
-                mapping = String.Format("\r\n    [RDeF.Mapping.Attributes.Class(\"{0}\")]", supportedClass.Iri);
+                mapping = String.Format("\r\n    [RDeF.Mapping.Attributes.Class(Iri = \"{0}\")]", supportedClass.Iri);
             }
 
             var classProperties = Regex.Replace(properties.Replace("public new ", "public "), "\\[[^\\]]+\\]\r\n        ", String.Empty);
@@ -135,7 +133,7 @@ namespace URSA.CodeGen
             IRestriction itemTypeRestriction;
             IEntity itemType = null;
             @class.SuperClasses().Any(restriction => (restriction.Is(owl.Restriction)) && ((itemTypeRestriction = restriction.ActLike<IRestriction>()).OnProperty != null) &&
-                (itemTypeRestriction.OnProperty.Iri == @class.Context.Mappings.FindEntityMappingFor<ICollection>().Properties.First(property => property.Name == "Members").Term) && 
+                (itemTypeRestriction.OnProperty.Iri == @class.Context.Mappings.FindEntityMappingFor<ICollection>().Properties.First(property => property.Name == "Members").Term) &&
                 ((itemType = itemTypeRestriction.AllValuesFrom) != null));
             if (itemType != null)
             {
@@ -261,7 +259,7 @@ namespace URSA.CodeGen
 
             if ((_hydraUriParser != null) && (_hydraUriParser.IsApplicable(property.Property.Iri) == UriParserCompatibility.None))
             {
-                attributes += String.Format("[RDeF.Mapping.Attributes.{0}(\"{1}\")]", (singleValue ? "Property" : "Collection"), property.Property.Iri);
+                attributes += String.Format("[RDeF.Mapping.Attributes.{0}(Iri = \"{1}\")]", (singleValue ? "Property" : "Collection"), property.Property.Iri);
             }
 
             getter = ((!property.Writeable) && (!singleValue) ?
@@ -381,7 +379,7 @@ namespace URSA.CodeGen
                 {
                     expectContentRangeHeader |= (mapping.Property.Iri.ToString() == DescriptionBuildingServerBahaviorAttributeVisitor<PropertyInfo>.OData + "$skip") ||
                         (mapping.Property.Iri.ToString() == DescriptionBuildingServerBahaviorAttributeVisitor<PropertyInfo>.OData + "$take");
-                    if ((mapping.Property.Range.Any()) && ((expected = mapping.Property.Range.First().ActLike<IClass>()) != null) && 
+                    if ((mapping.Property.Range.Any()) && ((expected = mapping.Property.Range.First().ActLike<IClass>()) != null) &&
                         (expected.Iri.IsBlank) && (expected.SubClassOf.Any()))
                     {
                         expected = expected.SubClassOf.First().ActLike<IClass>();

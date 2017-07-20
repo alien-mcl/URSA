@@ -125,7 +125,7 @@ namespace URSA.Web.Http.Description.Entities
                 {
                     var current = (IEntity)target.GetProperty(typeof(T), property.Name);
                     value = (current != null ? current.Update((IEntity)value) :
-                        ActLikeMethod.MakeGenericMethod(property.ReturnType).Invoke(null, new[] { targetEntity.Context.Copy((IEntity)value) })); 
+                        ActLikeMethod.MakeGenericMethod(property.ReturnType).Invoke(null, new[] { targetEntity.Context.Copy((IEntity)value) }));
                 }
 
                 if (value != null)
@@ -170,9 +170,9 @@ namespace URSA.Web.Http.Description.Entities
             }
 
             var sourceCollection = new AbstractCollectionWrapper(sourceValues);
-            var toBeRemoved = (from object item in current 
-                               let existing = sourceCollection.Where((element, index) => (item is IEntity ? ((IEntity)item).Iri == ((IEntity)element).Iri : Equals(element, item)) && ((indexOf = index) != -1)).FirstOrDefault() 
-                               where existing == null 
+            var toBeRemoved = (from object item in current
+                               let existing = sourceCollection.Where((element, index) => (item is IEntity ? ((IEntity)item).Iri == ((IEntity)element).Iri : Equals(element, item)) && ((indexOf = index) != -1)).FirstOrDefault()
+                               where existing == null
                                select item).ToList();
             foreach (var item in toBeRemoved)
             {

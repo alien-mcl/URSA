@@ -5,7 +5,6 @@ using System.Reflection;
 using Autofac;
 using Autofac.Core;
 using URSA.AutoFac.ComponentModel;
-using IContainer = Autofac.IContainer;
 
 namespace URSA.ComponentModel
 {

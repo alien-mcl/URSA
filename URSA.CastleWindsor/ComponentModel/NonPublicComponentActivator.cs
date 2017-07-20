@@ -1,13 +1,11 @@
-﻿using Castle.Core;
-using Castle.MicroKernel;
-using Castle.MicroKernel.ComponentActivator;
-using Castle.MicroKernel.Context;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
+using Castle.Core;
+using Castle.MicroKernel;
+using Castle.MicroKernel.ComponentActivator;
+using Castle.MicroKernel.Context;
 
 namespace URSA.CastleWindsor.ComponentModel
 {

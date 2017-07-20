@@ -3,14 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Autofac;
-using Autofac.Core;
 using URSA.AutoFac.ComponentModel;
 using IContainer = Autofac.IContainer;
 
 namespace URSA.ComponentModel
 {
     /// <summary>Provides an <![CDATA[AutoFac]]> based implementation of the <see cref="IServiceProvider"/> interface.</summary>
-    public class AutoFacComponentProvider : AutoFacComponentResolver, IComponentProvider, IComponentContextProvider
+    public class AutoFacComponentProvider : AutoFacComponentResolver, IComponentProvider
     {
         private readonly ILifetimeScope _container;
 
@@ -207,10 +206,8 @@ namespace URSA.ComponentModel
         /// <inheritdoc />
         public void Dispose()
         {
-            if (_container != null)
-            {
-                _container.Dispose();
-            }
+            Dispose(true);
+            GC.SuppressFinalize(this);
         }
 
         /// <inheritdoc />
@@ -225,12 +222,25 @@ namespace URSA.ComponentModel
             //// TODO: Manual instance disposal in AutoFac?
         }
 
+        /// <summary>Disposes this instance.</summary>
+        /// <param name="disposing">Value indicating whether to dispose managed resources.</param>
+        protected virtual void Dispose(bool disposing)
+        {
+            if (_container != null)
+            {
+                _container.Dispose();
+            }
+        }
+
         private void UpdateContainerUsing(ContainerBuilder builder)
         {
             var container = _container as IContainer;
             if (container != null)
             {
+#pragma warning disable CS0618 // Type or member is obsolete
+                //// TODO: ContainerBuilder.Update is marked Obsolete!
                 builder.Update(container);
+#pragma warning restore CS0618 // Type or member is obsolete
             }
         }
     }

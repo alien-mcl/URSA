@@ -8,7 +8,7 @@ using Microsoft.Extensions.Configuration.Memory;
 using URSA.Web.Http.Description;
 
 namespace URSA.Configuration
-{    
+{
     /// <summary>Defines possible RDF hypermedia output modes.</summary>
     public enum HypermediaModes
     {

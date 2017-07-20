@@ -127,8 +127,8 @@ namespace URSA.Web.Description
         public static bool operator !=(OperationInfo<T> operandA, OperationInfo<T> operandB)
         {
             return ((Equals(operandA, null)) && (!Equals(operandB, null))) ||
-                ((!Equals(operandA, null)) && (Equals(operandB, null))) || 
-                ((!Equals(operandA, null)) && ((!operandA.UnderlyingMethod.Equals(operandB.UnderlyingMethod)) || 
+                ((!Equals(operandA, null)) && (Equals(operandB, null))) ||
+                ((!Equals(operandA, null)) && ((!operandA.UnderlyingMethod.Equals(operandB.UnderlyingMethod)) ||
                     (!operandA.ProtocolSpecificCommand.Equals(operandB.ProtocolSpecificCommand)) || (!operandA.Url.Equals(operandB.Url))));
         }
 

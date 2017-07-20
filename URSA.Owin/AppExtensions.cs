@@ -27,6 +27,7 @@ namespace URSA.Owin
 
         /// <summary>Registers all APIs into the ASP.net pipeline.</summary>
         /// <param name="application">The application to work with.</param>
+        /// <returns>Application builder.</returns>
 #if CORE
         public static IApplicationBuilder RegisterApis(this IApplicationBuilder application)
 #else
@@ -63,6 +64,7 @@ namespace URSA.Owin
             return application;
         }
 
+#pragma warning disable SA1115 // Parameter must follow comma
         /// <summary>Registers the Cross-Origin Resource Sharing component to be used.</summary>
         /// <param name="application">The application to work with.</param>
         /// <param name="allowedOrigins">Allowed origins.</param>
@@ -79,6 +81,7 @@ namespace URSA.Owin
             IEnumerable<string> allowedOrigins = null,
             IEnumerable<string> allowedHeaders = null,
             IEnumerable<string> exposedHeaders = null)
+#pragma warning restore SA1115 // Parameter must follow comma
         {
             if (application == null)
             {

@@ -30,6 +30,9 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <DocumentationFile>bin\Debug\URSA.Http.Description.XML</DocumentationFile>
+    <RunCodeAnalysis>true</RunCodeAnalysis>
+    <CodeAnalysisRuleSet>..\URSA.ruleset</CodeAnalysisRuleSet>
+    <LangVersion>6</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -42,6 +45,30 @@
     <NugetBuild>true</NugetBuild>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="json-ld.net, Version=1.0.5.0, Culture=neutral, PublicKeyToken=f17fb428089df9bc, processorArchitecture=MSIL">
+      <HintPath>..\packages\json-ld.net.1.0.5\lib\net40-client\json-ld.net.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json, Version=10.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.10.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="RDeF.Contracts, Version=0.1.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\RDeF.Contracts.0.1.0\lib\net461\RDeF.Contracts.dll</HintPath>
+    </Reference>
+    <Reference Include="RDeF.Core, Version=0.1.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\RDeF.Core.0.1.0\lib\net461\RDeF.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="RDeF.Mapping.Attributes, Version=0.1.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\RDeF.Mapping.Attributes.0.1.0\lib\net461\RDeF.Mapping.Attributes.dll</HintPath>
+    </Reference>
+    <Reference Include="RDeF.Mapping.Fluent, Version=0.1.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\RDeF.Mapping.Fluent.0.1.0\lib\net461\RDeF.Mapping.Fluent.dll</HintPath>
+    </Reference>
+    <Reference Include="RDeF.Serialization, Version=0.1.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\RDeF.Serialization.0.1.0\lib\net461\RDeF.Serialization.dll</HintPath>
+    </Reference>
+    <Reference Include="RollerCaster, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\RollerCaster.1.0.0\lib\net461\RollerCaster.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
@@ -53,6 +80,9 @@
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
+    <Reference Include="Tavis.UriTemplates, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Tavis.UriTemplates.1.1.1\lib\Net45\Tavis.UriTemplates.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ApiDescriptionBuilder.cs" />
@@ -96,7 +126,6 @@
     <Compile Include="Hydra\IDeleteResourceOperation.cs" />
     <Compile Include="Hydra\ICreateResourceOperation.cs" />
     <Compile Include="Hydra\LinkedOperation.cs" />
-    <Compile Include="HypermediaDrivenControllerExtensions.cs" />
     <Compile Include="IApiDescriptionBuilder.cs" />
     <Compile Include="IApiDescriptionBuilderFactory.cs" />
     <Compile Include="IApiEntryPointDescriptionBuilder.cs" />
@@ -136,11 +165,11 @@
     <Compile Include="Shacl\IConstraintTemplate.cs" />
     <Compile Include="Shacl\IClosedShapeConstraint.cs" />
     <Compile Include="Shacl\IPropertyConstraint.cs" />
+    <None Include="packages.config" />
     <None Include="Shacl\INodeKind.cs" />
     <Compile Include="Shacl\IShape.cs" />
     <Compile Include="Shacl\IShapeClass.cs" />
     <Compile Include="XmlDocProvider.cs" />
-    <None Include="URSA.Http.Description.project.json" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Method.png" />
@@ -164,17 +193,17 @@
       <Name>URSA.Tools</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup>
+    <Analyzer Include="..\packages\StyleCop.Analyzers.1.0.2\analyzers\dotnet\cs\StyleCop.Analyzers.CodeFixes.dll" />
+    <Analyzer Include="..\packages\StyleCop.Analyzers.1.0.2\analyzers\dotnet\cs\StyleCop.Analyzers.dll" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
-    <Error Condition="!Exists('..\packages\StyleCop.Error.MSBuild.1.0.0\build\StyleCop.Error.MSBuild.Targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\StyleCop.Error.MSBuild.1.0.0\build\StyleCop.Error.MSBuild.Targets'))" />
-    <Error Condition="!Exists('..\packages\StyleCop.MSBuild.4.7.49.1\build\StyleCop.MSBuild.Targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\StyleCop.MSBuild.4.7.49.1\build\StyleCop.MSBuild.Targets'))" />
     <Error Condition="!Exists('$(SolutionDir)\.nuget\NuGet.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)\.nuget\NuGet.targets'))" />
   </Target>
-  <Import Project="..\packages\StyleCop.Error.MSBuild.1.0.0\build\StyleCop.Error.MSBuild.Targets" Condition="Exists('..\packages\StyleCop.Error.MSBuild.1.0.0\build\StyleCop.Error.MSBuild.Targets')" />
-  <Import Project="..\packages\StyleCop.MSBuild.4.7.49.1\build\StyleCop.MSBuild.Targets" Condition="Exists('..\packages\StyleCop.MSBuild.4.7.49.1\build\StyleCop.MSBuild.Targets')" />
   <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

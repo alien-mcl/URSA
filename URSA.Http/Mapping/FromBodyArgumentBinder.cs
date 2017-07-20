@@ -51,7 +51,9 @@ namespace URSA.Web.Http.Mapping
                     return GetArgumentValueFromMultipartBody(context);
                 }
 
+#pragma warning disable SA1305 // Field names must not use Hungarian notation
                 IConverter xWwwUrlEncodedConverter;
+#pragma warning restore SA1305 // Field names must not use Hungarian notation
                 if ((contentType.Value == XWwwUrlEncodedConverter.ApplicationXWwwUrlEncoded) &&
                     (((xWwwUrlEncodedConverter = _converterProvider.FindBestInputConverter(context.Parameter.ParameterType, context.Request)) == null) ||
                     ((xWwwUrlEncodedConverter.CanConvertTo(context.Parameter.ParameterType, context.Request) & CompatibilityLevel.TypeMatch) == CompatibilityLevel.None)))

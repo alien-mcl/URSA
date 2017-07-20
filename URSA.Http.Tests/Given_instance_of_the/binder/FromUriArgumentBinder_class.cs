@@ -1,10 +1,10 @@
-﻿using Moq;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Reflection;
 using FluentAssertions;
+using Moq;
 using NUnit.Framework;
 using URSA;
 using URSA.Security;

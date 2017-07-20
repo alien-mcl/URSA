@@ -14,7 +14,6 @@ using URSA.Security;
 using URSA.Web;
 using URSA.Web.Http;
 using URSA.Web.Http.Description;
-using URSA.Web.Http.Description.Entities;
 using URSA.Web.Http.Description.Hydra;
 using URSA.Web.Http.Description.Tests;
 using URSA.Web.Http.Description.Tests.Data;
@@ -69,7 +68,7 @@ namespace Given_instance_of_the
                 {
                     { 0, ArgumentValueSources.Neutral },
                     { 1, ArgumentValueSources.Bound },
-                    { 2, ArgumentValueSources.Bound } 
+                    { 2, ArgumentValueSources.Bound }
                 };
             _mapping = new Mock<IRequestMapping>(MockBehavior.Strict);
             _mapping.SetupGet(instance => instance.Operation).Returns(typeof(TestController).GetTypeInfo().GetMethod("List").ToOperationInfo("/", Verb.GET));

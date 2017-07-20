@@ -53,7 +53,7 @@ namespace URSA.Web.Http.Converters
                 throw new ArgumentNullException("request");
             }
 
-            if ((!typeof(Expression).IsAssignableFrom(expectedType)) || (!expectedType.GetTypeInfo().IsGenericType) || (!expectedType.GetGenericArguments()[0].GetTypeInfo().IsGenericType) || 
+            if ((!typeof(Expression).IsAssignableFrom(expectedType)) || (!expectedType.GetTypeInfo().IsGenericType) || (!expectedType.GetGenericArguments()[0].GetTypeInfo().IsGenericType) ||
                 (expectedType.GetGenericArguments()[0].GetGenericArguments()[0].GetTypeInfo().GetImplementationOfAny(typeof(IControlledEntity<>)) == null))
             {
                 return CompatibilityLevel.None;
@@ -134,7 +134,7 @@ namespace URSA.Web.Http.Converters
         [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
         public void ConvertFrom<T>(T instance, IResponseInfo response)
         {
-            throw new NotImplementedException();
+            throw new NotSupportedException();
         }
 
         /// <inheritdoc />
@@ -142,7 +142,7 @@ namespace URSA.Web.Http.Converters
         [SuppressMessage("Microsoft.Design", "CA0000:ExcludeFromCodeCoverage", Justification = "No testable logic.")]
         public void ConvertFrom(Type givenType, object instance, IResponseInfo response)
         {
-            throw new NotImplementedException();
+            throw new NotSupportedException();
         }
 
         private string ParsePropertyUris(Type entityType, string body)
@@ -164,7 +164,7 @@ namespace URSA.Web.Http.Converters
                 throw new ArgumentException(String.Format("Unknown property mapped with URI '{0}'.", uri));
             }
 
-            return mapping.Name;            
+            return mapping.Name;
         }
 
         private string GetPropertyName(Uri uri)

@@ -26,7 +26,7 @@ namespace Given_instance_of_the.UrlParser_class
                 { "ftp://temp.uri/test/whatever;type=i", new UrlScenario() { Scheme = "ftp", Host = "temp.uri", Path = "/test/whatever", Parameters = new[] { new KeyValuePair<string, string>("type", "i") }, AsString = "ftp://temp.uri/test/whatever;type=i" } },
             };
 
-        private static readonly string[] InvalidScenarios = 
+        private static readonly string[] InvalidScenarios =
             {
                 "ftp://",
                 "ftp://userName:/",

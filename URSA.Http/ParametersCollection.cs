@@ -134,7 +134,7 @@ namespace URSA.Web.Http
         {
             return new ParametersCollectionEnumerator(_container);
         }
-        
+
         /// <inheritdoc />
         public override string ToString()
         {

@@ -13,32 +13,32 @@ using URSA.Web.Http;
 namespace Vocab
 {
     [System.CodeDom.Compiler.GeneratedCode("URSA HTTP client proxy generation tool", "1.0")]
-    [RomanticWeb.Mapping.Attributes.Class("http://temp.uri/vocab#Article")]
-    public interface IArticle : RomanticWeb.Entities.IEntity
+    [RDeF.Mapping.Attributes.Class(Iri = "http://temp.uri/vocab#Article")]
+    public interface IArticle : RDeF.Entities.IEntity
     {
-        [RomanticWeb.Mapping.Attributes.Property("http://temp.uri/vocab#body")]
-        System.String Body { get; set; }
+        [RDeF.Mapping.Attributes.Property(Iri = "http://temp.uri/vocab#title")]
+        System.Object title { get; set; }
 
-        [RomanticWeb.Mapping.Attributes.Property("http://temp.uri/vocab#key")]
-        System.Guid Key { get; set; }
+        [RDeF.Mapping.Attributes.Property(Iri = "http://temp.uri/vocab#body")]
+        System.Object body { get; set; }
 
-        [RomanticWeb.Mapping.Attributes.Property("http://temp.uri/vocab#title")]
-        System.String Title { get; set; }
+        [RDeF.Mapping.Attributes.Property(Iri = "http://temp.uri/vocab#key")]
+        System.Object key { get; set; }
     }
 
     [System.CodeDom.Compiler.GeneratedCode("URSA HTTP client proxy generation tool", "1.0")]
     public partial class Article : IArticle
     {
-        private RomanticWeb.Entities.EntityId _id = new RomanticWeb.Entities.EntityId(new System.Uri("urn:guid:" + System.Guid.NewGuid()));
+        private RDeF.Entities.Iri _iri = new RDeF.Entities.Iri("urn:guid:" + System.Guid.NewGuid());
 
-        RomanticWeb.IEntityContext RomanticWeb.Entities.IEntity.Context { get { return null; } }
+        RDeF.Entities.IEntityContext RDeF.Entities.IEntity.Context { get { return null; } }
 
-        RomanticWeb.Entities.EntityId RomanticWeb.Entities.IEntity.Id { get { return _id; } }
+        RDeF.Entities.Iri RDeF.Entities.IEntity.Iri { get { return _iri; } }
 
-        public System.String Body { get; set; }
+        public System.Object title { get; set; }
 
-        public System.Guid Key { get; set; }
+        public System.Object body { get; set; }
 
-        public System.String Title { get; set; }
+        public System.Object key { get; set; }
     }
 }

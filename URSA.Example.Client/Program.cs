@@ -1,14 +1,10 @@
 ﻿using System;
 using System.Configuration;
 using System.Data.SqlClient;
-using System.Linq;
 using System.Net;
-using RomanticWeb;
-using RomanticWeb.DotNetRDF;
-using RomanticWeb.Entities;
+using RDeF.Entities;
 using URSA.Example.WebApplication.Data;
 using URSA.Web.Http;
-using VDS.RDF;
 using Vocab;
 
 namespace URSA.Example
@@ -20,7 +16,7 @@ namespace URSA.Example
             CredentialCache.DefaultNetworkCredentials.UserName = ConfigurationManager.AppSettings["DefaultCredentials"].Split(':')[0];
             CredentialCache.DefaultNetworkCredentials.Password = ConfigurationManager.AppSettings["DefaultCredentials"].Split(':')[1];
             var url = (HttpUrl)UrlParser.Parse(new SqlConnectionStringBuilder(ConfigurationManager.ConnectionStrings["ServerUri"].ConnectionString).DataSource);
-            //TestPerson(url);
+            TestPerson(url);
             TestProduct(url);
         }
 
@@ -43,16 +39,10 @@ namespace URSA.Example
 
         private static void TestProduct(HttpUrl url)
         {
-            var tripleStore = new TripleStore();
-            tripleStore.Add(new Graph() { BaseUri = new Uri("meta:graph") });
-            var entityContextFactory = EntityContextFactory.FromConfiguration("in-memory")
-                .WithMappings(builder => builder.FromAssemblyOf<IProduct>())
-                .WithMetaGraphUri(tripleStore.Graphs.First().BaseUri)
-                .WithDotNetRDF(tripleStore)
-                .WithDefaultOntologies();
-            var entityContext = entityContextFactory.CreateContext();
+            var entityContextFactory = EntityContextFactory.FromConfiguration("in-memory");
+            var entityContext = entityContextFactory.Create();
             var client = new ProductClient(url, ConfigurationManager.AppSettings["DefaultAuthenticationScheme"]);
-            var product = entityContext.Create<IProduct>(new EntityId((Uri)(url + "/api/product")));
+            var product = entityContext.Create<IProduct>(new Iri((Uri)(url + "/api/product")));
             product.Name = "Test";
             product.Price = 1.0;
             product.Features.Add("Feature");

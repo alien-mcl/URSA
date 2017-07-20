@@ -42,13 +42,13 @@ namespace URSA.Web.Description.Http
             {
                 return FromUrlAttribute.For(parameter);
             }
-            
+
             if ((!parameter.ParameterType.GetTypeInfo().IsValueType) && (typeof(string) != parameter.ParameterType) &&
                 (!((parameter.ParameterType.GetTypeInfo().IsEnumerable()) && (parameter.ParameterType.GetTypeInfo().GetItemType().IsNumber()))))
             {
                 return FromBodyAttribute.For(parameter);
             }
-            
+
             return FromQueryStringAttribute.For(parameter);
         }
 

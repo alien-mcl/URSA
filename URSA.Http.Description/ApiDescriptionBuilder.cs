@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Reflection;
@@ -346,11 +345,11 @@ namespace URSA.Web.Http.Description
         /// <param name="serverBehaviorAttributeVisitors">Server behavior attribute visitors.</param>
         public ApiDescriptionBuilder(
             IHttpServerConfiguration httpServerConfiguration,
-            IHttpControllerDescriptionBuilder<T> descriptionBuilder, 
-            IXmlDocProvider xmlDocProvider, 
-            IEnumerable<ITypeDescriptionBuilder> typeDescriptionBuilders, 
-            IEnumerable<IServerBehaviorAttributeVisitor> serverBehaviorAttributeVisitors) :
-            base(httpServerConfiguration, descriptionBuilder, xmlDocProvider, typeDescriptionBuilders, serverBehaviorAttributeVisitors)
+            IHttpControllerDescriptionBuilder<T> descriptionBuilder,
+            IXmlDocProvider xmlDocProvider,
+            IEnumerable<ITypeDescriptionBuilder> typeDescriptionBuilders,
+            IEnumerable<IServerBehaviorAttributeVisitor> serverBehaviorAttributeVisitors)
+            : base(httpServerConfiguration, descriptionBuilder, xmlDocProvider, typeDescriptionBuilders, serverBehaviorAttributeVisitors)
         {
         }
 
@@ -359,9 +358,9 @@ namespace URSA.Web.Http.Description
         {
             get
             {
-                return _specializationType ?? (_specializationType = 
-                    (_specializationType = typeof(T).GetTypeInfo().GetImplementationOfAny(typeof(IController<>), typeof(IAsyncController<>))) != null ? 
-                    _specializationType.GetGenericArguments()[0] : 
+                return _specializationType ?? (_specializationType =
+                    (_specializationType = typeof(T).GetTypeInfo().GetImplementationOfAny(typeof(IController<>), typeof(IAsyncController<>))) != null ?
+                    _specializationType.GetGenericArguments()[0] :
                     typeof(object));
             }
         }

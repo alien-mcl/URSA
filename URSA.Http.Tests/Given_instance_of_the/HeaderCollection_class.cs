@@ -1,9 +1,9 @@
-﻿using FluentAssertions;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
+using FluentAssertions;
 using NUnit.Framework;
 using URSA.Web.Http;
 
