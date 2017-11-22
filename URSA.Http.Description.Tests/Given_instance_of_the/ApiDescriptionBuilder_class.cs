@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Reflection;
@@ -298,7 +297,7 @@ namespace Given_instance_of_the
             entityMapping.SetupGet(instance => instance.Classes).Returns(new[] { @class.Object });
 
             var mappingsRepository = new Mock<IMappingsRepository>(MockBehavior.Strict);
-            mappingsRepository.Setup(instance => instance.FindEntityMappingFor<ITemplatedLink>()).Returns(entityMapping.Object);
+            mappingsRepository.Setup(instance => instance.FindEntityMappingFor(It.IsAny<ITemplatedLink>())).Returns(entityMapping.Object);
 
             var entities = new List<IEntity>();
             var entityContext = new Mock<IEntityContext>(MockBehavior.Strict);

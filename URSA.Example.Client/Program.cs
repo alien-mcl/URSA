@@ -24,8 +24,8 @@ namespace URSA.Example
         {
             var client = new PersonClient(url, ConfigurationManager.AppSettings["DefaultAuthenticationScheme"]);
             var person = new Person() { Firstname = "Test", Lastname = "Testing", Roles = new[] { "Role" } };
-            person.Key = client.Create(person);
-            Console.WriteLine("Created person '{0}'.", person.Key);
+            client.Create(person);
+            Console.WriteLine("Created person.");
             int totalEntities;
             var persons = client.List(out totalEntities, 0, 0, null);
             Console.WriteLine("Listing all {0} person(s):", totalEntities);
@@ -47,8 +47,8 @@ namespace URSA.Example
             product.Price = 1.0;
             product.Features.Add("Feature");
             entityContext.Commit();
-            product.Key = client.Create(product);
-            Console.WriteLine("Created product '{0}'.", product.Key);
+            client.Create(product);
+            Console.WriteLine("Created product.");
             int totalEntities;
             var products = client.List(out totalEntities, 0, 0, null);
             Console.WriteLine("Listing all {0} products(s):", totalEntities);

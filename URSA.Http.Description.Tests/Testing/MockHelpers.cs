@@ -81,8 +81,8 @@ namespace URSA.Web.Http.Description.Testing
             classMapping.SetupGet(instance => instance.Term).Returns(new Uri(baseUri.AbsoluteUri + typeof(T).Name.Substring(1)));
             var mapping = new Mock<IEntityMapping>(MockBehavior.Strict);
             mapping.SetupGet(instance => instance.Classes).Returns(new[] { classMapping.Object });
-            mappingsRepository.Setup(instance => instance.FindEntityMappingFor<T>()).Returns(mapping.Object);
-            mappingsRepository.Setup(instance => instance.FindEntityMappingFor(typeof(T))).Returns(mapping.Object);
+            mappingsRepository.Setup(instance => instance.FindEntityMappingFor(It.IsAny<T>())).Returns(mapping.Object);
+            mappingsRepository.Setup(instance => instance.FindEntityMappingFor(It.IsAny<IEntity>(), typeof(T))).Returns(mapping.Object);
         }
     }
 }

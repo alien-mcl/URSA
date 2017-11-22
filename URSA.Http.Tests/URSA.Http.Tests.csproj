@@ -98,8 +98,6 @@
     <Compile Include="Given_instance_of_the\DependencyTree_class.cs" />
     <Compile Include="When_working_with_URLs\FtpUrl_class.cs" />
     <Compile Include="When_working_with_URLs\HttpUrl_class.cs" />
-    <None Include="app.config" />
-    <None Include="packages.config" />
     <None Include="When_sending_a_request\ArgumentBinder_class.cs" />
     <Compile Include="Given_instance_of_the\binder\FromBodyArgumentBinder_class\when_binding_to_multipart_form_data_body.cs" />
     <Compile Include="Given_instance_of_the\binder\FromBodyArgumentBinder_class\when_binding_to_X_WWW_Url_Encoded_body.cs" />
@@ -204,10 +202,8 @@
   <Import Project="$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets" Condition="Exists('$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets')" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
-    <Content Include="app.config">
-      <Link>$(TargetName).dll.config</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
+    <Content Include="app.config" />
+    <None Include="packages.config" />
   </ItemGroup>
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>

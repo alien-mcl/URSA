@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using RDeF.Entities;
 using RDeF.Mapping.Attributes;
-using RDeF.Mapping.Mapping.Fluent;
+using RDeF.Mapping.Fluent;
 using URSA.Web;
 
 namespace URSA.Example.WebApplication.Data
@@ -45,8 +45,8 @@ namespace URSA.Example.WebApplication.Data
     /// <summary>Provides additional mappings for the <see cref="IProduct" />.</summary>
     public class ProductMap : EntityMap<IProduct>
     {
-        /// <summary>Initializes a new instance of the <see cref="ProductMap"/> class.</summary>
-        public ProductMap()
+        /// <inheritdoc />
+        public override void CreateMappings()
         {
             WithProperty(instance => instance.Key).MappedTo(new Iri("http://temp.uri/vocab#key"));
         }

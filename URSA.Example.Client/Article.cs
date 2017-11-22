@@ -17,13 +17,13 @@ namespace Vocab
     public interface IArticle : RDeF.Entities.IEntity
     {
         [RDeF.Mapping.Attributes.Property(Iri = "http://temp.uri/vocab#title")]
-        System.Object title { get; set; }
+        System.String Title { get; set; }
 
         [RDeF.Mapping.Attributes.Property(Iri = "http://temp.uri/vocab#body")]
-        System.Object body { get; set; }
+        System.String Body { get; set; }
 
         [RDeF.Mapping.Attributes.Property(Iri = "http://temp.uri/vocab#key")]
-        System.Object key { get; set; }
+        System.Guid Key { get; set; }
     }
 
     [System.CodeDom.Compiler.GeneratedCode("URSA HTTP client proxy generation tool", "1.0")]
@@ -35,10 +35,10 @@ namespace Vocab
 
         RDeF.Entities.Iri RDeF.Entities.IEntity.Iri { get { return _iri; } }
 
-        public System.Object title { get; set; }
+        public System.String Title { get; set; }
 
-        public System.Object body { get; set; }
+        public System.String Body { get; set; }
 
-        public System.Object key { get; set; }
+        public System.Guid Key { get; set; }
     }
 }

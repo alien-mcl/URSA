@@ -85,8 +85,8 @@ namespace Given_instance_of_the.HydraCompliantTypeDescriptionBuilder_class
             entityMapping.SetupGet(instance => instance.Type).Returns(typeof(IClass));
             entityMapping.SetupGet(instance => instance.Classes).Returns(statmentMappings);
             entityMapping.SetupGet(instance => instance.Properties).Returns(propertyMappings);
-            mappingsRepository.Setup(instance => instance.FindEntityMappingFor<TEntity>()).Returns(entityMapping.Object);
-            mappingsRepository.Setup(instance => instance.FindEntityMappingFor(typeof(TEntity))).Returns(entityMapping.Object);
+            mappingsRepository.Setup(instance => instance.FindEntityMappingFor(It.IsAny<TEntity>())).Returns(entityMapping.Object);
+            mappingsRepository.Setup(instance => instance.FindEntityMappingFor(It.IsAny<IEntity>(), typeof(TEntity))).Returns(entityMapping.Object);
         }
 
         private static IResource CreateResource(IEntityContext entityContext, Iri id)

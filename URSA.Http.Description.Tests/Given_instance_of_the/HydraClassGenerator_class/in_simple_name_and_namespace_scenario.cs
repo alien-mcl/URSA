@@ -60,7 +60,7 @@ namespace Given_instance_of_the.HydraClassGenerator_class
             var rdfsClassMapping = new Mock<IEntityMapping>(MockBehavior.Strict);
             rdfsClassMapping.SetupGet(instance => instance.Classes).Returns(new[] { classMapping.Object });
             var mappings = new Mock<IMappingsRepository>(MockBehavior.Strict);
-            mappings.Setup(instance => instance.FindEntityMappingFor<URSA.Web.Http.Description.Rdfs.IClass>()).Returns(rdfsClassMapping.Object);
+            mappings.Setup(instance => instance.FindEntityMappingFor(It.IsAny<URSA.Web.Http.Description.Rdfs.IClass>())).Returns(rdfsClassMapping.Object);
             var context = new Mock<IEntityContext>(MockBehavior.Strict);
             context.SetupGet(instance => instance.Mappings).Returns(mappings.Object);
             var entityMock = new Mock<MulticastObject>(MockBehavior.Strict);

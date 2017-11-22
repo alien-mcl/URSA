@@ -43,7 +43,7 @@ namespace URSA.Web.Http.Description.Entities
 
         internal static bool IsCollection(this Rdfs.IClass @class)
         {
-            return @class.IsClass(@class.Context.Mappings.FindEntityMappingFor<ICollection>().Classes.First().Term);
+            return @class.IsClass(@class.Context.Mappings.FindEntityMappingFor<ICollection>(null).Classes.First().Term);
         }
 
         internal static IRestriction CreateRestriction(this IResource resource, Uri onProperty, IEntity allValuesFrom)
@@ -104,14 +104,17 @@ namespace URSA.Web.Http.Description.Entities
 
             var target = targetEntity.Unwrap();
             var source = sourceEntity.Unwrap();
-            foreach (var property in targetEntity.Context.Mappings.FindEntityMappingFor<T>().Properties)
+            foreach (var property in targetEntity.Context.Mappings.FindEntityMappingFor<T>(null).Properties)
             {
-                var value = source.GetProperty(typeof(T), property.Name);
+                var propertyInfo = typeof(T).GetTypeInfo().GetProperties()
+                    .Concat(typeof(T).GetInterfaces().SelectMany(@interface => @interface.GetProperties()))
+                    .First(item => item.Name == property.Name);
+                var value = source.GetProperty(propertyInfo);
                 if (value == null)
                 {
                     if (depth == 0)
                     {
-                        target.SetProperty(typeof(T), property.Name, null);
+                        target.SetProperty(propertyInfo, null);
                     }
 
                     continue;
@@ -123,14 +126,14 @@ namespace URSA.Web.Http.Description.Entities
                 }
                 else if (value is IEntity)
                 {
-                    var current = (IEntity)target.GetProperty(typeof(T), property.Name);
+                    var current = (IEntity)target.GetProperty(propertyInfo);
                     value = (current != null ? current.Update((IEntity)value) :
                         ActLikeMethod.MakeGenericMethod(property.ReturnType).Invoke(null, new[] { targetEntity.Context.Copy((IEntity)value) }));
                 }
 
                 if (value != null)
                 {
-                    target.SetProperty(typeof(T), property.Name, value);
+                    target.SetProperty(propertyInfo, value);
                 }
             }
 
@@ -141,7 +144,8 @@ namespace URSA.Web.Http.Description.Entities
         {
             var target = targetEntity.Unwrap();
             int indexOf = -1;
-            IEnumerable current = (IEnumerable)target.GetProperty(typeof(T), property.Name);
+            var propertyInfo = typeof(T).GetTypeInfo().GetProperty(property.Name);
+            IEnumerable current = (IEnumerable)target.GetProperty(propertyInfo);
             var collection = (current != null ? new AbstractCollectionWrapper(current) : new AbstractCollectionWrapper(new List<object>()) { IsReplaced = true });
             var itemType = property.ReturnType.GetTypeInfo().GetItemType();
             foreach (var item in sourceValues)

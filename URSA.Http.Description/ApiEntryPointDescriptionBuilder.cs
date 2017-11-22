@@ -139,7 +139,7 @@ namespace URSA.Web.Http.Description
 
         private void BuildEntryPointDescription(IApiDocumentation apiDocumentation, ControllerInfo entryPointControllerInfo)
         {
-            var classUri = apiDocumentation.Context.Mappings.FindEntityMappingFor<IApiDocumentation>().Classes.Select(item => item.Term).FirstOrDefault();
+            var classUri = apiDocumentation.Context.Mappings.FindEntityMappingFor<IApiDocumentation>(null).Classes.Select(item => item.Term).FirstOrDefault();
             var apiDocumentationClass = apiDocumentation.Context.Create<IClass>(classUri);
             foreach (OperationInfo<Verb> operation in entryPointControllerInfo.Operations)
             {

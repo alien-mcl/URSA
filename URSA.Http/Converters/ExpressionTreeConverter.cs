@@ -158,7 +158,7 @@ namespace URSA.Web.Http.Converters
 
         private string GetPropertyMapping(Uri uri)
         {
-            var mapping = _entityContextFactory.Mappings.FindPropertyMappingFor(uri);
+            var mapping = _entityContextFactory.Mappings.FindPropertyMappingFor(null, uri);
             if (mapping == null)
             {
                 throw new ArgumentException(String.Format("Unknown property mapped with URI '{0}'.", uri));

@@ -56,8 +56,8 @@ namespace Given_instance_of_the.converter_of
             Func<PropertyInfo, Uri, bool> attributeMatch = (property, uri) => uri.Fragment.Contains(Regex.Replace(property.Name, "s$", String.Empty).ToLower());
             Func<Uri, string> propertyMatch = uri => typeof(IProduct).GetProperties().First(property => attributeMatch(property, uri)).Name;
             var mappingsRepository = new Mock<IMappingsRepository>(MockBehavior.Strict);
-            mappingsRepository.Setup(instance => instance.FindPropertyMappingFor(It.IsAny<Iri>(), null))
-                .Returns<Iri, Iri>((iri, graph) =>
+            mappingsRepository.Setup(instance => instance.FindPropertyMappingFor(null, It.IsAny<Iri>(), null))
+                .Returns<IEntity, Iri, Iri>((entity, iri, graph) =>
                     {
                         var result = new Mock<IPropertyMapping>(MockBehavior.Strict);
                         result.SetupGet(instance => instance.Name).Returns(propertyMatch(iri));

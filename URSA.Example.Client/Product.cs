@@ -17,28 +17,28 @@ namespace Vocab
     public interface IProduct : RDeF.Entities.IEntity
     {
         [RDeF.Mapping.Attributes.Property(Iri = "http://temp.uri/vocab#name")]
-        System.Object name { get; set; }
+        System.String Name { get; set; }
 
         [RDeF.Mapping.Attributes.Property(Iri = "http://temp.uri/vocab#price")]
-        System.Object price { get; set; }
+        System.Double Price { get; set; }
 
-        [RDeF.Mapping.Attributes.Property(Iri = "http://temp.uri/vocab#feature")]
-        System.Object feature { get; }
+        [RDeF.Mapping.Attributes.Collection(Iri = "http://temp.uri/vocab#feature")]
+        System.Collections.Generic.ICollection<System.String> Features { get;}
 
-        [RDeF.Mapping.Attributes.Property(Iri = "http://temp.uri/vocab#category")]
-        System.Object category { get; }
+        [RDeF.Mapping.Attributes.Collection(Iri = "http://temp.uri/vocab#category")]
+        System.Collections.Generic.IList<System.String> Categories { get;}
 
         [RDeF.Mapping.Attributes.Property(Iri = "http://temp.uri/vocab#partOf")]
-        System.Object partOf { get; set; }
+        Vocab.IProduct PartOf { get; set; }
 
-        [RDeF.Mapping.Attributes.Property(Iri = "http://temp.uri/vocab#similar")]
-        System.Object similar { get; }
+        [RDeF.Mapping.Attributes.Collection(Iri = "http://temp.uri/vocab#similar")]
+        System.Collections.Generic.ICollection<Vocab.IProduct> Similar { get;}
 
-        [RDeF.Mapping.Attributes.Property(Iri = "http://temp.uri/vocab#replacement")]
-        System.Object replacement { get; }
+        [RDeF.Mapping.Attributes.Collection(Iri = "http://temp.uri/vocab#replacement")]
+        System.Collections.Generic.IList<Vocab.IProduct> Replacements { get;}
 
         [RDeF.Mapping.Attributes.Property(Iri = "http://temp.uri/vocab#key")]
-        System.Object key { get; set; }
+        System.Guid Key { get; set; }
     }
 
     [System.CodeDom.Compiler.GeneratedCode("URSA HTTP client proxy generation tool", "1.0")]
@@ -50,20 +50,28 @@ namespace Vocab
 
         RDeF.Entities.Iri RDeF.Entities.IEntity.Iri { get { return _iri; } }
 
-        public System.Object name { get; set; }
+        public System.String Name { get; set; }
 
-        public System.Object price { get; set; }
+        public System.Double Price { get; set; }
 
-        public System.Object feature { get; }
+        private System.Collections.Generic.ICollection<System.String> _features = new System.Collections.Generic.List<System.String>();
 
-        public System.Object category { get; }
+        public System.Collections.Generic.ICollection<System.String> Features { get { return _features; } }
 
-        public System.Object partOf { get; set; }
+        private System.Collections.Generic.IList<System.String> _categories = new System.Collections.Generic.List<System.String>();
 
-        public System.Object similar { get; }
+        public System.Collections.Generic.IList<System.String> Categories { get { return _categories; } }
 
-        public System.Object replacement { get; }
+        public Vocab.IProduct PartOf { get; set; }
 
-        public System.Object key { get; set; }
+        private System.Collections.Generic.ICollection<Vocab.IProduct> _similar = new System.Collections.Generic.List<Vocab.IProduct>();
+
+        public System.Collections.Generic.ICollection<Vocab.IProduct> Similar { get { return _similar; } }
+
+        private System.Collections.Generic.IList<Vocab.IProduct> _replacements = new System.Collections.Generic.List<Vocab.IProduct>();
+
+        public System.Collections.Generic.IList<Vocab.IProduct> Replacements { get { return _replacements; } }
+
+        public System.Guid Key { get; set; }
     }
 }

@@ -15,21 +15,21 @@ namespace URSA.Example.WebApplication.Data
     [System.CodeDom.Compiler.GeneratedCode("URSA HTTP client proxy generation tool", "1.0")]
     public interface IPerson : RDeF.Entities.IEntity
     {
-        System.Object Key { get; set; }
+        System.Guid Key { get; set; }
 
-        System.Object Firstname { get; set; }
+        System.String Firstname { get; set; }
 
-        System.Object Lastname { get; set; }
+        System.String Lastname { get; set; }
 
-        System.Object Roles { get; set; }
+        System.Collections.Generic.ICollection<System.String> Roles { get; set; }
 
-        System.Object FavouriteDishes { get; set; }
+        System.Collections.Generic.IList<System.String> FavouriteDishes { get; set; }
 
-        System.Object Spouse { get; set; }
+        URSA.Example.WebApplication.Data.IPerson Spouse { get; set; }
 
-        System.Object Friends { get; set; }
+        System.Collections.Generic.ICollection<URSA.Example.WebApplication.Data.IPerson> Friends { get; set; }
 
-        System.Object Superiors { get; set; }
+        System.Collections.Generic.IList<URSA.Example.WebApplication.Data.IPerson> Superiors { get; set; }
     }
 
     [System.CodeDom.Compiler.GeneratedCode("URSA HTTP client proxy generation tool", "1.0")]
@@ -41,20 +41,20 @@ namespace URSA.Example.WebApplication.Data
 
         RDeF.Entities.Iri RDeF.Entities.IEntity.Iri { get { return _iri; } }
 
-        public System.Object Key { get; set; }
+        public System.Guid Key { get; set; }
 
-        public System.Object Firstname { get; set; }
+        public System.String Firstname { get; set; }
 
-        public System.Object Lastname { get; set; }
+        public System.String Lastname { get; set; }
 
-        public System.Object Roles { get; set; }
+        public System.Collections.Generic.ICollection<System.String> Roles { get; set; }
 
-        public System.Object FavouriteDishes { get; set; }
+        public System.Collections.Generic.IList<System.String> FavouriteDishes { get; set; }
 
-        public System.Object Spouse { get; set; }
+        public URSA.Example.WebApplication.Data.IPerson Spouse { get; set; }
 
-        public System.Object Friends { get; set; }
+        public System.Collections.Generic.ICollection<URSA.Example.WebApplication.Data.IPerson> Friends { get; set; }
 
-        public System.Object Superiors { get; set; }
+        public System.Collections.Generic.IList<URSA.Example.WebApplication.Data.IPerson> Superiors { get; set; }
     }
 }

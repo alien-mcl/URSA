@@ -21,5 +21,76 @@ namespace Vocab
         public ProductClient(HttpUrl baseUri) : base(baseUri)
         {
         }
+
+        public void Create(Vocab.IProduct product)
+        {
+            System.Collections.Generic.IDictionary<string, object> uriArguments = new System.Collections.Generic.Dictionary<string, object>();
+            var accept = new string[0];
+            var contentType = new string[] {
+                "application/rdf+xml",
+                "application/owl+xml",
+                "application/ld+json" };
+            System.Threading.Tasks.Task.Run(async () => await Call(Verb.POST, "/api/product#POSTProduct", accept, contentType, uriArguments, product)).Wait();
+        }
+
+        public System.Collections.Generic.ICollection<Vocab.IProduct> List(out System.Int32 totalEntities, System.Int32 _skip, System.Int32 _top, System.String _filter)
+        {
+            System.Collections.Generic.IDictionary<string, object> uriArguments = new System.Collections.Generic.Dictionary<string, object>();
+            var accept = new string[] {
+                "application/rdf+xml",
+                "application/owl+xml",
+                "application/ld+json" };
+            var contentType = new string[] {
+                "application/rdf+xml",
+                "application/owl+xml",
+                "application/ld+json" };
+            uriArguments["totalEntities"] = totalEntities = 0;
+            uriArguments["%24skip"] = _skip;
+            uriArguments["%24top"] = _top;
+            uriArguments["%24filter"] = _filter;
+            var result = System.Threading.Tasks.Task.Run(async () => await Call<System.Collections.Generic.ICollection<Vocab.IProduct>>(Verb.GET, "/api/product{?%24skip,%24top,%24filter}", accept, contentType, uriArguments)).Result;
+            totalEntities = (int)uriArguments["totalEntities"];
+            return result;
+        }
+
+        public Vocab.IProduct Get(System.Guid id)
+        {
+            System.Collections.Generic.IDictionary<string, object> uriArguments = new System.Collections.Generic.Dictionary<string, object>();
+            var accept = new string[] {
+                "application/rdf+xml",
+                "application/owl+xml",
+                "application/ld+json" };
+            var contentType = new string[] {
+                "application/rdf+xml",
+                "application/owl+xml",
+                "application/ld+json" };
+            uriArguments["id"] = id;
+            var result = System.Threading.Tasks.Task.Run(async () => await Call<Vocab.IProduct>(Verb.GET, "/api/product/{id}", accept, contentType, uriArguments)).Result;
+            return result;
+        }
+
+        public void Update(System.Guid id, Vocab.IProduct product)
+        {
+            System.Collections.Generic.IDictionary<string, object> uriArguments = new System.Collections.Generic.Dictionary<string, object>();
+            var accept = new string[0];
+            var contentType = new string[] {
+                "application/rdf+xml",
+                "application/owl+xml",
+                "application/ld+json" };
+            uriArguments["id"] = id;
+            System.Threading.Tasks.Task.Run(async () => await Call(Verb.PUT, "/api/product/{id}", accept, contentType, uriArguments, product)).Wait();
+        }
+
+        public void Delete(System.Guid id)
+        {
+            System.Collections.Generic.IDictionary<string, object> uriArguments = new System.Collections.Generic.Dictionary<string, object>();
+            var accept = new string[0];
+            var contentType = new string[] {
+                "application/rdf+xml",
+                "application/owl+xml",
+                "application/ld+json" };
+            uriArguments["id"] = id;
+            System.Threading.Tasks.Task.Run(async () => await Call(Verb.DELETE, "/api/product/{id}", accept, contentType, uriArguments)).Wait();
+        }
     }
 }

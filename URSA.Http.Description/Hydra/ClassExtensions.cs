@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.Serialization;
 using RDeF.Entities;
 using URSA.Web.Http.Description.Model;
 
@@ -19,7 +18,7 @@ namespace URSA.Web.Http.Description.Hydra
                 .Union(
                     from quad in ((ISerializableEntitySource)@class.Context.EntitySource).Statements
                     where (quad.Object != null) && (quad.Subject == @class.Iri) &&
-                        (quad.PredicateIs(@class.Context, @class.Context.Mappings.FindEntityMappingFor<ITemplatedLink>().Classes.First().Term))
+                        (quad.PredicateIs(@class.Context, @class.Context.Mappings.FindEntityMappingFor<ITemplatedLink>(null).Classes.First().Term))
                     let templatedLink = @class.Context.Load<ITemplatedLink>(quad.Predicate)
                     from operation in templatedLink.SupportedOperations
                     select new LinkedOperation(operation, @class.Context.Load<IIriTemplate>(quad.Object)));

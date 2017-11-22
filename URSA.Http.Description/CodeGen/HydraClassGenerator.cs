@@ -101,7 +101,7 @@ namespace URSA.CodeGen
                 return result;
             }
 
-            if (resource.Is(resource.Context.Mappings.FindEntityMappingFor<Web.Http.Description.Rdfs.IClass>().Classes.First().Term))
+            if (resource.Is(resource.Context.Mappings.FindEntityMappingFor<Web.Http.Description.Rdfs.IClass>(null).Classes.First().Term))
             {
                 CreateName(resource.ActLike<IClass>());
             }
@@ -133,7 +133,7 @@ namespace URSA.CodeGen
             IRestriction itemTypeRestriction;
             IEntity itemType = null;
             @class.SuperClasses().Any(restriction => (restriction.Is(owl.Restriction)) && ((itemTypeRestriction = restriction.ActLike<IRestriction>()).OnProperty != null) &&
-                (itemTypeRestriction.OnProperty.Iri == @class.Context.Mappings.FindEntityMappingFor<ICollection>().Properties.First(property => property.Name == "Members").Term) &&
+                (itemTypeRestriction.OnProperty.Iri == @class.Context.Mappings.FindEntityMappingFor<ICollection>(null).Properties.First(property => property.Name == "Members").Term) &&
                 ((itemType = itemTypeRestriction.AllValuesFrom) != null));
             if (itemType != null)
             {
@@ -160,7 +160,7 @@ namespace URSA.CodeGen
                 return CreateListName(@class, interfaceName);
             }
 
-            if (@class.IsClass(@class.Context.Mappings.FindEntityMappingFor<ICollection>().Classes.First().Term))
+            if (@class.IsClass(@class.Context.Mappings.FindEntityMappingFor<ICollection>(null).Classes.First().Term))
             {
                 return CreateCollectionName(@class, interfaceName);
             }

@@ -2,7 +2,7 @@
 using System.ComponentModel.DataAnnotations;
 using RDeF.Entities;
 using RDeF.Mapping.Attributes;
-using RDeF.Mapping.Mapping.Fluent;
+using RDeF.Mapping.Fluent;
 using URSA.Web;
 
 namespace URSA.Example.WebApplication.Data
@@ -24,8 +24,8 @@ namespace URSA.Example.WebApplication.Data
     /// <summary>Provides additional mappings for the <see cref="IArticle" />.</summary>
     public class ArticleMap : EntityMap<IArticle>
     {
-        /// <summary>Initializes a new instance of the <see cref="ArticleMap"/> class.</summary>
-        public ArticleMap()
+        /// <inheritdoc />
+        public override void CreateMappings()
         {
             WithProperty(instance => instance.Key).MappedTo(new Iri("http://temp.uri/vocab#key"));
         }

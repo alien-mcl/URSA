@@ -83,7 +83,7 @@ namespace URSA.Web.Http.Description
             var classUri = itemType.MakeUri();
             if (typeof(IEntity).IsAssignableFrom(itemType))
             {
-                classUri = context.Entity.Context.Mappings.FindEntityMappingFor(itemType).Classes.Select(item => item.Term).FirstOrDefault() ?? classUri;
+                classUri = context.Entity.Context.Mappings.FindEntityMappingFor(null, itemType).Classes.Select(item => item.Term).FirstOrDefault() ?? classUri;
                 requiresRdf = true;
             }
 
@@ -186,14 +186,14 @@ namespace URSA.Web.Http.Description
 
         private IClass CreateCollectionDefinition(DescriptionContext context, out bool requiresRdf, out Type itemType, bool isGeneric = true)
         {
-            var result = CreateEnumerableDefinition(context, context.Entity.Context.Mappings.FindEntityMappingFor<ICollection>().Classes.First().Term, out requiresRdf, out itemType, isGeneric);
+            var result = CreateEnumerableDefinition(context, context.Entity.Context.Mappings.FindEntityMappingFor<ICollection>(null).Classes.First().Term, out requiresRdf, out itemType, isGeneric);
             if (!isGeneric)
             {
                 return result;
             }
 
             var memberType = (context.ContainsType(itemType) ? context[itemType] : BuildTypeDescription(context.ForType(itemType), out requiresRdf));
-            result.SubClassOf.Add(result.CreateRestriction(context.Entity.Context.Mappings.FindEntityMappingFor<ICollection>().Properties.First(property => property.Name == "Members").Term, memberType));
+            result.SubClassOf.Add(result.CreateRestriction(context.Entity.Context.Mappings.FindEntityMappingFor<ICollection>(null).Properties.First(property => property.Name == "Members").Term, memberType));
             return result;
         }
 
@@ -220,7 +220,7 @@ namespace URSA.Web.Http.Description
         {
             var propertyId = GetSupportedPropertyId(property, declaringType);
             var propertyUri = !typeof(IEntity).IsAssignableFrom(context.Type) ? new Iri(((Uri)@class.Iri).AddName(property.Name)) :
-                context.Entity.Context.Mappings.FindEntityMappingFor(context.Type).Properties.First(item => item.Name == property.Name).Term;
+                context.Entity.Context.Mappings.FindEntityMappingFor(null, context.Type).Properties.First(item => item.Name == property.Name).Term;
             var result = context.Entity.Context.Create<ISupportedProperty>(propertyId);
             result.Readable = property.CanRead;
             result.Writeable = property.CanWrite;

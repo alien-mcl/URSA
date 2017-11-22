@@ -191,7 +191,7 @@ namespace URSA.Web.Http.Description
 
         private void BuildDescription(DescriptionContext context, IClass specializationType)
         {
-            if (context.Entity.Is(context.Entity.Context.Mappings.FindEntityMappingFor<IApiDocumentation>().Classes.Select(@class => @class.Term)))
+            if (context.Entity.Is(context.Entity.Context.Mappings.FindEntityMappingFor<IApiDocumentation>(null).Classes.Select(@class => @class.Term)))
             {
                 context.Entity.ActLike<IApiDocumentation>().SupportedClasses.Add(specializationType);
             }
